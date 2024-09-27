@@ -659,11 +659,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         } else {
           await tx.contactChannel.upsert({
             where: {
-              projectId_projectUserId_type_value: {
+              projectId_projectUserId_type_isPrimary: {
                 projectId: auth.project.id,
                 projectUserId: params.user_id,
                 type: 'EMAIL',
-                value: data.primary_email,
+                isPrimary: "TRUE",
               },
             },
             create: {
