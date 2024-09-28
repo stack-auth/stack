@@ -139,7 +139,7 @@ export function SwitchListField<F extends FieldValues>(props: {
     <FormField
       control={props.control}
       name={props.name}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <FormItem>
           <FormLabel>{props.label}</FormLabel>
           <div className="flex flex-col rounded-lg border p-3 shadow-sm space-y-4">
@@ -159,10 +159,14 @@ export function SwitchListField<F extends FieldValues>(props: {
                     disabled={props.disabled}
                   />
                 </FormControl>
-                <FormMessage />
               </label>
             ))}
           </div>
+          {fieldState.error && (
+            <p className="text-sm font-medium text-red-500 mt-2">
+              {fieldState.error.message}
+            </p>
+          )}
         </FormItem>
       )}
     />
