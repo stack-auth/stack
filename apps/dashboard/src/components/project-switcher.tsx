@@ -33,7 +33,7 @@ export function ProjectSwitcher(props: { currentProjectId: string }) {
       >
         <SelectValue placeholder="Select an account">
           <ProjectAvatar displayName={currentProject?.displayName || ""} />
-          <span className="w-[90%] truncate">
+          <span className="w-32 sm:w-44 truncate">
             { currentProject?.displayName }
           </span>
         </SelectValue>
