@@ -66,8 +66,12 @@ export const contactChannelToCrud = (channel: Prisma.ContactChannelGetPayload<{}
   }
 
   return {
+    id: channel.id,
     type: 'email',
-    email: channel.value,
+    value: channel.value,
+    is_primary: !!channel.isPrimary,
+    is_verified: channel.isVerified,
+    used_for_auth: !!channel.usedForAuth,
   };
 };
 
@@ -101,43 +105,7 @@ export const userPrismaToCrud = (
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
   }
 
-  const authMethods: UsersCrud["Admin"]["Read"]["auth_methods"] = prisma.authMethods
-    .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-    .map((m) => {
-      if ([m.passwordAuthMethod, m.otpAuthMethod, m.oauthAuthMethod].filter(Boolean).length > 1) {
-        throw new StackAssertionError(`AuthMethod ${m.id} violates the union constraint`, m);
-      }
-
-      if (m.passwordAuthMethod) {
-        return {
-          type: 'password',
-        };
-      } else if (m.otpAuthMethod) {
-        return {
-          type: 'otp',
-        };
-      } else if (m.oauthAuthMethod) {
-        return {
-          type: 'oauth',
-          provider: {
-            ...oauthProviderConfigToCrud(m.oauthAuthMethod.oauthProviderConfig),
-            provider_user_id: m.oauthAuthMethod.providerAccountId,
-          },
-        };
-      } else {
-        throw new StackAssertionError("AuthMethod has no auth methods", m);
-      }
-    });
-
-  const connectedAccounts: UsersCrud["Admin"]["Read"]["connected_accounts"] = prisma.connectedAccounts.map((a) => {
-    return {
-      type: 'oauth',
-      provider: {
-        ...oauthProviderConfigToCrud(a.oauthProviderConfig),
-        provider_user_id: a.providerAccountId,
-      },
-    };
-  });
+  const contactChannels = prisma.contactChannels.map(c => contactChannelToCrud(c));
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const primaryEmailContactChannel = prisma.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
@@ -162,11 +130,10 @@ export const userPrismaToCrud = (
       account_id: a.providerAccountId,
       email: a.email,
     })),
-    auth_methods: authMethods,
-    connected_accounts: connectedAccounts,
     selected_team_id: selectedTeamMembers[0]?.teamId ?? null,
     selected_team: selectedTeamMembers[0] ? teamPrismaToCrud(selectedTeamMembers[0]?.team) : null,
     last_active_at_millis: lastActiveAtMillis,
+    contact_channels: contactChannels,
   };
 };
 
