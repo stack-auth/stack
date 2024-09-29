@@ -34,20 +34,9 @@ describe("with grant_type === 'authorization_code'", async () => {
       NiceResponse {
         "status": 200,
         "body": {
-          "auth_methods": [
-            {
-              "provider": {
-                "id": "spotify",
-                "provider_user_id": "<stripped UUID>@stack-generated.example.com",
-                "type": "spotify",
-              },
-              "type": "oauth",
-            },
-          ],
           "auth_with_email": false,
           "client_metadata": null,
           "client_read_only_metadata": null,
-          "connected_accounts": [],
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",
