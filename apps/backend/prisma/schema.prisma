@@ -381,11 +381,6 @@ model OtpAuthMethodConfig {
   @@id([projectConfigId, authMethodConfigId])
 }
 
-enum PasswordAuthMethodIdentifierType {
-  EMAIL
-  // USERNAME
-}
-
 model PasswordAuthMethodConfig {
   projectConfigId    String @db.Uuid
   authMethodConfigId String @db.Uuid
@@ -394,8 +389,6 @@ model PasswordAuthMethodConfig {
   updatedAt DateTime @updatedAt
 
   authMethodConfig AuthMethodConfig @relation(fields: [projectConfigId, authMethodConfigId], references: [projectConfigId, id], onDelete: Cascade)
-
-  identifierType PasswordAuthMethodIdentifierType
 
   @@id([projectConfigId, authMethodConfigId])
 }
@@ -521,8 +514,7 @@ model PasswordAuthMethod {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  identifierType PasswordAuthMethodIdentifierType
-  passwordHash   String
+  passwordHash String
 
   authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)

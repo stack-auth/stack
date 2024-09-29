@@ -46,14 +46,9 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
   auth_methods: fieldSchema.yupArray(fieldSchema.yupUnion(
     fieldSchema.yupObject({
       type: fieldSchema.yupString().oneOf(['password']).required(),
-      identifier: fieldSchema.yupString().required(),
     }).required(),
     fieldSchema.yupObject({
       type: fieldSchema.yupString().oneOf(['otp']).required(),
-      contact_channel: fieldSchema.yupObject({
-        type: fieldSchema.yupString().oneOf(['email']).required(),
-        email: fieldSchema.yupString().required(),
-      }).required(),
     }).required(),
     fieldSchema.yupObject({
       type: fieldSchema.yupString().oneOf(['oauth']).required(),

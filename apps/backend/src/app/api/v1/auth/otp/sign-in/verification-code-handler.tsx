@@ -55,33 +55,52 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     };
   },
   async handler(project, { email }, data) {
-    const authMethods = await prismaClient.otpAuthMethod.findMany({
+    // const authMethods = await prismaClient.otpAuthMethod.findMany({
+    //   where: {
+    //     projectId: project.id,
+    //     contactChannel: {
+    //       type: "EMAIL",
+    //       value: email,
+    //     },
+    //   },
+    //   include: {
+    //     projectUser: true,
+    //   }
+    // });
+
+    const contactChannel = await prismaClient.contactChannel.findUnique({
       where: {
-        projectId: project.id,
-        contactChannel: {
+        projectId_type_value_usedForAuth: {
+          projectId: project.id,
           type: "EMAIL",
           value: email,
-        },
+          usedForAuth: "TRUE",
+        }
       },
       include: {
-        projectUser: true,
+        projectUser: {
+          include: {
+            authMethods: {
+              include: {
+                otpAuthMethod: true,
+              }
+            }
+          }
+        }
       }
     });
 
-    if (authMethods.length === 0) {
+    if (!contactChannel) {
       throw new StackAssertionError("Tried to use OTP sign in but auth method was not found?");
     }
-    if (authMethods.length > 1) {
-      throw new StackAssertionError("Tried to use OTP sign in but found multiple auth methods? The uniqueness on the DB schema should prevent this");
-    }
 
-    const authMethod = authMethods[0];
+    const otpAuthMethod = contactChannel.projectUser.authMethods.find((m) => m.otpAuthMethod)?.otpAuthMethod;
 
-    if (authMethod.projectUser.requiresTotpMfa) {
+    if (contactChannel.projectUser.requiresTotpMfa) {
       throw await createMfaRequiredError({
         project,
         isNewUser: data.is_new_user,
-        userId: authMethod.projectUserId,
+        userId: contactChannel.projectUser.projectUserId,
       });
     }
 
@@ -89,7 +108,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
       where: {
         projectId_projectUserId_type_value: {
           projectId: project.id,
-          projectUserId: authMethod.projectUserId,
+          projectUserId: contactChannel.projectUser.projectUserId,
           type: "EMAIL",
           value: email,
         }
@@ -101,7 +120,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
 
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
-      projectUserId: authMethod.projectUserId,
+      projectUserId: contactChannel.projectUser.projectUserId,
     });
 
     return {

@@ -26,6 +26,7 @@ export const userFullInclude = {
   authMethods: {
     include: {
       passwordAuthMethod: true,
+      otpAuthMethod: true,
       oauthAuthMethod: {
         include: {
           oauthProviderConfig: {
@@ -36,11 +37,6 @@ export const userFullInclude = {
           }
         }
       },
-      otpAuthMethod: {
-        include: {
-          contactChannel: true,
-        }
-      }
     }
   },
   connectedAccounts: {
@@ -115,15 +111,10 @@ export const userPrismaToCrud = (
       if (m.passwordAuthMethod) {
         return {
           type: 'password',
-          identifier: m.passwordAuthMethod.identifier,
         };
       } else if (m.otpAuthMethod) {
         return {
           type: 'otp',
-          contact_channel: {
-            type: 'email',
-            email: m.otpAuthMethod.contactChannel.value,
-          },
         };
       } else if (m.oauthAuthMethod) {
         return {
@@ -201,28 +192,16 @@ async function checkAuthData(
   }
   if (data.primaryEmailAuthEnabled) {
     if (!data.oldPrimaryEmail || data.oldPrimaryEmail !== data.primaryEmail) {
-      const otpAuth = await tx.otpAuthMethod.findFirst({
+      const otpAuth = await tx.contactChannel.findFirst({
         where: {
           projectId: data.projectId,
-          contactChannel: {
-            type: 'EMAIL',
-            value: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
-          },
+          type: 'EMAIL',
+          value: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
+          usedForAuth: BooleanTrue.TRUE,
         }
       });
 
       if (otpAuth) {
-        throw new KnownErrors.UserEmailAlreadyExists();
-      }
-
-      const passwordAuth = await tx.passwordAuthMethod.findFirst({
-        where: {
-          projectId: data.projectId,
-          identifier: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
-        }
-      });
-
-      if (passwordAuth) {
         throw new KnownErrors.UserEmailAlreadyExists();
       }
     }
@@ -460,7 +439,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       }
 
       if (data.primary_email) {
-        const contactChannel = await tx.contactChannel.create({
+        await tx.contactChannel.create({
           data: {
             projectUserId: newUser.projectUserId,
             projectId: auth.project.id,
@@ -484,7 +463,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 otpAuthMethod: {
                   create: {
                     projectUserId: newUser.projectUserId,
-                    contactChannelId: contactChannel.id,
                   }
                 }
               }
@@ -507,9 +485,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               authMethodConfigId: passwordConfig.authMethodConfigId,
               passwordAuthMethod: {
                 create: {
-                  identifier: data.primary_email || throwErr("password is set but primary_email is not"),
                   passwordHash: await hashPassword(data.password),
-                  identifierType: 'EMAIL',
                   projectUserId: newUser.projectUserId,
                 }
               }
@@ -614,8 +590,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       const primaryEmailContactChannel = oldUser.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
-      const otpAuth = oldUser.authMethods.find((m) => m.otpAuthMethod && m.otpAuthMethod.contactChannel.id === primaryEmailContactChannel?.id)?.otpAuthMethod;
-      const passwordAuth = oldUser.authMethods.find((m) => m.passwordAuthMethod && m.passwordAuthMethod.identifier === primaryEmailContactChannel?.value)?.passwordAuthMethod;
+      const otpAuth = oldUser.authMethods.find((m) => m.otpAuthMethod)?.otpAuthMethod;
+      const passwordAuth = oldUser.authMethods.find((m) => m.passwordAuthMethod)?.passwordAuthMethod;
 
       await checkAuthData(tx, {
         projectId: auth.project.id,
@@ -678,20 +654,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               value: data.primary_email,
             }
           });
-
-          if (passwordAuth) {
-            await tx.passwordAuthMethod.update({
-              where: {
-                projectId_authMethodId: {
-                  projectId: auth.project.id,
-                  authMethodId: passwordAuth.authMethodId,
-                },
-              },
-              data: {
-                identifier: data.primary_email,
-              }
-            });
-          }
         }
       }
 
@@ -745,7 +707,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                   otpAuthMethod: {
                     create: {
                       projectUserId: params.user_id,
-                      contactChannelId: primaryEmailChannel.id,
                     }
                   }
                 }
@@ -823,9 +784,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 authMethodConfigId: passwordConfig.authMethodConfigId,
                 passwordAuthMethod: {
                   create: {
-                    identifier: primaryEmailChannel.value,
                     passwordHash: await hashPassword(data.password),
-                    identifierType: 'EMAIL',
                     projectUserId: params.user_id,
                   }
                 }
