@@ -141,9 +141,7 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
               ...(data.config?.credential_enabled ?? true) ? [{
                 enabled: true,
                 passwordConfig: {
-                  create: {
-                    identifierType: 'EMAIL',
-                  }
+                  create: {}
                 },
               }] : [],
             ]

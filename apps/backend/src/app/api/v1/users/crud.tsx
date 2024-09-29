@@ -447,6 +447,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             value: data.primary_email || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
             isVerified: data.primary_email_verified ?? false,
             isPrimary: "TRUE",
+            usedForAuth: data.primary_email_auth_enabled ? BooleanTrue.TRUE : null,
           }
         });
 
@@ -605,10 +606,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       // if there is a new primary email
       // - create a new primary email contact channel if it doesn't exist
       // - update the primary email contact channel if it exists
-      // - update the password auth method if it exists
       // if the primary email is null
       // - delete the primary email contact channel if it exists (note that this will also delete the related auth methods)
-      // - delete the password auth method if it exists
       if (data.primary_email !== undefined) {
         if (data.primary_email === null) {
           await tx.contactChannel.delete({
@@ -621,17 +620,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               },
             },
           });
-
-          if (passwordAuth) {
-            await tx.authMethod.delete({
-              where: {
-                projectId_id: {
-                  projectId: auth.project.id,
-                  id: passwordAuth.authMethodId,
-                },
-              },
-            });
-          }
         } else {
           await tx.contactChannel.upsert({
             where: {
@@ -652,6 +640,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             },
             update: {
               value: data.primary_email,
+              usedForAuth: data.primary_email_auth_enabled ? BooleanTrue.TRUE : null,
             }
           });
         }
