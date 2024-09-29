@@ -39,20 +39,6 @@ export const POST = createSmartRouteHandler({
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
 
-    // const authMethods = await prismaClient.otpAuthMethod.findMany({
-    //   where: {
-    //     projectId: project.id,
-    //     contactChannel: {
-    //       type: "EMAIL",
-    //       value: email,
-    //     },
-    //   },
-    //   include: {
-    //     projectUser: true,
-    //     contactChannel: true,
-    //   }
-    // });
-
     const contactChannel = await prismaClient.contactChannel.findUnique({
       where: {
         projectId_type_value_usedForAuth: {
