@@ -774,7 +774,53 @@ describe("with server access", () => {
     `);
   });
 
-  it.todo("should be able to list users");
+  it("should be able to list users", async ({ expect }) => {
+    await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+    await Auth.Otp.signIn();
+
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "is_paginated": false,
+          "items": [
+            {
+              "auth_methods": [
+                {
+                  "contact_channel": {
+                    "email": "<stripped UUID>@stack-generated.example.com",
+                    "type": "email",
+                  },
+                  "type": "otp",
+                },
+              ],
+              "auth_with_email": true,
+              "client_metadata": null,
+              "client_read_only_metadata": null,
+              "connected_accounts": [],
+              "display_name": null,
+              "has_password": false,
+              "id": "<stripped UUID>",
+              "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+              "oauth_providers": [],
+              "primary_email": "<stripped UUID>@stack-generated.example.com",
+              "primary_email_verified": true,
+              "profile_image_url": null,
+              "requires_totp_mfa": false,
+              "selected_team": null,
+              "selected_team_id": null,
+              "server_metadata": null,
+              "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+            },
+          ],
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
 
   it("should be able to read a user", async ({ expect }) => {
     await Auth.Otp.signIn();
@@ -1553,5 +1599,50 @@ describe("with server access", () => {
       },
     });
     expect(response.body.profile_image_url).toEqual("http://localhost:8101/open-graph-image.png");
+  });
+
+  it("should be able to update primary email", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        primary_email: "new-primary-email@example.com",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_methods": [
+            {
+              "contact_channel": {
+                "email": "new-primary-email@example.com",
+                "type": "email",
+              },
+              "type": "otp",
+            },
+          ],
+          "auth_with_email": true,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "connected_accounts": [],
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+          "oauth_providers": [],
+          "primary_email": "new-primary-email@example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
   });
 });
