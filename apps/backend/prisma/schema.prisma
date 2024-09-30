@@ -504,6 +504,8 @@ model OtpAuthMethod {
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
+  // a user can only have one OTP auth method
+  @@unique([projectId, projectUserId])
 }
 
 model PasswordAuthMethod {
@@ -520,6 +522,8 @@ model PasswordAuthMethod {
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
+  // a user can only have one password auth method
+  @@unique([projectId, projectUserId])
 }
 
 // This connects to projectUserOauthAccount, which might be shared between auth method and connected account.

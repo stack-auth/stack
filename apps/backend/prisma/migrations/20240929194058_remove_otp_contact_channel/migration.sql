@@ -56,3 +56,9 @@ ALTER TABLE "PasswordAuthMethodConfig" DROP COLUMN "identifierType";
 -- DropEnum
 DROP TYPE "PasswordAuthMethodIdentifierType";
 
+-- CreateIndex
+CREATE UNIQUE INDEX "OtpAuthMethod_projectId_projectUserId_key" ON "OtpAuthMethod"("projectId", "projectUserId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "PasswordAuthMethod_projectId_projectUserId_key" ON "PasswordAuthMethod"("projectId", "projectUserId");
+
