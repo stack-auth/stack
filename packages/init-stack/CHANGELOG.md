@@ -1,5 +1,13 @@
 # @stackframe/init-stack
 
+## 2.6.1
+
+## 2.6.0
+
+### Minor Changes
+
+- OTP login, more providers, and styling improvements
+
 ## 2.5.37
 
 ## 2.5.36

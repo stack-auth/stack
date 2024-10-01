@@ -146,7 +146,10 @@ export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.ISchema<
         errors.push(e);
       }
     }
-    throw new AggregateError(errors, 'Invalid value; must be one of the provided schemas');
+    return context.createError({
+      message: `${context.path} is not matched by any of the provided schemas:\n${errors.map((e: any, i) => '\tSchema ' + i + ": \n\t\t" + e.errors.join('\n\t\t')).join('\n')}`,
+      path: context.path,
+    });
   });
 }
 

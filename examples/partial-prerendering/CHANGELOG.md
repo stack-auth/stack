@@ -1,5 +1,23 @@
 # partial-prerendering
 
+## 2.6.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.1
+
+## 2.6.0
+
+### Minor Changes
+
+- OTP login, more providers, and styling improvements
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.0
+
 ## 2.5.37
 
 ### Patch Changes

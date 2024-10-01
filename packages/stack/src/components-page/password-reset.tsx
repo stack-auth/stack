@@ -6,7 +6,7 @@ import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Button, Label, PasswordInput, Typography } from "@stackframe/stack-ui";
+import { Button, Label, PasswordInput, Typography, cn } from "@stackframe/stack-ui";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
@@ -74,43 +74,49 @@ export default function PasswordResetForm(props: {
     );
   }
 
+
   return (
     <MaybeFullPage fullPage={!!props.fullPage}>
-      <div className="text-center mb-6" style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
-        <Typography type='h2'>{t("Reset Your Password")}</Typography>
+      <div className={cn(
+        "flex flex-col items-stretch w-[380px]",
+        props.fullPage ? "p-4" : "p-0"
+      )}>
+        <div className="text-center mb-6">
+          <Typography type='h2'>{t("Reset Your Password")}</Typography>
+        </div>
+
+        <form
+          className="flex flex-col items-stretch"
+          onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
+          noValidate
+        >
+          <Label htmlFor="password" className="mb-1">{t("New Password")}</Label>
+          <PasswordInput
+            id="password"
+            {...register('password')}
+            onChange={() => {
+              clearErrors('password');
+              clearErrors('passwordRepeat');
+            }}
+          />
+          <FormWarningText text={errors.password?.message?.toString()} />
+
+          <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat New Password")}</Label>
+          <PasswordInput
+            id="repeat-password"
+            {...register('passwordRepeat')}
+            onChange={() => {
+              clearErrors('password');
+              clearErrors('passwordRepeat');
+            }}
+          />
+          <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
+
+          <Button type="submit" className="mt-6" loading={loading}>
+            {t("Reset Password")}
+          </Button>
+        </form>
       </div>
-
-      <form
-        style={{ display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
-        onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
-        noValidate
-      >
-        <Label htmlFor="password" className="mb-1">{t("New Password")}</Label>
-        <PasswordInput
-          id="password"
-          {...register('password')}
-          onChange={() => {
-            clearErrors('password');
-            clearErrors('passwordRepeat');
-          }}
-        />
-        <FormWarningText text={errors.password?.message?.toString()} />
-
-        <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat New Password")}</Label>
-        <PasswordInput
-          id="repeat-password"
-          {...register('passwordRepeat')}
-          onChange={() => {
-            clearErrors('password');
-            clearErrors('passwordRepeat');
-          }}
-        />
-        <FormWarningText text={errors.passwordRepeat?.message?.toString()} />
-
-        <Button type="submit" className="mt-6" loading={loading}>
-          {t("Reset Password")}
-        </Button>
-      </form>
     </MaybeFullPage>
   );
 }
