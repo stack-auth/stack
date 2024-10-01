@@ -37,6 +37,16 @@ describe("with grant_type === 'authorization_code'", async () => {
           "auth_with_email": false,
           "client_metadata": null,
           "client_read_only_metadata": null,
+          "contact_channels": [
+            {
+              "id": "<stripped UUID>",
+              "is_primary": true,
+              "is_verified": false,
+              "type": "email",
+              "used_for_auth": false,
+              "value": "<stripped UUID>@stack-generated.example.com",
+            },
+          ],
           "display_name": null,
           "has_password": false,
           "id": "<stripped UUID>",

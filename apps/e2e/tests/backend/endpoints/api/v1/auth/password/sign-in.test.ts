@@ -25,6 +25,16 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
         "auth_with_email": true,
         "client_metadata": null,
         "client_read_only_metadata": null,
+        "contact_channels": [
+          {
+            "id": "<stripped UUID>",
+            "is_primary": true,
+            "is_verified": false,
+            "type": "email",
+            "used_for_auth": true,
+            "value": "<stripped UUID>@stack-generated.example.com",
+          },
+        ],
         "display_name": null,
         "has_password": true,
         "id": "<stripped UUID>",

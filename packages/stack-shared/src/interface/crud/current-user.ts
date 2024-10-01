@@ -27,6 +27,7 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "oauth_providers",
   "selected_team_id",
   "requires_totp_mfa",
+  "contact_channels",
 ]).concat(yupObject({
   selected_team: teamsCrudClientReadSchema.nullable().defined(),
 })).nullable().defined(); // TODO: next-release: make required
