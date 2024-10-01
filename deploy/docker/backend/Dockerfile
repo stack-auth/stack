@@ -44,6 +44,7 @@ COPY --from=pruner /app/out/full/ .
 COPY docs ./docs
 
 # Required for NextJS build. Should be overridden at runtime.
+# check=skip=SecretsUsedInArgOrEnv
 ENV STACK_SERVER_SECRET=secret
 
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
