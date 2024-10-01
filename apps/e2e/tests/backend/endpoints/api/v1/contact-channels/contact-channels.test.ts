@@ -84,6 +84,59 @@ it("cannot create duplicate contact channels", async ({ expect }) => {
   `);
 });
 
+it("create contact channel on the server", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  const { userId } = await Auth.Otp.signIn();
+
+  const response = await niceBackendFetch(`/api/v1/contact-channels/${userId}`, {
+    accessType: "server",
+    method: "POST",
+    body: {
+      value: "test@example.com",
+      type: "email",
+      used_for_auth: false,
+      is_verified: true,
+    }
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 201,
+      "body": {
+        "id": "<stripped UUID>",
+        "is_verified": true,
+        "type": "email",
+        "used_for_auth": false,
+        "value": "test@example.com",
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const userResponse = await niceBackendFetch(`/api/v1/users/${userId}`, {
+    accessType: "server",
+  });
+  expect(userResponse.body.contact_channels).toMatchInlineSnapshot(`
+    [
+      {
+        "id": "<stripped UUID>",
+        "is_primary": true,
+        "is_verified": true,
+        "type": "email",
+        "used_for_auth": true,
+        "value": "<stripped UUID>@stack-generated.example.com",
+      },
+      {
+        "id": "<stripped UUID>",
+        "is_primary": false,
+        "is_verified": true,
+        "type": "email",
+        "used_for_auth": false,
+        "value": "test@example.com",
+      },
+    ]
+  `);
+});
+
 
 it("delete contact channel on the client", async ({ expect }) => {
   await Project.createAndSwitch({ config: { magic_link_enabled: true } });
