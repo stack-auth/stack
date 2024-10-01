@@ -217,3 +217,48 @@ it("cannot delete a contact channel that doesn't exist", async ({ expect }) => {
     }
   `);
 });
+
+it("lists current user's contact channels on the client", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  await Auth.Otp.signIn();
+
+  const response = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
+    accessType: "client",
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [
+          {
+            "id": "<stripped UUID>",
+            "is_verified": true,
+            "type": "email",
+            "used_for_auth": true,
+            "user_id": "<stripped UUID>",
+            "value": "<stripped UUID>@stack-generated.example.com",
+          },
+        ],
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+
+it("cannot list contact channels that is not from the current user on the client", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  await Auth.Otp.signIn();
+
+  const response = await niceBackendFetch("/api/v1/contact-channels?user_id=031448ab-178b-4d43-b31b-28f16c3c52a9", {
+    accessType: "client",
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 403,
+      "body": "Client can only list contact channels for their own user.",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
