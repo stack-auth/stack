@@ -14,6 +14,7 @@ import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-sh
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { contactChannelToCrud } from "../contact-channels/[user_id]/crud";
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 
 export const userFullInclude = {
@@ -58,22 +59,6 @@ export const userFullInclude = {
     },
   },
 } satisfies Prisma.ProjectUserInclude;
-
-export const contactChannelToCrud = (channel: Prisma.ContactChannelGetPayload<{}>) => {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (channel.type !== 'EMAIL') {
-    throw new StackAssertionError("Only email channels are supported");
-  }
-
-  return {
-    id: channel.id,
-    type: 'email',
-    value: channel.value,
-    is_primary: !!channel.isPrimary,
-    is_verified: channel.isVerified,
-    used_for_auth: !!channel.usedForAuth,
-  };
-};
 
 export const oauthProviderConfigToCrud = (
   config: Prisma.OAuthProviderConfigGetPayload<{ include: {
