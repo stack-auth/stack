@@ -121,7 +121,6 @@ async function seed() {
           otpAuthMethod: {
             create: {
               projectUserId: newUser.projectUserId,
-              contactChannelId: contactChannel.id,
             }
           }
         }
@@ -144,9 +143,7 @@ async function seed() {
           authMethodConfigId: passwordConfig.authMethodConfigId,
           passwordAuthMethod: {
             create: {
-              identifier: adminEmail,
               passwordHash: await hashPassword(adminPassword),
-              identifierType: 'EMAIL',
               projectUserId: newUser.projectUserId,
             }
           }
