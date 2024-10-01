@@ -22,15 +22,15 @@ export const contactChannelToCrud = (channel: Prisma.ContactChannelGetPayload<{}
 
 
 export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandlers(contactChannelsCrud, {
-  querySchema: yupObject({
+  querySchema: yupObject({}),
+  paramsSchema: yupObject({
     user_id: userIdOrMeSchema.required(),
     contact_channel_id: yupString().uuid().optional(),
   }),
-  paramsSchema: yupObject({}),
-  onCreate: async ({ query, auth, data }) => {
+  onCreate: async ({ params, auth, data }) => {
     if (auth.type === 'client') {
       const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
-      if (currentUserId !== query.user_id) {
+      if (currentUserId !== params.user_id) {
         throw new StatusError(StatusError.Forbidden, 'Client can only create contact channels for their own user.');
       }
     }
@@ -38,7 +38,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
     const contactChannel = await prismaClient.$transaction(async (tx) => {
       await ensureContactChannelDoesNotExists(tx, {
         projectId: auth.project.id,
-        userId: query.user_id,
+        userId: params.user_id,
         type: data.type,
         value: data.value,
       });
@@ -46,10 +46,10 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       return await tx.contactChannel.create({
         data: {
           projectId: auth.project.id,
-          projectUserId: query.user_id,
+          projectUserId: params.user_id,
           type: typedToUppercase(data.type),
           value: data.value,
-          isVerified: data.is_verified,
+          isVerified: data.is_verified ?? false,
           usedForAuth: data.used_for_auth ? 'TRUE' : null,
         },
       });
@@ -57,10 +57,10 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
     return contactChannelToCrud(contactChannel);
   },
-  onUpdate: async ({ query, auth, data }) => {
+  onUpdate: async ({ params, auth, data }) => {
     if (auth.type === 'client') {
       const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
-      if (currentUserId !== query.user_id) {
+      if (currentUserId !== params.user_id) {
         throw new StatusError(StatusError.Forbidden, 'Client can only update contact channels for their own user.');
       }
     }
@@ -68,16 +68,16 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
     const contactChannel = await prismaClient.$transaction(async (tx) => {
       await ensureContactChannelExists(tx, {
         projectId: auth.project.id,
-        userId: query.user_id,
-        contactChannelId: query.contact_channel_id || throwErr("Missing contact channel id"),
+        userId: params.user_id,
+        contactChannelId: params.contact_channel_id || throwErr("Missing contact channel id"),
       });
 
       return await tx.contactChannel.update({
         where: {
           projectId_projectUserId_id: {
             projectId: auth.project.id,
-            projectUserId: query.user_id,
-            id: query.contact_channel_id || throwErr("Missing contact channel id"),
+            projectUserId: params.user_id,
+            id: params.contact_channel_id || throwErr("Missing contact channel id"),
           },
         },
         data: {
@@ -91,10 +91,10 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
     return contactChannelToCrud(contactChannel);
   },
-  onDelete: async ({ query, auth }) => {
+  onDelete: async ({ params, auth }) => {
     if (auth.type === 'client') {
       const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
-      if (currentUserId !== query.user_id) {
+      if (currentUserId !== params.user_id) {
         throw new StatusError(StatusError.Forbidden, 'Client can only delete contact channels for their own user.');
       }
     }
@@ -102,16 +102,16 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
     await prismaClient.$transaction(async (tx) => {
       await ensureContactChannelExists(tx, {
         projectId: auth.project.id,
-        userId: query.user_id,
-        contactChannelId: query.contact_channel_id || throwErr("Missing contact channel id"),
+        userId: params.user_id,
+        contactChannelId: params.contact_channel_id || throwErr("Missing contact channel id"),
       });
 
       await tx.contactChannel.delete({
         where: {
           projectId_projectUserId_id: {
             projectId: auth.project.id,
-            projectUserId: query.user_id,
-            id: query.contact_channel_id || throwErr("Missing contact channel id"),
+            projectUserId: params.user_id,
+            id: params.contact_channel_id || throwErr("Missing contact channel id"),
           },
         },
       });

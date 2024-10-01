@@ -33,7 +33,7 @@ export const contactChannelsCrudClientCreateSchema = yupObject({
 }).required();
 
 export const contactChannelsCrudServerCreateSchema = contactChannelsCrudClientCreateSchema.concat(yupObject({
-  is_verified: yupBoolean().required(),
+  is_verified: yupBoolean().optional(),
 }));
 
 export const contactChannelsCrudClientDeleteSchema = yupMixed();
