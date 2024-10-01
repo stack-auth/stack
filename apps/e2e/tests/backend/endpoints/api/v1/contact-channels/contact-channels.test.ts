@@ -1,5 +1,5 @@
-import { it } from "../../../../../helpers";
-import { Auth, Project, niceBackendFetch } from "../../../../backend-helpers";
+import { createMailbox, it } from "../../../../../helpers";
+import { Auth, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 
 it("create contact channel on the client", async ({ expect }) => {
   await Project.createAndSwitch({ config: { magic_link_enabled: true } });
@@ -258,6 +258,99 @@ it("cannot list contact channels that is not from the current user on the client
     NiceResponse {
       "status": 403,
       "body": "Client can only list contact channels for their own user.",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("login with a newly created contact channel", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  await Auth.Otp.signIn();
+  const newMailbox = createMailbox();
+
+  const ccResponse = await niceBackendFetch("/api/v1/contact-channels", {
+    accessType: "client",
+    method: "POST",
+    body: {
+      value: newMailbox.emailAddress,
+      type: "email",
+      used_for_auth: true,
+      user_id: "me",
+    }
+  });
+
+  const response1 = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
+    accessType: "client",
+    method: "GET",
+  });
+  expect(response1.body.items.find((cc: any) => cc.value === newMailbox.emailAddress)?.is_verified).toBe(false);
+
+  backendContext.set({ mailbox: newMailbox });
+  await Auth.Otp.signIn();
+
+  const response2 = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
+    accessType: "client",
+    method: "GET",
+  });
+  expect(response2.body.items.map((cc: any) => cc.value).includes(newMailbox.emailAddress)).toBe(true);
+  expect(response2.body.items.find((cc: any) => cc.id === ccResponse.body.id)?.is_verified).toBe(true);
+});
+
+it("creates a new account when login with a contact channel that is not used for auth", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  await Auth.Otp.signIn();
+  const newMailbox = createMailbox();
+
+  await niceBackendFetch("/api/v1/contact-channels", {
+    accessType: "client",
+    method: "POST",
+    body: {
+      value: newMailbox.emailAddress,
+      type: "email",
+      used_for_auth: false,
+      user_id: "me",
+    }
+  });
+
+  const response1 = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
+    accessType: "client",
+    method: "GET",
+  });
+  expect(response1.body.items.find((cc: any) => cc.value === newMailbox.emailAddress)).toMatchInlineSnapshot(`
+    {
+      "id": "<stripped UUID>",
+      "is_verified": false,
+      "type": "email",
+      "used_for_auth": false,
+      "user_id": "<stripped UUID>",
+      "value": "<stripped UUID>@stack-generated.example.com",
+    }
+  `);
+
+  backendContext.set({ mailbox: newMailbox });
+  await Auth.Otp.signIn();
+
+  const response2 = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
+    accessType: "client",
+    method: "GET",
+  });
+  // should be a new account
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": false,
+        "items": [
+          {
+            "id": "<stripped UUID>",
+            "is_verified": true,
+            "type": "email",
+            "used_for_auth": true,
+            "user_id": "<stripped UUID>",
+            "value": "<stripped UUID>@stack-generated.example.com",
+          },
+        ],
+      },
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
