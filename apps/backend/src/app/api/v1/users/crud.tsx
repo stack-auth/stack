@@ -542,10 +542,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             `${data.display_name}'s Team` :
             data.primary_email ?
               `${data.primary_email}'s Team` :
-              "Personal Team"
-        },
-        query: {
-          add_current_user: "true",
+              "Personal Team",
+          creator_user_id: 'me',
         },
         project: auth.project,
         user: result,

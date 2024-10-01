@@ -776,11 +776,12 @@ export namespace Project {
 
 export namespace Team {
   export async function create(options: { accessType?: "client" | "server" } = {}, body?: any) {
-    const response = await niceBackendFetch("/api/v1/teams?add_current_user=true", {
+    const response = await niceBackendFetch("/api/v1/teams", {
       accessType: options.accessType ?? "server",
       method: "POST",
       body: {
         display_name: body?.display_name || 'New Team',
+        creator_user_id: 'me',
         ...body,
       },
     });
