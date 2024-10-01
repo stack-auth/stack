@@ -290,20 +290,22 @@ model ContactChannel {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  type       ContactChannelType
-  isPrimary  BooleanTrue?
-  isVerified Boolean
-  value      String
+  type        ContactChannelType
+  isPrimary   BooleanTrue?
+  usedForAuth BooleanTrue?
+  isVerified  Boolean
+  value       String
 
-  project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectUser   ProjectUser     @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
-  otpAuthMethod OtpAuthMethod[]
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   @@id([projectId, projectUserId, id])
   // each user has at most one primary contact channel of each type
   @@unique([projectId, projectUserId, type, isPrimary])
   // value must be unique per user per type
   @@unique([projectId, projectUserId, type, value])
+  // only one contact channel per project with the same value and type can be used for auth
+  @@unique([projectId, type, value, usedForAuth])
 }
 
 model ConnectedAccountConfig {
@@ -379,11 +381,6 @@ model OtpAuthMethodConfig {
   @@id([projectConfigId, authMethodConfigId])
 }
 
-enum PasswordAuthMethodIdentifierType {
-  EMAIL
-  // USERNAME
-}
-
 model PasswordAuthMethodConfig {
   projectConfigId    String @db.Uuid
   authMethodConfigId String @db.Uuid
@@ -392,8 +389,6 @@ model PasswordAuthMethodConfig {
   updatedAt DateTime @updatedAt
 
   authMethodConfig AuthMethodConfig @relation(fields: [projectConfigId, authMethodConfigId], references: [projectConfigId, id], onDelete: Cascade)
-
-  identifierType PasswordAuthMethodIdentifierType
 
   @@id([projectConfigId, authMethodConfigId])
 }
@@ -498,21 +493,19 @@ model AuthMethod {
 }
 
 model OtpAuthMethod {
-  projectId        String
-  authMethodId     String @db.Uuid
-  contactChannelId String @db.Uuid
-  projectUserId    String @db.Uuid
+  projectId     String
+  authMethodId  String @db.Uuid
+  projectUserId String @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  contactChannel ContactChannel @relation(fields: [projectId, projectUserId, contactChannelId], references: [projectId, projectUserId, id], onDelete: Cascade)
-  authMethod     AuthMethod     @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
-  projectUser    ProjectUser    @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
-  // each contact channel can only be used once per project as an otp method
-  @@unique([projectId, contactChannelId])
+  // a user can only have one OTP auth method
+  @@unique([projectId, projectUserId])
 }
 
 model PasswordAuthMethod {
@@ -523,17 +516,14 @@ model PasswordAuthMethod {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  identifierType PasswordAuthMethodIdentifierType
-  // The identifier is the email or username, depending on the type.
-  identifier     String
-  passwordHash   String
+  passwordHash String
 
   authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
 
   @@id([projectId, authMethodId])
-  // each identifier of each type can only occur once per project
-  @@unique([projectId, identifierType, identifier])
+  // a user can only have one password auth method
+  @@unique([projectId, projectUserId])
 }
 
 // This connects to projectUserOauthAccount, which might be shared between auth method and connected account.

@@ -869,7 +869,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return useMemo(() => teams.map((crud) => app._clientTeamFromCrud(crud)), [teams]);
       },
       async createTeam(data: TeamCreateOptions) {
-        const crud = await app._interface.createTeamForCurrentUser(teamCreateOptionsToCrud(data), session);
+        const crud = await app._interface.createClientTeam({
+          ...teamCreateOptionsToCrud(data),
+          creator_user_id: 'me',
+        }, session);
         await app._currentUserTeamsCache.refresh([session]);
         return app._clientTeamFromCrud(crud);
       },
@@ -1641,7 +1644,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return useMemo(() => teams.map((t) => app._serverTeamFromCrud(t)), [teams]);
       },
       createTeam: async (data: ServerTeamCreateOptions) => {
-        const team =  await app._interface.createServerTeam(serverTeamCreateOptionsToCrud(data), app._getSession());
+        const team =  await app._interface.createServerTeam({
+          ...serverTeamCreateOptionsToCrud(data),
+          creator_user_id: crud.id,
+        });
         await app._serverTeamsCache.refresh([undefined]);
         return app._serverTeamFromCrud(team);
       },

@@ -2,10 +2,9 @@ import { usersCrudHandlers } from "@/app/api/v1/users/crud";
 import { getProvider } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
-import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { connectedAccountAccessTokenCrud } from "@stackframe/stack-shared/dist/interface/crud/oauth";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
@@ -14,12 +13,10 @@ import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>createCrudHandlers(connectedAccountAccessTokenCrud, {
   paramsSchema: yupObject({
     provider_id: yupString().required(),
-    user_id: yupString().required(),
+    user_id: userIdOrMeSchema.required(),
   }),
   async onCreate({ auth, data, params }) {
-    const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
-
-    if (auth.type === 'client' && auth.user?.id !== userId) {
+    if (auth.type === 'client' && auth.user?.id !== params.user_id) {
       throw new StatusError(StatusError.Forbidden, "Client can only access its own connected accounts");
     }
 
@@ -32,7 +29,7 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
       throw new KnownErrors.OAuthAccessTokenNotAvailableWithSharedOAuthKeys();
     }
 
-    const user = await usersCrudHandlers.adminRead({ project: auth.project, user_id: userId });
+    const user = await usersCrudHandlers.adminRead({ project: auth.project, user_id: params.user_id });
     if (!user.oauth_providers.map(x => x.id).includes(params.provider_id)) {
       throw new KnownErrors.OAuthConnectionNotConnectedToUser();
     }
@@ -44,7 +41,7 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
         projectId: auth.project.id,
         oAuthProviderConfigId: params.provider_id,
         projectUserOAuthAccount: {
-          projectUserId: userId,
+          projectUserId: params.user_id,
         },
         expiresAt: {
           // is at least 5 minutes in the future
@@ -66,7 +63,7 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
         projectId: auth.project.id,
         oAuthProviderConfigId: params.provider_id,
         projectUserOAuthAccount: {
-          projectUserId: userId,
+          projectUserId: params.user_id,
         }
       },
     });

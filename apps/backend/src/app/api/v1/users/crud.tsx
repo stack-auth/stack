@@ -22,37 +22,14 @@ export const userFullInclude = {
       providerConfig: true,
     },
   },
-  contactChannels: true,
   authMethods: {
     include: {
       passwordAuthMethod: true,
-      oauthAuthMethod: {
-        include: {
-          oauthProviderConfig: {
-            include: {
-              proxiedOAuthConfig: true,
-              standardOAuthConfig: true,
-            },
-          }
-        }
-      },
-      otpAuthMethod: {
-        include: {
-          contactChannel: true,
-        }
-      }
+      otpAuthMethod: true,
+      oauthAuthMethod: true,
     }
   },
-  connectedAccounts: {
-    include: {
-      oauthProviderConfig: {
-        include: {
-          proxiedOAuthConfig: true,
-          standardOAuthConfig: true,
-        },
-      }
-    }
-  },
+  contactChannels: true,
   teamMembers: {
     include: {
       team: true,
@@ -70,8 +47,12 @@ export const contactChannelToCrud = (channel: Prisma.ContactChannelGetPayload<{}
   }
 
   return {
+    id: channel.id,
     type: 'email',
-    email: channel.value,
+    value: channel.value,
+    is_primary: !!channel.isPrimary,
+    is_verified: channel.isVerified,
+    used_for_auth: !!channel.usedForAuth,
   };
 };
 
@@ -105,49 +86,6 @@ export const userPrismaToCrud = (
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
   }
 
-  const authMethods: UsersCrud["Admin"]["Read"]["auth_methods"] = prisma.authMethods
-    .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-    .map((m) => {
-      if ([m.passwordAuthMethod, m.otpAuthMethod, m.oauthAuthMethod].filter(Boolean).length > 1) {
-        throw new StackAssertionError(`AuthMethod ${m.id} violates the union constraint`, m);
-      }
-
-      if (m.passwordAuthMethod) {
-        return {
-          type: 'password',
-          identifier: m.passwordAuthMethod.identifier,
-        };
-      } else if (m.otpAuthMethod) {
-        return {
-          type: 'otp',
-          contact_channel: {
-            type: 'email',
-            email: m.otpAuthMethod.contactChannel.value,
-          },
-        };
-      } else if (m.oauthAuthMethod) {
-        return {
-          type: 'oauth',
-          provider: {
-            ...oauthProviderConfigToCrud(m.oauthAuthMethod.oauthProviderConfig),
-            provider_user_id: m.oauthAuthMethod.providerAccountId,
-          },
-        };
-      } else {
-        throw new StackAssertionError("AuthMethod has no auth methods", m);
-      }
-    });
-
-  const connectedAccounts: UsersCrud["Admin"]["Read"]["connected_accounts"] = prisma.connectedAccounts.map((a) => {
-    return {
-      type: 'oauth',
-      provider: {
-        ...oauthProviderConfigToCrud(a.oauthProviderConfig),
-        provider_user_id: a.providerAccountId,
-      },
-    };
-  });
-
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const primaryEmailContactChannel = prisma.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
   const passwordAuth = prisma.authMethods.find((m) => m.passwordAuthMethod);
@@ -171,8 +109,6 @@ export const userPrismaToCrud = (
       account_id: a.providerAccountId,
       email: a.email,
     })),
-    auth_methods: authMethods,
-    connected_accounts: connectedAccounts,
     selected_team_id: selectedTeamMembers[0]?.teamId ?? null,
     selected_team: selectedTeamMembers[0] ? teamPrismaToCrud(selectedTeamMembers[0]?.team) : null,
     last_active_at_millis: lastActiveAtMillis,
@@ -201,28 +137,16 @@ async function checkAuthData(
   }
   if (data.primaryEmailAuthEnabled) {
     if (!data.oldPrimaryEmail || data.oldPrimaryEmail !== data.primaryEmail) {
-      const otpAuth = await tx.otpAuthMethod.findFirst({
+      const otpAuth = await tx.contactChannel.findFirst({
         where: {
           projectId: data.projectId,
-          contactChannel: {
-            type: 'EMAIL',
-            value: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
-          },
+          type: 'EMAIL',
+          value: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
+          usedForAuth: BooleanTrue.TRUE,
         }
       });
 
       if (otpAuth) {
-        throw new KnownErrors.UserEmailAlreadyExists();
-      }
-
-      const passwordAuth = await tx.passwordAuthMethod.findFirst({
-        where: {
-          projectId: data.projectId,
-          identifier: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
-        }
-      });
-
-      if (passwordAuth) {
         throw new KnownErrors.UserEmailAlreadyExists();
       }
     }
@@ -460,7 +384,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       }
 
       if (data.primary_email) {
-        const contactChannel = await tx.contactChannel.create({
+        await tx.contactChannel.create({
           data: {
             projectUserId: newUser.projectUserId,
             projectId: auth.project.id,
@@ -468,6 +392,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             value: data.primary_email || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
             isVerified: data.primary_email_verified ?? false,
             isPrimary: "TRUE",
+            usedForAuth: data.primary_email_auth_enabled ? BooleanTrue.TRUE : null,
           }
         });
 
@@ -484,7 +409,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 otpAuthMethod: {
                   create: {
                     projectUserId: newUser.projectUserId,
-                    contactChannelId: contactChannel.id,
                   }
                 }
               }
@@ -507,9 +431,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               authMethodConfigId: passwordConfig.authMethodConfigId,
               passwordAuthMethod: {
                 create: {
-                  identifier: data.primary_email || throwErr("password is set but primary_email is not"),
                   passwordHash: await hashPassword(data.password),
-                  identifierType: 'EMAIL',
                   projectUserId: newUser.projectUserId,
                 }
               }
@@ -542,10 +464,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             `${data.display_name}'s Team` :
             data.primary_email ?
               `${data.primary_email}'s Team` :
-              "Personal Team"
-        },
-        query: {
-          add_current_user: "true",
+              "Personal Team",
+          creator_user_id: 'me',
         },
         project: auth.project,
         user: result,
@@ -614,8 +534,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
       const primaryEmailContactChannel = oldUser.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
-      const otpAuth = oldUser.authMethods.find((m) => m.otpAuthMethod && m.otpAuthMethod.contactChannel.id === primaryEmailContactChannel?.id)?.otpAuthMethod;
-      const passwordAuth = oldUser.authMethods.find((m) => m.passwordAuthMethod && m.passwordAuthMethod.identifier === primaryEmailContactChannel?.value)?.passwordAuthMethod;
+      const otpAuth = oldUser.authMethods.find((m) => m.otpAuthMethod)?.otpAuthMethod;
+      const passwordAuth = oldUser.authMethods.find((m) => m.passwordAuthMethod)?.passwordAuthMethod;
 
       await checkAuthData(tx, {
         projectId: auth.project.id,
@@ -629,10 +549,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       // if there is a new primary email
       // - create a new primary email contact channel if it doesn't exist
       // - update the primary email contact channel if it exists
-      // - update the password auth method if it exists
       // if the primary email is null
       // - delete the primary email contact channel if it exists (note that this will also delete the related auth methods)
-      // - delete the password auth method if it exists
       if (data.primary_email !== undefined) {
         if (data.primary_email === null) {
           await tx.contactChannel.delete({
@@ -645,17 +563,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               },
             },
           });
-
-          if (passwordAuth) {
-            await tx.authMethod.delete({
-              where: {
-                projectId_id: {
-                  projectId: auth.project.id,
-                  id: passwordAuth.authMethodId,
-                },
-              },
-            });
-          }
         } else {
           await tx.contactChannel.upsert({
             where: {
@@ -676,22 +583,9 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             },
             update: {
               value: data.primary_email,
+              usedForAuth: data.primary_email_auth_enabled ? BooleanTrue.TRUE : null,
             }
           });
-
-          if (passwordAuth) {
-            await tx.passwordAuthMethod.update({
-              where: {
-                projectId_authMethodId: {
-                  projectId: auth.project.id,
-                  authMethodId: passwordAuth.authMethodId,
-                },
-              },
-              data: {
-                identifier: data.primary_email,
-              }
-            });
-          }
         }
       }
 
@@ -745,7 +639,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                   otpAuthMethod: {
                     create: {
                       projectUserId: params.user_id,
-                      contactChannelId: primaryEmailChannel.id,
                     }
                   }
                 }
@@ -823,9 +716,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 authMethodConfigId: passwordConfig.authMethodConfigId,
                 passwordAuthMethod: {
                   create: {
-                    identifier: primaryEmailChannel.value,
                     passwordHash: await hashPassword(data.password),
-                    identifierType: 'EMAIL',
                     projectUserId: params.user_id,
                   }
                 }

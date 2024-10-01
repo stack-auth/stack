@@ -37,39 +37,50 @@ export const POST = createSmartRouteHandler({
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
-    const authMethod = await prismaClient.passwordAuthMethod.findUnique({
+    const contactChannel = await prismaClient.contactChannel.findUnique({
       where: {
-        projectId_identifierType_identifier: {
+        projectId_type_value_usedForAuth: {
           projectId: project.id,
-          identifierType: "EMAIL",
-          identifier: email,
+          type: "EMAIL",
+          value: email,
+          usedForAuth: "TRUE",
         }
       },
       include: {
-        projectUser: true,
+        projectUser: {
+          include: {
+            authMethods: {
+              include: {
+                passwordAuthMethod: true,
+              }
+            }
+          }
+        }
       }
     });
 
+    const passwordAuthMethod = contactChannel?.projectUser.authMethods.find((m) => m.passwordAuthMethod)?.passwordAuthMethod;
+
     // we compare the password even if the authMethod doesn't exist to prevent timing attacks
-    if (!await comparePassword(password, authMethod?.passwordHash || "")) {
+    if (!await comparePassword(password, passwordAuthMethod?.passwordHash || "")) {
       throw new KnownErrors.EmailPasswordMismatch();
     }
 
-    if (!authMethod) {
+    if (!contactChannel || !passwordAuthMethod) {
       throw new StackAssertionError("This should never happen (the comparePassword call should've already caused this to fail)");
     }
 
-    if (authMethod.projectUser.requiresTotpMfa) {
+    if (contactChannel.projectUser.requiresTotpMfa) {
       throw await createMfaRequiredError({
         project,
         isNewUser: false,
-        userId: authMethod.projectUser.projectUserId,
+        userId: contactChannel.projectUser.projectUserId,
       });
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
-      projectUserId: authMethod.projectUser.projectUserId,
+      projectUserId: contactChannel.projectUser.projectUserId,
     });
 
     return {
@@ -78,7 +89,7 @@ export const POST = createSmartRouteHandler({
       body: {
         access_token: accessToken,
         refresh_token: refreshToken,
-        user_id: authMethod.projectUser.projectUserId,
+        user_id: contactChannel.projectUser.projectUserId,
       }
     };
   },
