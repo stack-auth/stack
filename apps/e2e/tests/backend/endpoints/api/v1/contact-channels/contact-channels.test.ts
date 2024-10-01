@@ -51,3 +51,43 @@ it("create contact channel on the client", async ({ expect }) => {
     ]
   `);
 });
+
+it("delete contact channel on the client", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  await Auth.Otp.signIn();
+
+  const meResponse = await niceBackendFetch("/api/v1/users/me", {
+    accessType: "client",
+  });
+  expect(meResponse.body.contact_channels).toMatchInlineSnapshot(`
+    [
+      {
+        "id": "<stripped UUID>",
+        "is_primary": true,
+        "is_verified": true,
+        "type": "email",
+        "used_for_auth": true,
+        "value": "<stripped UUID>@stack-generated.example.com",
+      },
+    ]
+  `);
+
+  const contactChannelId = meResponse.body.contact_channels[0].id;
+
+  const deleteResponse = await niceBackendFetch(`/api/v1/contact-channels/me/${contactChannelId}`, {
+    accessType: "client",
+    method: "DELETE",
+  });
+  expect(deleteResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "success": true },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const meResponse2 = await niceBackendFetch("/api/v1/users/me", {
+    accessType: "client",
+  });
+  expect(meResponse2.body.contact_channels).toMatchInlineSnapshot(`[]`);
+});
