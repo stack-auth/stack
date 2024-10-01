@@ -1,5 +1,5 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { yupBoolean, yupMixed, yupObject, yupString } from "../../schema-fields";
+import { userIdOrMeSchema, userIdSchema, yupBoolean, yupMixed, yupObject, yupString } from "../../schema-fields";
 
 const contactChannelsTypes = ['email'] as const;
 const type = yupString().oneOf(contactChannelsTypes);
@@ -9,6 +9,7 @@ const value = yupString().when('type', {
 });
 
 export const contactChannelsClientReadSchema = yupObject({
+  user_id: userIdSchema.required(),
   id: yupString().required(),
   value: value.required(),
   type: type.required(),
@@ -27,6 +28,7 @@ export const contactChannelsCrudServerUpdateSchema = contactChannelsCrudClientUp
 }));
 
 export const contactChannelsCrudClientCreateSchema = yupObject({
+  user_id: userIdOrMeSchema.required(),
   value: value.required(),
   type: type.required(),
   used_for_auth: yupBoolean().required(),

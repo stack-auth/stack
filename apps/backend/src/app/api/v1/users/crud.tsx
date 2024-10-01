@@ -14,7 +14,6 @@ import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-sh
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
-import { contactChannelToCrud } from "../contact-channels/[user_id]/crud";
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 
 export const userFullInclude = {

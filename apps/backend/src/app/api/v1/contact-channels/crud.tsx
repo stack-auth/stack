@@ -11,6 +11,7 @@ import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dis
 
 export const contactChannelToCrud = (channel: Prisma.ContactChannelGetPayload<{}>) => {
   return {
+    user_id: channel.projectUserId,
     id: channel.id,
     type: typedToLowercase(channel.type),
     value: channel.value,
@@ -20,17 +21,43 @@ export const contactChannelToCrud = (channel: Prisma.ContactChannelGetPayload<{}
   } as const;
 };
 
-
 export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandlers(contactChannelsCrud, {
-  querySchema: yupObject({}),
-  paramsSchema: yupObject({
-    user_id: userIdOrMeSchema.required(),
+  querySchema: yupObject({
+    user_id: userIdOrMeSchema.optional(),
     contact_channel_id: yupString().uuid().optional(),
   }),
-  onCreate: async ({ params, auth, data }) => {
+  paramsSchema: yupObject({
+    user_id: userIdOrMeSchema.required(),
+    contact_channel_id: yupString().uuid().required(),
+  }),
+  onRead: async ({ params, auth }) => {
     if (auth.type === 'client') {
       const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
       if (currentUserId !== params.user_id) {
+        throw new StatusError(StatusError.Forbidden, 'Client can only read contact channels for their own user.');
+      }
+    }
+
+    const contactChannel = await prismaClient.contactChannel.findUnique({
+      where: {
+        projectId_projectUserId_id: {
+          projectId: auth.project.id,
+          projectUserId: params.user_id,
+          id: params.contact_channel_id || throwErr("Missing contact channel id"),
+        },
+      },
+    });
+
+    if (!contactChannel) {
+      throw new StatusError(StatusError.NotFound, 'Contact channel not found.');
+    }
+
+    return contactChannelToCrud(contactChannel);
+  },
+  onCreate: async ({ auth, data }) => {
+    if (auth.type === 'client') {
+      const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+      if (currentUserId !== data.user_id) {
         throw new StatusError(StatusError.Forbidden, 'Client can only create contact channels for their own user.');
       }
     }
@@ -38,7 +65,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
     const contactChannel = await prismaClient.$transaction(async (tx) => {
       await ensureContactChannelDoesNotExists(tx, {
         projectId: auth.project.id,
-        userId: params.user_id,
+        userId: data.user_id,
         type: data.type,
         value: data.value,
       });
@@ -46,7 +73,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       return await tx.contactChannel.create({
         data: {
           projectId: auth.project.id,
-          projectUserId: params.user_id,
+          projectUserId: data.user_id,
           type: typedToUppercase(data.type),
           value: data.value,
           isVerified: data.is_verified ?? false,
@@ -83,4 +110,25 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       });
     });
   },
+  onList: async ({ query, auth }) => {
+    if (auth.type === 'client') {
+      const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+      if (currentUserId !== query.user_id) {
+        throw new StatusError(StatusError.Forbidden, 'Client can only list contact channels for their own user.');
+      }
+    }
+
+    const contactChannels = await prismaClient.contactChannel.findMany({
+      where: {
+        projectId: auth.project.id,
+        projectUserId: query.user_id,
+        id: query.contact_channel_id,
+      },
+    });
+
+    return {
+      items: contactChannels.map(contactChannelToCrud),
+      is_paginated: false,
+    };
+  }
 }));
