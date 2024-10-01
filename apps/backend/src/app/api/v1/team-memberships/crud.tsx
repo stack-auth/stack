@@ -2,7 +2,6 @@ import { ensureTeamExist, ensureTeamMembershipExists, ensureTeamMembershipDoesNo
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
-import { getIdFromUserIdOrMe } from "@/route-handlers/utils";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
@@ -57,8 +56,6 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
     user_id: userIdOrMeSchema.required(),
   }),
   onCreate: async ({ auth, params }) => {
-    const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
-
     await prismaClient.$transaction(async (tx) => {
       await ensureTeamExist(tx, {
         projectId: auth.project.id,
@@ -68,14 +65,14 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       await ensureTeamMembershipDoesNotExist(tx, {
         projectId: auth.project.id,
         teamId: params.team_id,
-        userId,
+        userId: params.user_id
       });
 
       const user = await tx.projectUser.findUnique({
         where: {
           projectId_projectUserId: {
             projectId: auth.project.id,
-            projectUserId: userId,
+            projectUserId: params.user_id,
           },
         },
       });
@@ -87,14 +84,14 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       await addUserToTeam(tx, {
         project: auth.project,
         teamId: params.team_id,
-        userId,
+        userId: params.user_id,
         type: 'member',
       });
     });
 
     const data = {
       team_id: params.team_id,
-      user_id: userId,
+      user_id: params.user_id,
     };
 
     await sendTeamMembershipCreatedWebhook({
@@ -105,15 +102,13 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
     return data;
   },
   onDelete: async ({ auth, params }) => {
-    const userId = getIdFromUserIdOrMe(params.user_id, auth.user);
-
     await prismaClient.$transaction(async (tx) => {
       // Users are always allowed to remove themselves from a team
       // Only users with the $remove_members permission can remove other users
       if (auth.type === 'client') {
         const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
 
-        if (userId !== currentUserId) {
+        if (params.user_id !== currentUserId) {
           await ensureUserTeamPermissionExists(tx, {
             project: auth.project,
             teamId: params.team_id,
@@ -128,7 +123,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       await ensureTeamMembershipExists(tx, {
         projectId: auth.project.id,
         teamId: params.team_id,
-        userId,
+        userId: params.user_id,
       });
 
       await tx.teamMember.delete({
@@ -146,7 +141,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       projectId: auth.project.id,
       data: {
         team_id: params.team_id,
-        user_id: userId,
+        user_id: params.user_id,
       },
     });
   },

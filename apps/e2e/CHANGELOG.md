@@ -1,5 +1,12 @@
 # e2e-tests
 
+## 2.6.1
+
+### Patch Changes
+
+- Bugfixes
+  - @stackframe/stack-shared@2.6.1
+
 ## 2.6.0
 
 ### Minor Changes

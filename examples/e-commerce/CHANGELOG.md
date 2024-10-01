@@ -1,5 +1,12 @@
 # @stackframe/e-commerce-demo
 
+## 2.6.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.1
+
 ## 2.6.0
 
 ### Minor Changes

@@ -110,8 +110,8 @@ pnpm install
 pnpm run build
 
 # reset & start the dependencies (DB, Inbucket, etc.) as Docker containers, seeding the DB with the Prisma schema
-pnpm run restart-deps
-# pnpm run start-deps
+pnpm run start-deps
+# pnpm run restart-deps
 # pnpm run stop-deps
 
 # Start the dev server
