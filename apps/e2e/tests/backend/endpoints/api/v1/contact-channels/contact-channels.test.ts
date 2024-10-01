@@ -124,3 +124,20 @@ it("delete contact channel on the client", async ({ expect }) => {
   });
   expect(meResponse2.body.contact_channels).toMatchInlineSnapshot(`[]`);
 });
+
+it("cannot delete a contact channel that doesn't exist", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  await Auth.Otp.signIn();
+
+  const deleteResponse = await niceBackendFetch("/api/v1/contact-channels/me/031448ab-178b-4d43-b31b-28f16c3c52a9", {
+    accessType: "client",
+    method: "DELETE",
+  });
+  expect(deleteResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": "Contact channel not found",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
