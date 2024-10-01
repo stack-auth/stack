@@ -41,6 +41,7 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
     }
   `);
 });
+// TODO: check auth methods
 
 it("should not allow signing in with an e-mail that never signed up", async ({ expect }) => {
   const response = await niceBackendFetch("/api/v1/auth/password/sign-in", {

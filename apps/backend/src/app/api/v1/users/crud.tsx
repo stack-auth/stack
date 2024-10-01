@@ -22,33 +22,14 @@ export const userFullInclude = {
       providerConfig: true,
     },
   },
-  contactChannels: true,
   authMethods: {
     include: {
       passwordAuthMethod: true,
       otpAuthMethod: true,
-      oauthAuthMethod: {
-        include: {
-          oauthProviderConfig: {
-            include: {
-              proxiedOAuthConfig: true,
-              standardOAuthConfig: true,
-            },
-          }
-        }
-      },
+      oauthAuthMethod: true,
     }
   },
-  connectedAccounts: {
-    include: {
-      oauthProviderConfig: {
-        include: {
-          proxiedOAuthConfig: true,
-          standardOAuthConfig: true,
-        },
-      }
-    }
-  },
+  contactChannels: true,
   teamMembers: {
     include: {
       team: true,
@@ -105,8 +86,6 @@ export const userPrismaToCrud = (
     throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
   }
 
-  const contactChannels = prisma.contactChannels.map(c => contactChannelToCrud(c));
-
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const primaryEmailContactChannel = prisma.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
   const passwordAuth = prisma.authMethods.find((m) => m.passwordAuthMethod);
@@ -133,7 +112,6 @@ export const userPrismaToCrud = (
     selected_team_id: selectedTeamMembers[0]?.teamId ?? null,
     selected_team: selectedTeamMembers[0] ? teamPrismaToCrud(selectedTeamMembers[0]?.team) : null,
     last_active_at_millis: lastActiveAtMillis,
-    contact_channels: contactChannels,
   };
 };
 

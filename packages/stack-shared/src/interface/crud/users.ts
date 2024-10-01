@@ -17,15 +17,6 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().optional(),
 }).required();
 
-const contactChannelSchema = fieldSchema.yupObject({
-  id: fieldSchema.yupString().required(),
-  type: fieldSchema.yupString().required(),
-  value: fieldSchema.yupString().required(),
-  is_primary: fieldSchema.yupBoolean().required(),
-  is_verified: fieldSchema.yupBoolean().required(),
-  used_for_auth: fieldSchema.yupBoolean().required(),
-}).required();
-
 export const usersCrudServerReadSchema = fieldSchema.yupObject({
   id: fieldSchema.userIdSchema.required(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().defined(),
@@ -40,7 +31,6 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
   client_read_only_metadata: fieldSchema.userClientReadOnlyMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
   last_active_at_millis: fieldSchema.userLastActiveAtMillisSchema.required(),
-  contact_channels: fieldSchema.yupArray(contactChannelSchema).required(),
 
   oauth_providers: fieldSchema.yupArray(fieldSchema.yupObject({
     id: fieldSchema.yupString().required(),
