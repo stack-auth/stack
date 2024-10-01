@@ -52,6 +52,39 @@ it("create contact channel on the client", async ({ expect }) => {
   `);
 });
 
+it("cannot create duplicate contact channels", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  await Auth.Otp.signIn();
+
+  await niceBackendFetch("/api/v1/contact-channels/me", {
+    accessType: "client",
+    method: "POST",
+    body: {
+      value: "test@example.com",
+      type: "email",
+      used_for_auth: true,
+    }
+  });
+
+  const response2 = await niceBackendFetch("/api/v1/contact-channels/me", {
+    accessType: "client",
+    method: "POST",
+    body: {
+      value: "test@example.com",
+      type: "email",
+      used_for_auth: true,
+    }
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": "Contact channel already exists",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+
 it("delete contact channel on the client", async ({ expect }) => {
   await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
