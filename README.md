@@ -150,23 +150,23 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
       User((User))
       Admin((Admin))
       subgraph "Stack Auth System"
-          Client[Client SDK<br/>Your Website]
-          Dashboard[Dashboard<br/>Next.js Application]
-          Backend[Backend Service<br/>Next.js API]
+          Dashboard[Stack Dashboard]
+          Backend[Stack API Backend]
           Database[(PostgreSQL Database)]
           EmailService[Email Service<br/>Inbucket]
           WebhookService[Webhook Service<br/>Svix]
           subgraph "Shared Packages"
+              StackSDK[Stack<br/>Client SDK]
               StackUI[Stack UI<br/>React Components]
               StackShared[Stack Shared<br/>Utilities]
               StackEmails[Stack Emails<br/>Email Templates]
           end
       end
+      Website[Your Website]
       ExternalOAuth[External OAuth Providers]
       Admin --> Dashboard
-      Dashboard --> Backend
-      User --> Client
-      Client --> Backend
+      User --> Website
+      Website --> StackSDK
       Backend --> Database
       Backend --> EmailService
       Backend --> WebhookService
@@ -174,6 +174,8 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
       Dashboard --> StackUI
       Dashboard --> StackShared
       Dashboard --> StackEmails
+      Dashboard --> StackSDK
+      StackSDK --HTTP Requests--> Backend
       Backend --> StackShared
       Backend --> StackEmails
       subgraph "External Services"
@@ -184,7 +186,7 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
       classDef database fill:#2b78e4,stroke:#1a4d91,color:#ffffff
       classDef external fill:#999999,stroke:#666666,color:#ffffff
       classDef deprecated stroke-dasharray: 5 5
-      class Dashboard,Backend,Client,EmailService,WebhookService container
+      class Dashboard,Backend,EmailService,WebhookService,Website container
       class Database database
       class ExternalOAuth,Svix external
 ```
