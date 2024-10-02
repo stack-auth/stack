@@ -80,8 +80,9 @@ WORKDIR /app/apps/backend
 
 ENV NODE_ENV=production
 
+# can be overridden to any preferred port at runtime as needed
+# https://nextjs.org/docs/app/api-reference/cli/next#changing-the-default-port
 ENV PORT=8102
-EXPOSE 8102
 
 COPY ./deploy/docker/backend/entrypoint.sh .
 

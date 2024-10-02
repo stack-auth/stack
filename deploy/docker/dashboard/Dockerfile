@@ -41,7 +41,6 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 COPY --from=pruner /app/out/full/ .
 
 # The following values are required for the NextJS build, but they should all be overridden at runtime.
-ENV NEXT_PUBLIC_STACK_URL_DEPRECATED=http://localhost:8101
 ENV NEXT_PUBLIC_STACK_URL=http://localhost:8102
 ENV NEXT_PUBLIC_STACK_SVIX_SERVER_URL=http://localhost:8113
 ENV NEXT_PUBLIC_STACK_PROJECT_ID=internal
@@ -75,8 +74,9 @@ WORKDIR /app/apps/dashboard
 
 ENV NODE_ENV=production
 
+# can be overridden to any preferred port at runtime as needed
+# https://nextjs.org/docs/app/api-reference/cli/next#changing-the-default-port
 ENV PORT=8101
-EXPOSE 8101
 
 USER node
 
