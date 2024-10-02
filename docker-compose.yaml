@@ -11,7 +11,8 @@ services:
     ports:
       - 8101:8101
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -43,8 +44,6 @@ services:
       POSTGRES_USER: stack
       POSTGRES_PASSWORD: stack123
       POSTGRES_DB: stack
-    ports:
-      - 54320:5432
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -68,9 +67,6 @@ services:
     image: jaegertracing/all-in-one:latest
     environment:
       - COLLECTOR_OTLP_ENABLED=true
-    ports:
-      - 8107:16686  # Jaeger UI
-      - 4318:4318    # OTLP Endpoint
     restart: always
 
   # ================= svix =================
