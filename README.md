@@ -150,6 +150,7 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
       User((User))
       Admin((Admin))
       subgraph "Stack Auth System"
+          Client[Client SDK<br/>Your Website]
           Dashboard[Dashboard<br/>Next.js Application]
           Backend[Backend Service<br/>Next.js API]
           Database[(PostgreSQL Database)]
@@ -162,11 +163,10 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
           end
       end
       ExternalOAuth[External OAuth Providers]
-      User --> Dashboard
       Admin --> Dashboard
       Dashboard --> Backend
-      Dashboard -.-> |"(To be removed)"| Database
-      Dashboard -.-> |"(To be removed)"| EmailService
+      User --> Client
+      Client --> Backend
       Backend --> Database
       Backend --> EmailService
       Backend --> WebhookService
@@ -184,7 +184,7 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
       classDef database fill:#2b78e4,stroke:#1a4d91,color:#ffffff
       classDef external fill:#999999,stroke:#666666,color:#ffffff
       classDef deprecated stroke-dasharray: 5 5
-      class Dashboard,Backend,EmailService,WebhookService container
+      class Dashboard,Backend,Client,EmailService,WebhookService container
       class Database database
       class ExternalOAuth,Svix external
 ```
