@@ -147,11 +147,12 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
 
 ```mermaid
   graph TB
+      Website[Your Website]
       User((User))
       Admin((Admin))
       subgraph "Stack Auth System"
-          Dashboard[Stack Dashboard]
-          Backend[Stack API Backend]
+          Dashboard[Stack Dashboard<br/>Next.js]
+          Backend[Stack API Backend<br/>Next.js]
           Database[(PostgreSQL Database)]
           EmailService[Email Service<br/>Inbucket]
           WebhookService[Webhook Service<br/>Svix]
@@ -162,15 +163,12 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
               StackEmails[Stack Emails<br/>Email Templates]
           end
       end
-      Website[Your Website]
-      ExternalOAuth[External OAuth Providers]
       Admin --> Dashboard
       User --> Website
       Website --> StackSDK
       Backend --> Database
       Backend --> EmailService
       Backend --> WebhookService
-      Backend --> ExternalOAuth
       Dashboard --> StackUI
       Dashboard --> StackShared
       Dashboard --> StackEmails
@@ -178,17 +176,12 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
       StackSDK --HTTP Requests--> Backend
       Backend --> StackShared
       Backend --> StackEmails
-      subgraph "External Services"
-          Svix[Svix]
-          WebhookService --> Svix
-      end
       classDef container fill:#1168bd,stroke:#0b4884,color:#ffffff
       classDef database fill:#2b78e4,stroke:#1a4d91,color:#ffffff
       classDef external fill:#999999,stroke:#666666,color:#ffffff
       classDef deprecated stroke-dasharray: 5 5
       class Dashboard,Backend,EmailService,WebhookService,Website container
       class Database database
-      class ExternalOAuth,Svix external
 ```
 
 Thanks to [CodeViz](https://www.codeviz.ai) for generating the diagram!
