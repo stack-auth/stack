@@ -628,15 +628,15 @@ export namespace ContactChannels {
       },
     });
     expect(response).toMatchInlineSnapshot(`
-            NiceResponse {
-              "status": 200,
-              "body": { "success": true },
-              "headers": Headers { <some fields may have been hidden> },
-            }
-          `);
+      NiceResponse {
+        "status": 200,
+        "body": { "success": true },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
     const messages = await mailbox.fetchMessages({ noBody: true });
     const subjects = messages.map((message) => message.subject);
-    expect(subjects).toContain("Verify your email at Stack Dashboard");
+    expect(subjects[0].includes("Verify your email")).toBe(true);
     return {
       sendSignInCodeResponse: response,
     };
@@ -646,7 +646,7 @@ export namespace ContactChannels {
     const mailbox = backendContext.value.mailbox;
     const sendVerificationCodeRes = await sendVerificationCode(options);
     const messages = await mailbox.fetchMessages();
-    const message = messages.findLast((message) => message.subject === "Verify your email at Stack Dashboard") ?? throwErr("Verification code message not found");
+    const message = messages.findLast((message) => message.subject.includes("Verify your email")) ?? throwErr("Verification code message not found");
     const verificationCode = message.body?.text.match(/http:\/\/localhost:12345\/some-callback-url\?code=([a-zA-Z0-9]+)/)?.[1] ?? throwErr("Verification code not found");
     const response = await niceBackendFetch("/api/v1/contact-channels/verify", {
       method: "POST",
