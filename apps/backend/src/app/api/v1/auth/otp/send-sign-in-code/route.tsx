@@ -100,14 +100,6 @@ export const POST = createSmartRouteHandler({
       if (!project.config.sign_up_enabled) {
         throw new KnownErrors.SignUpNotEnabled();
       }
-      user = await usersCrudHandlers.adminCreate({
-        project,
-        data: {
-          primary_email_auth_enabled: true,
-          primary_email: email,
-          primary_email_verified: false,
-        },
-      });
       isNewUser = true;
     }
 
@@ -124,11 +116,11 @@ export const POST = createSmartRouteHandler({
         callbackUrl,
         method: { email, type },
         data: {
-          user_id: user.id,
+          user_id: user?.id,
           is_new_user: isNewUser,
         },
       },
-      { user }
+      { email }
     );
 
     return {
