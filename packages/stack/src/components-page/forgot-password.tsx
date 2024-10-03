@@ -3,7 +3,7 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Button, Input, Label, StyledLink, Typography } from "@stackframe/stack-ui";
+import { Button, Input, Label, StyledLink, Typography, cn } from "@stackframe/stack-ui";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
@@ -76,16 +76,23 @@ export function ForgotPassword(props: { fullPage?: boolean }) {
 
   return (
     <MaybeFullPage fullPage={!!props.fullPage}>
-      <div className="text-center mb-6 stack-scope" style={{ width: '380px', padding: props.fullPage ? '1rem' : 0 }}>
-        <Typography type='h2'>{t("Reset Your Password")}</Typography>
-        <Typography>
-          {t("Don't need to reset?")}{" "}
-          <StyledLink href={stackApp.urls['signUp']}>
-            {t("Sign in")}
-          </StyledLink>
-        </Typography>
+      <div className={cn(
+        "stack-scope w-[380px]",
+        props.fullPage ? "p-4" : "p-0"
+      )}>
+        <div className="text-center">
+          <Typography type='h2'>{t("Reset Your Password")}</Typography>
+          <Typography>
+            {t("Don't need to reset?")}{" "}
+            <StyledLink href={stackApp.urls['signUp']}>
+              {t("Sign in")}
+            </StyledLink>
+          </Typography>
+        </div>
+        <div className="mt-6">
+          <ForgotPasswordForm onSent={() => setSent(true)} />
+        </div>
       </div>
-      <ForgotPasswordForm onSent={() => setSent(true)} />
     </MaybeFullPage>
   );
 };

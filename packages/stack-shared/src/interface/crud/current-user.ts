@@ -26,8 +26,6 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "auth_with_email",
   "oauth_providers",
   "selected_team_id",
-  "auth_methods",
-  "connected_accounts",
   "requires_totp_mfa",
 ]).concat(yupObject({
   selected_team: teamsCrudClientReadSchema.nullable().defined(),

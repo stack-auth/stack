@@ -39,33 +39,38 @@ export const POST = createSmartRouteHandler({
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
 
-    const authMethods = await prismaClient.otpAuthMethod.findMany({
+    const contactChannel = await prismaClient.contactChannel.findUnique({
       where: {
-        projectId: project.id,
-        contactChannel: {
+        projectId_type_value_usedForAuth: {
+          projectId: project.id,
           type: "EMAIL",
           value: email,
-        },
+          usedForAuth: "TRUE",
+        }
       },
       include: {
-        projectUser: true,
-        contactChannel: true,
+        projectUser: {
+          include: {
+            authMethods: {
+              include: {
+                otpAuthMethod: true,
+              }
+            }
+          }
+        }
       }
     });
 
-    if (authMethods.length > 1) {
-      throw new StackAssertionError("Tried to send OTP sign in code but found multiple auth methods? The uniqueness on the DB schema should prevent this");
-    }
-    const authMethod = authMethods.length === 1 ? authMethods[0] : null;
+    const otpAuthMethod = contactChannel?.projectUser.authMethods.find((m) => m.otpAuthMethod)?.otpAuthMethod;
 
-    const isNewUser = !authMethod;
+    const isNewUser = !otpAuthMethod;
     if (isNewUser && !project.config.sign_up_enabled) {
       throw new KnownErrors.SignUpNotEnabled();
     }
 
     let user;
 
-    if (!authMethod) {
+    if (!otpAuthMethod) {
       // TODO this should be in the same transaction as the read above
       user = await usersCrudHandlers.adminCreate({
         project,
@@ -79,7 +84,7 @@ export const POST = createSmartRouteHandler({
     } else {
       user = await usersCrudHandlers.adminRead({
         project,
-        user_id: authMethod.projectUser.projectUserId,
+        user_id: contactChannel.projectUser.projectUserId,
       });
     }
 

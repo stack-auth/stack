@@ -83,7 +83,7 @@ export function AuthPage(props: {
           )}
         </div>
         <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />
-        {enableSeparator && <SeparatorWithText text={'Or continue with'} />}
+        {enableSeparator && <SeparatorWithText text={t('Or continue with')} />}
         {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
           <Tabs defaultValue={props.firstTab || 'magic-link'}>
             <TabsList className={cn('w-full mb-2', {

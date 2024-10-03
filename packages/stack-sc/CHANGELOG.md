@@ -1,5 +1,7 @@
 # @stackframe/stack-sc
 
+## 2.6.1
+
 ## 2.6.0
 
 ### Minor Changes

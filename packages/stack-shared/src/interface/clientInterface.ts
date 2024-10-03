@@ -1072,12 +1072,12 @@ export class StackClientInterface {
     return await response.json();
   }
 
-  async createTeamForCurrentUser(
+  async createClientTeam(
     data: TeamsCrud['Client']['Create'],
     session: InternalSession,
   ): Promise<TeamsCrud['Client']['Read']> {
     const response = await this.sendClientRequest(
-      "/teams?add_current_user=true",
+      "/teams",
       {
         method: "POST",
         headers: {

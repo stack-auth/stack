@@ -81,9 +81,7 @@ async function seed() {
               },
               {
                 passwordConfig: {
-                  create: {
-                    identifierType: 'EMAIL',
-                  }
+                  create: {}
                 }
               },
               ...(['github', 'spotify', 'google', 'microsoft'] as const).map((id) => ({
