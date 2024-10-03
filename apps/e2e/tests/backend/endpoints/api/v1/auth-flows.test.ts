@@ -37,3 +37,18 @@ it("signs in with OTP, disable used for auth, then should not be able to sign in
     }
   `);
 });
+
+it("signs in with OTP first, then signs in with oauth should give an account with used_for_auth false", async ({ expect }) => {
+  await Auth.Otp.signIn();
+
+  const cc = await ContactChannels.getTheOnlyContactChannel();
+  expect(cc.is_verified).toBe(true);
+  expect(cc.used_for_auth).toBe(true);
+
+  await Auth.OAuth.signIn();
+
+  const cc2 = await ContactChannels.getTheOnlyContactChannel();
+  expect(cc2.value).toBe(cc.value);
+  expect(cc2.is_verified).toBe(false);
+  expect(cc2.used_for_auth).toBe(false);
+});
