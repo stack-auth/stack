@@ -84,6 +84,38 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
     return contactChannelToCrud(contactChannel);
   },
+  onUpdate: async ({ params, auth, data }) => {
+    if (auth.type === 'client') {
+      const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
+      if (currentUserId !== params.user_id) {
+        throw new StatusError(StatusError.Forbidden, 'Client can only update contact channels for their own user.');
+      }
+    }
+
+    const updatedContactChannel = await prismaClient.$transaction(async (tx) => {
+      await ensureContactChannelExists(tx, {
+        projectId: auth.project.id,
+        userId: params.user_id,
+        contactChannelId: params.contact_channel_id || throwErr("Missing contact channel id"),
+      });
+      return await tx.contactChannel.update({
+        where: {
+          projectId_projectUserId_id: {
+            projectId: auth.project.id,
+            projectUserId: params.user_id,
+            id: params.contact_channel_id || throwErr("Missing contact channel id"),
+          },
+        },
+        data: {
+          value: data.value,
+          isVerified: data.is_verified ?? (data.value ? false : undefined), // if value is updated and is_verified is not provided, set to false
+          usedForAuth: data.used_for_auth !== undefined ? (data.used_for_auth ? 'TRUE' : null) : undefined,
+        },
+      });
+    });
+
+    return contactChannelToCrud(updatedContactChannel);
+  },
   onDelete: async ({ params, auth }) => {
     if (auth.type === 'client') {
       const currentUserId = auth.user?.id || throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
