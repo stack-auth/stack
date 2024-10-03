@@ -609,12 +609,16 @@ export namespace Auth {
 
 export namespace ContactChannels {
   export async function getTheOnlyContactChannel() {
+    const contactChannels = await ContactChannels.listAllCurrentUserContactChannels();
+    expect(contactChannels).toHaveLength(1);
+    return contactChannels[0];
+  }
+
+  export async function listAllCurrentUserContactChannels() {
     const response = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
       accessType: "client",
     });
-
-    expect(response.body.items).toHaveLength(1);
-    return response.body.items[0];
+    return response.body.items;
   }
 
   export async function sendVerificationCode(options?: { contactChannelId?: string }) {
