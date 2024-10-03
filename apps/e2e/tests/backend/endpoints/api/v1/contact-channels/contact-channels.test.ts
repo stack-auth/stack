@@ -1,5 +1,5 @@
 import { createMailbox, it } from "../../../../../helpers";
-import { Auth, Project, niceBackendFetch } from "../../../../backend-helpers";
+import { Auth, ContactChannels, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 
 it("create contact channel on the client", async ({ expect }) => {
   await Project.createAndSwitch({ config: { magic_link_enabled: true } });
