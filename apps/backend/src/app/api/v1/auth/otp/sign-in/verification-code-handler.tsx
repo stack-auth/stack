@@ -7,6 +7,7 @@ import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { getAuthContactChannel } from "@/lib/contact-channel";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -55,27 +56,14 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     };
   },
   async handler(project, { email }, data) {
-    const contactChannel = await prismaClient.contactChannel.findUnique({
-      where: {
-        projectId_type_value_usedForAuth: {
-          projectId: project.id,
-          type: "EMAIL",
-          value: email,
-          usedForAuth: "TRUE",
-        }
-      },
-      include: {
-        projectUser: {
-          include: {
-            authMethods: {
-              include: {
-                otpAuthMethod: true,
-              }
-            }
-          }
-        }
+    const contactChannel = await getAuthContactChannel(
+      prismaClient,
+      {
+        projectId: project.id,
+        type: "EMAIL",
+        value: email,
       }
-    });
+    );
 
     const otpAuthMethod = contactChannel?.projectUser.authMethods.find((m) => m.otpAuthMethod)?.otpAuthMethod;
 
