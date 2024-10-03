@@ -253,55 +253,55 @@ it("should not sign in if code is invalid", async ({ expect }) => {
 });
 
 
-// it("should set the code to invalid after too many attempts", async ({ expect }) => {
-//   await Auth.Otp.sendSignInCode();
-//   const mailbox = backendContext.value.mailbox;
-//   const sendSignInCodeResponse = await niceBackendFetch("/api/v1/auth/otp/send-sign-in-code", {
-//     method: "POST",
-//     accessType: "client",
-//     body: {
-//       email: mailbox.emailAddress,
-//       callback_url: "http://localhost:12345/some-callback-url",
-//     },
-//   });
+it("should set the code to invalid after too many attempts", async ({ expect }) => {
+  await Auth.Otp.sendSignInCode();
+  const mailbox = backendContext.value.mailbox;
+  const sendSignInCodeResponse = await niceBackendFetch("/api/v1/auth/otp/send-sign-in-code", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      email: mailbox.emailAddress,
+      callback_url: "http://localhost:12345/some-callback-url",
+    },
+  });
 
-//   const email = (await backendContext.value.mailbox.fetchMessages()).findLast((message) => message.subject.includes("Sign in to")) ?? throwErr("Sign-in code message not found");
-//   const match = email.body?.text.match(/^[A-Z0-9]{6}$/sm);
+  const email = (await backendContext.value.mailbox.fetchMessages()).findLast((message) => message.subject.includes("Sign in to")) ?? throwErr("Sign-in code message not found");
+  const match = email.body?.text.match(/^[A-Z0-9]{6}$/sm);
 
-//   for (let i = 0; i < 25; i++) {
-//     await niceBackendFetch("/api/v1/auth/otp/sign-in", {
-//       method: "POST",
-//       accessType: "client",
-//       body: {
-//         code: 'ABC123' + sendSignInCodeResponse.body.nonce,
-//       },
-//     });
-//   }
+  for (let i = 0; i < 25; i++) {
+    await niceBackendFetch("/api/v1/auth/otp/sign-in", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        code: 'ABC123' + sendSignInCodeResponse.body.nonce,
+      },
+    });
+  }
 
-//   const signInResponse = await niceBackendFetch("/api/v1/auth/otp/sign-in", {
-//     method: "POST",
-//     accessType: "client",
-//     body: {
-//       code: match?.[0] + sendSignInCodeResponse.body.nonce,
-//     },
-//   });
+  const signInResponse = await niceBackendFetch("/api/v1/auth/otp/sign-in", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      code: match?.[0] + sendSignInCodeResponse.body.nonce,
+    },
+  });
 
-//   expect(signInResponse).toMatchInlineSnapshot(`
-//     NiceResponse {
-//       "status": 400,
-//       "body": {
-//         "code": "VERIFICATION_CODE_MAX_ATTEMPTS_REACHED",
-//         "error": "The verification code nonce has reached the maximum number of attempts. This code is not valid anymore.",
-//       },
-//       "headers": Headers {
-//         "x-stack-known-error": "VERIFICATION_CODE_MAX_ATTEMPTS_REACHED",
-//         <some fields may have been hidden>,
-//       },
-//     }
-//   `);
-// });
+  expect(signInResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "VERIFICATION_CODE_MAX_ATTEMPTS_REACHED",
+        "error": "The verification code nonce has reached the maximum number of attempts. This code is not valid anymore.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "VERIFICATION_CODE_MAX_ATTEMPTS_REACHED",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
 
 
-// it.todo("should not sign in if primary e-mail changed since sign-in code was sent");
+it.todo("should not sign in if primary e-mail changed since sign-in code was sent");
 
-// it.todo("should verify primary e-mail");
+it.todo("should verify primary e-mail");
