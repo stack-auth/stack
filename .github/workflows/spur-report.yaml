@@ -1,0 +1,87 @@
+name: Update PR Status and Generate Report
+on:
+  status
+
+jobs:
+  update-pr-status-and-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract Owner and Repo
+        run: |
+          IFS='/' read -r owner repo <<< "${{ github.repository }}"
+          echo "OWNER=$owner" >> $GITHUB_ENV
+          echo "REPO=$repo" >> $GITHUB_ENV
+      - name: Extract PR Number
+        run: |
+          pr=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+               "https://api.github.com/repos/${{ github.repository }}/commits/79ab41924cb89451c2a60c02607ddf472c126685/pulls" | \
+               jq -r '.[0].number')
+          echo "PR_NUMBER=$pr" >> $GITHUB_ENV
+      - name: Collect All Statuses
+        run: |
+          statuses=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                     "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/status")
+          echo "STATUSES<<EOF" >> $GITHUB_ENV
+          echo "$statuses" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      - name: Generate Report
+        run: |
+          total_count=$(echo "$STATUSES" | jq '.total_count')
+          success_count=$(echo "$STATUSES" | jq '[.statuses[] | select(.state == "success")] | length')
+          
+          report="## Spur CI/CD Report\n\n"
+          report+="Test Report: $success_count/$total_count successful.\n\n"
+          report+="| Test Name | Status | Details |\n"
+          report+="|-----------|--------|--------|\n"
+          
+          while read -r line; do
+            context=$(echo "$line" | jq -r '.context')
+            state=$(echo "$line" | jq -r '.state')
+            target_url=$(echo "$line" | jq -r '.target_url // "N/A"')
+            
+            test_name=$(echo "$context" | sed 's/CICD - //')
+            
+            status_icon=$([ "$state" == "success" ] && echo "Passed ✅" || echo "Failed ❌")
+            
+            report+="| $test_name | $status_icon | [$target_url]($target_url) |"
+
+          done < <(echo "$STATUSES" | jq -c '.statuses[]')
+          
+          echo "REPORT<<EOF" >> $GITHUB_ENV
+          echo "$report" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Check Overall Status
+        id: check_status
+        run: |
+          if [ "$success_count" -eq "$total_count" ]; then
+            echo "All tests passed."
+            echo "::set-output name=status::success"
+          else
+            echo "Some tests failed."
+            echo "::set-output name=status::failure"
+          fi
+
+      - name: Update or Create Comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "$PR_NUMBER" ]; then
+            if gh pr view $PR_NUMBER --json comments --jq '.comments[] | select(.body | startswith("## Spur CI/CD Report")) | .id' | grep -q .; then
+              comment_id=$(gh pr view $PR_NUMBER --json comments --jq '.comments[] | select(.body | startswith("## Spur CI/CD Report")) | .id' | head -n1)
+              gh pr comment $PR_NUMBER --edit-comment $comment_id -b "$REPORT"
+            else
+              gh pr comment $PR_NUMBER -b "$REPORT"
+            fi
+          else
+            echo "No associated PR found. Skipping comment update."
+          fi
+
+      - name: Set Commit Status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          status=${{ steps.check_status.outputs.status }}
+          if [ "$status" == "success" ]; then
+            gh api repos/${{ github.repository }}/statuses/${{ github.sha }} -f state=success -f context="CICD - All tests"
+          fi
