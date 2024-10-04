@@ -10,6 +10,7 @@ import { ReadonlyJson } from '../utils/json';
 import { filterUndefined } from '../utils/objects';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
+import { ContactChannelsCrud } from './crud/contact-channels';
 import { CurrentUserCrud } from './crud/current-user';
 import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
@@ -1098,6 +1099,69 @@ export class StackClientInterface {
       },
       session,
     );
+  }
+
+  async createClientContactChannel(
+    data: ContactChannelsCrud['Client']['Create'],
+    session: InternalSession,
+  ): Promise<ContactChannelsCrud['Client']['Read']> {
+    const response = await this.sendClientRequest(
+      "/contact-channels",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      session,
+    );
+    return await response.json();
+  }
+
+  async updateClientContactChannel(
+    id: string,
+    data: ContactChannelsCrud['Client']['Update'],
+    session: InternalSession,
+  ): Promise<ContactChannelsCrud['Client']['Read']> {
+    const response = await this.sendClientRequest(
+      `/contact-channels/me/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      session,
+    );
+    return await response.json();
+  }
+
+  async deleteClientContactChannel(
+    id: string,
+    session: InternalSession,
+  ): Promise<void> {
+    await this.sendClientRequest(
+      `/contact-channels/me/${id}`,
+      {
+        method: "DELETE",
+      },
+      session,
+    );
+  }
+
+  async listClientContactChannels(
+    session: InternalSession,
+  ): Promise<ContactChannelsCrud['Client']['Read'][]> {
+    const response = await this.sendClientRequest(
+      "/contact-channels?user_id=me",
+      {
+        method: "GET",
+      },
+      session,
+    );
+    return await response.json();
   }
 }
 

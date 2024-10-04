@@ -3,6 +3,7 @@ import { KnownErrors, StackAdminInterface, StackClientInterface, StackServerInte
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
 import { ApiKeyCreateCrudRequest, ApiKeyCreateCrudResponse } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
+import { ContactChannelsCrud } from "@stackframe/stack-shared/dist/interface/crud/contact-channels";
 import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { EmailTemplateCrud, EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
@@ -329,6 +330,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserTeamProfileCache = createCacheBySession<[string], TeamMemberProfilesCrud['Client']['Read']>(
     async (session, [teamId]) => {
       return await this._interface.getTeamMemberProfile({ teamId, userId: 'me' }, session);
+    }
+  );
+  private readonly _clientContactChannelsCache = createCacheBySession<[], ContactChannelsCrud['Client']['Read'][]>(
+    async (session) => {
+      return this._interface.listClientContactChannels(session);
     }
   );
 
@@ -750,6 +756,23 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
+  protected _clientContactChannelFromCrud(crud: ContactChannelsCrud['Client']['Read']): ContactChannel {
+    const app = this;
+    return {
+      id: crud.id,
+      value: crud.value,
+      type: crud.type,
+      isVerified: crud.is_verified,
+      usedForAuth: crud.used_for_auth,
+
+      async update(data: ContactChannelUpdateOptions) {
+        await app._interface.updateClientContactChannel(crud.id, contactChannelUpdateOptionsToCrud(data), app._getSession());
+      },
+      async delete() {
+        await app._interface.deleteClientContactChannel(crud.id, app._getSession());
+      },
+    };
+  }
   protected _createAuth(session: InternalSession): Auth {
     const app = this;
     return {
@@ -923,6 +946,19 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async delete() {
         await app._interface.deleteCurrentUser(session);
         session.markInvalid();
+      },
+      async listContactChannels() {
+        const result = await app._clientContactChannelsCache.getOrWait([session], "write-only");
+        return result.map((crud) => app._clientContactChannelFromCrud(crud));
+      },
+      useContactChannels() {
+        const result = useAsyncCache(app._clientContactChannelsCache, [session], "user.useContactChannels()");
+        return result.map((crud) => app._clientContactChannelFromCrud(crud));
+      },
+      async createContactChannel(data: ContactChannelCreateOptions) {
+        const crud = await app._interface.createClientContactChannel(contactChannelCreateOptionsToCrud('me', data), session);
+        await app._clientContactChannelsCache.refresh([session]);
+        return app._clientContactChannelFromCrud(crud);
       },
     };
   }
@@ -1511,6 +1547,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return await this._interface.getServerTeamMemberProfile({ teamId, userId });
     }
   );
+  private readonly _serverContactChannelsCache = createCache<[string], ContactChannelsCrud['Server']['Read'][]>(
+    async ([userId]) => {
+      return this._interface.listServerContactChannels(userId);
+    }
+  );
 
   private async _updateServerUser(userId: string, update: ServerUserUpdateOptions): Promise<UsersCrud['Server']['Read']> {
     const result = await this._interface.updateServerUser(userId, serverUserUpdateOptionsToCrud(update));
@@ -1527,6 +1568,19 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await clientProfile.update(update);
         await app._serverUserTeamProfileCache.refresh([crud.team_id, crud.user_id]);
       }
+    };
+  }
+
+  protected _serverContactChannelFromCrud(userId: string, crud: ContactChannelsCrud['Server']['Read']): ServerContactChannel {
+    const app = this;
+    return {
+      ...this._clientContactChannelFromCrud(crud),
+      async update(data: ServerContactChannelUpdateOptions) {
+        await app._interface.updateServerContactChannel(userId, crud.id, serverContactChannelUpdateOptionsToCrud(data));
+      },
+      async delete() {
+        await app._interface.deleteServerContactChannel(userId, crud.id);
+      },
     };
   }
 
@@ -1691,6 +1745,19 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       useTeamProfile(team: Team) {
         const result = useAsyncCache(app._serverUserTeamProfileCache, [team.id, crud.id], "user.useTeamProfile()");
         return useMemo(() => app._serverEditableTeamProfileFromCrud(result), [result]);
+      },
+      async listContactChannels() {
+        const result = await app._serverContactChannelsCache.getOrWait([crud.id], "write-only");
+        return result.map((data) => app._serverContactChannelFromCrud(crud.id, data));
+      },
+      useContactChannels() {
+        const result = useAsyncCache(app._serverContactChannelsCache, [crud.id], "user.useContactChannels()");
+        return useMemo(() => result.map((data) => app._serverContactChannelFromCrud(crud.id, data)), [result]);
+      },
+      createContactChannel: async (data: ServerContactChannelCreateOptions) => {
+        const contactChannel = await app._interface.createServerContactChannel(serverContactChannelCreateOptionsToCrud(crud.id, data));
+        await app._serverContactChannelsCache.refresh([crud.id]);
+        return app._serverContactChannelFromCrud(crud.id, contactChannel);
       },
     };
   }
@@ -2206,6 +2273,72 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 }
 
+type _______________CONTACT_CHANNEL_______________ = never;  // this is a marker for VSCode's outline view
+
+type ContactChannel = {
+  id: string,
+  value: string,
+  type: 'email',
+  isVerified: boolean,
+  usedForAuth: boolean,
+
+  update(data: ContactChannelUpdateOptions): Promise<void>,
+  delete(): Promise<void>,
+}
+
+type ContactChannelCreateOptions = {
+  value: string,
+  type: 'email',
+  usedForAuth: boolean,
+}
+
+function contactChannelCreateOptionsToCrud(userId: string, options: ContactChannelCreateOptions): ContactChannelsCrud["Client"]["Create"] {
+  return {
+    value: options.value,
+    type: options.type,
+    used_for_auth: options.usedForAuth,
+    user_id: userId,
+  };
+}
+
+type ContactChannelUpdateOptions = {
+  usedForAuth?: boolean,
+  value?: string,
+}
+
+function contactChannelUpdateOptionsToCrud(options: ContactChannelUpdateOptions): ContactChannelsCrud["Client"]["Update"] {
+  return {
+    value: options.value,
+    used_for_auth: options.usedForAuth,
+  };
+}
+
+type ServerContactChannel = ContactChannel;
+type ServerContactChannelUpdateOptions = ContactChannelUpdateOptions & {
+  isVerified?: boolean,
+}
+
+function serverContactChannelUpdateOptionsToCrud(options: ServerContactChannelUpdateOptions): ContactChannelsCrud["Server"]["Update"] {
+  return {
+    value: options.value,
+    is_verified: options.isVerified,
+    used_for_auth: options.usedForAuth,
+  };
+}
+
+type ServerContactChannelCreateOptions = ContactChannelCreateOptions & {
+  isVerified?: boolean,
+}
+function serverContactChannelCreateOptionsToCrud(userId: string, options: ServerContactChannelCreateOptions): ContactChannelsCrud["Server"]["Create"] {
+  return {
+    type: options.type,
+    value: options.value,
+    is_verified: options.isVerified,
+    user_id: userId,
+    used_for_auth: options.usedForAuth,
+  };
+}
+
 type _______________USER_______________ = never;  // this is a marker for VSCode's outline view
 type ___________client_user = never;  // this is a marker for VSCode's outline view
 
@@ -2366,6 +2499,10 @@ type UserExtra = {
    */
   update(update: UserUpdateOptions): Promise<void>,
 
+  useContactChannels(): ContactChannel[],
+  listContactChannels(): Promise<ContactChannel[]>,
+  createContactChannel(data: ContactChannelCreateOptions): Promise<ContactChannel>,
+
   delete(): Promise<void>,
 
   getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
@@ -2426,6 +2563,10 @@ type ServerBaseUser = {
   readonly serverMetadata: any,
   setServerMetadata(metadata: any): Promise<void>,
   setClientReadOnlyMetadata(metadata: any): Promise<void>,
+
+  useContactChannels(): ServerContactChannel[],
+  listContactChannels(): Promise<ServerContactChannel[]>,
+  createContactChannel(data: ServerContactChannelCreateOptions): Promise<ServerContactChannel>,
 
   updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
