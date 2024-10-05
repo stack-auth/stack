@@ -70,7 +70,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
         value: data.value,
       });
 
-      return await tx.contactChannel.create({
+      const createdContactChannel = await tx.contactChannel.create({
         data: {
           projectId: auth.project.id,
           projectUserId: data.user_id,
@@ -80,6 +80,42 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
           usedForAuth: data.used_for_auth ? 'TRUE' : null,
         },
       });
+
+      if (data.is_primary) {
+        // mark all other channels as not primary
+        await tx.contactChannel.updateMany({
+          where: {
+            projectId: auth.project.id,
+            projectUserId: data.user_id,
+          },
+          data: {
+            isPrimary: null,
+          },
+        });
+
+        await tx.contactChannel.update({
+          where: {
+            projectId_projectUserId_id: {
+              projectId: auth.project.id,
+              projectUserId: data.user_id,
+              id: createdContactChannel.id,
+            },
+          },
+          data: {
+            isPrimary: 'TRUE',
+          },
+        });
+      }
+
+      return await tx.contactChannel.findUnique({
+        where: {
+          projectId_projectUserId_id: {
+            projectId: auth.project.id,
+            projectUserId: data.user_id,
+            id: createdContactChannel.id,
+          },
+        },
+      }) || throwErr("Failed to create contact channel");
     });
 
     return contactChannelToCrud(contactChannel);
@@ -98,6 +134,20 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
         userId: params.user_id,
         contactChannelId: params.contact_channel_id || throwErr("Missing contact channel id"),
       });
+
+      if (data.is_primary) {
+        // mark all other channels as not primary
+        await tx.contactChannel.updateMany({
+          where: {
+            projectId: auth.project.id,
+            projectUserId: params.user_id,
+          },
+          data: {
+            isPrimary: null,
+          },
+        });
+      }
+
       return await tx.contactChannel.update({
         where: {
           projectId_projectUserId_id: {
@@ -110,6 +160,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
           value: data.value,
           isVerified: data.is_verified ?? (data.value ? false : undefined), // if value is updated and is_verified is not provided, set to false
           usedForAuth: data.used_for_auth !== undefined ? (data.used_for_auth ? 'TRUE' : null) : undefined,
+          isPrimary: data.is_primary !== undefined ? (data.is_primary ? 'TRUE' : null) : undefined,
         },
       });
     });
@@ -159,7 +210,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
     });
 
     return {
-      items: contactChannels.map(contactChannelToCrud),
+      items: contactChannels.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()).map(contactChannelToCrud),
       is_paginated: false,
     };
   }

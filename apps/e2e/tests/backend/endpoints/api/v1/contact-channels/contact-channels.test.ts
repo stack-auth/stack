@@ -19,6 +19,7 @@ it("create contact channel on the client", async ({ expect }) => {
       "status": 201,
       "body": {
         "id": "<stripped UUID>",
+        "is_primary": false,
         "is_verified": false,
         "type": "email",
         "used_for_auth": true,
@@ -41,6 +42,7 @@ it("create contact channel on the client", async ({ expect }) => {
         "items": [
           {
             "id": "<stripped UUID>",
+            "is_primary": true,
             "is_verified": true,
             "type": "email",
             "used_for_auth": true,
@@ -49,6 +51,7 @@ it("create contact channel on the client", async ({ expect }) => {
           },
           {
             "id": "<stripped UUID>",
+            "is_primary": false,
             "is_verified": false,
             "type": "email",
             "used_for_auth": true,
@@ -116,6 +119,7 @@ it("create contact channel on the server", async ({ expect }) => {
       "status": 201,
       "body": {
         "id": "<stripped UUID>",
+        "is_primary": false,
         "is_verified": true,
         "type": "email",
         "used_for_auth": false,
@@ -135,6 +139,7 @@ it("create contact channel on the server", async ({ expect }) => {
       "items": [
         {
           "id": "<stripped UUID>",
+          "is_primary": true,
           "is_verified": true,
           "type": "email",
           "used_for_auth": true,
@@ -143,6 +148,7 @@ it("create contact channel on the server", async ({ expect }) => {
         },
         {
           "id": "<stripped UUID>",
+          "is_primary": false,
           "is_verified": true,
           "type": "email",
           "used_for_auth": false,
@@ -233,6 +239,7 @@ it("lists current user's contact channels on the client", async ({ expect }) => 
         "items": [
           {
             "id": "<stripped UUID>",
+            "is_primary": true,
             "is_verified": true,
             "type": "email",
             "used_for_auth": true,
@@ -329,6 +336,7 @@ it("creates a new account when login with a contact channel that is not used for
   expect(response1.body.items.find((cc: any) => cc.value === newMailbox.emailAddress)).toMatchInlineSnapshot(`
     {
       "id": "<stripped UUID>",
+      "is_primary": false,
       "is_verified": false,
       "type": "email",
       "used_for_auth": false,
@@ -353,6 +361,7 @@ it("creates a new account when login with a contact channel that is not used for
         "items": [
           {
             "id": "<stripped UUID>",
+            "is_primary": true,
             "is_verified": true,
             "type": "email",
             "used_for_auth": true,
@@ -365,7 +374,6 @@ it("creates a new account when login with a contact channel that is not used for
     }
   `);
 });
-
 
 it("updates contact channel used for auth", async ({ expect }) => {
   await Project.createAndSwitch({ config: { magic_link_enabled: true } });
@@ -393,6 +401,7 @@ it("updates contact channel used for auth", async ({ expect }) => {
   expect(response1.body.items.find((cc: any) => cc.id === newChannelId)).toMatchInlineSnapshot(`
     {
       "id": "<stripped UUID>",
+      "is_primary": false,
       "is_verified": false,
       "type": "email",
       "used_for_auth": false,
@@ -418,11 +427,139 @@ it("updates contact channel used for auth", async ({ expect }) => {
   expect(response2.body.items.find((cc: any) => cc.id === newChannelId)).toMatchInlineSnapshot(`
     {
       "id": "<stripped UUID>",
+      "is_primary": false,
       "is_verified": false,
       "type": "email",
       "used_for_auth": true,
       "user_id": "<stripped UUID>",
       "value": "<stripped UUID>@stack-generated.example.com",
+    }
+  `);
+});
+
+it("updates contact channel primary status", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  await Auth.Otp.signIn();
+  const newMailbox = createMailbox();
+
+  const response = await ContactChannels.getTheOnlyContactChannel();
+  expect(response.is_primary).toBe(true);
+
+  // Create two new contact channels
+  const createResponse1 = await niceBackendFetch("/api/v1/contact-channels", {
+    accessType: "client",
+    method: "POST",
+    body: {
+      value: newMailbox.emailAddress,
+      type: "email",
+      used_for_auth: false,
+      user_id: "me",
+    }
+  });
+  const newChannelId1 = createResponse1.body.id;
+
+  const updateResponse2 = await niceBackendFetch(`/api/v1/contact-channels/me/${newChannelId1}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      is_primary: true,
+    }
+  });
+  expect(updateResponse2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "id": "<stripped UUID>",
+        "is_primary": true,
+        "is_verified": false,
+        "type": "email",
+        "used_for_auth": false,
+        "user_id": "<stripped UUID>",
+        "value": "<stripped UUID>@stack-generated.example.com",
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  // Verify the first contact channel is no longer primary
+  const response2 = await ContactChannels.listAllCurrentUserContactChannels();
+  expect(response2.find((cc: any) => cc.id === newChannelId1)?.is_primary).toBe(true);
+
+  const meResponse = await niceBackendFetch("/api/v1/users/me", {
+    accessType: "client",
+  });
+  expect(meResponse.body).toMatchInlineSnapshot(`
+    {
+      "auth_with_email": true,
+      "client_metadata": null,
+      "client_read_only_metadata": null,
+      "display_name": null,
+      "has_password": false,
+      "id": "<stripped UUID>",
+      "oauth_providers": [],
+      "primary_email": "<stripped UUID>@stack-generated.example.com",
+      "primary_email_verified": false,
+      "profile_image_url": null,
+      "requires_totp_mfa": false,
+      "selected_team": null,
+      "selected_team_id": null,
+      "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+    }
+  `);
+});
+
+it("sets a primary contact channel to non-primary", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  await Auth.Otp.signIn();
+
+  const response = await ContactChannels.getTheOnlyContactChannel();
+  expect(response.is_primary).toBe(true);
+
+  const updateResponse = await niceBackendFetch(`/api/v1/contact-channels/me/${response.id}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      is_primary: false,
+    }
+  });
+  expect(updateResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "id": "<stripped UUID>",
+        "is_primary": false,
+        "is_verified": true,
+        "type": "email",
+        "used_for_auth": true,
+        "user_id": "<stripped UUID>",
+        "value": "<stripped UUID>@stack-generated.example.com",
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const response2 = await ContactChannels.getTheOnlyContactChannel();
+  expect(response2.is_primary).toBe(false);
+
+  const meResponse = await niceBackendFetch("/api/v1/users/me", {
+    accessType: "client",
+  });
+  expect(meResponse.body).toMatchInlineSnapshot(`
+    {
+      "auth_with_email": true,
+      "client_metadata": null,
+      "client_read_only_metadata": null,
+      "display_name": null,
+      "has_password": false,
+      "id": "<stripped UUID>",
+      "oauth_providers": [],
+      "primary_email": null,
+      "primary_email_verified": false,
+      "profile_image_url": null,
+      "requires_totp_mfa": false,
+      "selected_team": null,
+      "selected_team_id": null,
+      "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
     }
   `);
 });
