@@ -15,12 +15,14 @@ export const contactChannelsClientReadSchema = yupObject({
   type: type.required(),
   used_for_auth: yupBoolean().required(),
   is_verified: yupBoolean().required(),
+  is_primary: yupBoolean().required(),
 }).required();
 
 export const contactChannelsCrudClientUpdateSchema = yupObject({
   value: value.optional(),
   type: type.optional(),
   used_for_auth: yupBoolean().optional(),
+  is_primary: yupBoolean().optional(),
 }).required();
 
 export const contactChannelsCrudServerUpdateSchema = contactChannelsCrudClientUpdateSchema.concat(yupObject({
@@ -32,6 +34,7 @@ export const contactChannelsCrudClientCreateSchema = yupObject({
   value: value.required(),
   type: type.required(),
   used_for_auth: yupBoolean().required(),
+  is_primary: yupBoolean().optional(),
 }).required();
 
 export const contactChannelsCrudServerCreateSchema = contactChannelsCrudClientCreateSchema.concat(yupObject({
