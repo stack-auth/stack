@@ -1161,7 +1161,8 @@ export class StackClientInterface {
       },
       session,
     );
-    return await response.json();
+    const json = await response.json() as ContactChannelsCrud['Client']['List'];
+    return json.items;
   }
 }
 

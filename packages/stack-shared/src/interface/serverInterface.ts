@@ -445,6 +445,7 @@ export class StackServerInterface extends StackClientInterface {
       },
       null,
     );
-    return await response.json();
+    const json = await response.json() as ContactChannelsCrud['Server']['List'];
+    return json.items;
   }
 }

@@ -334,7 +334,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   );
   private readonly _clientContactChannelsCache = createCacheBySession<[], ContactChannelsCrud['Client']['Read'][]>(
     async (session) => {
-      return this._interface.listClientContactChannels(session);
+      return await this._interface.listClientContactChannels(session);
     }
   );
 
@@ -1549,7 +1549,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   );
   private readonly _serverContactChannelsCache = createCache<[string], ContactChannelsCrud['Server']['Read'][]>(
     async ([userId]) => {
-      return this._interface.listServerContactChannels(userId);
+      return await this._interface.listServerContactChannels(userId);
     }
   );
 

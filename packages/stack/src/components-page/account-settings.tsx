@@ -152,6 +152,7 @@ function ProfilePage() {
             await user.update({ displayName: newDisplayName });
           }}/>
       </Section>
+
       <Section
         title={t("Profile image")}
         description={t("Upload your own image as your avatar")}
@@ -163,7 +164,73 @@ function ProfilePage() {
           }}
         />
       </Section>
+
+      <EmailsSection/>
     </PageLayout>
+  );
+}
+
+function EmailsSection() {
+  const { t } = useTranslation();
+  const user = useUser({ or: 'redirect' });
+  const contactChannels = user.useContactChannels();
+  const [addingEmail, setAddingEmail] = useState(false);
+
+  const emailSchema = yupObject({
+    email: yupString().email(t('Please enter a valid email address')).required(t('Email is required')),
+  });
+
+  const { register, handleSubmit, formState: { errors }, reset } = useForm({
+    resolver: yupResolver(emailSchema)
+  });
+
+  const onSubmit = async (data: yup.InferType<typeof emailSchema>) => {
+    await user.createContactChannel({ type: 'email', value: data.email, usedForAuth: false });
+    setAddingEmail(false);
+    reset();
+  };
+
+  return (
+    <Section
+      title={t("Emails")}
+      description={t("All your emails used for authentication and contact")}
+    >
+      {/*eslint-disable-next-line @typescript-eslint/no-unnecessary-condition*/}
+      {contactChannels.filter(x => x.type === 'email').map(x => (
+        <div key={x.id}>
+          {x.value}
+        </div>
+      ))}
+
+      {addingEmail ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            runAsynchronously(handleSubmit(onSubmit));
+          }}
+          className='flex flex-col'
+        >
+          <div className='flex gap-2'>
+            <Input
+              {...register("email")}
+              placeholder={t("Enter email")}
+            />
+            <Button type="submit">
+              {t("Add")}
+            </Button>
+            <Button variant='secondary' onClick={() => {
+              setAddingEmail(false);
+              reset();
+            }}>
+              {t("Cancel")}
+            </Button>
+          </div>
+          {errors.email && <FormWarningText text={errors.email.message} />}
+        </form>
+      ) : (
+        <Button variant='secondary' onClick={() => setAddingEmail(true)}>{t("Add an email")}</Button>
+      )}
+    </Section>
   );
 }
 
