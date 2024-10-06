@@ -52,6 +52,7 @@ export function FeedbackDialog(props: {
       toast({
         title: "Feedback sent",
         description: "We'll get back to you soon",
+        variant: "success"
       });
     }}
   />;

@@ -150,7 +150,7 @@ export function FormSettingCard<F extends FieldValues>(
     try {
       await props.onSubmit(values);
       form.reset();
-      toast({ title: "Your changes have been saved" });
+      toast({ title: 'Your changes have been saved', variant: 'success' });
     } finally {
       setSubmitting(false);
     }
