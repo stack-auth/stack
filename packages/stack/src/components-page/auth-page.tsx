@@ -103,7 +103,7 @@ export function AuthPage(props: {
           props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>
         ) : project.config.magicLinkEnabled ? (
           <MagicLinkSignIn/>
-        ) : null}
+        ) : project.config.oauthProviders.length === 0 ? <Typography variant={"destructive"} className="text-center">{t("No authentication method enabled.")}</Typography> : null}
         {props.extraInfo && (
           <div className='flex flex-col items-center text-center text-sm text-gray-500 mt-2'>
             <div>{props.extraInfo}</div>

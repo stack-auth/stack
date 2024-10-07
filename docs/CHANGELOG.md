@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.6.2
+
+### Patch Changes
+
+- Several bugfixes & typos
+
 ## 2.6.1
 
 ### Patch Changes

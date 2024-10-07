@@ -35,8 +35,11 @@ export default function PageClient(props: { templateType: EmailTemplateType }) {
   }
 
   const onSave = async (document: TEditorConfiguration, subject: string) => {
-    await app.updateEmailTemplate(props.templateType, { content: document, subject });
-    toast({ title: "Email template saved" });
+    await app.updateEmailTemplate(props.templateType, {
+      content: document,
+      subject,
+    });
+    toast({ title: 'Email template saved', variant: 'success' });
   };
 
   const onCancel = () => {
