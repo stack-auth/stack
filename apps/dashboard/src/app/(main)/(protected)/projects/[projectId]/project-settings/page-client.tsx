@@ -1,5 +1,5 @@
 "use client";
-import { InputField } from "@/components/form-fields";
+import { InputField, SwitchField } from "@/components/form-fields";
 import { StyledLink } from "@/components/link";
 import { FormSettingCard, SettingCard, SettingSwitch } from "@/components/settings";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Alert, Button, Typography } from "@stackframe/stack-ui";
@@ -10,6 +10,10 @@ import { useAdminApp } from "../use-admin-app";
 const projectInformationSchema = yup.object().shape({
   displayName: yup.string().required(),
   description: yup.string(),
+});
+
+const projectLegacyJwtSigningSchema = yup.object().shape({
+  legacyGlobalJwtSigning: yup.boolean(),
 });
 
 export default function PageClient() {
@@ -53,6 +57,30 @@ export default function PageClient() {
           </Alert>
         )}
       </SettingCard>
+
+      {project.config.legacyGlobalJwtSigning && <FormSettingCard
+        title="Legacy JWT Signing"
+        defaultValues={{
+          legacyGlobalJwtSigning: project.config.legacyGlobalJwtSigning,
+        }}
+        formSchema={projectLegacyJwtSigningSchema}
+        onSubmit={async (values) => {
+          await project.update({ config: { legacyGlobalJwtSigning: false } });
+        }}
+        render={(form) => (
+          <>
+            <SwitchField
+              label="Use legacy JWT signing"
+              control={form.control}
+              name="legacyGlobalJwtSigning"
+            />
+
+            <Typography variant="secondary" type="footnote">
+              {`If enabled, this uses the legacy JWT signing method with JWKs at /.well-known/jwks.json. It is recommended to disable this and move to /api/v1/projects/<project-id>/.well-known/jwks.json.`}
+            </Typography>
+          </>
+        )}
+      />}
 
       <FormSettingCard
         title="Project Information"

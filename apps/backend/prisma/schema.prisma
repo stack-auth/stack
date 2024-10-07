@@ -47,6 +47,8 @@ model ProjectConfig {
   createTeamOnSignUp        Boolean
   clientTeamCreationEnabled Boolean
   clientUserDeletionEnabled Boolean @default(false)
+  // TODO: remove this after moving everyone to project specific JWTs
+  legacyGlobalJwtSigning    Boolean @default(false)
 
   teamCreateDefaultSystemPermissions TeamSystemPermission[]
   teamMemberDefaultSystemPermissions TeamSystemPermission[]

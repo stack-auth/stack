@@ -73,6 +73,7 @@ it("creates and updates the basic project information of a project", async ({ ex
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
           "sign_up_enabled": true,
@@ -116,6 +117,7 @@ it("updates the basic project configuration", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": true,
           "oauth_providers": [],
           "sign_up_enabled": false,
@@ -164,6 +166,7 @@ it("updates the project domains configuration", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
           "sign_up_enabled": true,
@@ -218,6 +221,7 @@ it("updates the project domains configuration", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
           "sign_up_enabled": true,
@@ -298,6 +302,7 @@ it("updates the project email configuration", async ({ expect }) => {
           },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
           "sign_up_enabled": true,
@@ -351,6 +356,7 @@ it("updates the project email configuration", async ({ expect }) => {
           },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
           "sign_up_enabled": true,
@@ -390,6 +396,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
           "sign_up_enabled": true,
@@ -429,6 +436,7 @@ it("updates the project email configuration", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
           "sign_up_enabled": true,
@@ -482,6 +490,7 @@ it("updates the project email configuration", async ({ expect }) => {
           },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
           "sign_up_enabled": true,
@@ -578,6 +587,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [{ "id": "google" }],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [
             {
@@ -625,6 +635,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [{ "id": "google" }],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [
             {
@@ -674,6 +685,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [{ "id": "google" }],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [
             {
@@ -751,6 +763,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
             { "id": "spotify" },
           ],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [
             {
@@ -810,6 +823,7 @@ it("updates the project oauth configuration", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [{ "id": "spotify" }],
           "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [
             {
