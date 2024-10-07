@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax */
-import { PrismaClient } from '@prisma/client';
+import { BooleanTrue, PrismaClient } from '@prisma/client';
 import { hashPassword } from '@stackframe/stack-shared/dist/utils/password';
 
 const prisma = new PrismaClient();
@@ -90,7 +90,7 @@ async function seed() {
         }
       });
 
-      const contactChannel = await tx.contactChannel.create({
+      await tx.contactChannel.create({
         data: {
           projectUserId: newUser.projectUserId,
           projectId: 'internal',
@@ -98,6 +98,7 @@ async function seed() {
           value: adminEmail as string,
           isVerified: true,
           isPrimary: 'TRUE',
+          usedForAuth: BooleanTrue.TRUE,
         }
       });
 
