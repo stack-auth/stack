@@ -38,8 +38,8 @@ export async function signJWT(options: {
   payload: any,
   expirationTime?: string,
 }) {
-  const secret = _getPerAudienceSecret({ audience: options.audience, secret: STACK_SERVER_SECRET });
-  const kid = _getKid({ secret });
+  const secret = getPerAudienceSecret({ audience: options.audience, secret: STACK_SERVER_SECRET });
+  const kid = getKid({ secret });
   const privateJwk = await jose.importJWK(await getPrivateJwk(secret));
   return await new jose.SignJWT(options.payload)
     .setProtectedHeader({ alg: "ES256", kid })
@@ -58,7 +58,7 @@ export async function verifyJWT(options: {
   if (!audience || typeof audience !== "string") {
     throw new JOSEError("Invalid JWT audience");
   }
-  const secret = _getPerAudienceSecret({ audience, secret: STACK_SERVER_SECRET });
+  const secret = getPerAudienceSecret({ audience, secret: STACK_SERVER_SECRET });
   const jwkSet = jose.createLocalJWKSet(await getPublicJwkSet(secret));
   const verified = await jose.jwtVerify(options.jwt, jwkSet, { issuer: options.issuer });
   return verified.payload;
@@ -85,11 +85,11 @@ export async function getPublicJwkSet(secret: string) {
   const privateJwk = await getPrivateJwk(secret);
   const jwk = pick(privateJwk, ["kty", "crv", "x", "y"]);
   return {
-    keys: [jwk]
+    keys: [{ ...jwk, kid: getKid({ secret }) }],
   };
 }
 
-function _getPerAudienceSecret(options: {
+export function getPerAudienceSecret(options: {
   audience: string,
   secret: string,
 }) {
@@ -101,7 +101,7 @@ function _getPerAudienceSecret(options: {
   );
 };
 
-function _getKid(options: {
+export function getKid(options: {
   secret: string,
 }) {
   return jose.base64url.encode(
@@ -109,5 +109,5 @@ function _getKid(options: {
       .createHash('sha256')
       .update(JSON.stringify([options.secret, "kid"]))
       .digest()
-  );
+  ).slice(0, 12);
 }

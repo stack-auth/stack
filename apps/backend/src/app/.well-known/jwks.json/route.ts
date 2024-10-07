@@ -1,4 +1,5 @@
 import { yupArray, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { getPublicJwkSet } from "@stackframe/stack-shared/dist/utils/jwt";
 import { createSmartRouteHandler } from "../../../route-handlers/smart-route-handler";
 
@@ -21,7 +22,7 @@ export const GET = createSmartRouteHandler({
     return {
       statusCode: 200,
       bodyType: "json",
-      body: await getPublicJwkSet(),
+      body: await getPublicJwkSet(getEnvVariable("STACK_SERVER_SECRET")),
     };
   },
 });
