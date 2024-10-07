@@ -22,7 +22,10 @@ export const GET = createSmartRouteHandler({
     return {
       statusCode: 200,
       bodyType: "json",
-      body: await getPublicJwkSet(getEnvVariable("STACK_SERVER_SECRET")),
+      body: {
+        ...await getPublicJwkSet(getEnvVariable("STACK_SERVER_SECRET")),
+        message: "This is deprecated, please disable the legacy JWT signing in the project setting page, and move to /api/v1/projects/<project-id>/.well-known/jwks.json",
+      }
     };
   },
 });

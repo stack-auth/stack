@@ -60,7 +60,7 @@ export async function decodeAccessToken(accessToken: string) {
   }
 
   const result = await accessTokenSchema.validate({
-    projectId: payload.projectId,
+    projectId: payload.aud || payload.projectId,
     userId: payload.sub,
     refreshTokenId: payload.refreshTokenId,
     exp: payload.exp,
