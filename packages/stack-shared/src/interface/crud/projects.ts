@@ -50,6 +50,8 @@ export const projectsCrudAdminReadSchema = yupObject({
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.required(),
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
+    // TODO: remove this
+    legacy_global_jwt_signing: schemaFields.yupBoolean().required(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
     client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.required(),
     oauth_providers: yupArray(oauthProviderSchema.required()).required(),

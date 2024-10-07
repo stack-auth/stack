@@ -89,6 +89,7 @@ export const POST = createSmartRouteHandler({
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
       projectUserId: createdUser.id,
+      useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
     });
 
     return {
