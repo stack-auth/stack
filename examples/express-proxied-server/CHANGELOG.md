@@ -1,5 +1,7 @@
 # @stackframe/proxied-server-example
 
+## 2.6.3
+
 ## 2.6.2
 
 ## 2.6.1
