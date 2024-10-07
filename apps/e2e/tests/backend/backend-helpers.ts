@@ -30,8 +30,6 @@ export const backendContext = new Context<BackendContext, Partial<BackendContext
   },
 );
 
-const jwks = jose.createRemoteJWKSet(new URL("/.well-known/jwks.json", STACK_BACKEND_BASE_URL));
-
 export type ProjectKeys = "no-project" | {
   projectId: string,
   publishableClientKey?: string,
@@ -122,12 +120,14 @@ export namespace Auth {
   export async function ensureParsableAccessToken() {
     const accessToken = backendContext.value.userAuth?.accessToken;
     if (accessToken) {
+      const aud = jose.decodeJwt(accessToken).aud;
+      const jwks = jose.createRemoteJWKSet(new URL(`api/v1/projects/${aud}/.well-known/jwks.json`, STACK_BACKEND_BASE_URL));
       const { payload } = await jose.jwtVerify(accessToken, jwks);
       expect(payload).toEqual({
         "exp": expect.any(Number),
         "iat": expect.any(Number),
         "iss": "https://access-token.jwt-signature.stack-auth.com",
-        "projectId": expect.any(String),
+        "aud": expect.any(String),
         "sub": expect.any(String),
       });
     }
