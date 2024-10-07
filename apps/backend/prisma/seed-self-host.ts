@@ -67,9 +67,7 @@ async function seed() {
                 },
                 {
                   passwordConfig: {
-                    create: {
-                      identifierType: 'EMAIL',
-                    }
+                    create: {},
                   }
                 },
               ],
