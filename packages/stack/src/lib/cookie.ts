@@ -50,7 +50,7 @@ export function setCookie(name: string, value: string, options: SetCookieOptions
     });
   } catch (e: any) {
     if (isRscCookieUnavailableError(e)) {
-      if (window.location.protocol !== "https:" && isProd) {
+      if (window.location.protocol !== "https:" && isProd && !process.env.NEXT_PUBLIC_SUPPRESS_HTTPS_COOKIE_ERROR) {
         throw new Error("Attempted to set a secure cookie, but this build was compiled as a production build, but the current page is not served over HTTPS. This is a security risk and is not allowed in production.");
       }
       Cookies.set(name, value, {
