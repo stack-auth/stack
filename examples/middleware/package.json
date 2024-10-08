@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/example-middleware-demo",
-  "version": "2.6.2",
+  "version": "2.6.3",
   "private": true,
   "scripts": {
     "dev": "next dev --port 8112",
