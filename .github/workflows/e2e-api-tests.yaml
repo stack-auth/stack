@@ -65,9 +65,6 @@ jobs:
 
       - name: Create .env.test.local file for examples/supabase
         run: cp examples/supabase/.env.development examples/supabase/.env.test.local
-      
-      - name: Create .env.test.local file for packages/stack-proxy
-        run: cp packages/stack-proxy/.env.development packages/stack-proxy/.env.test.local
 
       - name: Build
         run: pnpm build
