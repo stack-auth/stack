@@ -50,11 +50,11 @@ export function setCookie(name: string, value: string, options: SetCookieOptions
     });
   } catch (e: any) {
     if (isRscCookieUnavailableError(e)) {
-      if (window.location.protocol !== "https:" && isProd && process.env.NEXT_PUBLIC_ALLOW_INSECURE_COOKIES !== 'true') {
+      if (window.location.protocol !== "https:" && isProd && process.env.NEXT_PUBLIC_STACK_ALLOW_INSECURE_COOKIES !== 'true') {
         throw new Error("Attempted to set a secure cookie, but this build was compiled as a production build, but the current page is not served over HTTPS. This is a security risk and is not allowed in production.");
       }
       Cookies.set(name, value, {
-        secure: process.env.NEXT_PUBLIC_ALLOW_INSECURE_COOKIES === 'true' ? false : isProd,
+        secure: process.env.NEXT_PUBLIC_STACK_ALLOW_INSECURE_COOKIES === 'true' ? false : isProd,
         expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
         sameSite: "Strict"
       });
