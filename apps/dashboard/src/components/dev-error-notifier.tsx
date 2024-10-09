@@ -31,6 +31,7 @@ export function DevErrorNotifier() {
       toast.toast({
         title: `[DEV] console.${prop} called!`,
         description: `Please check the browser console. ${args.join(" ")}`,
+        variant: "destructive",
       });
     };
     callbacks.push(cb);

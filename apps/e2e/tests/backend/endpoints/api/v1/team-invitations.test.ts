@@ -2,7 +2,7 @@ import { createMailbox, it } from "../../../../helpers";
 import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 it("is not allowed to send invitation without permission", async ({ expect }) => {
-  const { userId: userId1 } = await Auth.Otp.signIn();
+  await Auth.Otp.signIn();
   const { teamId } = await Team.create();
 
   const receiveMailbox = createMailbox();
@@ -80,4 +80,40 @@ it("invites a user to a team", async ({ expect }) => {
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
+});
+
+it("invites a user to a team without a current user on the server", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+  const receiveMailbox = createMailbox();
+
+  backendContext.set({ userAuth: null });
+  const sendTeamInvitationResponse = await niceBackendFetch("/api/v1/team-invitations/send-code", {
+    method: "POST",
+    accessType: "server",
+    body: {
+      email: receiveMailbox.emailAddress,
+      team_id: teamId,
+      callback_url: "http://localhost:12345/some-callback-url",
+    },
+  });
+
+  expect(sendTeamInvitationResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "success": true },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  backendContext.set({ mailbox: receiveMailbox });
+  await Auth.Otp.signIn();
+  await Team.acceptInvitation();
+
+  const response = await niceBackendFetch(`/api/v1/teams?user_id=me`, {
+    accessType: "server",
+    method: "GET",
+  });
+  expect(response.body.items).toHaveLength(1);
+  expect(response.body.items[0].display_name).toBe("New Team");
 });

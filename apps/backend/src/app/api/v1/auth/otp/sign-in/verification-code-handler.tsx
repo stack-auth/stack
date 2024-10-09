@@ -45,7 +45,6 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
       user: null,
       templateType: "magic_link",
       extraVariables: {
-        userPrimaryEmail: sendOptions.email,
         magicLink: codeObj.link.toString(),
         otp: codeObj.code.slice(0, 6).toUpperCase(),
       },
@@ -92,6 +91,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
       projectUserId: user.id,
+      useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
     });
 
     return {

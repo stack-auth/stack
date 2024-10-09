@@ -1,5 +1,23 @@
 # @stackframe/init-stack
 
+## 2.6.6
+
+## 2.6.5
+
+### Patch Changes
+
+- Minor improvements
+
+## 2.6.4
+
+### Patch Changes
+
+- fixed small problems
+
+## 2.6.3
+
+## 2.6.2
+
 ## 2.6.1
 
 ## 2.6.0

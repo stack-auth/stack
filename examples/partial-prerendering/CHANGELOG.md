@@ -1,5 +1,42 @@
 # partial-prerendering
 
+## 2.6.6
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.6
+
+## 2.6.5
+
+### Patch Changes
+
+- Minor improvements
+- Updated dependencies
+  - @stackframe/stack@2.6.5
+
+## 2.6.4
+
+### Patch Changes
+
+- fixed small problems
+- Updated dependencies
+  - @stackframe/stack@2.6.4
+
+## 2.6.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.3
+
+## 2.6.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.2
+
 ## 2.6.1
 
 ### Patch Changes

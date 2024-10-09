@@ -59,6 +59,7 @@ export const mfaVerificationCodeHandler = createVerificationCodeHandler({
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
       projectUserId: data.user_id,
+      useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
     });
 
     return {

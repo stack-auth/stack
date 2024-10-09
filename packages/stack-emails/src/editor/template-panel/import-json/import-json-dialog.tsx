@@ -33,7 +33,7 @@ export default function ImportJsonDialog({ onClose }: ImportJsonDialogProps) {
           }
           resetDocument(data);
           onClose();
-          toast({ title: 'Imported JSON' });
+          toast({ title: 'Imported JSON', variant: 'success' });
         },
         props: {
           disabled: error !== null,
