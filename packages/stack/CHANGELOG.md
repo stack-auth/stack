@@ -1,5 +1,14 @@
 # @stackframe/stack
 
+## 2.6.6
+
+### Patch Changes
+
+- Bugfixes
+  - @stackframe/stack-sc@2.6.6
+  - @stackframe/stack-shared@2.6.6
+  - @stackframe/stack-ui@2.6.6
+
 ## 2.6.5
 
 ### Patch Changes
