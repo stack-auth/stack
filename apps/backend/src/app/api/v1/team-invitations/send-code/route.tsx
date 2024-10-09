@@ -3,6 +3,7 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { adaptSchema, clientOrHigherAuthTypeSchema, teamIdSchema, teamInvitationCallbackUrlSchema, teamInvitationEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { teamInvitationCodeHandler } from "../accept/verification-code-handler";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -14,7 +15,7 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema.required(),
-      user: adaptSchema.required(),
+      user: adaptSchema.optional(),
     }).required(),
     body: yupObject({
       team_id: teamIdSchema.required(),
@@ -29,6 +30,8 @@ export const POST = createSmartRouteHandler({
   async handler({ auth, body }) {
     await prismaClient.$transaction(async (tx) => {
       if (auth.type === "client") {
+        if (!auth.user) throw new KnownErrors.UserAuthenticationRequired();
+
         await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           userId: auth.user.id,
@@ -49,9 +52,7 @@ export const POST = createSmartRouteHandler({
         email: body.email,
       },
       callbackUrl: body.callback_url,
-    }, {
-      user: auth.user,
-    });
+    }, {});
 
     return {
       statusCode: 200,
