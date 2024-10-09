@@ -1,5 +1,16 @@
 # @stackframe/stack-dashboard
 
+## 2.6.4
+
+### Patch Changes
+
+- fixed small problems
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.4
+  - @stackframe/stack-shared@2.6.4
+  - @stackframe/stack-ui@2.6.4
+  - @stackframe/stack@2.6.4
+
 ## 2.6.3
 
 ### Patch Changes

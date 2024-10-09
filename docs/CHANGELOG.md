@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.6.4
+
+### Patch Changes
+
+- fixed small problems
+
 ## 2.6.3
 
 ## 2.6.2

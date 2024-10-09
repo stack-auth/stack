@@ -1,5 +1,13 @@
 # e2e-tests
 
+## 2.6.4
+
+### Patch Changes
+
+- fixed small problems
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.4
+
 ## 2.6.3
 
 ### Patch Changes
