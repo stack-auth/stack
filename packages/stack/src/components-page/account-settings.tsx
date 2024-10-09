@@ -7,8 +7,8 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, EditableText, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { CirclePlus, Contact, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
@@ -813,5 +813,49 @@ export function useDeleteAccountSection() {
         </Accordion>
       </div>
     </Section>
+  );
+}
+
+export function EditableText(props: { value: string, onSave?: (value: string) => void | Promise<void> }) {
+  const [editing, setEditing] = useState(false);
+  const [editingValue, setEditingValue] = useState(props.value);
+  const { t } = useTranslation();
+
+  return (
+    <div className='flex items-center gap-2'>
+      {editing ? (
+        <>
+          <Input
+            value={editingValue}
+            onChange={(e) => setEditingValue(e.target.value)}
+          />
+          <Button
+            size='sm'
+            onClick={async () => {
+              await props.onSave?.(editingValue);
+              setEditing(false);
+            }}
+          >
+            {t("Save")}
+          </Button>
+          <Button
+            size='sm'
+            variant='secondary'
+            onClick={() => {
+              setEditingValue(props.value);
+              setEditing(false);
+            }}>
+            {t("Cancel")}
+          </Button>
+        </>
+      ) : (
+        <>
+          <Typography>{props.value}</Typography>
+          <Button onClick={() => setEditing(true)} size='icon' variant='ghost'>
+            <Edit className="w-4 h-4"/>
+          </Button>
+        </>
+      )}
+    </div>
   );
 }

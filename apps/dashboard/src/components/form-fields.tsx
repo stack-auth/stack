@@ -159,10 +159,10 @@ export function SwitchListField<F extends FieldValues>(props: {
                     disabled={props.disabled}
                   />
                 </FormControl>
-                <FormMessage />
               </label>
             ))}
           </div>
+          <FormMessage />
         </FormItem>
       )}
     />

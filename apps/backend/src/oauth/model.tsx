@@ -55,6 +55,7 @@ export class OAuthModel implements AuthorizationCodeModel {
 
     return {
       id: project.id,
+      useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
       grants: ["authorization_code", "refresh_token"],
       redirectUris: redirectUris,
     };
@@ -77,6 +78,7 @@ export class OAuthModel implements AuthorizationCodeModel {
     return await generateAccessToken({
       projectId: client.id,
       userId: user.id,
+      useLegacyGlobalJWT: client.useLegacyGlobalJWT,
     });
   }
 

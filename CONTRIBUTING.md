@@ -4,8 +4,6 @@ Welcome to Stack Auth!
 
 Due to the nature of authentication, this may not be the easiest project to contribute to, so if you are looking for projects to help gain programming experience, we may not be a great match. If you're looking for projects for beginners, check out [Awesome First PR Opportunities](https://github.com/MunGell/awesome-for-beginners).
 
-# Note: We are not currently hiring.
-
 ## How to contribute
 
 If you think Stack Auth is a good fit for you, follow these steps:

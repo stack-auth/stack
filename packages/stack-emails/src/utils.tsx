@@ -13,8 +13,6 @@ import { teamInvitationTemplate } from "./templates/team-invitation";
 
 const userVars = [
   { name: 'userDisplayName', label: 'User Display Name', defined: false, example: 'John Doe' },
-  // TODO: rename this to userEmail
-  { name: 'userPrimaryEmail', label: 'User Primary Email', defined: true, example: 'example@email.com' },
 ] as const;
 
 const projectVars = [
