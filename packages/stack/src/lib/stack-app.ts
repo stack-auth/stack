@@ -763,13 +763,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       value: crud.value,
       type: crud.type,
       isVerified: crud.is_verified,
+      isPrimary: crud.is_primary,
       usedForAuth: crud.used_for_auth,
 
       async update(data: ContactChannelUpdateOptions) {
         await app._interface.updateClientContactChannel(crud.id, contactChannelUpdateOptionsToCrud(data), app._getSession());
+        await app._clientContactChannelsCache.refresh([app._getSession()]);
       },
       async delete() {
         await app._interface.deleteClientContactChannel(crud.id, app._getSession());
+        await app._clientContactChannelsCache.refresh([app._getSession()]);
       },
     };
   }
@@ -2280,6 +2283,7 @@ type ContactChannel = {
   id: string,
   value: string,
   type: 'email',
+  isPrimary: boolean,
   isVerified: boolean,
   usedForAuth: boolean,
 
@@ -2305,12 +2309,14 @@ function contactChannelCreateOptionsToCrud(userId: string, options: ContactChann
 type ContactChannelUpdateOptions = {
   usedForAuth?: boolean,
   value?: string,
+  isPrimary?: boolean,
 }
 
 function contactChannelUpdateOptionsToCrud(options: ContactChannelUpdateOptions): ContactChannelsCrud["Client"]["Update"] {
   return {
     value: options.value,
     used_for_auth: options.usedForAuth,
+    is_primary: options.isPrimary,
   };
 }
 

@@ -7,8 +7,8 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, Badge, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Check, CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck, TrashIcon } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
@@ -191,24 +191,49 @@ function EmailsSection() {
   };
 
   return (
-    <Section
-      title={t("Emails")}
-      description={t("All your emails used for authentication and contact")}
-    >
-      {/*eslint-disable-next-line @typescript-eslint/no-unnecessary-condition*/}
-      {contactChannels.filter(x => x.type === 'email').map(x => (
-        <div key={x.id}>
-          {x.value}
-        </div>
-      ))}
-
+    <div>
+      <Typography className='font-medium mb-2'>{t("Emails")}</Typography>
+      <div className='border rounded-md'>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("Email")}</TableHead>
+              <TableHead>{t("Used for auth")}</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {/*eslint-disable-next-line @typescript-eslint/no-unnecessary-condition*/}
+            {contactChannels.filter(x => x.type === 'email').map(x => (
+              <TableRow key={x.id}>
+                <TableCell>
+                  <div className='flex gap-2'>
+                    {x.value} {x.isPrimary ? <Badge>{t("Primary")}</Badge> : null}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {x.usedForAuth ? <Check/> : null}
+                </TableCell>
+                <TableCell className="flex justify-end">
+                  <ActionCell items={[
+                    {
+                      item: <>Set as primary</>,
+                      onClick: () => x.update({ isPrimary: true }),
+                    },
+                  ]}/>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
       {addingEmail ? (
         <form
           onSubmit={(e) => {
             e.preventDefault();
             runAsynchronously(handleSubmit(onSubmit));
           }}
-          className='flex flex-col'
+          className='mt-4 flex flex-col'
         >
           <div className='flex gap-2'>
             <Input
@@ -228,9 +253,9 @@ function EmailsSection() {
           {errors.email && <FormWarningText text={errors.email.message} />}
         </form>
       ) : (
-        <Button variant='secondary' onClick={() => setAddingEmail(true)}>{t("Add an email")}</Button>
+        <Button variant='secondary' className='mt-4' onClick={() => setAddingEmail(true)}>{t("Add an email")}</Button>
       )}
-    </Section>
+    </div>
   );
 }
 
