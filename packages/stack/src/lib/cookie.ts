@@ -6,8 +6,8 @@ type SetCookieOptions = { maxAge?: number };
 
 export function getCookie(name: string): string | null {
   if (typeof window !== "undefined") {
-    // This is a flag to automatically detect whether we're on https for the next server request
-    // Check out the comment in setCookie for more details
+    // If we are on https, set a helper cookie that lets the server know
+    // see comment in `setCookie` below
     if (window.location.protocol === "https:") {
       Cookies.set("stack-is-https", "true");
     }
