@@ -6,13 +6,26 @@ type SetCookieOptions = { maxAge?: number };
 
 export function getCookie(name: string): string | null {
   if (typeof window !== "undefined") {
-    // If we are on https, set a helper cookie that lets the server know
-    // see comment in `setCookie` below
-    if (window.location.protocol === "https:") {
-      Cookies.set("stack-is-https", "true");
-    }
+    // set a helper cookie, see comment in `setCookie` below
+    Cookies.set("stack-is-https", "true", { secure: true });
     return Cookies.get(name) ?? null;
   } else {
+    // set a helper cookie, see comment in `setCookie` below
+    try {
+      rscCookies().set("stack-is-https", "true", { secure: true });
+    } catch (e) {
+      if (
+        typeof e === 'object'
+        && e !== null
+        && 'message' in e
+        && typeof e.message === 'string'
+        && e.message.includes('Cookies can only be modified in a Server Action or Route Handler')
+      ) {
+        // ignore
+      } else {
+        throw e;
+      }
+    }
     return rscCookies().get(name)?.value ?? null;
   }
 }
@@ -47,18 +60,15 @@ export function setCookie(name: string, value: string, options: SetCookieOptions
   // Note that malicious clients could theoretically manipulate the `stack-is-https` cookie or
   // the `X-Forwarded-Proto` header; that wouldn't cause any trouble except for themselves,
   // though.
-  let isSecureCookie = !!getCookie("stack-is-https");
 
   if (typeof window !== "undefined") {
-    if (window.location.protocol === "https:") {
-      isSecureCookie = true;
-    }
     Cookies.set(name, value, {
-      secure: isSecureCookie,
+      secure: window.location.protocol === "https:",
       expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
       sameSite: "Strict"
     });
   } else {
+    let isSecureCookie = !!rscCookies().get("stack-is-https");
     if (rscHeaders().get("x-forwarded-proto") === "https") {
       isSecureCookie = true;
     }
