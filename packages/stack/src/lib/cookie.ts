@@ -1,4 +1,4 @@
-import { cookies as rscCookies } from '@stackframe/stack-sc/force-react-server';
+import { cookies as rscCookies, headers as rscHeaders } from '@stackframe/stack-sc/force-react-server';
 import Cookies from "js-cookie";
 import { calculatePKCECodeChallenge, generateRandomCodeVerifier, generateRandomState } from "oauth4webapi";
 
@@ -17,6 +17,12 @@ export function getCookie(name: string): string | null {
       return Cookies.get(name) ?? null;
     } else {
       throw e;
+    }
+  } finally {
+    // This is a flag to automatically detect whether we're on https for the next server request
+    // Check out the comment in setCookie for more details
+    if (typeof window !== "undefined" && window.location.protocol === "https:") {
+      Cookies.set("stack-is-https", "true");
     }
   }
 }
@@ -42,19 +48,34 @@ export function deleteCookie(name: string) {
 }
 
 export function setCookie(name: string, value: string, options: SetCookieOptions = {}) {
-  const isProd = process.env.NODE_ENV === "production";
+  // ================================
+  // Check if the current page is server over HTTPS with
+  // 1. Check if the https cookie is set on the client
+  // 2. If on the client, check the protocol directly
+  // 3. If on the server, check the X-Forwarded-Proto header
+  let isSecureCookie = !!getCookie("stack-is-https");
+  if (typeof window !== "undefined" && window.location.protocol === "https:") {
+    isSecureCookie = true;
+  }
+  try {
+    const proto = rscHeaders().get("x-forwarded-proto");
+    if (proto === "https") {
+      isSecureCookie = true;
+    }
+  } catch (e: any) {
+    // Ignore
+  }
+  // ================================
+
   try {
     rscCookies().set(name, value, {
-      secure: isProd,
+      secure: isSecureCookie,
       maxAge: options.maxAge,
     });
   } catch (e: any) {
     if (isRscCookieUnavailableError(e)) {
-      if (window.location.protocol !== "https:" && isProd && process.env.NEXT_PUBLIC_STACK_ALLOW_INSECURE_COOKIES !== 'true') {
-        throw new Error("Attempted to set a secure cookie, but this build was compiled as a production build, but the current page is not served over HTTPS. This is a security risk and is not allowed in production.");
-      }
       Cookies.set(name, value, {
-        secure: process.env.NEXT_PUBLIC_STACK_ALLOW_INSECURE_COOKIES === 'true' ? false : isProd,
+        secure: isSecureCookie,
         expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
         sameSite: "Strict"
       });
