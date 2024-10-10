@@ -29,7 +29,7 @@ export function VersionAlerter({ severeOnly }: { severeOnly: boolean }) {
       try {
         await wait(1000); // it's fine to be slow, give other API requests priority
         if (cancelled) return;
-        const res = await fetch(`http://localhost:8102/api/v1/check-version`, {
+        const res = await fetch(`http://api.stack-auth.com/api/v1/check-version`, {
           method: "POST",
           body: JSON.stringify({ clientVersion: packageJson.version }),
           headers: {
