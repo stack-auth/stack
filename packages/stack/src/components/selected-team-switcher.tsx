@@ -67,7 +67,9 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
         {user?.selectedTeam ? <SelectGroup>
           <SelectLabel>
             <div className="flex items-center justify-between">
-              {t('Current team')}
+              <span className="w-32 sm:w-44 truncate">
+                {t('Current team')}
+              </span>
               <Button variant='ghost' size='icon' className="h-6 w-6" onClick={() => router.push(`${app.urls.accountSettings}/teams/${user.selectedTeam?.id}`)}>
                 <Settings className="h-4 w-4"/>
               </Button>
@@ -76,7 +78,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
           <SelectItem value={user.selectedTeam.id}>
             <div className="flex items-center gap-2">
               <TeamIcon team={user.selectedTeam} />
-              <Typography>{user.selectedTeam.displayName}</Typography>
+              <Typography className="w-32 sm:w-44 truncate">{user.selectedTeam.displayName}</Typography>
             </div>
           </SelectItem>
         </SelectGroup> : undefined}
@@ -89,7 +91,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
                 <SelectItem value={team.id} key={team.id}>
                   <div className="flex items-center gap-2">
                     <TeamIcon team={team} />
-                    <Typography>{team.displayName}</Typography>
+                    <Typography className="w-32 sm:w-44 truncate">{team.displayName}</Typography>
                   </div>
                 </SelectItem>
               ))}
