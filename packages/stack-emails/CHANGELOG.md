@@ -1,5 +1,12 @@
 # @stackframe/stack-emails
 
+## 2.6.7
+
+### Patch Changes
+
+- @stackframe/stack-shared@2.6.7
+- @stackframe/stack-ui@2.6.7
+
 ## 2.6.6
 
 ### Patch Changes

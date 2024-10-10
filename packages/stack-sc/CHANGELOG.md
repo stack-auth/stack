@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 2.6.7
+
+### Patch Changes
+
+- Bugfixes
+
 ## 2.6.6
 
 ## 2.6.5
