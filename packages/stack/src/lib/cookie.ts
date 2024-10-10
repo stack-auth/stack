@@ -34,10 +34,19 @@ export function deleteCookie(name: string) {
 }
 
 export function setCookie(name: string, value: string, options: SetCookieOptions = {}) {
-  // Check if the current page is server over HTTPS with:
-  // 1. Check if the https cookie is set on the client (see comment above)
-  // 2. If on the client, check the protocol directly
-  // 3. If on the server, check the X-Forwarded-Proto header
+  // Whenever the client is on HTTPS, we want to set the Secure flag on the cookie.
+  //
+  // This is not easy to find out on a Next.js server, so we use the following steps:
+  //
+  // 1. If we're on the client, we can check window.location.protocol which is the ground-truth
+  // 2. Check whether the stack-is-https cookie exists. This cookie is set in various places on
+  //      the client if the protocol is known to be HTTPS
+  // 3. Check the X-Forwarded-Proto header
+  // 4. Otherwise, assume HTTP without the S
+  //
+  // Note that malicious clients could theoretically manipulate the `stack-is-https` cookie or
+  // the `X-Forwarded-Proto` header; that wouldn't cause any trouble except for themselves,
+  // though.
   let isSecureCookie = !!getCookie("stack-is-https");
 
   if (typeof window !== "undefined") {
