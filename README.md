@@ -52,6 +52,8 @@ If you answered "no" to any of these questions, then that's how Stack Auth is di
 
 ## ✨ Features
 
+To get notified first when we add new features, please subscribe to [our newsletter](https://stack-auth.beehiiv.com/subscribe).
+
 | | |
 |-|:-:|
 | <h3>`<SignIn/>` and `<SignUp/>`</h3> Authentication components that support OAuth, password credentials, and magic links, with shared development keys to make setup faster. All components support dark/light modes. | <img alt="Sign-in component" src=".github/assets/dark-light-mode.png" width="250px"> |
