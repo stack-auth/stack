@@ -9,6 +9,11 @@ function isRscCookieUnavailableError(e: any) {
   return typeof e?.message === "string" && allowedMessageSnippets.some(msg => e.message.includes(msg));
 }
 
+function isRscHeadersUnavailableError(e: any) {
+  const allowedMessageSnippets = ["was called outside a request scope"];
+  return typeof e?.message === "string" && allowedMessageSnippets.some(msg => e.message.includes(msg));
+}
+
 export function getCookie(name: string): string | null {
   try {
     return rscCookies().get(name)?.value ?? null;
@@ -63,7 +68,11 @@ export function setCookie(name: string, value: string, options: SetCookieOptions
       isSecureCookie = true;
     }
   } catch (e: any) {
-    // Ignore
+    if (isRscHeadersUnavailableError(e)) {
+      // Ignore
+    } else {
+      throw e;
+    }
   }
   // ================================
 
