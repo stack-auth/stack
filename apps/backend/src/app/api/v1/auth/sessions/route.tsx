@@ -37,10 +37,8 @@ export const POST = createSmartRouteHandler({
         project: project,
       });
     } catch (e) {
-      if (e instanceof CrudHandlerInvocationError) {
-        if (e.cause instanceof KnownErrors.UserNotFound) {
-          throw new KnownErrors.UserIdDoesNotExist(userId);
-        }
+      if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
+        throw new KnownErrors.UserIdDoesNotExist(userId);
       }
       throw e;
     }

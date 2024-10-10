@@ -7,8 +7,8 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, Badge, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Check, CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck, TrashIcon } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
@@ -152,6 +152,7 @@ function ProfilePage() {
             await user.update({ displayName: newDisplayName });
           }}/>
       </Section>
+
       <Section
         title={t("Profile image")}
         description={t("Upload your own image as your avatar")}
@@ -163,7 +164,98 @@ function ProfilePage() {
           }}
         />
       </Section>
+
+      <EmailsSection/>
     </PageLayout>
+  );
+}
+
+function EmailsSection() {
+  const { t } = useTranslation();
+  const user = useUser({ or: 'redirect' });
+  const contactChannels = user.useContactChannels();
+  const [addingEmail, setAddingEmail] = useState(false);
+
+  const emailSchema = yupObject({
+    email: yupString().email(t('Please enter a valid email address')).required(t('Email is required')),
+  });
+
+  const { register, handleSubmit, formState: { errors }, reset } = useForm({
+    resolver: yupResolver(emailSchema)
+  });
+
+  const onSubmit = async (data: yup.InferType<typeof emailSchema>) => {
+    await user.createContactChannel({ type: 'email', value: data.email, usedForAuth: false });
+    setAddingEmail(false);
+    reset();
+  };
+
+  return (
+    <div>
+      <Typography className='font-medium mb-2'>{t("Emails")}</Typography>
+      <div className='border rounded-md'>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("Email")}</TableHead>
+              <TableHead>{t("Used for auth")}</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {/*eslint-disable-next-line @typescript-eslint/no-unnecessary-condition*/}
+            {contactChannels.filter(x => x.type === 'email').map(x => (
+              <TableRow key={x.id}>
+                <TableCell>
+                  <div className='flex gap-2'>
+                    {x.value} {x.isPrimary ? <Badge>{t("Primary")}</Badge> : null}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {x.usedForAuth ? <Check/> : null}
+                </TableCell>
+                <TableCell className="flex justify-end">
+                  <ActionCell items={[
+                    {
+                      item: <>Set as primary</>,
+                      onClick: () => x.update({ isPrimary: true }),
+                    },
+                  ]}/>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      {addingEmail ? (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            runAsynchronously(handleSubmit(onSubmit));
+          }}
+          className='mt-4 flex flex-col'
+        >
+          <div className='flex gap-2'>
+            <Input
+              {...register("email")}
+              placeholder={t("Enter email")}
+            />
+            <Button type="submit">
+              {t("Add")}
+            </Button>
+            <Button variant='secondary' onClick={() => {
+              setAddingEmail(false);
+              reset();
+            }}>
+              {t("Cancel")}
+            </Button>
+          </div>
+          {errors.email && <FormWarningText text={errors.email.message} />}
+        </form>
+      ) : (
+        <Button variant='secondary' className='mt-4' onClick={() => setAddingEmail(true)}>{t("Add an email")}</Button>
+      )}
+    </div>
   );
 }
 

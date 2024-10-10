@@ -17,6 +17,15 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().optional(),
 }).required();
 
+const contactChannelSchema = fieldSchema.yupObject({
+  id: fieldSchema.yupString().required(),
+  type: fieldSchema.yupString().required(),
+  value: fieldSchema.yupString().required(),
+  is_primary: fieldSchema.yupBoolean().required(),
+  is_verified: fieldSchema.yupBoolean().required(),
+  used_for_auth: fieldSchema.yupBoolean().required(),
+}).required();
+
 export const usersCrudServerReadSchema = fieldSchema.yupObject({
   id: fieldSchema.userIdSchema.required(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().defined(),

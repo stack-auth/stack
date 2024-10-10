@@ -40,22 +40,6 @@ export const userFullInclude = {
   },
 } satisfies Prisma.ProjectUserInclude;
 
-export const contactChannelToCrud = (channel: Prisma.ContactChannelGetPayload<{}>) => {
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  if (channel.type !== 'EMAIL') {
-    throw new StackAssertionError("Only email channels are supported");
-  }
-
-  return {
-    id: channel.id,
-    type: 'email',
-    value: channel.value,
-    is_primary: !!channel.isPrimary,
-    is_verified: channel.isVerified,
-    used_for_auth: !!channel.usedForAuth,
-  };
-};
-
 export const oauthProviderConfigToCrud = (
   config: Prisma.OAuthProviderConfigGetPayload<{ include: {
     proxiedOAuthConfig: true,
