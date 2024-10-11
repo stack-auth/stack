@@ -8,7 +8,7 @@ import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, Badge, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { Check, CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck, TrashIcon } from 'lucide-react';
+import { CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
@@ -222,22 +222,22 @@ function EmailsSection() {
                   <TableCell className="flex justify-end">
                     <ActionCell items={[
                       ...(!x.isVerified ? [{
-                        item: "Send verification email",
+                        item: t("Send verification email"),
                         onClick: async () => { await x.sendVerificationEmail(); },
                       }] : []),
                       ...(!x.isPrimary ? [{
-                        item: "Set as primary",
+                        item: t("Set as primary"),
                         onClick: async () => { await x.update({ isPrimary: true }); },
                       }] : []),
                       ...(!x.usedForAuth ? [{
-                        item: "Use for sign-in",
+                        item: t("Use for sign-in"),
                         onClick: async () => { await x.update({ usedForAuth: true }); },
                       }] : [{
-                        item: "Stop using for sign-in",
+                        item: t("Stop using for sign-in"),
                         onClick: async () => { await x.update({ usedForAuth: false }); },
                       }]),
                       ...(contactChannels.length > 1 ? [{
-                        item: "Remove",
+                        item: t("Remove"),
                         onClick: async () => { await x.delete(); },
                         danger: true,
                       }] : []),
