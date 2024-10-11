@@ -84,7 +84,7 @@ export function ActionCell(props: {
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[160px]">
+      <DropdownMenuContent align="end" className="min-w-[150px] max-w-[300px]">
         {props.items?.map((item, index) => item === '-' ? (
           <DropdownMenuSeparator key={index} />
         ) : (

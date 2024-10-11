@@ -222,22 +222,22 @@ function EmailsSection() {
                   <TableCell className="flex justify-end">
                     <ActionCell items={[
                       ...(!x.isVerified ? [{
-                        item: <>Send verification email</>,
+                        item: "Send verification email",
                         onClick: async () => { await x.sendVerificationEmail(); },
                       }] : []),
                       ...(!x.isPrimary ? [{
-                        item: <>Set as primary</>,
+                        item: "Set as primary",
                         onClick: async () => { await x.update({ isPrimary: true }); },
                       }] : []),
                       ...(!x.usedForAuth ? [{
-                        item: <>Use for sign-in</>,
+                        item: "Use for sign-in",
                         onClick: async () => { await x.update({ usedForAuth: true }); },
                       }] : [{
-                        item: <>Not use for sign-in</>,
+                        item: "Stop using for sign-in",
                         onClick: async () => { await x.update({ usedForAuth: false }); },
                       }]),
                       ...(contactChannels.length > 1 ? [{
-                        item: <>Remove</>,
+                        item: "Remove",
                         onClick: async () => { await x.delete(); },
                         danger: true,
                       }] : []),
