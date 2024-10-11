@@ -1164,5 +1164,22 @@ export class StackClientInterface {
     const json = await response.json() as ContactChannelsCrud['Client']['List'];
     return json.items;
   }
+
+  async sendCurrentUserContactChannelVerificationEmail(
+    contactChannelId: string,
+    session: InternalSession,
+  ): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>> {
+    const responseOrError = await this.sendClientRequestAndCatchKnownError(
+      `/contact-channels/me/${contactChannelId}/send-verification-email`,
+      {},
+      session,
+      [KnownErrors.EmailAlreadyVerified]
+    );
+
+    if (responseOrError.status === "error") {
+      return Result.error(responseOrError.error);
+    }
+    return Result.ok(undefined);
+  }
 }
 

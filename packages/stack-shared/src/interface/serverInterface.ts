@@ -448,4 +448,21 @@ export class StackServerInterface extends StackClientInterface {
     const json = await response.json() as ContactChannelsCrud['Server']['List'];
     return json.items;
   }
+
+  async sendServerContactChannelVerificationEmail(
+    userId: string,
+    contactChannelId: string,
+  ): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>> {
+    const responseOrError = await this.sendServerRequestAndCatchKnownError(
+      `/contact-channels/${userId}/${contactChannelId}/send-verification-email`,
+      {},
+      null,
+      [KnownErrors.EmailAlreadyVerified],
+    );
+
+    if (responseOrError.status === "error") {
+      return Result.error(responseOrError.error);
+    }
+    return Result.ok(undefined);
+  }
 }

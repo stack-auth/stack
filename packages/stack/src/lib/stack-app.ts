@@ -766,6 +766,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       isPrimary: crud.is_primary,
       usedForAuth: crud.used_for_auth,
 
+      async sendVerificationEmail() {
+        return app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, app._getSession());
+      },
       async update(data: ContactChannelUpdateOptions) {
         await app._interface.updateClientContactChannel(crud.id, contactChannelUpdateOptionsToCrud(data), app._getSession());
         await app._clientContactChannelsCache.refresh([app._getSession()]);
@@ -1578,6 +1581,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const app = this;
     return {
       ...this._clientContactChannelFromCrud(crud),
+      async sendVerificationEmail() {
+        return app._interface.sendServerContactChannelVerificationEmail(userId, crud.id);
+      },
       async update(data: ServerContactChannelUpdateOptions) {
         await app._interface.updateServerContactChannel(userId, crud.id, serverContactChannelUpdateOptionsToCrud(data));
       },
@@ -2287,6 +2293,7 @@ type ContactChannel = {
   isVerified: boolean,
   usedForAuth: boolean,
 
+  sendVerificationEmail(): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>>,
   update(data: ContactChannelUpdateOptions): Promise<void>,
   delete(): Promise<void>,
 }
@@ -2497,6 +2504,7 @@ type BaseUser = {
 
 type UserExtra = {
   setDisplayName(displayName: string): Promise<void>,
+  /** @deprecated Use contact channel's sendVerificationEmail instead */
   sendVerificationEmail(): Promise<KnownErrors["EmailAlreadyVerified"] | void>,
   setClientMetadata(metadata: any): Promise<void>,
   updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,

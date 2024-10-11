@@ -174,10 +174,14 @@ function EmailsSection() {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
   const contactChannels = user.useContactChannels();
-  const [addingEmail, setAddingEmail] = useState(false);
+  const [addingEmail, setAddingEmail] = useState(contactChannels.length === 0);
+  const [addingEmailLoading, setAddingEmailLoading] = useState(false);
 
   const emailSchema = yupObject({
-    email: yupString().email(t('Please enter a valid email address')).required(t('Email is required')),
+    email: yupString()
+      .email(t('Please enter a valid email address'))
+      .notOneOf(contactChannels.map(x => x.value), t('Email already exists'))
+      .required(t('Email is required')),
   });
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
@@ -185,7 +189,12 @@ function EmailsSection() {
   });
 
   const onSubmit = async (data: yup.InferType<typeof emailSchema>) => {
-    await user.createContactChannel({ type: 'email', value: data.email, usedForAuth: false });
+    setAddingEmailLoading(true);
+    try {
+      await user.createContactChannel({ type: 'email', value: data.email, usedForAuth: false });
+    } finally {
+      setAddingEmailLoading(false);
+    }
     setAddingEmail(false);
     reset();
   };
@@ -193,40 +202,53 @@ function EmailsSection() {
   return (
     <div>
       <Typography className='font-medium mb-2'>{t("Emails")}</Typography>
-      <div className='border rounded-md'>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("Email")}</TableHead>
-              <TableHead>{t("Used for auth")}</TableHead>
-              <TableHead></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {/*eslint-disable-next-line @typescript-eslint/no-unnecessary-condition*/}
-            {contactChannels.filter(x => x.type === 'email').map(x => (
-              <TableRow key={x.id}>
-                <TableCell>
-                  <div className='flex gap-2'>
-                    {x.value} {x.isPrimary ? <Badge>{t("Primary")}</Badge> : null}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {x.usedForAuth ? <Check/> : null}
-                </TableCell>
-                <TableCell className="flex justify-end">
-                  <ActionCell items={[
-                    {
-                      item: <>Set as primary</>,
-                      onClick: () => x.update({ isPrimary: true }),
-                    },
-                  ]}/>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {contactChannels.length > 0 ? (
+        <div className='border rounded-md'>
+          <Table>
+            <TableBody>
+              {/*eslint-disable-next-line @typescript-eslint/no-unnecessary-condition*/}
+              {contactChannels.filter(x => x.type === 'email').map(x => (
+                <TableRow key={x.id}>
+                  <TableCell>
+                    <div className='flex flex-col md:flex-row gap-2 md:gap-4'>
+                      {x.value}
+                      <div className='flex gap-2'>
+                        {x.isPrimary ? <Badge>{t("Primary")}</Badge> : null}
+                        {!x.isVerified ? <Badge variant='destructive'>{t("Unverified")}</Badge> : null}
+                        {x.usedForAuth ? <Badge variant='outline'>{t("Used for sign-in")}</Badge> : null}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="flex justify-end">
+                    <ActionCell items={[
+                      ...(!x.isVerified ? [{
+                        item: <>Send verification email</>,
+                        onClick: async () => { await x.sendVerificationEmail(); },
+                      }] : []),
+                      ...(!x.isPrimary ? [{
+                        item: <>Set as primary</>,
+                        onClick: async () => { await x.update({ isPrimary: true }); },
+                      }] : []),
+                      ...(!x.usedForAuth ? [{
+                        item: <>Use for sign-in</>,
+                        onClick: async () => { await x.update({ usedForAuth: true }); },
+                      }] : [{
+                        item: <>Not use for sign-in</>,
+                        onClick: async () => { await x.update({ usedForAuth: false }); },
+                      }]),
+                      ...(contactChannels.length > 1 ? [{
+                        item: <>Remove</>,
+                        onClick: async () => { await x.delete(); },
+                        danger: true,
+                      }] : []),
+                    ]}/>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : null}
       {addingEmail ? (
         <form
           onSubmit={(e) => {
@@ -240,7 +262,7 @@ function EmailsSection() {
               {...register("email")}
               placeholder={t("Enter email")}
             />
-            <Button type="submit">
+            <Button type="submit" loading={addingEmailLoading}>
               {t("Add")}
             </Button>
             <Button variant='secondary' onClick={() => {
@@ -253,7 +275,9 @@ function EmailsSection() {
           {errors.email && <FormWarningText text={errors.email.message} />}
         </form>
       ) : (
-        <Button variant='secondary' className='mt-4' onClick={() => setAddingEmail(true)}>{t("Add an email")}</Button>
+        <div className='flex justify-end'>
+          <Button variant='secondary' className='mt-4' onClick={() => setAddingEmail(true)}>{t("Add an email")}</Button>
+        </div>
       )}
     </div>
   );
