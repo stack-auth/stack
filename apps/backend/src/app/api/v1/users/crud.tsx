@@ -86,6 +86,7 @@ export const userPrismaToCrud = (
     client_read_only_metadata: prisma.clientReadOnlyMetadata,
     server_metadata: prisma.serverMetadata,
     has_password: !!passwordAuth,
+    otp_auth_enabled: !!otpAuth,
     auth_with_email: !!passwordAuth || !!otpAuth,
     requires_totp_mfa: prisma.requiresTotpMfa,
     oauth_providers: prisma.projectUserOAuthAccounts.map((a) => ({
@@ -106,26 +107,23 @@ async function checkAuthData(
     oldPrimaryEmail?: string | null,
     primaryEmail?: string | null,
     primaryEmailVerified?: boolean,
-    primaryEmailAuthEnabled?: boolean,
+    primaryEmailUsedForAuth?: boolean,
     passwordHash?: string | null,
   }
 ) {
-  if (!data.primaryEmail && data.primaryEmailAuthEnabled) {
-    throw new StatusError(400, "primary_email_auth_enabled cannot be true without primary_email");
+  if (!data.primaryEmail && data.primaryEmailUsedForAuth) {
+    throw new StatusError(400, "primary_email_used_for_auth cannot be true without primary_email");
   }
   if (!data.primaryEmail && data.primaryEmailVerified) {
     throw new StatusError(400, "primary_email_verified cannot be true without primary_email");
   }
-  if (!data.primaryEmailAuthEnabled && data.passwordHash) {
-    throw new StatusError(400, "password cannot be set without primary_email_auth_enabled");
-  }
-  if (data.primaryEmailAuthEnabled) {
+  if (data.primaryEmailUsedForAuth) {
     if (!data.oldPrimaryEmail || data.oldPrimaryEmail !== data.primaryEmail) {
       const otpAuth = await tx.contactChannel.findFirst({
         where: {
           projectId: data.projectId,
           type: 'EMAIL',
-          value: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
+          value: data.primaryEmail || throwErr("primary_email_used_for_auth is true but primary_email is not set"),
           usedForAuth: BooleanTrue.TRUE,
         }
       });
@@ -276,7 +274,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         projectId: auth.project.id,
         primaryEmail: data.primary_email,
         primaryEmailVerified: data.primary_email_verified,
-        primaryEmailAuthEnabled: data.primary_email_auth_enabled,
+        primaryEmailUsedForAuth: data.primary_email_used_for_auth,
         passwordHash: data.password && await hashPassword(data.password),
       });
 
@@ -376,52 +374,54 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             value: data.primary_email || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
             isVerified: data.primary_email_verified ?? false,
             isPrimary: "TRUE",
-            usedForAuth: data.primary_email_auth_enabled ? BooleanTrue.TRUE : null,
+            usedForAuth: data.primary_email_used_for_auth ? BooleanTrue.TRUE : null,
           }
         });
+      }
 
-        if (data.primary_email_auth_enabled) {
-          const otpConfig = await getOtpConfig(tx, auth.project.config.id);
+      if (data.password) {
+        const passwordConfig = await getPasswordConfig(tx, auth.project.config.id);
 
-          if (otpConfig) {
-            await tx.authMethod.create({
-              data: {
-                projectId: auth.project.id,
-                projectUserId: newUser.projectUserId,
-                projectConfigId: auth.project.config.id,
-                authMethodConfigId: otpConfig.authMethodConfigId,
-                otpAuthMethod: {
-                  create: {
-                    projectUserId: newUser.projectUserId,
-                  }
-                }
-              }
-            });
-          }
+        if (!passwordConfig) {
+          throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
         }
 
-        if (data.password) {
-          const passwordConfig = await getPasswordConfig(tx, auth.project.config.id);
-
-          if (!passwordConfig) {
-            throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
-          }
-
-          await tx.authMethod.create({
-            data: {
-              projectId: auth.project.id,
-              projectConfigId: auth.project.config.id,
-              projectUserId: newUser.projectUserId,
-              authMethodConfigId: passwordConfig.authMethodConfigId,
-              passwordAuthMethod: {
-                create: {
-                  passwordHash: await hashPassword(data.password),
-                  projectUserId: newUser.projectUserId,
-                }
+        await tx.authMethod.create({
+          data: {
+            projectId: auth.project.id,
+            projectConfigId: auth.project.config.id,
+            projectUserId: newUser.projectUserId,
+            authMethodConfigId: passwordConfig.authMethodConfigId,
+            passwordAuthMethod: {
+              create: {
+                passwordHash: await hashPassword(data.password),
+                projectUserId: newUser.projectUserId,
               }
             }
-          });
+          }
+        });
+      }
+
+      if (data.otp_auth_enabled) {
+        const otpConfig = await getOtpConfig(tx, auth.project.config.id);
+
+        if (!otpConfig) {
+          throw new StatusError(StatusError.BadRequest, "OTP auth not enabled in the project");
         }
+
+        await tx.authMethod.create({
+          data: {
+            projectId: auth.project.id,
+            projectConfigId: auth.project.config.id,
+            projectUserId: newUser.projectUserId,
+            authMethodConfigId: otpConfig.authMethodConfigId,
+            otpAuthMethod: {
+              create: {
+                projectUserId: newUser.projectUserId,
+              }
+            }
+          }
+        });
       }
 
       const user = await tx.projectUser.findUnique({
@@ -526,7 +526,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         oldPrimaryEmail: primaryEmailContactChannel?.value,
         primaryEmail: primaryEmailContactChannel?.value || data.primary_email,
         primaryEmailVerified: primaryEmailContactChannel?.isVerified || data.primary_email_verified,
-        primaryEmailAuthEnabled: !!otpAuth || !!passwordAuth || data.primary_email_auth_enabled,
+        primaryEmailUsedForAuth: !!primaryEmailContactChannel?.usedForAuth || data.primary_email_used_for_auth,
         passwordHash: passwordAuth ? passwordAuth.passwordHash : (data.password && await hashPassword(data.password)),
       });
 
@@ -567,7 +567,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             },
             update: {
               value: data.primary_email,
-              usedForAuth: data.primary_email_auth_enabled ? BooleanTrue.TRUE : null,
+              usedForAuth: data.primary_email_used_for_auth ? BooleanTrue.TRUE : null,
             }
           });
         }
@@ -591,26 +591,13 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         });
       }
 
-      // if primary email auth is true
+      // if otp_auth_enabled is true
       // - create a new otp auth method if it doesn't exist
-      // if primary email auth is false
+      // if otp_auth_enabled is false
       // - delete the otp auth method if it exists
-      if (data.primary_email_auth_enabled !== undefined) {
-        if (data.primary_email_auth_enabled) {
+      if (data.otp_auth_enabled !== undefined) {
+        if (data.otp_auth_enabled) {
           if (!otpAuth) {
-            const primaryEmailChannel = await tx.contactChannel.findFirst({
-              where: {
-                projectId: auth.project.id,
-                projectUserId: params.user_id,
-                type: 'EMAIL',
-                isPrimary: "TRUE",
-              }
-            });
-
-            if (!primaryEmailChannel) {
-              throw new StackAssertionError("primary_email_auth_enabled is true but primary_email is not set");
-            }
-
             const otpConfig = await getOtpConfig(tx, auth.project.config.id);
 
             if (otpConfig) {

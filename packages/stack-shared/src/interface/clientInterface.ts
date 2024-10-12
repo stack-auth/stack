@@ -1171,7 +1171,13 @@ export class StackClientInterface {
   ): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>> {
     const responseOrError = await this.sendClientRequestAndCatchKnownError(
       `/contact-channels/me/${contactChannelId}/send-verification-code`,
-      {},
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({}),
+      },
       session,
       [KnownErrors.EmailAlreadyVerified]
     );

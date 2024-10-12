@@ -225,17 +225,18 @@ function EmailsSection() {
                         item: t("Send verification email"),
                         onClick: async () => { await x.sendVerificationEmail(); },
                       }] : []),
-                      ...(!x.isPrimary ? [{
+                      ...(!x.isPrimary && x.isVerified ? [{
                         item: t("Set as primary"),
                         onClick: async () => { await x.update({ isPrimary: true }); },
                       }] : []),
-                      ...(!x.usedForAuth ? [{
+                      ...(!x.usedForAuth && x.isVerified ? [{
                         item: t("Use for sign-in"),
                         onClick: async () => { await x.update({ usedForAuth: true }); },
-                      }] : [{
+                      }] : []),
+                      ...(x.usedForAuth ? [{
                         item: t("Stop using for sign-in"),
                         onClick: async () => { await x.update({ usedForAuth: false }); },
-                      }]),
+                      }] : []),
                       ...(contactChannels.length > 1 ? [{
                         item: t("Remove"),
                         onClick: async () => { await x.delete(); },

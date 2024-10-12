@@ -767,7 +767,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       usedForAuth: crud.used_for_auth,
 
       async sendVerificationEmail() {
-        return app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, app._getSession());
+        return await app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, app._getSession());
       },
       async update(data: ContactChannelUpdateOptions) {
         await app._interface.updateClientContactChannel(crud.id, contactChannelUpdateOptionsToCrud(data), app._getSession());
@@ -822,6 +822,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       clientReadOnlyMetadata: crud.client_read_only_metadata,
       hasPassword: crud.has_password,
       emailAuthEnabled: crud.auth_with_email,
+      otpAuthEnabled: crud.otp_auth_enabled,
       oauthProviders: crud.oauth_providers,
       selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team),
       isMultiFactorRequired: crud.requires_totp_mfa,
@@ -1582,7 +1583,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return {
       ...this._clientContactChannelFromCrud(crud),
       async sendVerificationEmail() {
-        return app._interface.sendServerContactChannelVerificationEmail(userId, crud.id);
+        return await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id);
       },
       async update(data: ServerContactChannelUpdateOptions) {
         await app._interface.updateServerContactChannel(userId, crud.id, serverContactChannelUpdateOptionsToCrud(data));
@@ -2472,7 +2473,6 @@ type BaseUser = {
    */
   readonly primaryEmail: string | null,
   readonly primaryEmailVerified: boolean,
-
   readonly profileImageUrl: string | null,
 
   readonly signedUpAt: Date,
@@ -2481,17 +2481,10 @@ type BaseUser = {
   readonly clientReadOnlyMetadata: any,
 
   /**
-   * Whether the primary e-mail can be used for authentication.
-   */
-  readonly emailAuthEnabled: boolean,
-  /**
    * Whether the user has a password set.
    */
   readonly hasPassword: boolean,
-  /**
-   * @deprecated
-   */
-  readonly oauthProviders: readonly { id: string }[],
+  readonly otpAuthEnabled: boolean,
 
   readonly isMultiFactorRequired: boolean,
 
@@ -2500,6 +2493,15 @@ type BaseUser = {
    */
   readonly selectedTeam: Team | null,
   toClientJson(): CurrentUserCrud["Client"]["Read"],
+
+  /**
+   * @deprecated, use contact channel's usedForAuth instead
+   */
+  readonly emailAuthEnabled: boolean,
+  /**
+   * @deprecated
+   */
+  readonly oauthProviders: readonly { id: string }[],
 }
 
 type UserExtra = {
@@ -2556,6 +2558,7 @@ type UserUpdateOptions = {
   selectedTeamId?: string | null,
   totpMultiFactorSecret?: Uint8Array | null,
   profileImageUrl?: string | null,
+  otpAuthEnabled?: boolean,
 }
 function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["Client"]["Update"] {
   return {
@@ -2563,7 +2566,8 @@ function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["C
     client_metadata: options.clientMetadata,
     selected_team_id: options.selectedTeamId,
     totp_secret_base64: options.totpMultiFactorSecret != null ? encodeBase64(options.totpMultiFactorSecret) : options.totpMultiFactorSecret,
-    profile_image_url: options.profileImageUrl
+    profile_image_url: options.profileImageUrl,
+    otp_auth_enabled: options.otpAuthEnabled,
   };
 }
 
@@ -2615,7 +2619,7 @@ export type CurrentInternalServerUser = CurrentServerUser & InternalUserExtra;
 type ServerUserUpdateOptions = {
   primaryEmail?: string,
   primaryEmailVerified?: boolean,
-  primaryEmailAuthEnabled?: boolean,
+  primaryEmailUsedForAuth?: boolean,
   clientReadOnlyMetadata?: ReadonlyJson,
   serverMetadata?: ReadonlyJson,
   password?: string,
@@ -2628,7 +2632,7 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
     client_read_only_metadata: options.clientReadOnlyMetadata,
     server_metadata: options.serverMetadata,
     selected_team_id: options.selectedTeamId,
-    primary_email_auth_enabled: options.primaryEmailAuthEnabled,
+    primary_email_used_for_auth: options.primaryEmailUsedForAuth,
     primary_email_verified: options.primaryEmailVerified,
     password: options.password,
     profile_image_url: options.profileImageUrl,
@@ -2647,7 +2651,7 @@ function serverUserCreateOptionsToCrud(options: ServerUserCreateOptions): UsersC
   return {
     primary_email: options.primaryEmail,
     password: options.password,
-    primary_email_auth_enabled: true,
+    primary_email_used_for_auth: true,
     display_name: options.displayName,
     primary_email_verified: options.primaryEmailVerified,
   };

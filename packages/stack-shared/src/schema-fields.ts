@@ -267,6 +267,7 @@ export const userOAuthProviderSchema = yupObject({
   provider_user_id: yupString().required(),
 });
 export const userLastActiveAtMillisSchema = yupNumber().nullable().meta({ openapiField: { description: _lastActiveAtMillisDescription, exampleValue: 1630000000000 } });
+export const userOtpAuthEnabledSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled', exampleValue: true } });
 
 // Auth
 export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
