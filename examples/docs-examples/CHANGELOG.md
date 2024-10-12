@@ -1,5 +1,14 @@
 # demo-app
 
+## 2.6.8
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.8
+  - @stackframe/stack@2.6.8
+  - @stackframe/stack-ui@2.6.8
+
 ## 2.6.7
 
 ### Patch Changes
