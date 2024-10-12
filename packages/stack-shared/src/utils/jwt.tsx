@@ -1,6 +1,6 @@
 import elliptic from "elliptic";
 import * as jose from "jose";
-import { encodeBase64 } from "./bytes";
+import { encodeBase64, encodeBase64Url } from "./bytes";
 import { getEnvVariable } from "./env";
 import { globalVar } from "./globals";
 import { pick } from "./objects";
@@ -75,9 +75,9 @@ export async function getPrivateJwk(secret: string) {
   return {
     kty: 'EC',
     crv: 'P-256',
-    d: encodeBase64(priv),
-    x: encodeBase64(publicKey.getX().toBuffer()),
-    y: encodeBase64(publicKey.getY().toBuffer()),
+    d: encodeBase64Url(priv),
+    x: encodeBase64Url(publicKey.getX().toBuffer()),
+    y: encodeBase64Url(publicKey.getY().toBuffer()),
   };
 }
 

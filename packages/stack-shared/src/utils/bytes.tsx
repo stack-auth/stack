@@ -79,6 +79,24 @@ export function decodeBase64(input: string): Uint8Array {
   return new Uint8Array(atob(input).split("").map((char) => char.charCodeAt(0)));
 }
 
+export function encodeBase64Url(input: Uint8Array): string {
+  const res = encodeBase64(input).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
+
+  // sanity check
+  if (!isBase64Url(res)) {
+    throw new StackAssertionError("Invalid base64url output; this should never happen");
+  }
+  return res;
+}
+
+export function decodeBase64Url(input: string): Uint8Array {
+  if (!isBase64Url(input)) {
+    throw new StackAssertionError("Invalid base64url string");
+  }
+
+  return decodeBase64(input.replace(/-/g, "+").replace(/_/g, "/") + "====".slice((input.length - 1) % 4 + 1));
+}
+
 export function isBase32(input: string): boolean {
   for (const char of input) {
     if (char === " ") continue;
@@ -91,5 +109,10 @@ export function isBase32(input: string): boolean {
 
 export function isBase64(input: string): boolean {
   const regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+  return regex.test(input);
+}
+
+export function isBase64Url(input: string): boolean {
+  const regex = /^[0-9a-zA-Z_-]+$/;
   return regex.test(input);
 }

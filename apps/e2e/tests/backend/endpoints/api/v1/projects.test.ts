@@ -1,3 +1,4 @@
+import { isBase64Url } from "@stackframe/stack-shared/dist/utils/bytes";
 import { createMailbox, it } from "../../../../helpers";
 import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
@@ -1065,4 +1066,21 @@ it("makes sure other users are not affected by project deletion", async ({ expec
   const projectIds1 = userResponse1.body.server_metadata.managedProjectIds;
   expect(projectIds1.length).toBe(1);
   expect(projectIds1[0]).toBe(projectId);
+});
+
+it("has a correctly formatted JWKS endpoint", async ({ expect }) => {
+  const response = await niceBackendFetch("/api/v1/projects/internal/.well-known/jwks.json");
+  expect(response.status).toBe(200);
+  expect(response.headers.get("content-type")).includes("application/json");
+  expect(response.body).toEqual({
+    keys: [
+      {
+        crv: "P-256",
+        kid: expect.any(String),
+        kty: "EC",
+        x: expect.toSatisfy(isBase64Url),
+        y: expect.toSatisfy(isBase64Url),
+      },
+    ],
+  });
 });
