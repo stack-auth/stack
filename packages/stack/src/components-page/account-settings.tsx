@@ -7,7 +7,7 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, Badge, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, Badge, Button, Input, Label, PasswordInput, Separator, Switch, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
 import { CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
@@ -53,11 +53,11 @@ export function AccountSettings(props: {
               content: <ProfilePage/>,
             },
             {
-              title: t('Security'),
+              title: t('Emails & Auth'),
               type: 'item',
-              subpath: '/security',
+              subpath: '/auth',
               icon: ShieldCheck,
-              content: <SecurityPage/>,
+              content: <EmailsAndAuthPage/>,
             },
             {
               title: t('Settings'),
@@ -164,8 +164,6 @@ function ProfilePage() {
           }}
         />
       </Section>
-
-      <EmailsSection/>
     </PageLayout>
   );
 }
@@ -201,7 +199,40 @@ function EmailsSection() {
 
   return (
     <div>
-      <Typography className='font-medium mb-2'>{t("Emails")}</Typography>
+      <div className='flex flex-col md:flex-row justify-between mb-4 gap-4'>
+        <Typography className='font-medium'>{t("Emails")}</Typography>
+        {addingEmail ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              runAsynchronously(handleSubmit(onSubmit));
+            }}
+            className='flex flex-col'
+          >
+            <div className='flex gap-2'>
+              <Input
+                {...register("email")}
+                placeholder={t("Enter email")}
+              />
+              <Button type="submit" loading={addingEmailLoading}>
+                {t("Add")}
+              </Button>
+              <Button variant='secondary' onClick={() => {
+              setAddingEmail(false);
+              reset();
+              }}>
+                {t("Cancel")}
+              </Button>
+            </div>
+            {errors.email && <FormWarningText text={errors.email.message} />}
+          </form>
+        ) : (
+          <div className='flex md:justify-end'>
+            <Button variant='secondary' onClick={() => setAddingEmail(true)}>{t("Add an email")}</Button>
+          </div>
+        )}
+      </div>
+
       {contactChannels.length > 0 ? (
         <div className='border rounded-md'>
           <Table>
@@ -250,51 +281,47 @@ function EmailsSection() {
           </Table>
         </div>
       ) : null}
-      {addingEmail ? (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            runAsynchronously(handleSubmit(onSubmit));
-          }}
-          className='mt-4 flex flex-col'
-        >
-          <div className='flex gap-2'>
-            <Input
-              {...register("email")}
-              placeholder={t("Enter email")}
-            />
-            <Button type="submit" loading={addingEmailLoading}>
-              {t("Add")}
-            </Button>
-            <Button variant='secondary' onClick={() => {
-              setAddingEmail(false);
-              reset();
-            }}>
-              {t("Cancel")}
-            </Button>
-          </div>
-          {errors.email && <FormWarningText text={errors.email.message} />}
-        </form>
-      ) : (
-        <div className='flex justify-end'>
-          <Button variant='secondary' className='mt-4' onClick={() => setAddingEmail(true)}>{t("Add an email")}</Button>
-        </div>
-      )}
     </div>
   );
 }
 
-function SecurityPage() {
-  const emailVerificationSection = useEmailVerificationSection();
+function EmailsAndAuthPage() {
   const passwordSection = usePasswordSection();
   const mfaSection = useMfaSection();
+  const otpSection = useOtpSection();
 
   return (
     <PageLayout>
-      {emailVerificationSection}
+      <EmailsSection/>
       {passwordSection}
+      {otpSection}
       {mfaSection}
     </PageLayout>
+  );
+}
+
+function useOtpSection() {
+  const { t } = useTranslation();
+  const user = useUser({ or: "throw" });
+  const project = useStackApp().useProject();
+
+  if (!project.config.magicLinkEnabled) {
+    return null;
+  }
+
+  return (
+    <Section title={t("OTP Sign-in")} description={t("Enable sign-in via magic link or OTP sent to your sign-in emails.")}>
+      <div className='flex md:justify-end'>
+        <Button
+          variant='secondary'
+          onClick={async () => {
+            await user.update({ otpAuthEnabled: !user.otpAuthEnabled });
+          }}
+        >
+          {user.otpAuthEnabled ? t("Disable") : t("Enable")}
+        </Button>
+      </div>
+    </Section>
   );
 }
 
@@ -307,41 +334,6 @@ function SettingsPage() {
       {deleteAccountSection}
       {signOutSection}
     </PageLayout>
-  );
-}
-
-function useEmailVerificationSection() {
-  const { t } = useTranslation();
-  const user = useUser({ or: 'redirect' });
-  const [emailSent, setEmailSent] = useState(false);
-
-  if (!user.primaryEmail) {
-    return null;
-  }
-
-  return (
-    <Section
-      title={t("Email Verification")}
-      description={t("Verify your email address to secure your account")}
-    >
-      <div>
-        {user.primaryEmailVerified ? (
-          <Typography variant='success'>{t("Your email has been verified.")}</Typography>
-        ) : (
-          <div className='flex'>
-            <Button
-              disabled={emailSent}
-              onClick={async () => {
-                await user.sendVerificationEmail();
-                  setEmailSent(true);
-              }}
-            >
-              {emailSent ? t("Email sent!") : t("Send Verification Email")}
-            </Button>
-          </div>
-        )}
-      </div>
-    </Section>
   );
 }
 
@@ -536,7 +528,7 @@ function useMfaSection() {
             </Button>
           ) : !generatedSecret && (
             <Button
-              variant='default'
+              variant='secondary'
               onClick={async () => {
                 const secret = generateRandomValues(new Uint8Array(20));
                 setQrCodeUrl(await generateTotpQrCode(project, user, secret));
