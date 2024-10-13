@@ -1,7 +1,7 @@
 import { it } from "../../../../helpers";
 import { Auth, ContactChannels, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
-it("signs in with OTP, disable used for auth, then should not be able to sign in again", async ({ expect }) => {
+it("should not be able to sign in again after signing in with OTP and disabled auth", async ({ expect }) => {
   await Auth.Otp.signIn();
   const cc = await ContactChannels.getTheOnlyContactChannel();
   // disable used for auth on the contact channel
@@ -38,7 +38,7 @@ it("signs in with OTP, disable used for auth, then should not be able to sign in
   `);
 });
 
-it("signs in with password first, then cannot sign in with otp anymore", async ({ expect }) => {
+it("should not be able to sign in with OTP anymore after signing in with password first", async ({ expect }) => {
   await Auth.Password.signUpWithEmail({ password: "some-password" });
 
   const response2 = await niceBackendFetch("/api/v1/auth/otp/send-sign-in-code", {
@@ -65,7 +65,7 @@ it("signs in with password first, then cannot sign in with otp anymore", async (
 });
 
 
-it("signs in with OTP first, then signs in with oauth should give an account with used_for_auth false", async ({ expect }) => {
+it("should sign in with OTP first, then sign in with OAuth and have an account with used_for_auth set to false", async ({ expect }) => {
   await Auth.Otp.signIn();
   const cc = await ContactChannels.getTheOnlyContactChannel();
   expect(cc.is_verified).toBe(true);
@@ -91,7 +91,7 @@ it("signs in with password first, then signs in with oauth should give an accoun
   expect(cc2.used_for_auth).toBe(false);
 });
 
-it("signs in with oauth, mark is_verified as true, then sign in with otp should merge with the account", async ({ expect }) => {
+it("should merge accounts when signing in with OTP after OAuth sign-in and email verification", async ({ expect }) => {
   await Auth.OAuth.signIn();
   const cc = await ContactChannels.getTheOnlyContactChannel();
   await niceBackendFetch(`/api/v1/contact-channels/me/${cc.id}`, {
