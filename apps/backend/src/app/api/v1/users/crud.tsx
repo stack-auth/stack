@@ -1,4 +1,4 @@
-import { ensureTeamMembershipExists, ensureUserExist } from "@/lib/request-checks";
+import { ensureTeamMembershipExists, ensureUserExists } from "@/lib/request-checks";
 import { PrismaTransaction } from "@/lib/types";
 import { sendTeamMembershipDeletedWebhook, sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
@@ -481,7 +481,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   },
   onUpdate: async ({ auth, data, params }) => {
     const result = await prismaClient.$transaction(async (tx) => {
-      await ensureUserExist(tx, { projectId: auth.project.id, userId: params.user_id });
+      await ensureUserExists(tx, { projectId: auth.project.id, userId: params.user_id });
 
       if (data.selected_team_id !== undefined) {
         if (data.selected_team_id !== null) {
@@ -768,7 +768,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   },
   onDelete: async ({ auth, params }) => {
     const { teams } = await prismaClient.$transaction(async (tx) => {
-      await ensureUserExist(tx, { projectId: auth.project.id, userId: params.user_id });
+      await ensureUserExists(tx, { projectId: auth.project.id, userId: params.user_id });
 
       const teams = await tx.team.findMany({
         where: {
