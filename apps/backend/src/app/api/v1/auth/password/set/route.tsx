@@ -2,14 +2,14 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 
 export const POST = createSmartRouteHandler({
   metadata: {
-    summary: "Update password",
-    description: "Update the password of the current user, requires the old password",
+    summary: "Set password",
+    description: "Set a new password for the current user",
     tags: ["Password"],
   },
   request: yupObject({
@@ -19,28 +19,42 @@ export const POST = createSmartRouteHandler({
       user: adaptSchema.required(),
     }).required(),
     body: yupObject({
-      old_password: yupString().required(),
-      new_password: yupString().required(),
+      password: yupString().required(),
     }).required(),
-    headers: yupObject({
-      "x-stack-refresh-token": yupTuple([yupString().optional()]).optional(),
-    }).required(),
+    headers: yupObject({}).required(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),
   }),
-  async handler({ auth: { project, user }, body: { old_password, new_password }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
+  async handler({ auth: { project, user }, body: { password } }) {
     if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
-    const passwordError = getPasswordError(new_password);
+    const passwordError = getPasswordError(password);
     if (passwordError) {
       throw passwordError;
     }
 
     await prismaClient.$transaction(async (tx) => {
+      const authMethodConfig = await tx.passwordAuthMethodConfig.findMany({
+        where: {
+          projectConfigId: project.config.id,
+          authMethodConfig: {
+            enabled: true,
+          },
+        },
+      });
+
+      if (authMethodConfig.length > 1) {
+        throw new StackAssertionError("Project has multiple password auth method configs.", { projectId: project.id });
+      }
+
+      if (authMethodConfig.length === 0) {
+        throw new KnownErrors.PasswordAuthenticationNotEnabled();
+      }
+
       const authMethods = await tx.passwordAuthMethod.findMany({
         where: {
           projectId: project.id,
@@ -53,38 +67,18 @@ export const POST = createSmartRouteHandler({
           projectId: project.id,
           projectUserId: user.id,
         });
-      } else if (authMethods.length === 0) {
-        throw new KnownErrors.UserDoesNotHavePassword();
+      } else if (authMethods.length === 1) {
+        throw new StatusError(StatusError.BadRequest, "User already has a password set.");
       }
 
       const authMethod = authMethods[0];
 
-      if (!await comparePassword(old_password, authMethod.passwordHash)) {
-        throw new KnownErrors.PasswordConfirmationMismatch();
-      }
-
-      await tx.passwordAuthMethod.update({
-        where: {
-          projectId_authMethodId: {
-            projectId: project.id,
-            authMethodId: authMethod.authMethodId,
-          },
-        },
+      await tx.passwordAuthMethod.create({
         data: {
-          passwordHash: await hashPassword(new_password),
-        },
-      });
-
-      // reset all other refresh tokens
-      await tx.projectUserRefreshToken.deleteMany({
-        where: {
           projectId: project.id,
           projectUserId: user.id,
-          ...refreshToken ? {
-            NOT: {
-              refreshToken: refreshToken[0],
-            },
-          } : {},
+          authMethodId: authMethod.authMethodId,
+          passwordHash: await hashPassword(password),
         },
       });
     });
