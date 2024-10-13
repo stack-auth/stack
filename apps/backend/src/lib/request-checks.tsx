@@ -57,7 +57,7 @@ export async function ensureTeamMembershipDoesNotExist(
   }
 }
 
-export async function ensureTeamExist(
+export async function ensureTeamExists(
   tx: PrismaTransaction,
   options: {
     projectId: string,
