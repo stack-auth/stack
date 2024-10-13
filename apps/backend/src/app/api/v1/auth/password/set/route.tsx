@@ -71,15 +71,19 @@ export const POST = createSmartRouteHandler({
         throw new StatusError(StatusError.BadRequest, "User already has a password set.");
       }
 
-      const authMethod = authMethods[0];
-
-      await tx.passwordAuthMethod.create({
+      await tx.authMethod.create({
         data: {
           projectId: project.id,
           projectUserId: user.id,
-          authMethodId: authMethod.authMethodId,
-          passwordHash: await hashPassword(password),
-        },
+          projectConfigId: project.config.id,
+          authMethodConfigId: authMethodConfig[0].authMethodConfigId,
+          passwordAuthMethod: {
+            create: {
+              passwordHash: await hashPassword(password),
+              projectUserId: user.id,
+            }
+          }
+        }
       });
     });
 
