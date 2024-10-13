@@ -41,7 +41,7 @@ async function main() {
         ${JSON.stringify(locale)}: new Map(typedEntries(${JSON.stringify(sortKeys(localesByKeys[locale]), null, 2)} as const)),
       `).join("\n")}
     } as const));
-  `);
+  ` + "\n");
 }
 
 main().catch(err => {
