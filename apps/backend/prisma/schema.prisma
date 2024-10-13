@@ -468,8 +468,6 @@ model StandardOAuthProviderConfig {
 
   // each type of standard OAuth provider can only be used once per project
   @@id([projectConfigId, id])
-  // each client id can only be used once per project
-  @@unique([projectConfigId, clientId])
 }
 
 model AuthMethod {
