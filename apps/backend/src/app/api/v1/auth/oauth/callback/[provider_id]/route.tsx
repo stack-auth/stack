@@ -284,7 +284,7 @@ const handler = createSmartRouteHandler({
                     if (oldContactChannel && oldContactChannel.usedForAuth) {
                       primaryEmailAuthEnabled = false;
                     }
-                    // TODO: check merge accounts
+                    // TODO: check whether this OAuth account can be used to login to another existing account instead
                   }
 
                   const newAccount = await usersCrudHandlers.adminCreate({
