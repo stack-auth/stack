@@ -1,7 +1,7 @@
 import { it } from "../../../../helpers";
 import { Auth, ContactChannels, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
-it("should not be able to sign in again after signing in with OTP and disabled auth", async ({ expect }) => {
+it("should not be able to sign in again after signing in with OTP and disabling auth", async ({ expect }) => {
   await Auth.Otp.signIn();
   const cc = await ContactChannels.getTheOnlyContactChannel();
   // disable used for auth on the contact channel
