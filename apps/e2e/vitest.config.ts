@@ -1,5 +1,5 @@
-import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   plugins: [react()],
@@ -7,6 +7,9 @@ export default defineConfig({
     environment: 'node',
     testTimeout: 20_000,
     globalSetup: './tests/global-setup.ts',
+    setupFiles: [
+      "./tests/setup.ts",
+    ],
     snapshotSerializers: ["./tests/snapshot-serializer.ts"],
   },
 })

@@ -84,7 +84,7 @@ it("should sign in users created with the server API even if sign up is disabled
   `);
 });
 
-it("should not be able to sign in if email is not verified", async ({ expect }) => {
+it("should not allow signing in if email is not verified", async ({ expect }) => {
   await niceBackendFetch("/api/v1/users", {
     accessType: "server",
     method: "POST",

@@ -10,6 +10,7 @@ module.exports = {
   rules: {
     "no-unused-expressions": ["error", { enforceForJSX: true }],
     "no-trailing-spaces": "warn",
+    "eol-last": "error",
     "key-spacing": "error",
     indent: [
       "error",

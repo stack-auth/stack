@@ -16,7 +16,7 @@ export default function PageClient() {
       <Typography>Also feel free to check out the things on the top right corner.</Typography>
       <div className='flex gap-5'>
         <Button onClick={() => router.push(app.urls.signIn)}>Sign In</Button>
-        <Button onClick={() => router.push('/handler/signup')}>Sign Up</Button>
+        <Button onClick={() => router.push(app.urls.signUp)}>Sign Up</Button>
       </div>
     </div>
   );

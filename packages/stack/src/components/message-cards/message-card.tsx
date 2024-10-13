@@ -18,7 +18,7 @@ export function MessageCard(
 ) {
   return (
     <MaybeFullPage fullPage={fullPage}>
-      <div className="text-center stack-scope flex flex-col gap-4" style={{ width: '380px', padding: fullPage ? '1rem' : 0 }}>
+      <div className="text-center stack-scope flex flex-col gap-4" style={{ maxWidth: '380px', flexBasis: '380px', padding: fullPage ? '1rem' : 0 }}>
         <Typography type='h3'>{props.title}</Typography>
         {props.children}
         {(props.primaryButtonText || props.secondaryButtonText) && (

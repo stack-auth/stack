@@ -1,4 +1,4 @@
-import { ensureTeamExist, ensureTeamMembershipExists, ensureUserExist, ensureUserTeamPermissionExists } from "@/lib/request-checks";
+import { ensureTeamExists, ensureTeamMembershipExists, ensureUserExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
@@ -57,10 +57,10 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         }
       } else {
         if (query.team_id) {
-          await ensureTeamExist(tx, { projectId: auth.project.id, teamId: query.team_id });
+          await ensureTeamExists(tx, { projectId: auth.project.id, teamId: query.team_id });
         }
         if (query.user_id) {
-          await ensureUserExist(tx, { projectId: auth.project.id, userId: query.user_id });
+          await ensureUserExists(tx, { projectId: auth.project.id, userId: query.user_id });
         }
       }
 
