@@ -77,7 +77,7 @@ export function ForgotPassword(props: { fullPage?: boolean }) {
   return (
     <MaybeFullPage fullPage={!!props.fullPage}>
       <div className={cn(
-        "stack-scope w-[380px]",
+        "stack-scope max-w-[380px] flex-basis-[380px]",
         props.fullPage ? "p-4" : "p-0"
       )}>
         <div className="text-center">

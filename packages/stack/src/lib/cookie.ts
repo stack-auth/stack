@@ -1,23 +1,32 @@
-import { cookies as rscCookies } from '@stackframe/stack-sc/force-react-server';
+import { cookies as rscCookies, headers as rscHeaders } from '@stackframe/stack-sc/force-react-server';
 import Cookies from "js-cookie";
 import { calculatePKCECodeChallenge, generateRandomCodeVerifier, generateRandomState } from "oauth4webapi";
 
 type SetCookieOptions = { maxAge?: number };
 
-function isRscCookieUnavailableError(e: any) {
-  const allowedMessageSnippets = ["was called outside a request scope", "cookies() expects to have requestAsyncStorage"];
-  return typeof e?.message === "string" && allowedMessageSnippets.some(msg => e.message.includes(msg));
-}
-
 export function getCookie(name: string): string | null {
-  try {
-    return rscCookies().get(name)?.value ?? null;
-  } catch (e: any) {
-    if (isRscCookieUnavailableError(e)) {
-      return Cookies.get(name) ?? null;
-    } else {
-      throw e;
+  if (typeof window !== "undefined") {
+    // set a helper cookie, see comment in `setCookie` below
+    Cookies.set("stack-is-https", "true", { secure: true });
+    return Cookies.get(name) ?? null;
+  } else {
+    // set a helper cookie, see comment in `setCookie` below
+    try {
+      rscCookies().set("stack-is-https", "true", { secure: true });
+    } catch (e) {
+      if (
+        typeof e === 'object'
+        && e !== null
+        && 'message' in e
+        && typeof e.message === 'string'
+        && e.message.includes('Cookies can only be modified in a Server Action or Route Handler')
+      ) {
+        // ignore
+      } else {
+        throw e;
+      }
     }
+    return rscCookies().get(name)?.value ?? null;
   }
 }
 
@@ -30,37 +39,44 @@ export function setOrDeleteCookie(name: string, value: string | null, options: S
 }
 
 export function deleteCookie(name: string) {
-  try {
+  if (typeof window !== "undefined") {
+    Cookies.remove(name);
+  } else {
     rscCookies().delete(name);
-  } catch (e: any) {
-    if (isRscCookieUnavailableError(e)) {
-      Cookies.remove(name);
-    } else {
-      throw e;
-    }
   }
 }
 
 export function setCookie(name: string, value: string, options: SetCookieOptions = {}) {
-  const isProd = process.env.NODE_ENV === "production";
-  try {
+  // Whenever the client is on HTTPS, we want to set the Secure flag on the cookie.
+  //
+  // This is not easy to find out on a Next.js server, so we use the following steps:
+  //
+  // 1. If we're on the client, we can check window.location.protocol which is the ground-truth
+  // 2. Check whether the stack-is-https cookie exists. This cookie is set in various places on
+  //      the client if the protocol is known to be HTTPS
+  // 3. Check the X-Forwarded-Proto header
+  // 4. Otherwise, assume HTTP without the S
+  //
+  // Note that malicious clients could theoretically manipulate the `stack-is-https` cookie or
+  // the `X-Forwarded-Proto` header; that wouldn't cause any trouble except for themselves,
+  // though.
+
+  if (typeof window !== "undefined") {
+    Cookies.set(name, value, {
+      secure: window.location.protocol === "https:",
+      expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
+      sameSite: "Strict"
+    });
+  } else {
+    let isSecureCookie = !!rscCookies().get("stack-is-https");
+    if (rscHeaders().get("x-forwarded-proto") === "https") {
+      isSecureCookie = true;
+    }
+
     rscCookies().set(name, value, {
-      secure: isProd,
+      secure: isSecureCookie,
       maxAge: options.maxAge,
     });
-  } catch (e: any) {
-    if (isRscCookieUnavailableError(e)) {
-      if (window.location.protocol !== "https:" && isProd && process.env.NEXT_PUBLIC_STACK_ALLOW_INSECURE_COOKIES !== 'true') {
-        throw new Error("Attempted to set a secure cookie, but this build was compiled as a production build, but the current page is not served over HTTPS. This is a security risk and is not allowed in production.");
-      }
-      Cookies.set(name, value, {
-        secure: process.env.NEXT_PUBLIC_STACK_ALLOW_INSECURE_COOKIES === 'true' ? false : isProd,
-        expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
-        sameSite: "Strict"
-      });
-    } else {
-      throw e;
-    }
   }
 }
 

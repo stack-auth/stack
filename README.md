@@ -52,6 +52,8 @@ If you answered "no" to any of these questions, then that's how Stack Auth is di
 
 ## ✨ Features
 
+To get notified first when we add new features, please subscribe to [our newsletter](https://stack-auth.beehiiv.com/subscribe).
+
 | | |
 |-|:-:|
 | <h3>`<SignIn/>` and `<SignUp/>`</h3> Authentication components that support OAuth, password credentials, and magic links, with shared development keys to make setup faster. All components support dark/light modes. | <img alt="Sign-in component" src=".github/assets/dark-light-mode.png" width="250px"> |
@@ -151,16 +153,16 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
       User((User))
       Admin((Admin))
       subgraph "Stack Auth System"
-          Dashboard[Stack Dashboard<br/>Next.js]
-          Backend[Stack API Backend<br/>Next.js]
+          Dashboard[Stack Dashboard<br/>/apps/dashboard]
+          Backend[Stack API Backend<br/>/apps/backend]
           Database[(PostgreSQL Database)]
           EmailService[Email Service<br/>Inbucket]
           WebhookService[Webhook Service<br/>Svix]
-          subgraph "Shared Packages"
-              StackSDK[Stack<br/>Client SDK]
-              StackUI[Stack UI<br/>React Components]
-              StackShared[Stack Shared<br/>Utilities]
-              StackEmails[Stack Emails<br/>Email Templates]
+          StackSDK[Client SDK<br/>/packages/stack]
+          subgraph Shared
+              StackUI[Stack UI<br/>/packages/stack-ui]
+              StackShared[Stack Shared<br/>/packages/stack-shared]
+              StackEmails[Stack Emails<br/>/packages/stack-emails]
           end
       end
       Admin --> Dashboard
@@ -169,13 +171,11 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
       Backend --> Database
       Backend --> EmailService
       Backend --> WebhookService
-      Dashboard --> StackUI
-      Dashboard --> StackShared
-      Dashboard --> StackEmails
+      Dashboard --> Shared
       Dashboard --> StackSDK
       StackSDK --HTTP Requests--> Backend
-      Backend --> StackShared
-      Backend --> StackEmails
+      StackSDK --> Shared
+      Backend --> Shared
       classDef container fill:#1168bd,stroke:#0b4884,color:#ffffff
       classDef database fill:#2b78e4,stroke:#1a4d91,color:#ffffff
       classDef external fill:#999999,stroke:#666666,color:#ffffff

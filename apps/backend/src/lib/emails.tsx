@@ -9,6 +9,8 @@ import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors'
 import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
 import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
 import nodemailer from 'nodemailer';
+import { trace } from '@opentelemetry/api';
+import { wait } from '@stackframe/stack-shared/dist/utils/promises';
 
 export async function getEmailTemplate(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
   const project = await getProject(projectId);
@@ -74,28 +76,34 @@ export async function sendEmail({
   html: string,
   text?: string,
 }) {
-  const transporter = nodemailer.createTransport({
-    host: emailConfig.host,
-    port: emailConfig.port,
-    secure: emailConfig.secure,
-    auth: {
-      user: emailConfig.username,
-      pass: emailConfig.password,
-    },
+  await trace.getTracer('stackframe').startActiveSpan('sendEmail', async (span) => {
+    try {
+      const transporter = nodemailer.createTransport({
+        logger: true,
+        host: emailConfig.host,
+        port: emailConfig.port,
+        secure: emailConfig.secure,
+        auth: {
+          user: emailConfig.username,
+          pass: emailConfig.password,
+        },
+      });
+
+      try {
+        return await transporter.sendMail({
+          from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
+          to,
+          subject,
+          text,
+          html
+        });
+      } catch (error) {
+        throw new StackAssertionError('Failed to send email', { error, host: emailConfig.host, from: emailConfig.senderEmail, to, subject });
+      }
+    } finally {
+      span.end();
+    }
   });
-
-  try {
-    return await transporter.sendMail({
-      from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
-      to,
-      subject,
-      text,
-      html
-    });
-  } catch (error) {
-    throw new StackAssertionError('Failed to send email', { error, host: emailConfig.host, from: emailConfig.senderEmail, to, subject });
-  }
-
 }
 
 export async function sendEmailFromTemplate(options: {

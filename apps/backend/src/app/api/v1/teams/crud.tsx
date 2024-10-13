@@ -1,4 +1,4 @@
-import { ensureTeamExist, ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
+import { ensureTeamExists, ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { sendTeamCreatedWebhook, sendTeamDeletedWebhook, sendTeamUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -144,7 +144,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         });
       }
 
-      await ensureTeamExist(tx, { projectId: auth.project.id, teamId: params.team_id });
+      await ensureTeamExists(tx, { projectId: auth.project.id, teamId: params.team_id });
 
       return await tx.team.update({
         where: {
@@ -184,7 +184,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
           recursive: true,
         });
       }
-      await ensureTeamExist(tx, { projectId: auth.project.id, teamId: params.team_id });
+      await ensureTeamExists(tx, { projectId: auth.project.id, teamId: params.team_id });
 
       await tx.team.delete({
         where: {

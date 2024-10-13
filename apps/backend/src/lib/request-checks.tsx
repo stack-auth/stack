@@ -34,7 +34,7 @@ export async function ensureTeamMembershipExists(
     userId: string,
   }
 ) {
-  await ensureUserExist(tx, { projectId: options.projectId, userId: options.userId });
+  await ensureUserExists(tx, { projectId: options.projectId, userId: options.userId });
 
   const member = await _getTeamMembership(tx, options);
 
@@ -58,7 +58,7 @@ export async function ensureTeamMembershipDoesNotExist(
   }
 }
 
-export async function ensureTeamExist(
+export async function ensureTeamExists(
   tx: PrismaTransaction,
   options: {
     projectId: string,
@@ -113,7 +113,7 @@ export async function ensureUserTeamPermissionExists(
   }
 }
 
-export async function ensureUserExist(
+export async function ensureUserExists(
   tx: PrismaTransaction,
   options: {
     projectId: string,
