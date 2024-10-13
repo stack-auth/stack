@@ -939,7 +939,7 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
     body: {
       primary_email: "test@test.com",
       password: "testing",
-      primary_email_auth_enabled: true,
+      primary_email_used_for_auth: true,
     }
   });
   expect(userResponse.status).toBe(201);

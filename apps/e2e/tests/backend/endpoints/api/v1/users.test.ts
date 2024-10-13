@@ -84,6 +84,7 @@ describe("with client access", () => {
           "has_password": false,
           "id": "<stripped UUID>",
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -114,6 +115,7 @@ describe("with client access", () => {
           "has_password": false,
           "id": "<stripped UUID>",
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -189,6 +191,7 @@ describe("with client access", () => {
           "has_password": false,
           "id": "<stripped UUID>",
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -218,6 +221,7 @@ describe("with client access", () => {
           "has_password": false,
           "id": "<stripped UUID>",
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -357,6 +361,7 @@ describe("with client access", () => {
           "has_password": false,
           "id": "<stripped UUID>",
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -386,6 +391,7 @@ describe("with client access", () => {
           "has_password": false,
           "id": "<stripped UUID>",
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -513,6 +519,7 @@ describe("with client access", () => {
           "has_password": false,
           "id": "<stripped UUID>",
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -620,6 +627,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -655,6 +663,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -706,6 +715,7 @@ describe("with server access", () => {
               "id": "<stripped UUID>",
               "last_active_at_millis": <stripped field 'last_active_at_millis'>,
               "oauth_providers": [],
+              "otp_auth_enabled": true,
               "primary_email": "<stripped UUID>@stack-generated.example.com",
               "primary_email_verified": true,
               "profile_image_url": null,
@@ -746,6 +756,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -779,6 +790,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": false,
           "primary_email": null,
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -799,7 +811,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_auth_enabled: true,
+        primary_email_used_for_auth: true,
         display_name: "John Dough",
         server_metadata: "test",
       },
@@ -808,7 +820,7 @@ describe("with server access", () => {
       NiceResponse {
         "status": 201,
         "body": {
-          "auth_with_email": true,
+          "auth_with_email": false,
           "client_metadata": null,
           "client_read_only_metadata": null,
           "display_name": "John Dough",
@@ -816,6 +828,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": false,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -837,7 +850,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_auth_enabled: true,
+        primary_email_used_for_auth: true,
         password,
       },
     });
@@ -853,6 +866,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": false,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -884,31 +898,13 @@ describe("with server access", () => {
       accessType: "server",
       method: "POST",
       body: {
-        primary_email_auth_enabled: true,
+        primary_email_used_for_auth: true,
       },
     });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 400,
-        "body": "primary_email_auth_enabled cannot be true without primary_email",
-        "headers": Headers { <some fields may have been hidden> },
-      }
-    `);
-  });
-
-  it("should not be able to create a user with password but email auth disabled", async ({ expect }) => {
-    const response = await niceBackendFetch("/api/v1/users", {
-      accessType: "server",
-      method: "POST",
-      body: {
-        primary_email: backendContext.value.mailbox.emailAddress,
-        password: "shouldn't work",
-      },
-    });
-    expect(response).toMatchInlineSnapshot(`
-      NiceResponse {
-        "status": 400,
-        "body": "password cannot be set without primary_email_auth_enabled",
+        "body": "primary_email_used_for_auth cannot be true without primary_email",
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
@@ -920,14 +916,14 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_auth_enabled: true,
+        primary_email_used_for_auth: true,
       },
     });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 201,
         "body": {
-          "auth_with_email": true,
+          "auth_with_email": false,
           "client_metadata": null,
           "client_read_only_metadata": null,
           "display_name": null,
@@ -935,6 +931,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": false,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -952,7 +949,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_auth_enabled: true,
+        primary_email_used_for_auth: true,
       },
     });
     expect(response2).toMatchInlineSnapshot(`
@@ -990,6 +987,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": false,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1008,7 +1006,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_auth_enabled: true,
+        primary_email_used_for_auth: true,
         password: password,
       },
     });
@@ -1024,6 +1022,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": false,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1057,7 +1056,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_auth_enabled: true,
+        primary_email_used_for_auth: true,
         password: password,
       },
     });
@@ -1073,6 +1072,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": false,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1104,6 +1104,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": false,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1159,6 +1160,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1186,6 +1188,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1222,6 +1225,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1258,6 +1262,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1343,6 +1348,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1390,6 +1396,7 @@ describe("with server access", () => {
           "id": "<stripped UUID>",
           "last_active_at_millis": <stripped field 'last_active_at_millis'>,
           "oauth_providers": [],
+          "otp_auth_enabled": true,
           "primary_email": "new-primary-email@example.com",
           "primary_email_verified": true,
           "profile_image_url": null,

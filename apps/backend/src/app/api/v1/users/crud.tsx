@@ -371,7 +371,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             projectUserId: newUser.projectUserId,
             projectId: auth.project.id,
             type: 'EMAIL' as const,
-            value: data.primary_email || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
+            value: data.primary_email,
             isVerified: data.primary_email_verified ?? false,
             isPrimary: "TRUE",
             usedForAuth: data.primary_email_used_for_auth ? BooleanTrue.TRUE : null,

@@ -125,7 +125,7 @@ it("should sign up a new user even if one already exists with email auth disable
     method: "POST",
     body: {
       primary_email: backendContext.value.mailbox.emailAddress,
-      primary_email_auth_enabled: false,
+      primary_email_used_for_auth: false,
       primary_email_verified: true,
     },
   });
