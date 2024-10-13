@@ -78,7 +78,7 @@ export default function PasswordResetForm(props: {
   return (
     <MaybeFullPage fullPage={!!props.fullPage}>
       <div className={cn(
-        "flex flex-col items-stretch w-[380px]",
+        "flex flex-col items-stretch max-w-[380px] flex-basis-[380px]",
         props.fullPage ? "p-4" : "p-0"
       )}>
         <div className="text-center mb-6">
