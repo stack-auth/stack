@@ -1,9 +1,9 @@
+import { replaceAll } from '@stackframe/stack-shared/dist/utils/strings';
+import autoprefixer from 'autoprefixer';
 import * as fs from 'fs';
 import * as path from 'path';
 import postcss from 'postcss';
-import autoprefixer from 'autoprefixer';
 import postcssNested from 'postcss-nested';
-import { replaceAll } from '@stackframe/stack-shared/dist/utils/strings';
 
 const sentinel = '--stack-sentinel--';
 const scopeName = 'stack-scope'
@@ -48,7 +48,7 @@ async function main() {
   fs.writeFileSync(outputPath.replace(/\.ts$/, '.css'), content);
 
   content = JSON.stringify(content);
-  content = "export const globalCSS = " + content + ";";
+  content = "export const globalCSS = " + content + ";\n";
 
   fs.writeFileSync(outputPath, content);
 

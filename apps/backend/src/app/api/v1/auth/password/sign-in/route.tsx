@@ -6,6 +6,7 @@ import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupStr
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
+import { getAuthContactChannel } from "@/lib/contact-channel";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -37,27 +38,14 @@ export const POST = createSmartRouteHandler({
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
-    const contactChannel = await prismaClient.contactChannel.findUnique({
-      where: {
-        projectId_type_value_usedForAuth: {
-          projectId: project.id,
-          type: "EMAIL",
-          value: email,
-          usedForAuth: "TRUE",
-        }
-      },
-      include: {
-        projectUser: {
-          include: {
-            authMethods: {
-              include: {
-                passwordAuthMethod: true,
-              }
-            }
-          }
-        }
+    const contactChannel = await getAuthContactChannel(
+      prismaClient,
+      {
+        projectId: project.id,
+        type: "EMAIL",
+        value: email,
       }
-    });
+    );
 
     const passwordAuthMethod = contactChannel?.projectUser.authMethods.find((m) => m.passwordAuthMethod)?.passwordAuthMethod;
 

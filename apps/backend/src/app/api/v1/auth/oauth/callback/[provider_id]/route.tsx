@@ -14,6 +14,7 @@ import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { oauthResponseToSmartResponse } from "../../oauth-helpers";
+import { getAuthContactChannel } from "@/lib/contact-channel";
 
 const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"]["Read"], errorRedirectUrl?: string) => {
   if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, project.config.domains, project.config.allow_localhost)) {
@@ -268,6 +269,24 @@ const handler = createSmartRouteHandler({
                   if (!project.config.sign_up_enabled) {
                     throw new KnownErrors.SignUpNotEnabled();
                   }
+
+                  let primaryEmailAuthEnabled = true;
+                  if (userInfo.email) {
+                    const oldContactChannel = await getAuthContactChannel(
+                      prismaClient,
+                      {
+                        projectId: outerInfo.projectId,
+                        type: 'EMAIL',
+                        value: userInfo.email,
+                      }
+                    );
+
+                    if (oldContactChannel && oldContactChannel.usedForAuth) {
+                      primaryEmailAuthEnabled = false;
+                    }
+                    // TODO: check whether this OAuth account can be used to login to another existing account instead
+                  }
+
                   const newAccount = await usersCrudHandlers.adminCreate({
                     project,
                     data: {
@@ -275,7 +294,7 @@ const handler = createSmartRouteHandler({
                       profile_image_url: userInfo.profileImageUrl || undefined,
                       primary_email: userInfo.email,
                       primary_email_verified: userInfo.emailVerified,
-                      primary_email_auth_enabled: false,
+                      primary_email_auth_enabled: primaryEmailAuthEnabled,
                       oauth_providers: [{
                         id: provider.id,
                         account_id: userInfo.accountId,

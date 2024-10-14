@@ -3,11 +3,10 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { contactChannelVerificationCodeHandler } from "../verify/verification-code-handler";
 
+/* deprecated, use /contact-channels/[user_id]/[contact_channel_id]/send-verification-code instead */
 export const POST = createSmartRouteHandler({
   metadata: {
-    summary: "Send email verification code",
-    description: "Send a code to the user's email address for verifying the email.",
-    tags: ["Emails"],
+    hidden: true,
   },
   request: yupObject({
     auth: yupObject({

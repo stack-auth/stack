@@ -9,6 +9,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { usersCrudHandlers } from "../../../users/crud";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
+import { getAuthContactChannel } from "@/lib/contact-channel";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -50,6 +51,19 @@ export const POST = createSmartRouteHandler({
       throw new KnownErrors.SignUpNotEnabled();
     }
 
+    const contactChannel = await getAuthContactChannel(
+      prismaClient,
+      {
+        projectId: project.id,
+        type: "EMAIL",
+        value: email,
+      }
+    );
+
+    if (contactChannel) {
+      throw new KnownErrors.UserEmailAlreadyExists();
+    }
+
     const createdUser = await usersCrudHandlers.adminCreate({
       project,
       data: {
@@ -58,7 +72,6 @@ export const POST = createSmartRouteHandler({
         primary_email_verified: false,
         password,
       },
-      allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
     });
 
     try {
