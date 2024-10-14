@@ -174,6 +174,19 @@ function EmailsSection() {
   const contactChannels = user.useContactChannels();
   const [addingEmail, setAddingEmail] = useState(contactChannels.length === 0);
   const [addingEmailLoading, setAddingEmailLoading] = useState(false);
+  const [addedEmail, setAddedEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (addedEmail) {
+      runAsynchronously(async () => {
+        const cc = contactChannels.find(x => x.value === addedEmail);
+        if (cc && !cc.isVerified) {
+          await cc.sendVerificationEmail();
+        }
+        setAddedEmail(null);
+      });
+    }
+  }, [contactChannels, addedEmail]);
 
   const emailSchema = yupObject({
     email: yupString()
@@ -190,6 +203,7 @@ function EmailsSection() {
     setAddingEmailLoading(true);
     try {
       await user.createContactChannel({ type: 'email', value: data.email, usedForAuth: false });
+      setAddedEmail(data.email);
     } finally {
       setAddingEmailLoading(false);
     }
@@ -317,16 +331,20 @@ function useOtpSection() {
   }
 
   return (
-    <Section title={t("OTP sign-in")} description={t("Enable sign-in via magic link or OTP sent to your sign-in emails.")}>
+    <Section title={t("OTP sign-in")} description={user.otpAuthEnabled ? t("OTP/magic link sign-in is currently enabled.") : t("Enable sign-in via magic link or OTP sent to your sign-in emails.")}>
       <div className='flex md:justify-end'>
-        {hasValidEmail ? <Button
-          variant='secondary'
-          onClick={async () => {
-            await user.update({ otpAuthEnabled: !user.otpAuthEnabled });
-          }}
-        >
-          {user.otpAuthEnabled ? t("Disable OTP") : t("Enable OTP")}
-        </Button> : <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified email and set it as your sign-in email.")}</Typography>}
+        {hasValidEmail ?
+          !user.otpAuthEnabled ?
+            <Button
+              variant='secondary'
+              onClick={async () => {
+                await user.update({ otpAuthEnabled: true });
+              }}
+            >
+              {t("Enable OTP")}
+            </Button> :
+            <Typography variant='secondary' type='label'>{t("OTP sign-in is enabled")}</Typography>:
+          <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified email and set it as your sign-in email.")}</Typography>}
       </div>
     </Section>
   );
@@ -458,9 +476,20 @@ function usePasswordSection() {
             />
             <FormWarningText text={errors.newPasswordRepeat?.message?.toString()} />
 
-            <Button type="submit" className="mt-6" loading={loading}>
-              {user.hasPassword ? t("Update Password") : t("Set Password")}
-            </Button>
+            <div className="mt-6 flex gap-4">
+              <Button type="submit" loading={loading}>
+                {user.hasPassword ? t("Update Password") : t("Set Password")}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setChangingPassword(false);
+                  reset();
+                }}
+              >
+                {t("Cancel")}
+              </Button>
+            </div>
           </form>
         )}
       </div>
