@@ -325,7 +325,7 @@ function useOtpSection() {
             await user.update({ otpAuthEnabled: !user.otpAuthEnabled });
           }}
         >
-          {user.otpAuthEnabled ? t("Disable") : t("Enable")}
+          {user.otpAuthEnabled ? t("Disable OTP") : t("Enable OTP")}
         </Button> : <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified email and set it as your sign-in email.")}</Typography>}
       </div>
     </Section>
@@ -412,7 +412,7 @@ function usePasswordSection() {
               variant='secondary'
               onClick={() => setChangingPassword(true)}
             >
-              {user.hasPassword ? t("Update Password") : t("Set Password")}
+              {user.hasPassword ? t("Update password") : t("Set password")}
             </Button>
           ) : (
             <Typography variant='secondary' type='label'>{t("To set a password, please add a verified email and set it as your sign-in email.")}</Typography>
@@ -547,7 +547,7 @@ function useMfaSection() {
                 });
               }}
             >
-              {t("Disable")}
+              {t("Disable MFA")}
             </Button>
           ) : !generatedSecret && (
             <Button
@@ -558,7 +558,7 @@ function useMfaSection() {
                 setGeneratedSecret(secret);
               }}
             >
-              {t("Enable")}
+              {t("Enable MFA")}
             </Button>
           )}
         </div>

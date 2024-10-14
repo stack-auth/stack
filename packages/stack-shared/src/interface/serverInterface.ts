@@ -452,6 +452,7 @@ export class StackServerInterface extends StackClientInterface {
   async sendServerContactChannelVerificationEmail(
     userId: string,
     contactChannelId: string,
+    callbackUrl: string,
   ): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>> {
     const responseOrError = await this.sendServerRequestAndCatchKnownError(
       `/contact-channels/${userId}/${contactChannelId}/send-verification-code`,
@@ -460,7 +461,7 @@ export class StackServerInterface extends StackClientInterface {
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ callback_url: callbackUrl }),
       },
       null,
       [KnownErrors.EmailAlreadyVerified],

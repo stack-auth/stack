@@ -767,7 +767,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       usedForAuth: crud.used_for_auth,
 
       async sendVerificationEmail() {
-        return await app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, app._getSession());
+        return await app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, constructRedirectUrl(app.urls.emailVerification), app._getSession());
       },
       async update(data: ContactChannelUpdateOptions) {
         await app._interface.updateClientContactChannel(crud.id, contactChannelUpdateOptionsToCrud(data), app._getSession());
@@ -940,10 +940,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await app._sendVerificationEmail(crud.primary_email, session);
       },
       async updatePassword(options: { oldPassword: string, newPassword: string}) {
-        return await app._interface.updatePassword(options, session);
+        const result = await app._interface.updatePassword(options, session);
+        await app._currentUserCache.refresh([session]);
+        return result;
       },
       async setPassword(options: { password: string }) {
-        return await app._interface.setPassword(options, session);
+        const result = await app._interface.setPassword(options, session);
+        await app._currentUserCache.refresh([session]);
+        return result;
       },
       async getTeamProfile(team: Team) {
         const result = await app._currentUserTeamProfileCache.getOrWait([session, team.id], "write-only");
@@ -1141,7 +1145,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async verifyEmail(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
-    return await this._interface.verifyEmail(code);
+    const result = await this._interface.verifyEmail(code);
+    await this._currentUserCache.refresh([this._getSession()]);
+    await this._clientContactChannelsCache.refresh([this._getSession()]);
+    return result;
   }
 
   async getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentUser<ProjectId>>;
@@ -1579,7 +1586,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return {
       ...this._clientContactChannelFromCrud(crud),
       async sendVerificationEmail() {
-        return await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id);
+        return await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, constructRedirectUrl(app.urls.emailVerification));
       },
       async update(data: ServerContactChannelUpdateOptions) {
         await app._interface.updateServerContactChannel(userId, crud.id, serverContactChannelUpdateOptionsToCrud(data));
@@ -1742,10 +1749,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await app._checkFeatureSupport("sendVerificationEmail() on ServerUser", {});
       },
       async updatePassword(options: { oldPassword?: string, newPassword: string}) {
-        return await this.update({ password: options.newPassword });
+        const result = await this.update({ password: options.newPassword });
+        await app._serverUserCache.refresh([crud.id]);
+        return result;
       },
       async setPassword(options: { password: string }) {
-        return await this.update(options);
+        const result = await this.update(options);
+        await app._serverUserCache.refresh([crud.id]);
+        return result;
       },
       async getTeamProfile(team: Team) {
         const result = await app._serverUserTeamProfileCache.getOrWait([team.id, crud.id], "write-only");
