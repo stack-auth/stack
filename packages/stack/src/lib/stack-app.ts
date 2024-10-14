@@ -940,7 +940,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await app._sendVerificationEmail(crud.primary_email, session);
       },
       async updatePassword(options: { oldPassword: string, newPassword: string}) {
-        return await app._updatePassword(options, session);
+        return await app._interface.updatePassword(options, session);
+      },
+      async setPassword(options: { password: string }) {
+        return await app._interface.setPassword(options, session);
       },
       async getTeamProfile(team: Team) {
         const result = await app._currentUserTeamProfileCache.getOrWait([session, team.id], "write-only");
@@ -1372,13 +1375,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.sendVerificationEmail(email, emailVerificationRedirectUrl, session);
   }
 
-  protected async _updatePassword(
-    options: { oldPassword: string, newPassword: string },
-    session: InternalSession
-  ): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void> {
-    return await this._interface.updatePassword(options, session);
-  }
-
   async signOut(): Promise<void> {
     const user = await this.getUser();
     if (user) {
@@ -1747,6 +1743,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async updatePassword(options: { oldPassword?: string, newPassword: string}) {
         return await this.update({ password: options.newPassword });
+      },
+      async setPassword(options: { password: string }) {
+        return await this.update(options);
       },
       async getTeamProfile(team: Team) {
         const result = await app._serverUserTeamProfileCache.getOrWait([team.id, crud.id], "write-only");
@@ -2510,6 +2509,7 @@ type UserExtra = {
   sendVerificationEmail(): Promise<KnownErrors["EmailAlreadyVerified"] | void>,
   setClientMetadata(metadata: any): Promise<void>,
   updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+  setPassword(options: { password: string }): Promise<KnownErrors["PasswordRequirementsNotMet"] | void>,
 
   /**
    * A shorthand method to update multiple fields of the user at once.
@@ -2586,8 +2586,6 @@ type ServerBaseUser = {
   useContactChannels(): ServerContactChannel[],
   listContactChannels(): Promise<ServerContactChannel[]>,
   createContactChannel(data: ServerContactChannelCreateOptions): Promise<ServerContactChannel>,
-
-  updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
 
   update(user: ServerUserUpdateOptions): Promise<void>,
 

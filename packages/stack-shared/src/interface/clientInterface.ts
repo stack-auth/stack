@@ -515,6 +515,28 @@ export class StackClientInterface {
     }
   }
 
+  async setPassword(
+    options: { password: string },
+    session: InternalSession
+  ): Promise<KnownErrors["PasswordRequirementsNotMet"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/password/set",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(options),
+      },
+      session,
+      [KnownErrors.PasswordRequirementsNotMet]
+    );
+
+    if (res.status === "error") {
+      return res.error;
+    }
+  }
+
   async verifyPasswordResetCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     const res = await this.resetPassword({ code, onlyVerifyCode: true });
     if (res.status === "error") {
