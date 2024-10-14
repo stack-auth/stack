@@ -34,7 +34,7 @@ describe("with grant_type === 'authorization_code'", async () => {
       NiceResponse {
         "status": 200,
         "body": {
-          "auth_with_email": true,
+          "auth_with_email": false,
           "client_metadata": null,
           "client_read_only_metadata": null,
           "display_name": null,
