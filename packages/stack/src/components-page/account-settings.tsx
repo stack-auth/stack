@@ -175,7 +175,8 @@ function EmailsSection() {
   const [addingEmail, setAddingEmail] = useState(contactChannels.length === 0);
   const [addingEmailLoading, setAddingEmailLoading] = useState(false);
   const [addedEmail, setAddedEmail] = useState<string | null>(null);
-  const isLastAuth = contactChannels.filter(x => x.usedForAuth).length + user.oauthProviders.length === 1;
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const isLastEmail = contactChannels.filter(x => x.usedForAuth && x.type === 'email').length === 1;
 
   useEffect(() => {
     if (addedEmail) {
@@ -288,20 +289,25 @@ function EmailsSection() {
                         item: t("Use for sign-in"),
                         onClick: async () => { await x.update({ usedForAuth: true }); },
                       }] : []),
-                      ...(x.usedForAuth && !isLastAuth ? [{
+                      ...(x.usedForAuth && !isLastEmail ? [{
                         item: t("Stop using for sign-in"),
                         onClick: async () => { await x.update({ usedForAuth: false }); },
                       }] : x.usedForAuth ? [{
                         item: t("Stop using for sign-in"),
                         onClick: async () => {},
                         disabled: true,
-                        disabledTooltip: t("You can not remove your last sign-in method"),
+                        disabledTooltip: t("You can not remove your last sign-in email"),
                       }] : []),
-                      ...(!isLastAuth || !x.usedForAuth ? [{
+                      ...(!isLastEmail || !x.usedForAuth ? [{
                         item: t("Remove"),
                         onClick: async () => { await x.delete(); },
                         danger: true,
-                      }] : []),
+                      }] : [{
+                        item: t("Remove"),
+                        onClick: async () => {},
+                        disabled: true,
+                        disabledTooltip: t("You can not remove your last sign-in email"),
+                      }]),
                     ]}/>
                   </TableCell>
                 </TableRow>
