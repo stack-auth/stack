@@ -217,10 +217,13 @@ function EmailsSection() {
               <Button type="submit" loading={addingEmailLoading}>
                 {t("Add")}
               </Button>
-              <Button variant='secondary' onClick={() => {
-              setAddingEmail(false);
-              reset();
-              }}>
+              <Button
+                variant='secondary'
+                onClick={() => {
+                  setAddingEmail(false);
+                  reset();
+                }}
+              >
                 {t("Cancel")}
               </Button>
             </div>
@@ -304,22 +307,26 @@ function useOtpSection() {
   const { t } = useTranslation();
   const user = useUser({ or: "throw" });
   const project = useStackApp().useProject();
+  const contactChannels = user.useContactChannels();
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const hasValidEmail = contactChannels.filter(x => x.type === 'email' && x.isVerified && x.usedForAuth).length > 0;
 
   if (!project.config.magicLinkEnabled) {
     return null;
   }
 
   return (
-    <Section title={t("OTP Sign-in")} description={t("Enable sign-in via magic link or OTP sent to your sign-in emails.")}>
+    <Section title={t("OTP sign-in")} description={t("Enable sign-in via magic link or OTP sent to your sign-in emails.")}>
       <div className='flex md:justify-end'>
-        <Button
+        {hasValidEmail ? <Button
           variant='secondary'
           onClick={async () => {
             await user.update({ otpAuthEnabled: !user.otpAuthEnabled });
           }}
         >
           {user.otpAuthEnabled ? t("Disable") : t("Enable")}
-        </Button>
+        </Button> : <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified email and set it as your sign-in email.")}</Typography>}
       </div>
     </Section>
   );
@@ -339,9 +346,14 @@ function SettingsPage() {
 
 function usePasswordSection() {
   const { t } = useTranslation();
+  const user = useUser({ or: "throw" });
+  const contactChannels = user.useContactChannels();
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [alreadyReset, setAlreadyReset] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const passwordSchema = yupObject({
-    oldPassword: yupString().required(t('Please enter your old password')),
+    oldPassword: user.hasPassword ? yupString().required(t('Please enter your old password')) : yupString(),
     newPassword: yupString().required(t('Please enter your password')).test({
       name: 'is-valid-password',
       test: (value, ctx) => {
@@ -356,24 +368,26 @@ function usePasswordSection() {
     newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
   });
 
-  const user = useUser({ or: "throw" });
-  const [changingPassword, setChangingPassword] = useState(false);
   const { register, handleSubmit, setError, formState: { errors }, clearErrors, reset } = useForm({
     resolver: yupResolver(passwordSchema)
   });
-  const [alreadyReset, setAlreadyReset] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const hasValidEmail = contactChannels.filter(x => x.type === 'email' && x.isVerified && x.usedForAuth).length > 0;
 
   const onSubmit = async (data: yup.InferType<typeof passwordSchema>) => {
     setLoading(true);
     try {
       const { oldPassword, newPassword } = data;
-      const error = await user.updatePassword({ oldPassword, newPassword });
+      const error = user.hasPassword
+        ? await user.updatePassword({ oldPassword: oldPassword!, newPassword })
+        : await user.setPassword({ password: newPassword! });
       if (error) {
         setError('oldPassword', { type: 'manual', message: t('Incorrect password') });
       } else {
         reset();
         setAlreadyReset(true);
+        setChangingPassword(false);
       }
     } finally {
       setLoading(false);
@@ -383,28 +397,33 @@ function usePasswordSection() {
   const registerPassword = register('newPassword');
   const registerPasswordRepeat = register('newPasswordRepeat');
 
-  if (!user.hasPassword) {
-    return null;
-  }
-
   return (
-    <div>
-      <Label>{t("Change password")}</Label>
-      <div>
-        {
-          alreadyReset ?
-            <Typography variant='success'>{t("Password changed successfully!")}</Typography> :
-            !changingPassword ?
-              <Button
-                variant='secondary'
-                onClick={async () => {
-                  setChangingPassword(true);
-                }}
-              >{t("Change Password")}</Button> :
-              <form
-                onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
-                noValidate
-              >
+    <Section
+      title={t("Password")}
+      description={user.hasPassword ? t("Update your password") : t("Set a password for your account")}
+    >
+      <div className='flex flex-col gap-4'>
+        {alreadyReset && (
+          <Typography variant='success'>{t("Password changed successfully!")}</Typography>
+        )}
+        {!changingPassword ? (
+          hasValidEmail ? (
+            <Button
+              variant='secondary'
+              onClick={() => setChangingPassword(true)}
+            >
+              {user.hasPassword ? t("Update Password") : t("Set Password")}
+            </Button>
+          ) : (
+            <Typography variant='secondary' type='label'>{t("To set a password, please add a verified email and set it as your sign-in email.")}</Typography>
+          )
+        ) : (
+          <form
+            onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
+            noValidate
+          >
+            {user.hasPassword && (
+              <>
                 <Label htmlFor="old-password" className="mb-1">{t("Old password")}</Label>
                 <Input
                   id="old-password"
@@ -412,36 +431,40 @@ function usePasswordSection() {
                   {...register("oldPassword")}
                 />
                 <FormWarningText text={errors.oldPassword?.message?.toString()} />
+              </>
+            )}
 
-                <Label htmlFor="new-password" className="mt-4 mb-1">{t("Password")}</Label>
-                <PasswordInput
-                  id="new-password"
-                  {...registerPassword}
-                  onChange={(e) => {
-                    clearErrors('newPassword');
-                    clearErrors('newPasswordRepeat');
-                    runAsynchronously(registerPassword.onChange(e));
-                  }}
-                />
-                <FormWarningText text={errors.newPassword?.message?.toString()} />
+            <Label htmlFor="new-password" className="mt-4 mb-1">{t("New password")}</Label>
+            <PasswordInput
+              id="new-password"
+              {...registerPassword}
+              onChange={(e) => {
+                clearErrors('newPassword');
+                clearErrors('newPasswordRepeat');
+                runAsynchronously(registerPassword.onChange(e));
+              }}
+            />
+            <FormWarningText text={errors.newPassword?.message?.toString()} />
 
-                <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat password")}</Label>
-                <PasswordInput
-                  id="repeat-password"
-                  {...registerPasswordRepeat}
-                  onChange={(e) => {
-                    clearErrors('newPassword');
-                    clearErrors('newPasswordRepeat');
-                    runAsynchronously(registerPasswordRepeat.onChange(e));
-                  }}
-                />
-                <FormWarningText text={errors.newPasswordRepeat?.message?.toString()} />
+            <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat new password")}</Label>
+            <PasswordInput
+              id="repeat-password"
+              {...registerPasswordRepeat}
+              onChange={(e) => {
+                clearErrors('newPassword');
+                clearErrors('newPasswordRepeat');
+                runAsynchronously(registerPasswordRepeat.onChange(e));
+              }}
+            />
+            <FormWarningText text={errors.newPasswordRepeat?.message?.toString()} />
 
-                <Button type="submit" className="mt-6" loading={loading}>{t("Change Password")}</Button>
-              </form>
-        }
+            <Button type="submit" className="mt-6" loading={loading}>
+              {user.hasPassword ? t("Update Password") : t("Set Password")}
+            </Button>
+          </form>
+        )}
       </div>
-    </div>
+    </Section>
   );
 }
 
@@ -476,7 +499,7 @@ function useMfaSection() {
 
   return (
     <Section
-      title={t("Multi-factor Authentication")}
+      title={t("Multi-factor authentication")}
       description={isEnabled
         ? t("Multi-factor authentication is currently enabled.")
         : t("Multi-factor authentication is currently disabled.")}
