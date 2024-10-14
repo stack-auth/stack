@@ -257,61 +257,67 @@ function EmailsSection() {
           <Table>
             <TableBody>
               {/*eslint-disable-next-line @typescript-eslint/no-unnecessary-condition*/}
-              {contactChannels.filter(x => x.type === 'email').map(x => (
-                <TableRow key={x.id}>
-                  <TableCell>
-                    <div className='flex flex-col md:flex-row gap-2 md:gap-4'>
-                      {x.value}
-                      <div className='flex gap-2'>
-                        {x.isPrimary ? <Badge>{t("Primary")}</Badge> : null}
-                        {!x.isVerified ? <Badge variant='destructive'>{t("Unverified")}</Badge> : null}
-                        {x.usedForAuth ? <Badge variant='outline'>{t("Used for sign-in")}</Badge> : null}
+              {contactChannels.filter(x => x.type === 'email')
+                .sort((a, b) => {
+                  if (a.isPrimary !== b.isPrimary) return a.isPrimary ? -1 : 1;
+                  if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+                  return 0;
+                })
+                .map(x => (
+                  <TableRow key={x.id}>
+                    <TableCell>
+                      <div className='flex flex-col md:flex-row gap-2 md:gap-4'>
+                        {x.value}
+                        <div className='flex gap-2'>
+                          {x.isPrimary ? <Badge>{t("Primary")}</Badge> : null}
+                          {!x.isVerified ? <Badge variant='destructive'>{t("Unverified")}</Badge> : null}
+                          {x.usedForAuth ? <Badge variant='outline'>{t("Used for sign-in")}</Badge> : null}
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="flex justify-end">
-                    <ActionCell items={[
-                      ...(!x.isVerified ? [{
-                        item: t("Send verification email"),
-                        onClick: async () => { await x.sendVerificationEmail(); },
-                      }] : []),
-                      ...(!x.isPrimary && x.isVerified ? [{
-                        item: t("Set as primary"),
-                        onClick: async () => { await x.update({ isPrimary: true }); },
-                      }] :
-                        !x.isPrimary ? [{
+                    </TableCell>
+                    <TableCell className="flex justify-end">
+                      <ActionCell items={[
+                        ...(!x.isVerified ? [{
+                          item: t("Send verification email"),
+                          onClick: async () => { await x.sendVerificationEmail(); },
+                        }] : []),
+                        ...(!x.isPrimary && x.isVerified ? [{
                           item: t("Set as primary"),
+                          onClick: async () => { await x.update({ isPrimary: true }); },
+                        }] :
+                          !x.isPrimary ? [{
+                            item: t("Set as primary"),
+                            onClick: async () => {},
+                            disabled: true,
+                            disabledTooltip: t("Please verify your email first"),
+                          }] : []),
+                        ...(!x.usedForAuth && x.isVerified ? [{
+                          item: t("Use for sign-in"),
+                          onClick: async () => { await x.update({ usedForAuth: true }); },
+                        }] : []),
+                        ...(x.usedForAuth && !isLastEmail ? [{
+                          item: t("Stop using for sign-in"),
+                          onClick: async () => { await x.update({ usedForAuth: false }); },
+                        }] : x.usedForAuth ? [{
+                          item: t("Stop using for sign-in"),
                           onClick: async () => {},
                           disabled: true,
-                          disabledTooltip: t("Please verify your email first"),
+                          disabledTooltip: t("You can not remove your last sign-in email"),
                         }] : []),
-                      ...(!x.usedForAuth && x.isVerified ? [{
-                        item: t("Use for sign-in"),
-                        onClick: async () => { await x.update({ usedForAuth: true }); },
-                      }] : []),
-                      ...(x.usedForAuth && !isLastEmail ? [{
-                        item: t("Stop using for sign-in"),
-                        onClick: async () => { await x.update({ usedForAuth: false }); },
-                      }] : x.usedForAuth ? [{
-                        item: t("Stop using for sign-in"),
-                        onClick: async () => {},
-                        disabled: true,
-                        disabledTooltip: t("You can not remove your last sign-in email"),
-                      }] : []),
-                      ...(!isLastEmail || !x.usedForAuth ? [{
-                        item: t("Remove"),
-                        onClick: async () => { await x.delete(); },
-                        danger: true,
-                      }] : [{
-                        item: t("Remove"),
-                        onClick: async () => {},
-                        disabled: true,
-                        disabledTooltip: t("You can not remove your last sign-in email"),
-                      }]),
-                    ]}/>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        ...(!isLastEmail || !x.usedForAuth ? [{
+                          item: t("Remove"),
+                          onClick: async () => { await x.delete(); },
+                          danger: true,
+                        }] : [{
+                          item: t("Remove"),
+                          onClick: async () => {},
+                          disabled: true,
+                          disabledTooltip: t("You can not remove your last sign-in email"),
+                        }]),
+                      ]}/>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>
