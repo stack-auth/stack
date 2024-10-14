@@ -33,7 +33,7 @@ export function ProjectSwitcher(props: { currentProjectId: string }) {
       >
         <SelectValue placeholder="Select an account">
           <ProjectAvatar displayName={currentProject?.displayName || ""} />
-          <span>
+          <span className="w-32 sm:w-44 truncate">
             { currentProject?.displayName }
           </span>
         </SelectValue>
@@ -43,7 +43,9 @@ export function ProjectSwitcher(props: { currentProjectId: string }) {
           <SelectItem key={p.id} value={p.id}>
             <div className="flex items-center gap-2 [&_svg]:h-4 [&_svg]:w-4 [&_svg]:shrink-0 [&_svg]:text-foreground">
               <ProjectAvatar displayName={p.displayName} />
-              {p.displayName}
+              <span className="w-32 sm:w-44 truncate">
+                { p.displayName }
+              </span>
             </div>
           </SelectItem>
         ))}
