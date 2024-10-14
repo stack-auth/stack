@@ -11,7 +11,7 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   server_metadata: fieldSchema.userServerMetadataSchema.optional(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().optional(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.optional(),
-  primary_email_used_for_auth: fieldSchema.yupBoolean().optional().meta({ openapiField: { description: "Whether the primary email is used for authentication", exampleValue: true } }),
+  primary_email_auth_enabled: fieldSchema.yupBoolean().optional().meta({ openapiField: { description: "Whether the primary email is used for authentication", exampleValue: true } }),
   password: fieldSchema.yupString().nullable().meta({ openapiField: { description: 'A new password for the user, overwriting the old one (if it exists). Specifying this option revokes all current sessions.', exampleValue: 'my-new-password' } }),
   otp_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.optional(),
   totp_secret_base64: fieldSchema.base64Schema.nullable().meta({ openapiField: { description: 'A TOTP secret for the user, overwriting the old one (if it exists). Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } }),

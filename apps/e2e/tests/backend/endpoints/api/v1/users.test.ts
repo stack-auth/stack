@@ -811,7 +811,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_used_for_auth: true,
+        primary_email_auth_enabled: true,
         display_name: "John Dough",
         server_metadata: "test",
       },
@@ -850,7 +850,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_used_for_auth: true,
+        primary_email_auth_enabled: true,
         password,
       },
     });
@@ -898,13 +898,13 @@ describe("with server access", () => {
       accessType: "server",
       method: "POST",
       body: {
-        primary_email_used_for_auth: true,
+        primary_email_auth_enabled: true,
       },
     });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 400,
-        "body": "primary_email_used_for_auth cannot be true without primary_email",
+        "body": "primary_email_auth_enabled cannot be true without primary_email",
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
@@ -916,7 +916,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_used_for_auth: true,
+        primary_email_auth_enabled: true,
       },
     });
     expect(response).toMatchInlineSnapshot(`
@@ -949,7 +949,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_used_for_auth: true,
+        primary_email_auth_enabled: true,
       },
     });
     expect(response2).toMatchInlineSnapshot(`
@@ -1006,7 +1006,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_used_for_auth: true,
+        primary_email_auth_enabled: true,
         password: password,
       },
     });
@@ -1056,7 +1056,7 @@ describe("with server access", () => {
       method: "POST",
       body: {
         primary_email: backendContext.value.mailbox.emailAddress,
-        primary_email_used_for_auth: true,
+        primary_email_auth_enabled: true,
         password: password,
       },
     });

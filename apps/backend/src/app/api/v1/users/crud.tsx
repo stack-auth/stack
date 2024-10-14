@@ -107,23 +107,23 @@ async function checkAuthData(
     oldPrimaryEmail?: string | null,
     primaryEmail?: string | null,
     primaryEmailVerified?: boolean,
-    primaryEmailUsedForAuth?: boolean,
+    primaryEmailAuthEnabled?: boolean,
     passwordHash?: string | null,
   }
 ) {
-  if (!data.primaryEmail && data.primaryEmailUsedForAuth) {
-    throw new StatusError(400, "primary_email_used_for_auth cannot be true without primary_email");
+  if (!data.primaryEmail && data.primaryEmailAuthEnabled) {
+    throw new StatusError(400, "primary_email_auth_enabled cannot be true without primary_email");
   }
   if (!data.primaryEmail && data.primaryEmailVerified) {
     throw new StatusError(400, "primary_email_verified cannot be true without primary_email");
   }
-  if (data.primaryEmailUsedForAuth) {
+  if (data.primaryEmailAuthEnabled) {
     if (!data.oldPrimaryEmail || data.oldPrimaryEmail !== data.primaryEmail) {
       const otpAuth = await tx.contactChannel.findFirst({
         where: {
           projectId: data.projectId,
           type: 'EMAIL',
-          value: data.primaryEmail || throwErr("primary_email_used_for_auth is true but primary_email is not set"),
+          value: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
           usedForAuth: BooleanTrue.TRUE,
         }
       });
@@ -274,7 +274,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         projectId: auth.project.id,
         primaryEmail: data.primary_email,
         primaryEmailVerified: data.primary_email_verified,
-        primaryEmailUsedForAuth: data.primary_email_used_for_auth,
+        primaryEmailAuthEnabled: data.primary_email_auth_enabled,
         passwordHash: data.password && await hashPassword(data.password),
       });
 
@@ -374,7 +374,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             value: data.primary_email,
             isVerified: data.primary_email_verified ?? false,
             isPrimary: "TRUE",
-            usedForAuth: data.primary_email_used_for_auth ? BooleanTrue.TRUE : null,
+            usedForAuth: data.primary_email_auth_enabled ? BooleanTrue.TRUE : null,
           }
         });
       }
@@ -526,7 +526,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         oldPrimaryEmail: primaryEmailContactChannel?.value,
         primaryEmail: primaryEmailContactChannel?.value || data.primary_email,
         primaryEmailVerified: primaryEmailContactChannel?.isVerified || data.primary_email_verified,
-        primaryEmailUsedForAuth: !!primaryEmailContactChannel?.usedForAuth || data.primary_email_used_for_auth,
+        primaryEmailAuthEnabled: !!primaryEmailContactChannel?.usedForAuth || data.primary_email_auth_enabled,
         passwordHash: passwordAuth ? passwordAuth.passwordHash : (data.password && await hashPassword(data.password)),
       });
 
@@ -567,7 +567,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             },
             update: {
               value: data.primary_email,
-              usedForAuth: data.primary_email_used_for_auth ? BooleanTrue.TRUE : null,
+              usedForAuth: data.primary_email_auth_enabled ? BooleanTrue.TRUE : null,
             }
           });
         }

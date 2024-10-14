@@ -68,7 +68,7 @@ export const POST = createSmartRouteHandler({
       data: {
         primary_email: email,
         primary_email_verified: false,
-        primary_email_used_for_auth: true,
+        primary_email_auth_enabled: true,
         password,
       },
     });

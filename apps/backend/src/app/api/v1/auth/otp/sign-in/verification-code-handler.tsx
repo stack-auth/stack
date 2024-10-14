@@ -66,7 +66,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
         data: {
           primary_email: email,
           primary_email_verified: true,
-          primary_email_used_for_auth: true,
+          primary_email_auth_enabled: true,
           otp_auth_enabled: true,
         },
         allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],

@@ -37,7 +37,7 @@ it("should sign in users created with the server API", async ({ expect }) => {
     method: "POST",
     body: {
       primary_email: backendContext.value.mailbox.emailAddress,
-      primary_email_used_for_auth: true,
+      primary_email_auth_enabled: true,
       primary_email_verified: true,
     },
   });
@@ -64,7 +64,7 @@ it("should sign in users created with the server API even if sign up is disabled
     method: "POST",
     body: {
       primary_email: backendContext.value.mailbox.emailAddress,
-      primary_email_used_for_auth: true,
+      primary_email_auth_enabled: true,
       primary_email_verified: true,
     },
   });
@@ -90,7 +90,7 @@ it("should not allow signing in if email is not verified", async ({ expect }) =>
     method: "POST",
     body: {
       primary_email: backendContext.value.mailbox.emailAddress,
-      primary_email_used_for_auth: true,
+      primary_email_auth_enabled: true,
       primary_email_verified: false,
     },
   });
@@ -125,7 +125,7 @@ it("should sign up a new user even if one already exists with email auth disable
     method: "POST",
     body: {
       primary_email: backendContext.value.mailbox.emailAddress,
-      primary_email_used_for_auth: false,
+      primary_email_auth_enabled: false,
       primary_email_verified: true,
     },
   });

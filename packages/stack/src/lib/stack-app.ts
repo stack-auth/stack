@@ -2628,7 +2628,7 @@ export type CurrentInternalServerUser = CurrentServerUser & InternalUserExtra;
 type ServerUserUpdateOptions = {
   primaryEmail?: string,
   primaryEmailVerified?: boolean,
-  primaryEmailUsedForAuth?: boolean,
+  primaryEmailAuthEnabled?: boolean,
   clientReadOnlyMetadata?: ReadonlyJson,
   serverMetadata?: ReadonlyJson,
   password?: string,
@@ -2641,7 +2641,7 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
     client_read_only_metadata: options.clientReadOnlyMetadata,
     server_metadata: options.serverMetadata,
     selected_team_id: options.selectedTeamId,
-    primary_email_used_for_auth: options.primaryEmailUsedForAuth,
+    primary_email_auth_enabled: options.primaryEmailAuthEnabled,
     primary_email_verified: options.primaryEmailVerified,
     password: options.password,
     profile_image_url: options.profileImageUrl,
@@ -2660,7 +2660,7 @@ function serverUserCreateOptionsToCrud(options: ServerUserCreateOptions): UsersC
   return {
     primary_email: options.primaryEmail,
     password: options.password,
-    primary_email_used_for_auth: true,
+    primary_email_auth_enabled: true,
     display_name: options.displayName,
     primary_email_verified: options.primaryEmailVerified,
   };
