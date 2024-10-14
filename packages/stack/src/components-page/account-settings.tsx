@@ -175,6 +175,7 @@ function EmailsSection() {
   const [addingEmail, setAddingEmail] = useState(contactChannels.length === 0);
   const [addingEmailLoading, setAddingEmailLoading] = useState(false);
   const [addedEmail, setAddedEmail] = useState<string | null>(null);
+  const isLastAuth = contactChannels.filter(x => x.usedForAuth).length + user.oauthProviders.length === 1;
 
   useEffect(() => {
     if (addedEmail) {
@@ -276,16 +277,27 @@ function EmailsSection() {
                       ...(!x.isPrimary && x.isVerified ? [{
                         item: t("Set as primary"),
                         onClick: async () => { await x.update({ isPrimary: true }); },
-                      }] : []),
+                      }] :
+                        !x.isPrimary ? [{
+                          item: t("Set as primary"),
+                          onClick: async () => {},
+                          disabled: true,
+                          disabledTooltip: t("Please verify your email first"),
+                        }] : []),
                       ...(!x.usedForAuth && x.isVerified ? [{
                         item: t("Use for sign-in"),
                         onClick: async () => { await x.update({ usedForAuth: true }); },
                       }] : []),
-                      ...(x.usedForAuth ? [{
+                      ...(x.usedForAuth && !isLastAuth ? [{
                         item: t("Stop using for sign-in"),
                         onClick: async () => { await x.update({ usedForAuth: false }); },
+                      }] : x.usedForAuth ? [{
+                        item: t("Stop using for sign-in"),
+                        onClick: async () => {},
+                        disabled: true,
+                        disabledTooltip: t("You can not remove your last sign-in method"),
                       }] : []),
-                      ...(contactChannels.length > 1 ? [{
+                      ...(!isLastAuth || !x.usedForAuth ? [{
                         item: t("Remove"),
                         onClick: async () => { await x.delete(); },
                         danger: true,
@@ -322,6 +334,8 @@ function useOtpSection() {
   const user = useUser({ or: "throw" });
   const project = useStackApp().useProject();
   const contactChannels = user.useContactChannels();
+  const isLastAuth = user.otpAuthEnabled && !user.hasPassword && user.oauthProviders.length === 0;
+  const [disabling, setDisabling] = useState(false);
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const hasValidEmail = contactChannels.filter(x => x.type === 'email' && x.isVerified && x.usedForAuth).length > 0;
@@ -330,11 +344,49 @@ function useOtpSection() {
     return null;
   }
 
+  const handleDisableOTP = async () => {
+    await user.update({ otpAuthEnabled: false });
+    setDisabling(false);
+  };
+
   return (
     <Section title={t("OTP sign-in")} description={user.otpAuthEnabled ? t("OTP/magic link sign-in is currently enabled.") : t("Enable sign-in via magic link or OTP sent to your sign-in emails.")}>
       <div className='flex md:justify-end'>
-        {hasValidEmail ?
-          !user.otpAuthEnabled ?
+        {hasValidEmail ? (
+          user.otpAuthEnabled ? (
+            !isLastAuth ? (
+              !disabling ? (
+                <Button
+                  variant='secondary'
+                  onClick={() => setDisabling(true)}
+                >
+                  {t("Disable OTP")}
+                </Button>
+              ) : (
+                <div className='flex flex-col gap-2'>
+                  <Typography variant='destructive'>
+                    {t("Are you sure you want to disable OTP sign-in? You will not be able to sign in with only emails anymore.")}
+                  </Typography>
+                  <div className='flex gap-2'>
+                    <Button
+                      variant='destructive'
+                      onClick={handleDisableOTP}
+                    >
+                      {t("Disable")}
+                    </Button>
+                    <Button
+                      variant='secondary'
+                      onClick={() => setDisabling(false)}
+                    >
+                      {t("Cancel")}
+                    </Button>
+                  </div>
+                </div>
+              )
+            ) : (
+              <Typography variant='secondary' type='label'>{t("OTP sign-in is enabled and cannot be disabled as it is currently the only sign-in method")}</Typography>
+            )
+          ) : (
             <Button
               variant='secondary'
               onClick={async () => {
@@ -342,9 +394,11 @@ function useOtpSection() {
               }}
             >
               {t("Enable OTP")}
-            </Button> :
-            <Typography variant='secondary' type='label'>{t("OTP sign-in is enabled")}</Typography>:
-          <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified email and set it as your sign-in email.")}</Typography>}
+            </Button>
+          )
+        ) : (
+          <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified email and set it as your sign-in email.")}</Typography>
+        )}
       </div>
     </Section>
   );
@@ -367,7 +421,6 @@ function usePasswordSection() {
   const user = useUser({ or: "throw" });
   const contactChannels = user.useContactChannels();
   const [changingPassword, setChangingPassword] = useState(false);
-  const [alreadyReset, setAlreadyReset] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const passwordSchema = yupObject({
@@ -404,7 +457,6 @@ function usePasswordSection() {
         setError('oldPassword', { type: 'manual', message: t('Incorrect password') });
       } else {
         reset();
-        setAlreadyReset(true);
         setChangingPassword(false);
       }
     } finally {
@@ -421,9 +473,6 @@ function usePasswordSection() {
       description={user.hasPassword ? t("Update your password") : t("Set a password for your account")}
     >
       <div className='flex flex-col gap-4'>
-        {alreadyReset && (
-          <Typography variant='success'>{t("Password changed successfully!")}</Typography>
-        )}
         {!changingPassword ? (
           hasValidEmail ? (
             <Button
