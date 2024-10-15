@@ -4,6 +4,10 @@ title: <SelectedTeamSwitcher />
 
 A React component for switching between teams. It displays a dropdown of teams and allows the user to select a team.
 
+![SelectedTeamSwitcher](../imgs/selected-team-switcher.png)
+
+For a comprehensive guide on using this component, refer to our [Team Selection documentation](../concepts/team-selection.mdx).
+
 ## Props
 
 - `urlMap` (optional): `(team: Team) => string` - A function that maps a team to a URL. If provided, the component will navigate to this URL when a team is selected.
@@ -15,15 +19,16 @@ A React component for switching between teams. It displays a dropdown of teams a
 ```tsx
 import { SelectedTeamSwitcher } from '@stackframe/stack';
 
-function TeamSwitcherExample() {
-  const handleUrlMap = (team) => `/team/${team.id}`;
-
+export default function Page() {
   return (
-    <SelectedTeamSwitcher
-      urlMap={handleUrlMap}
-      selectedTeam={currentTeam}
-      noUpdateSelectedTeam={false}
-    />
+    <div>
+      <h1>Team Switcher</h1>
+      <SelectedTeamSwitcher
+        urlMap={(team) => `/team/${team.id}`}
+        selectedTeam={currentTeam}
+        noUpdateSelectedTeam={false}
+      />
+    </div>
   );
 }
 ```
