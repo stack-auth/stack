@@ -1,16 +1,42 @@
 ---
-slug: sdk/use-stack-app
+title: useStackApp
 ---
 
-The `useStackApp` hook returns the `StackClientApp` object that you can use to interact with the Stack API. If you want to learn more about the `StackClientApp` object, check out the [App](./stack-app.mdx) documentation.
+# useStackApp
 
-Example:
+A custom hook for managing Stack App state in your application.
 
-```jsx
-import { useStackApp } from "@stackframe/stack";
+## Props
 
-function MyComponent() {
-  const stackApp = useStackApp();
-  return <div>Sign In URL: {stackApp.urls.signIn}</div>;
+- `selectedStackApp`: `StackApp | undefined` - The currently selected Stack App.
+- `stackApps`: `StackApp[]` - An array of available Stack Apps.
+- `setSelectedStackApp`: `(stackApp: StackApp) => void` - Function to set the selected Stack App.
+- `setStackApps`: `(stackApps: StackApp[]) => void` - Function to set the array of Stack Apps.
+
+## Example
+
+```tsx
+import { useStackApp } from '@stackframe/stack';
+
+function StackAppManager() {
+  const {
+    selectedStackApp,
+    stackApps,
+    setSelectedStackApp,
+    setStackApps
+  } = useStackApp();
+
+  // Example usage
+  useEffect(() => {
+    // Fetch stack apps and set them
+    const fetchedApps = fetchStackApps();
+    setStackApps(fetchedApps);
+  }, []);
+
+  const handleSelectApp = (app) => {
+    setSelectedStackApp(app);
+  };
+
+  // Render your component using the state and functions
 }
 ```
