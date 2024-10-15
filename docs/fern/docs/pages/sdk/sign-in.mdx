@@ -1,14 +1,36 @@
 ---
-slug: sdk/sign-in
+title: <SignIn />
 ---
 
-The `SignIn` component is a pre-built UI element that displays all available sign-in methods as configured in the Stack dashboard.
+Renders a sign-in component with customizable options.
 
-<Note>
-  This component does not redirect a signed-in user. To achieve automatic redirection for signed-in users, you can use the `useUser` hook to check the user's sign-in status and perform the redirection if necessary.
-</Note>
+![SignIn](../imgs/sign-in.png)
 
-![Sign In Component](../imgs/sign-in.png)
+For more information, please refer to the [custom pages guide](../customization/custom-pages.mdx).
 
 ## Props
-- `fullPage` (boolean): Determines whether the component should occupy the full page. Default is `false`.
+
+- `fullPage` (optional): `boolean` - If true, renders the sign-in page in full-page mode.
+- `automaticRedirect` (optional): `boolean` - If true, redirect to `afterSignIn` URL if the user is already signed-in.
+- `extraInfo` (optional): `React.ReactNode` - Additional content to be displayed on the sign-in page.
+- `firstTab` (optional): `'magic-link' | 'password'` - Determines which tab is initially active. Defaults to 'magic-link' if not specified.
+
+## Example
+
+```tsx
+import { SignIn } from '@stackframe/stack';
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Sign In</h1>
+      <SignIn
+        fullPage={true}
+        automaticRedirect={true}
+        firstTab='password'
+        extraInfo={<>When signing in, you agree to our <a href="/terms">Terms</a></>}
+      />
+    </div>
+  );
+}
+```

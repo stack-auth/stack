@@ -1,0 +1,29 @@
+---
+title: <StackProvider />
+---
+
+A React component that provides Stack context to its children.
+
+For detailed usage instructions, please refer to the manual section of the [setup guide](../getting-started/setup.mdx).
+
+
+## Props
+
+- `children`: `React.ReactNode` - The child components to be wrapped by the StackProvider.
+- `app`: `StackClientApp | StackServerApp` - The Stack app instance to be used.
+- `lang` (optional): `"en-US" | "de-DE" | "es-419" | "es-ES" | "fr-CA" | "fr-FR" | "it-IT" | "pt-BR" | "pt-PT"` - The language to be used for translations.
+
+## Example
+
+```tsx title="layout.tsx"
+import { StackProvider } from '@stackframe/stack';
+import { stackServerApp } from '@/stack';
+
+function App() {
+  return (
+    <StackProvider app={stackServerApp} lang="de-DE">
+      {/* Your app content */}
+    </StackProvider>
+  );
+}
+```

@@ -15,7 +15,7 @@ tabs:
     icon: fa-solid fa-home
     slug: docs
   sdk:
-    display-name: SDK Reference
+    display-name: SDK & Components
     icon: fa-solid fa-hammer
     slug: sdk
   api:
@@ -117,23 +117,32 @@ navigation:
             path: ./docs/pages/sdk/current-user.mdx
           - page: StackApp
             path: ./docs/pages/sdk/stack-app.mdx
-      - section: Hooks
-        contents:
-          - page: useStackApp
-            path: ./docs/pages/sdk/use-stack-app.mdx
-          - page: useUser
-            path: ./docs/pages/sdk/use-user.mdx
       - section: Components
         contents:
-          - page: StackHandler
-            path: ./docs/pages/sdk/stack-handler.mdx
-          - page: SignIn
+          - page: <CredentialSignIn />
+            path: ./docs/pages/sdk/credential-sign-in.mdx
+          - page: <CredentialSignUp />
+            path: ./docs/pages/sdk/credential-sign-up.mdx
+          - page: <OAuthButton />
+            path: ./docs/pages/sdk/oauth-button.mdx
+          - page: <OAuthButtonGroup />
+            path: ./docs/pages/sdk/oauth-button-group.mdx
+          - page: <SelectedTeamSwitcher />
+            path: ./docs/pages/sdk/selected-team-switcher.mdx
+          - page: <SignIn />
             path: ./docs/pages/sdk/sign-in.mdx
-          - page: SignUp
+          - page: <SignUp />
             path: ./docs/pages/sdk/sign-up.mdx
-          - page: SignOut
-            path: ./docs/pages/sdk/sign-out.mdx
-
+          - page: <UserButton />
+            path: ./docs/pages/sdk/user-button.mdx
+      - section: Utilities
+        contents:
+        - page: <StackHandler />
+          path: ./docs/pages/sdk/stack-handler.mdx
+        - page: <StackProvider />
+          path: ./docs/pages/sdk/stack-provider.mdx
+        - page: <StackTheme />
+          path: ./docs/pages/sdk/stack-theme.mdx
   - tab: api
     layout: 
       - page: API Overview

@@ -63,7 +63,7 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
         <div className="flex gap-2 items-center">
           <UserAvatar user={user} />
           {user && props.showUserInfo &&
-            <div className="flex flex-col justify-center">
+            <div className="flex flex-col justify-center text-left">
               <Typography className={textClasses}>{user.displayName}</Typography>
               <Typography className={textClasses} variant="secondary" type='label'>{user.primaryEmail}</Typography>
             </div>
