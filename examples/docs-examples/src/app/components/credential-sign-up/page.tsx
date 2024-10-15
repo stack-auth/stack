@@ -1,6 +1,6 @@
 import { CredentialSignUp } from '@stackframe/stack';
 
-export default function CredentialSignUpPage() {
+export default function Page() {
   return (
     <div>
       <h1>Sign Up</h1>

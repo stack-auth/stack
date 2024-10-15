@@ -4,6 +4,8 @@ title: <OAuthButton />
 
 Renders a customized OAuth button for various providers to initiate sign-in or sign-up processes.
 
+![OAuthButton](../imgs/oauth-button.png)
+
 ## Props
 
 - `provider`: `string` - The name of the OAuth provider (e.g., 'google', 'github', 'facebook').
@@ -14,14 +16,16 @@ Renders a customized OAuth button for various providers to initiate sign-in or s
 ```tsx
 import { OAuthButton } from '@stackframe/stack';
 
-export function LoginPage() {
+export default function Page() {
   return (
     <div>
+      <h1>Sign In</h1>
       <OAuthButton provider="google" type="sign-in" />
       <OAuthButton provider="github" type="sign-up" />
     </div>
   );
 }
+
 ```
 
 The `OAuthButton` component automatically styles itself based on the provided OAuth provider and handles the sign-in or sign-up process when clicked.
