@@ -115,21 +115,23 @@ navigation:
       - section: Components
         contents:
           - page: <CredentialSignIn />
-            path: ./docs/pages/sdk/credential-sign-in.mdx
+            path: ./docs/pages/components/credential-sign-in.mdx
           - page: <CredentialSignUp />
-            path: ./docs/pages/sdk/credential-sign-up.mdx
+            path: ./docs/pages/components/credential-sign-up.mdx
           - page: <OAuthButton />
-            path: ./docs/pages/sdk/oauth-button.mdx
+            path: ./docs/pages/components/oauth-button.mdx
           - page: <OAuthButtonGroup />
-            path: ./docs/pages/sdk/oauth-button-group.mdx
+            path: ./docs/pages/components/oauth-button-group.mdx
           - page: <SelectedTeamSwitcher />
-            path: ./docs/pages/sdk/selected-team-switcher.mdx
+            path: ./docs/pages/components/selected-team-switcher.mdx
           - page: <SignIn />
-            path: ./docs/pages/sdk/sign-in.mdx
+            path: ./docs/pages/components/sign-in.mdx
           - page: <SignUp />
-            path: ./docs/pages/sdk/sign-up.mdx
+            path: ./docs/pages/components/sign-up.mdx
           - page: <UserButton />
-            path: ./docs/pages/sdk/user-button.mdx
+            path: ./docs/pages/components/user-button.mdx
+          - page: <AccountSettings />
+            path: ./docs/pages/components/account-settings.mdx
       - section: Utilities
         contents:
         - page: <StackHandler />
