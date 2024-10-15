@@ -114,6 +114,8 @@ navigation:
     layout: 
       - section: Components
         contents:
+          - page: <AccountSettings />
+            path: ./docs/pages/components/account-settings.mdx
           - page: <CredentialSignIn />
             path: ./docs/pages/components/credential-sign-in.mdx
           - page: <CredentialSignUp />
@@ -130,16 +132,14 @@ navigation:
             path: ./docs/pages/components/sign-up.mdx
           - page: <UserButton />
             path: ./docs/pages/components/user-button.mdx
-          - page: <AccountSettings />
-            path: ./docs/pages/components/account-settings.mdx
       - section: Utilities
         contents:
-        - page: <StackHandler />
-          path: ./docs/pages/sdk/stack-handler.mdx
-        - page: <StackProvider />
-          path: ./docs/pages/sdk/stack-provider.mdx
-        - page: <StackTheme />
-          path: ./docs/pages/sdk/stack-theme.mdx
+          - page: <StackHandler />
+            path: ./docs/pages/components/stack-handler.mdx
+          - page: <StackProvider />
+            path: ./docs/pages/components/stack-provider.mdx
+          - page: <StackTheme />
+            path: ./docs/pages/components/stack-theme.mdx
   - tab: sdk
     layout: 
       - page: SDK Overview
