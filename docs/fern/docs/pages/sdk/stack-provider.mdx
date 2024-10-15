@@ -1,0 +1,41 @@
+---
+title: StackProvider
+---
+
+# StackProvider
+
+A React component that provides Stack context to its children.
+
+## Props
+
+- `children`: `React.ReactNode` - The child components to be wrapped by the StackProvider.
+- `app`: `StackClientApp<true> | StackServerApp<true> | StackAdminApp<true>` - The Stack app instance to be used.
+- `lang` (optional): `React.ComponentProps<typeof TranslationProvider>['lang']` - The language to be used for translations.
+
+## Example
+
+```tsx
+import { StackProvider, StackClientApp } from '@stackframe/stack';
+
+const app = new StackClientApp({
+  projectId: 'your-project-id',
+  // ... other configuration options
+});
+
+function App() {
+  return (
+    <StackProvider app={app}>
+      <YourAppComponents />
+    </StackProvider>
+  );
+}
+
+// With optional language prop
+function AppWithLanguage() {
+  return (
+    <StackProvider app={app} lang="en">
+      <YourAppComponents />
+    </StackProvider>
+  );
+}
+```
