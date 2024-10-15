@@ -2,8 +2,11 @@
 title: <OAuthButtonGroup />
 ---
 
+Renders all the available OAuth buttons for sign-in or sign-up functionality.
 
-Renders a group of OAuth buttons for sign-in or sign-up functionality.
+![OAuthButtonGroup](../imgs/oauth-button-group.png)
+
+Note that if there are no OAuth providers enabled in the dashboard, this component will be empty.
 
 ## Props
 
@@ -14,9 +17,13 @@ Renders a group of OAuth buttons for sign-in or sign-up functionality.
 ```tsx
 import { OAuthButtonGroup } from '@stackframe/stack';
 
-export function LoginPage() {
+export default function Page() {
   return (
-    <OAuthButtonGroup type='sign-in' />
+    <div>
+      <h1>Sign In</h1>
+      <OAuthButtonGroup type='sign-in' />
+    </div>
   );
 }
+
 ```
