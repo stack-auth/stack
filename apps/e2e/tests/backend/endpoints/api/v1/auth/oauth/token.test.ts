@@ -34,7 +34,7 @@ describe("with grant_type === 'authorization_code'", async () => {
       NiceResponse {
         "status": 200,
         "body": {
-          "auth_with_email": true,
+          "auth_with_email": false,
           "client_metadata": null,
           "client_read_only_metadata": null,
           "display_name": null,
@@ -47,6 +47,7 @@ describe("with grant_type === 'authorization_code'", async () => {
               "id": "spotify",
             },
           ],
+          "otp_auth_enabled": false,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,

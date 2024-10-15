@@ -1,15 +1,12 @@
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { createAuthTokens } from "@/lib/tokens";
-import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { getAuthContactChannel } from "@/lib/contact-channel";
-import { usersCrudHandlers } from "../../../users/crud";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { usersCrudHandlers } from "../../../users/crud";
+import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -70,6 +67,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
           primary_email: email,
           primary_email_verified: true,
           primary_email_auth_enabled: true,
+          otp_auth_enabled: true,
         },
         allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
       });

@@ -1,15 +1,14 @@
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
-import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { prismaClient } from "@/prisma-client";
-import { createAuthTokens } from "@/lib/tokens";
-import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
-import { KnownErrors } from "@stackframe/stack-shared";
-import { usersCrudHandlers } from "../../../users/crud";
-import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
-import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 import { getAuthContactChannel } from "@/lib/contact-channel";
+import { createAuthTokens } from "@/lib/tokens";
+import { prismaClient } from "@/prisma-client";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
+import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
+import { usersCrudHandlers } from "../../../users/crud";
+import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -67,9 +66,9 @@ export const POST = createSmartRouteHandler({
     const createdUser = await usersCrudHandlers.adminCreate({
       project,
       data: {
-        primary_email_auth_enabled: true,
         primary_email: email,
         primary_email_verified: false,
+        primary_email_auth_enabled: true,
         password,
       },
     });

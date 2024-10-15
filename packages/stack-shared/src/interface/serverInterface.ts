@@ -7,6 +7,7 @@ import {
   ClientInterfaceOptions,
   StackClientInterface
 } from "./clientInterface";
+import { ContactChannelsCrud } from "./crud/contact-channels";
 import { CurrentUserCrud } from "./crud/current-user";
 import { ConnectedAccountAccessTokenCrud } from "./crud/oauth";
 import { TeamMemberProfilesCrud } from "./crud/team-member-profiles";
@@ -383,5 +384,92 @@ export class StackServerInterface extends StackClientInterface {
       },
       null,
     );
+  }
+
+  async createServerContactChannel(
+    data: ContactChannelsCrud['Server']['Create'],
+  ): Promise<ContactChannelsCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(
+      "/contact-channels",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+    return await response.json();
+  }
+
+  async updateServerContactChannel(
+    userId: string,
+    contactChannelId: string,
+    data: ContactChannelsCrud['Server']['Update'],
+  ): Promise<ContactChannelsCrud['Server']['Read']> {
+    const response = await this.sendServerRequest(
+      `/contact-channels/${userId}/${contactChannelId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      null,
+    );
+    return await response.json();
+  }
+
+  async deleteServerContactChannel(
+    userId: string,
+    contactChannelId: string,
+  ): Promise<void> {
+    await this.sendServerRequest(
+      `/contact-channels/${userId}/${contactChannelId}`,
+      {
+        method: "DELETE",
+      },
+      null,
+    );
+  }
+
+  async listServerContactChannels(
+    userId: string,
+  ): Promise<ContactChannelsCrud['Server']['Read'][]> {
+    const response = await this.sendServerRequest(
+      `/contact-channels?user_id=${userId}`,
+      {
+        method: "GET",
+      },
+      null,
+    );
+    const json = await response.json() as ContactChannelsCrud['Server']['List'];
+    return json.items;
+  }
+
+  async sendServerContactChannelVerificationEmail(
+    userId: string,
+    contactChannelId: string,
+    callbackUrl: string,
+  ): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>> {
+    const responseOrError = await this.sendServerRequestAndCatchKnownError(
+      `/contact-channels/${userId}/${contactChannelId}/send-verification-code`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ callback_url: callbackUrl }),
+      },
+      null,
+      [KnownErrors.EmailAlreadyVerified],
+    );
+
+    if (responseOrError.status === "error") {
+      return Result.error(responseOrError.error);
+    }
+    return Result.ok(undefined);
   }
 }

@@ -29,6 +29,7 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
         "has_password": true,
         "id": "<stripped UUID>",
         "oauth_providers": [],
+        "otp_auth_enabled": false,
         "primary_email": "<stripped UUID>@stack-generated.example.com",
         "primary_email_verified": false,
         "profile_image_url": null,

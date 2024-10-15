@@ -1,4 +1,5 @@
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { getAuthContactChannel } from "@/lib/contact-channel";
 import { getProject } from "@/lib/projects";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { oauthCookieSchema } from "@/lib/tokens";
@@ -9,12 +10,11 @@ import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse 
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { oauthResponseToSmartResponse } from "../../oauth-helpers";
-import { getAuthContactChannel } from "@/lib/contact-channel";
 
 const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"]["Read"], errorRedirectUrl?: string) => {
   if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, project.config.domains, project.config.allow_localhost)) {
