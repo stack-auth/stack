@@ -1,0 +1,46 @@
+---
+title: MessageCard
+---
+
+# MessageCard
+
+A customizable message card component with optional primary and secondary actions.
+
+## Props
+
+- `title`: `string` - The title of the message card.
+- `children` (optional): `React.ReactNode` - The content of the message card.
+- `fullPage` (optional): `boolean` - Whether to display the card in full-page mode. Default is `false`.
+- `primaryButtonText` (optional): `string` - Text for the primary action button.
+- `primaryAction` (optional): `() => Promise<void> | void` - Function to execute on primary button click.
+- `secondaryButtonText` (optional): `string` - Text for the secondary action button.
+- `secondaryAction` (optional): `() => Promise<void> | void` - Function to execute on secondary button click.
+
+## Example
+
+```tsx
+import { MessageCard } from '@stackframe/stack';
+
+function MyComponent() {
+  const handlePrimaryAction = () => {
+    console.log('Primary action clicked');
+  };
+
+  const handleSecondaryAction = () => {
+    console.log('Secondary action clicked');
+  };
+
+  return (
+    <MessageCard
+      title="Important Message"
+      primaryButtonText="Accept"
+      primaryAction={handlePrimaryAction}
+      secondaryButtonText="Cancel"
+      secondaryAction={handleSecondaryAction}
+      fullPage={true}
+    >
+      <p>This is an important message for the user.</p>
+    </MessageCard>
+  );
+}
+```
