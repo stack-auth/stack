@@ -13,19 +13,24 @@ Renders a user button component with optional user information, color mode toggl
 ## Example
 
 ```tsx
+'use client';
 import { UserButton } from '@stackframe/stack';
 
-function MyComponent() {
+export default function Page() {
   return (
-    <UserButton
-      showUserInfo={true}
-      colorModeToggle={() => { console.log("color mode toggle clicked") }}
-      extraItems={[{
-        text: 'Custom Action',
-        icon: <CustomIcon />,
-        onClick: () => console.log('Custom action clicked')
-      }]}
-    />
+    <div>
+      <h1>User Button</h1>
+      <UserButton
+        showUserInfo={true}
+        colorModeToggle={() => { console.log("color mode toggle clicked") }}
+        extraItems={[{
+          text: 'Custom Action',
+          icon: <CustomIcon />,
+          onClick: () => console.log('Custom action clicked')
+        }]}
+      />
+    </div>
   );
 }
+
 ```
