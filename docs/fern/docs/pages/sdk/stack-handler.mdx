@@ -12,7 +12,7 @@ Renders the appropriate authentication or account-related component based on the
 - `params`: `{ stack?: string[] }` - The route parameters, where `stack` is an array of path segments.
 - `searchParams`: `Record<string, string>` - The URL search parameters.
 - `fullPage`: `boolean` - Whether to render the component in full-page mode.
-- `componentProps`: `{ [K in keyof Components]?: Parameters<Components[K]> }` - Props to pass to the rendered components.
+- `componentProps`: `{ [K in keyof Components]?: Partial<ComponentProps<Components[K]>> }` - Props to pass to the rendered components.
 
 ## Example
 
