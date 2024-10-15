@@ -8,7 +8,7 @@ Renders the appropriate authentication or account-related component based on the
 
 ## Props
 
-- `app`: `StackServerApp<HasTokenStore>` - The Stack server application instance.
+- `app`: `StackServerApp` - The Stack server application instance.
 - `params`: `{ stack?: string[] }` - The route parameters, where `stack` is an array of path segments.
 - `searchParams`: `Record<string, string>` - The URL search parameters.
 - `fullPage`: `boolean` - Whether to render the component in full-page mode.
@@ -16,15 +16,16 @@ Renders the appropriate authentication or account-related component based on the
 
 ## Example
 
-```tsx
+```tsx title="app/handler/[...stack].tsx"
 import { StackHandler } from '@stackframe/stack';
+import { stackServerApp } from "@/stack";
 
-export default function Page({ params, searchParams }) {
+export default function Hanlder(props: { params: any, searchParams: any }) {
   return (
     <StackHandler
-      app={myStackServerApp}
-      params={params}
-      searchParams={searchParams}
+      app={stackServerApp}
+      params={props.params}
+      searchParams={props.searchParams}
       fullPage={true}
       componentProps={{
         SignIn: { /* SignIn component props */ },

@@ -21,19 +21,15 @@ Renders an account settings page with customizable sidebar items and optional fu
 import { AccountSettings } from '@stackframe/stack';
 
 function MyAccountPage() {
-  const extraItems = [
-    {
-      title: 'Custom Section',
-      icon: CustomIcon,
-      content: <CustomContent />,
-      subpath: '/custom',
-    },
-  ];
-
   return (
     <AccountSettings
       fullPage={true}
-      extraItems={extraItems}
+      extraItems={[{
+        title: 'Custom Section',
+        icon: CustomLucideIcon,
+        content: <CustomContent />,
+        subpath: '/custom',
+      }]}
     />
   );
 }
