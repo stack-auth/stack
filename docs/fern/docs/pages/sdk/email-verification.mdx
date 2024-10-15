@@ -8,7 +8,7 @@ A React component for handling email verification processes.
 
 ## Props
 
-- `searchParams` (optional): `Record<string, string>` - An object containing search parameters, typically including a verification code.
+- `searchParams` (optional): `Record<string, string>` - An object containing search parameters. A valid searchParams should contain a valid `code` parameter.
 - `fullPage` (optional): `boolean` - Determines whether the component should be displayed in full-page mode.
 
 ## Example
@@ -16,19 +16,12 @@ A React component for handling email verification processes.
 ```tsx
 import { EmailVerification } from '@stackframe/stack';
 
-function VerificationPage() {
-  const searchParams = { code: 'abc123' };
-  
+export function VerificationPage(props: { searchParams: Record<string, string> }) {
   return (
     <EmailVerification 
-      searchParams={searchParams}
+      searchParams={props.searchParams}
       fullPage={true}
     />
   );
-}
-
-// Without optional props
-function SimpleVerification() {
-  return <EmailVerification />;
 }
 ```

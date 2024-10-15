@@ -12,26 +12,21 @@ A component that renders a sign-up page with various customization options.
 - `automaticRedirect` (optional): `boolean` - If true, automatically redirects the user after successful sign-up.
 - `noPasswordRepeat` (optional): `boolean` - If true, removes the password confirmation field.
 - `extraInfo` (optional): `React.ReactNode` - Additional information to display on the sign-up page.
-- `firstTab` (optional): `'magic-link' | 'password'` - Determines which tab is initially active.
+- `firstTab` (optional): `'magic-link' | 'password' - Determines which tab is initially active. Defaults to 'magic-link' if not specified.
 
 ## Example
 
 ```tsx
 import { SignUp } from '@stackframe/stack';
 
-// Basic usage
-<SignUp />
-
-// Full page sign-up with automatic redirect and magic link as the first tab
-<SignUp
-  fullPage={true}
-  automaticRedirect={true}
-  firstTab='magic-link'
-/>
-
-// Custom sign-up with extra information
-<SignUp
-  noPasswordRepeat={true}
-  extraInfo={<p>Join our community today!</p>}
-/>
+export function CustomSignUp() {
+  return (
+    <SignUp
+      fullPage={true}
+      automaticRedirect={true}
+      firstTab='password'
+      extraInfo={<>When signing up, you agree to our <a href="/terms">Terms</a></>}
+    />
+  );
+}
 ```

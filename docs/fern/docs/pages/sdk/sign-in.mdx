@@ -15,19 +15,17 @@ Renders a sign-in component with customizable options.
 
 ## Example
 
-```tsx
+```tsx title="app/sign-in.tsx"
 import { SignIn } from '@stackframe/stack';
 
-// Basic usage
-const BasicSignIn = () => <SignIn />;
-
-// Full page sign-in with automatic redirect and password tab as default
-const CustomSignIn = () => (
-  <SignIn
-    fullPage={true}
-    automaticRedirect={true}
-    firstTab='password'
-    extraInfo={<p>Welcome back!</p>}
-  />
-);
+export function CustomSignIn() {
+  return (
+    <SignIn
+      fullPage={true}
+      automaticRedirect={true}
+      firstTab='password'
+      extraInfo={<>When signing in, you agree to our <a href="/terms">Terms</a></>}
+    />
+  );
+}
 ```

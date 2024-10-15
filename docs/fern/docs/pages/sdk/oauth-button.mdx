@@ -9,14 +9,14 @@ Renders a customized OAuth button for various providers to initiate sign-in or s
 ## Props
 
 - `provider`: `string` - The name of the OAuth provider (e.g., 'google', 'github', 'facebook').
-- `type`: `'sign-in' | 'sign-up'` - Determines whether the button is for signing in or signing up.
+- `type`: `'sign-in' | 'sign-up'` - Determines whether the button text is for signing in or signing up. (both are the same in terms of functionality)
 
 ## Example
 
 ```tsx
 import { OAuthButton } from '@stackframe/stack';
 
-function LoginPage() {
+export function LoginPage() {
   return (
     <div>
       <OAuthButton provider="google" type="sign-in" />

@@ -8,8 +8,8 @@ Renders a user button component with optional user information, color mode toggl
 
 ## Props
 
-- `showUserInfo`: `boolean` - Whether to display user information.
-- `colorModeToggle`: `object` - Configuration for the color mode toggle.
+- `showUserInfo`: `boolean` - Whether to display user information (display name and email) or only show the avatar.
+- `colorModeToggle`: `() => void | Promise<void>` - Function to be called when the color mode toggle button is clicked. If specified, a color mode toggle button will be shown.
 - `extraItems`: `Array<{text: string, icon: React.ReactNode, onClick: Function}>` - Additional menu items to display.
 
 ## Example
@@ -21,14 +21,12 @@ function MyComponent() {
   return (
     <UserButton
       showUserInfo={true}
-      colorModeToggle={{}}
-      extraItems={[
-        {
-          text: 'Custom Action',
-          icon: <CustomIcon />,
-          onClick: () => console.log('Custom action clicked')
-        }
-      ]}
+      colorModeToggle={() => { console.log("color mode toggle clicked") }}
+      extraItems={[{
+        text: 'Custom Action',
+        icon: <CustomIcon />,
+        onClick: () => console.log('Custom action clicked')
+      }]}
     />
   );
 }
