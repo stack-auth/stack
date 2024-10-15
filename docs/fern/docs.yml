@@ -133,14 +133,16 @@ navigation:
             path: ./docs/pages/sdk/sign-in.mdx
           - page: <SignUp />
             path: ./docs/pages/sdk/sign-up.mdx
-          - page: <StackHandler />
-            path: ./docs/pages/sdk/stack-handler.mdx
-          - page: <StackProvider />
-            path: ./docs/pages/sdk/stack-provider.mdx
-          - page: <StackTheme />
-            path: ./docs/pages/sdk/stack-theme.mdx
           - page: <UserButton />
             path: ./docs/pages/sdk/user-button.mdx
+      - section: Utilities
+        contents:
+        - page: <StackHandler />
+          path: ./docs/pages/sdk/stack-handler.mdx
+        - page: <StackProvider />
+          path: ./docs/pages/sdk/stack-provider.mdx
+        - page: <StackTheme />
+          path: ./docs/pages/sdk/stack-theme.mdx
   - tab: api
     layout: 
       - page: API Overview
