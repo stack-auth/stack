@@ -2,7 +2,7 @@
 slug: sdk/current-user
 ---
 
-## `CurrentUser`, `ServerUser`, and `CurrentServerUser`
+## Different types of user objects
 
 There are three main types of user objects you'll work with:
 
@@ -15,6 +15,8 @@ Each of these types serves a specific purpose and is used in different contexts 
 ## `CurrentUser`
 
 You can call `useUser()` or `stackServerApp.getUser()` to get the `CurrentUser` object.
+
+### Properties
 
 <ParamField path="id" type="string">
 The user ID. This is the unique identifier of the user.
@@ -45,7 +47,7 @@ Whether the user has a password set.
 </ParamField>
 
 <ParamField path="clientMetadata" type="object">
-The JSON metadata that is visible on the client side. Note that this should not contain information that should be kept private on the server side.
+The JSON metadata that is visible on the client side. Note that this should not contain information that should be kept private on the server side or information that should not be modified by the client.
 </ParamField>
 
 <ParamField path="clientReadOnlyMetadata" type="object">
@@ -477,6 +479,21 @@ if (result.status === "error" ) {
 }
 ```
 
+### `getAuthJson()`
+
+This will return the authentication tokens of the user. This is normally then used for authentication to an external server. See more details [here](../concepts/backend-integration.mdx).
+
+**Returns:**
+
+`Promise<{ accessToken: string | null }>`
+
+**Example:**
+
+```typescript
+const { accessToken } = await user.getAuthJson();
+```
+
+
 ### `signOut()`
 
 This will sign out the user and clear the session.
@@ -512,3 +529,27 @@ No parameters.
 ```typescript
 await user.delete();
 ```
+
+## `ServerUser`
+
+Some of the methods on the `StackServerApp` return `ServerUser` objects, for example `stackServerApp.listUsers()` or `stackServerApp.getUser('user_id_123')`.
+
+It contains everything in the `CurrentUser` object, except for the following methods:
+
+- `signOut()`
+- `getAuthJson()`
+
+It also has some additional properties and methods (some of the methods have the same name but more capabilities):
+
+### Properties
+
+<ParamField path="lastActiveAt" type="Date">
+The last active at date of the user.
+</ParamField>
+
+<ParamField path="serverMetadata" type="object">
+The server metadata of the user. Only readable and writable on the server side.
+</ParamField>
+
+### `update()`
+
