@@ -23,10 +23,9 @@ export const options = {
   },
 };
 
-const BASE_URL = "http://localhost:8102/api/v1";
-const PROJECT_ID = "internal";
-const PUBLISHABLE_CLIENT_KEY =
-  "this-publishable-client-key-is-for-local-development-only";
+const BASE_URL = __ENV.BASE_URL;
+const PROJECT_ID = __ENV.PROJECT_ID;
+const PUBLISHABLE_CLIENT_KEY = __ENV.PUBLISHABLE_CLIENT_KEY;
 
 const headers = {
   "x-stack-access-type": "client",
