@@ -61,11 +61,11 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
       onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
       noValidate
     >
-      <Label htmlFor="email" className="mb-1">Email</Label>
+      <Label htmlFor="email" className="mb-1">{t('Email')}</Label>
       <Input id="email" type="email" {...register('email')}/>
       <FormWarningText text={errors.email?.message?.toString()} />
 
-      <Label htmlFor="password" className="mt-4 mb-1">Password</Label>
+      <Label htmlFor="password" className="mt-4 mb-1">{t('Password')}</Label>
       <PasswordInput
         id="password"
         {...registerPassword}
@@ -79,7 +79,7 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
       {
         !props.noPasswordRepeat && (
           <>
-            <Label htmlFor="repeat-password" className="mt-4 mb-1">Repeat Password</Label>
+            <Label htmlFor="repeat-password" className="mt-4 mb-1">{t('Repeat Password')}</Label>
             <PasswordInput
               id="repeat-password"
               {...registerPasswordRepeat}
@@ -95,7 +95,7 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
       }
 
       <Button type="submit" className="mt-6" loading={loading}>
-        Sign Up
+        {t('Sign Up')}
       </Button>
     </form>
   );
