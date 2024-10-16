@@ -3029,3 +3029,9 @@ type RedirectToOptions = {
 type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
   & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
+
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+type x = Prettify<CurrentUser>

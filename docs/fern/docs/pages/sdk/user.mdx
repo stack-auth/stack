@@ -41,6 +41,10 @@ You can call `useUser()` or `stackServerApp.getUser()` to get the `CurrentUser` 
   - `selectedTeamId` (string | null | undefined): The ID of the team to set as selected, or null to clear selection.
   - `profileImageUrl` (string | null | undefined): The URL of the user's new profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
 
+**Returns:**
+
+- `Promise<void>`
+
 This method can update the user's profile information. Here is an example:
 
 ```typescript
@@ -52,13 +56,227 @@ await user.update({
 });
 ```
 
-#### `signOut`
+#### `getTeam`
 
-This will sign out the user and clear the session.
+**Parameters:**
 
-Example: 
+- `id` (string): The ID of the team to get.
+
+**Returns:**
+
+- `Promise<Team | null>`: The team object, or null if the team is not found (either because it doesn't exist or because the user is not a member of the team).
+
+Get the team with the given ID.
+
+Example:
 ```typescript
-await user.signOut();
+const team = await user.getTeam("teamId");
+```
+
+#### `useTeam`
+
+**Parameters:**
+
+- `id` (string): The ID of the team to get.
+
+**Returns:**
+
+- `Team | null`: The team object, or null if the team is not found (either because it doesn't exist or because the user is not a member of the team).
+
+Get the team with the given ID.
+
+This is the same as `getTeam` but it is a React hook.
+
+Example:
+```typescript
+const team = user.useTeam("teamId");
+```
+
+#### `listTeams`
+
+**Parameters:**
+
+No parameters.
+
+**Returns:**
+
+- `Promise<Team[]>`: The list of teams.
+
+List all the teams the user is a member of.
+
+Example:
+```typescript
+const teams = await user.listTeams();
+```
+
+#### `useTeams`
+
+**Returns:**
+
+- `Team[]`: The list of teams.
+
+List all the teams the user is a member of.
+
+This is the same as `listTeams` but it is a React hook.
+
+Example:
+```typescript
+const teams = user.useTeams();
+```
+
+#### `setSelectedTeam`
+
+**Parameters:**
+
+- `team` (Team | null): The team to set as selected, or null to clear selection.
+
+**Returns:**
+
+- `Promise<void>`
+
+Set the currently selected team for the user.
+
+Example:
+```typescript
+await user.setSelectedTeam(team);
+```
+
+
+#### `getTeamProfile`
+
+**Parameters:**
+
+- `team` (Team): The team to get the profile for.
+
+**Returns:**
+
+- `Promise<EditableTeamMemberProfile>`: The team member profile.
+
+Get the user's profile for a team.
+
+Example:
+```typescript
+const profile = await user.getTeamProfile(team);
+```
+
+#### `useTeamProfile`
+
+**Parameters:**
+
+- `team` (Team): The team to get the profile for.
+
+**Returns:**
+
+- `EditableTeamMemberProfile`: The team member profile.
+
+Get the user's profile for a team.
+
+This is the same as `getTeamProfile` but it is a React hook.
+
+Example:
+```typescript
+const profile = user.useTeamProfile(team);
+```
+
+
+#### `hasPermission`
+
+**Parameters:**
+
+- `scope` (Team): The team to check the permission for.
+- `permissionId` (string): The ID of the permission to check.
+
+**Returns:**
+
+- `Promise<boolean>`: Whether the user has the permission.
+
+This will check if the user has a permission for a team. Note that if the permission is not defined in the Stack dashboard, it will still return false.
+
+Example:
+```typescript
+const hasPermission = await user.hasPermission(team, "permissionId");
+```
+
+#### `getPermission`
+
+**Parameters:**
+
+- `scope` (Team): The team to get the permission for.
+- `permissionId` (string): The ID of the permission to get.
+- `options` (object):
+  - `recursive` (boolean): Whether to get the permission recursively. default `true`.
+
+**Returns:**
+
+- `Promise<TeamPermission | null>`: The permission object, or null if the permission is not found.
+
+This will get the permission of a user for a team. Note that if the permission is not defined in the Stack dashboard, it will still return null.
+
+Example:
+```typescript
+const permission = await user.getPermission(team, "read_secret_info");
+```
+
+#### `usePermission`
+
+**Parameters:**
+
+- `scope` (Team): The team to get the permission for.
+- `permissionId` (string): The ID of the permission to get.
+- `options` (object):
+  - `recursive` (boolean): Whether to get the permission recursively. default `true`.
+
+**Returns:**
+
+- `TeamPermission | null`: The permission object, or null if the permission is not found.
+
+This will get the permission of a user for a team. Note that if the permission is not defined in the Stack dashboard, it will still return null.
+
+This is the same as `getPermission` but it is a React hook.
+
+Example:
+```typescript
+const permission = user.usePermission(team, "read_secret_info");
+```
+
+#### `listPermissions`
+
+**Parameters:**
+
+- `scope` (Team): The team to list the permissions for.
+- `options` (object):
+  - `recursive` (boolean): Whether to list the permissions recursively. default `true`.
+
+**Returns:**
+
+- `Promise<TeamPermission[]>`: The list of permissions.
+
+List all the permissions a user has for a team.
+
+Example:
+```typescript
+const permissions = await user.listPermissions(team);
+```
+
+#### `usePermissions`
+
+**Parameters:**
+
+- `scope` (Team): The team to use the permissions for.
+- `options` (object):
+  - `recursive` (boolean): Whether to use the permissions recursively. default `true`.
+
+**Returns:**
+
+- `TeamPermission[]`: The list of permissions.
+
+List all the permissions a user has for a team.
+
+This is the same as `listPermissions` but it is a React hook.
+
+Example:
+```typescript
+const permissions = user.usePermissions(team);
 ```
 
 #### `updatePassword`
@@ -88,21 +306,36 @@ if (result.status === "error" ) {
 }
 ```
 
-## `CurrentServerUser`
+#### `signOut`
 
-If you call `getUser()` on a `StackServerApp`, you will get the `CurrentServerUser` object. It contains all the fields and methods of `CurrentUser`, but also has some additional data.
+**Parameters:**
 
-### Attributes
+No parameters.
 
-- `serverMetadata`: The JSON metadata that is visible on the server side. This contains information that should be kept private on the server side. Do not share this with the client.
+**Returns:**
 
-### Methods
+- `Promise<void>`
+
+This will sign out the user and clear the session.
+
+Example: 
+```typescript
+await user.signOut();
+```
 
 #### `delete`
 
-This will delete the user. Use it with caution as it is irreversible.
+**Parameters:**
+
+No parameters.
+
+**Returns:**
+
+- `Promise<void>`
+
+This will delete the user. Use it with caution as it is irreversible. Note that this only works if the "allow client side user deletion" option is enabled in the Stack dashboard.
 
 Example:
 ```typescript
-await serverUser.delete();
+await user.delete();
 ```
