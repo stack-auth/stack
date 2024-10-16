@@ -1,0 +1,255 @@
+---
+title: Submit
+layout: reference
+---
+<div class="page">
+
+<div class="row">
+
+<div class="column">
+Submit a job.
+
+**Arguments**
+<ParamField path="config" type="JobConfig" required={true}>
+The config options defining the job.
+
+<Expandable>
+<ParamField path="entrypoint" type="string" required={true}>
+Command that will be run to execute the job, e.g., `python main.py`.
+</ParamField>
+
+<ParamField path="name" type="string" required={false}>
+Name of the job. Multiple jobs can be submitted with the same name.
+</ParamField>
+
+<ParamField path="job_queue_config" type="JobQueueConfig" required={false}>
+Job's configuration related to scheduling & execution using job queues.
+
+<Expandable>
+    <ParamField path="priority" type="int" required={false} default="None">
+    Job's relative priority (only relevant for Job Queues of type PRIORITY). Valid values range from 0 (highest) to +inf (lowest).
+    </ParamField>
+    
+    <ParamField path="target_job_queue_name" type="int" required={false}>
+    The name of an existing job queue to schedule this job in. If this is provided, job_queue_spec cannot be.
+    </ParamField>
+    
+    <ParamField path="job_queue_spec" type="JobQueueSpec" required={false}>
+    Configuration options defining a job queue to be created for the job if needed. If this is provided, target_job_queue_name cannot be.
+    <Expandable>
+        <ParamField path="idle_timeout_s" type="int" required={false}>
+        Timeout that the job queue cluster will be kept running while no jobs are running.
+        </ParamField>
+        
+        <ParamField path="name" type="string" required={true}>
+        Name of the job queue that can be used to target it when submitting future jobs. The name of a job queue must be unique within a project.
+        </ParamField>
+        
+        <ParamField path="execution_mode" type="enum" required={false}>
+        Execution mode of the jobs submitted into the queue (one of: `FIFO`, `LIFO`, `PRIORITY`)
+        </ParamField>
+        
+        <ParamField path="compute_config" type="string" required={false}>
+        The name of an existing compute config that will be used to create the job queue cluster. If not specified, the compute config of the associated job will be used.
+        </ParamField>
+        
+        <ParamField path="max_concurrency" type="int" required={false} default="1">
+        Max number of jobs that can run concurrently.Defaults to 1, meaning only one job can run at a given time.
+        </ParamField>
+    </Expandable>
+    </ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField path="compute_config" type="ComputeConfig or string" required={false}>
+The name of an existing registered compute config or an inlined ComputeConfig object.
+
+<Expandable>
+<ParamField path="cloud" type="string" required={false}>
+The Anyscale Cloud to run this workload on. If not provided, the organization default will be used (or, if running in a workspace, the cloud of the workspace).
+</ParamField>
+
+<ParamField path="head_node" type="HeadNodeConfig" required={false}>
+Configuration options for the head node of the cluster. Defaults to the cloud's default head node configuration.
+
+<Expandable>
+<ParamField path="instance_type" type="string" required={false}>
+Cloud provider instance type, e.g., m5.2xlarge on AWS or n2-standard-8 on GCP.
+</ParamField>
+
+<ParamField path="resources" type="Dict[string, float]" required={false}>
+Logical resources that will be available on this node. Defaults to match the physical resources of the instance type.
+</ParamField>
+
+<ParamField path="advanced_instance_config" type="Dict[string, Any]" required={false}>
+<Warning>
+Only available on customer-hosted clouds
+</Warning>
+Advanced instance configurations that will be passed through to the cloud provider. 
+</ParamField>
+
+<ParamField path="flags" type="Dict[string, Any]" required={false}>
+Node-level flags specifying advanced or experimental options.
+</ParamField>
+
+</Expandable>
+</ParamField>
+
+<ParamField path="worker_nodes" type="List[WorkerNodeGroupConfig] " required={false}>
+Configuration options for the worker nodes of the cluster. If not provided, worker nodes will be automatically selected based on logical resource requests. To use a head-node only cluster, pass [] here.
+
+<Expandable>
+<ParamField path="instance_type" type="string" required={false}>
+Cloud provider instance type, e.g., m5.2xlarge on AWS or n2-standard-8 on GCP.
+</ParamField>
+
+<ParamField path="resources" type="Dict[string, float]" required={false}>
+Logical resources that will be available on this node. Defaults to match the physical resources of the instance type.
+</ParamField>
+
+<ParamField path="advanced_instance_config" type="Dict[string, Any]" required={false}>
+<Warning>
+Only available on customer-hosted clouds
+</Warning>
+Advanced instance configurations that will be passed through to the cloud provider. 
+</ParamField>
+
+<ParamField path="flags" type="Dict[string, Any]" required={false}>
+Node-level flags specifying advanced or experimental options.
+</ParamField>
+
+<ParamField path="name" type="string" required={false}>
+Unique name of this worker group. Defaults to a human-friendly representation of the instance type.
+</ParamField>
+
+<ParamField path="min_nodes" type="int" required={false}>
+Minimum number of nodes of this type that will be kept running in the cluster.
+</ParamField>
+
+<ParamField path="max_nodes" type="int" required={false}>
+Maximum number of nodes of this type that can be running in the cluster.
+</ParamField>
+
+<ParamField path="market_type" type="string or MarketType" required={false}>
+<Warning>
+Only available on customer-hosted clouds
+</Warning>
+The type of instances to use (see MarketType enum values for details). 
+
+<Expandable>
+<ParamField path="MarketType" type="enum" required={false}>
+- `ON_DEMAND`: Use on-demand instances only.
+- `SPOT`: Use spot instances only.
+- `PREFER_SPOT`: Prefer to use spot instances, but fall back to on-demand if necessary. If on-demand instances are running and spot instances become available, the on-demand instances will be evicted and replaced with spot instances.
+</ParamField>
+</Expandable>
+</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField path="max_resources" type="Dict[str, float] " required={false}>
+Total maximum logical resources across all nodes in the cluster. Resources omitted from this field have no maximum. Only 'CPU' and 'GPU' resource limits are currently supported.
+</ParamField>
+
+<ParamField path="zones" type="List[str] " required={false}>
+<Warning>
+Only available on customer-hosted clouds
+</Warning>
+Availability zones to consider for this cluster. Defaults to all zones in the cloud's region. By default all instances will run in the same zone to save cost, unless `enable_cross_zone_scaling` is set.
+</ParamField>
+
+<ParamField path="enable_cross_zone_scaling" type="boolean" required={false}>
+<Warning>
+Only available on customer-hosted clouds
+</Warning>
+Allow instances in the cluster to be run across multiple zones. This is recommended when running production services (for fault-tolerance in a zone failure scenario). It is not recommended for workloads that have a large amount of inter-zone communication due to the possibility of higher costs and degraded performance.
+</ParamField>
+
+<ParamField path="advanced_instance_config" type="Dict[str, Any]" required={false}>
+<Warning>
+Only available on customer-hosted clouds
+</Warning>
+Advanced instance configurations that will be passed through to the cloud provider.
+</ParamField>
+
+<ParamField path="flags" type="Dict[str, Any]" required={false}>
+Cluster-level flags specifying advanced or experimental options.
+</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField path="image_uri" type="string" required={false}>
+URI of an existing image. Exclusive with `containerfile`.
+</ParamField>
+
+<ParamField path="containerfile" type="string" required={false}>
+The file path to a containerfile that will be built into an image before running the workload. Exclusive with `image_uri`.
+</ParamField>
+
+<ParamField path="env_vars" type="map<string, string>" required={false}>
+A dictionary of environment variables that will be set for the workload.
+</ParamField>
+
+<ParamField path="working_dir" type="string" required={false}>
+Directory that will be used as the working directory for the application. If a local directory is provided, it will be uploaded to cloud storage automatically. When running inside a workspace, this defaults to the current working directory ('.').
+</ParamField>
+
+<ParamField path="excludes" type="list<string>" required={false}>
+A list of file path globs that will be excluded when uploading local files for `working_dir`.
+</ParamField>
+
+<ParamField path="requirements" type="Requirements" required={false}>
+A list of pip requirements or a path to a `requirements.txt` file for the workload. When running inside a workspace, this defaults to the workspace-tracked requirements.
+</ParamField>
+
+<ParamField path="py_modules" type="list<string>" required={false}>
+A list of local directories or remote URIs that will be uploaded and added to the Python path.
+</ParamField>
+
+<ParamField path="cloud" type="string" required={false}>
+The Anyscale Cloud to run this workload on. If not provided, the organization default will be used (or, if running in a workspace, the cloud of the workspace).
+</ParamField>
+
+<ParamField path="project" type="string" required={false}>
+The project for the workload. If not provided, the default project for the cloud will be used (or, if running in a workspace, the project of the workspace).
+</ParamField>
+
+<ParamField path="registry_login_secret" type="string" required={false}>
+A name or identifier of the secret containing credentials to authenticate to the docker registry hosting the image. This can only be used when 'image_uri' is specified and the image is not hosted on Anyscale.
+</ParamField>
+
+<ParamField path="ray_version" type="string" required={false}>
+The Ray version (X.Y.Z) specified for this image specified by either an image URI or a containerfile. If not provided, the latest Ray version will be used.
+</ParamField>
+
+<ParamField path="max_retries" type="integer" required={false} default="1">
+Maximum number of times the job will be retried before being marked failed.
+</ParamField>
+</Expandable>
+</ParamField>
+
+**Response**
+
+<ParamField path="id" type="string" required={true}>
+The id of the submitted job.
+</ParamField>
+
+</div>
+
+<div class="side">
+<div class="sticky">
+```python 
+import anyscale
+from anyscale.job.models import JobConfig
+anyscale.job.submit(
+    JobConfig(
+        name="my-job",
+        entrypoint="python main.py",
+        working_dir=".",
+    ),
+)
+```
+</div>
+</div>
+</div>
+</div>

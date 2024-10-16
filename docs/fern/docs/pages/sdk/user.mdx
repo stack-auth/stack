@@ -141,6 +141,51 @@ Example:
 await user.setSelectedTeam(team);
 ```
 
+#### `createTeam`
+
+**Parameters:**
+
+- `data` (object): The data for the team to create.
+  - `displayName` (string): The display name for the team.
+  - `profileImageUrl` (string | null): The URL of the team's profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
+
+**Returns:**
+
+- `Promise<Team>`: The created team.
+
+Create a new team for the user. The user will be added to the team and be given the creator permissions.
+
+Note that if client side team creation is disabled in the Stack dashboard, this will throw an error.
+
+Example:
+```typescript
+const team = await user.createTeam({
+  displayName: "New Team",
+  profileImageUrl: "https://example.com/profile.jpg",
+});
+```
+
+#### `leaveTeam`
+
+**Parameters:**
+
+- `team` (Team): The team to leave.
+
+**Returns:**
+
+- `Promise<void>`
+
+Leave a team.
+
+Note that if the user is not a member of the team, this will throw an error.
+
+Example:
+```typescript
+await user.leaveTeam(team);
+```
+
+
+
 
 #### `getTeamProfile`
 
