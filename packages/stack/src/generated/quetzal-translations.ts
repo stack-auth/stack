@@ -184,7 +184,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-113": "Mit {provider} anmelden",
     "__stack-auto-translation-114": "Abmelden",
     "__stack-auto-translation-115": "Registrieren",
-    "__stack-auto-translation-116": "Sign Up",
+    "__stack-auto-translation-116": "Registrieren",
     "__stack-auto-translation-117": "Die Registrierung für neue Benutzer ist derzeit nicht aktiviert.",
     "__stack-auto-translation-118": "Mit {provider} registrieren",
     "__stack-auto-translation-119": "Bei der Verarbeitung des OAuth-Callbacks ist etwas schiefgelaufen:",
@@ -316,7 +316,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-95": "Profilbild",
     "__stack-auto-translation-96": "Neues Passwort wiederholen",
     "__stack-auto-translation-97": "Passwort wiederholen",
-    "__stack-auto-translation-98": "Repeat Password",
+    "__stack-auto-translation-98": "Passwort wiederholen",
     "__stack-auto-translation-99": "Passwort zurücksetzen"
   } as const)),
   "en-US": new Map(typedEntries({
@@ -496,7 +496,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-113": "Iniciar sesión con {provider}",
     "__stack-auto-translation-114": "Cerrar sesión",
     "__stack-auto-translation-115": "Registrarse",
-    "__stack-auto-translation-116": "Sign Up",
+    "__stack-auto-translation-116": "Registrarse",
     "__stack-auto-translation-117": "En este momento no está habilitado el registro para nuevos usuarios.",
     "__stack-auto-translation-118": "Registrarse con {provider}",
     "__stack-auto-translation-119": "Algo salió mal al procesar la devolución de llamada de OAuth:",
@@ -628,7 +628,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-95": "Imagen de perfil",
     "__stack-auto-translation-96": "Repetir Nueva Contraseña",
     "__stack-auto-translation-97": "Repetir contraseña",
-    "__stack-auto-translation-98": "Repeat Password",
+    "__stack-auto-translation-98": "Repetir contraseña",
     "__stack-auto-translation-99": "Restablecer Contraseña"
   } as const)),
   "es-ES": new Map(typedEntries({
@@ -652,7 +652,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-113": "Iniciar sesión con {provider}",
     "__stack-auto-translation-114": "Cerrar sesión",
     "__stack-auto-translation-115": "Registrarse",
-    "__stack-auto-translation-116": "Sign Up",
+    "__stack-auto-translation-116": "Registrarse",
     "__stack-auto-translation-117": "El registro de nuevos usuarios no está habilitado en este momento.",
     "__stack-auto-translation-118": "Registrarse con {provider}",
     "__stack-auto-translation-119": "Algo salió mal al procesar la devolución de llamada de OAuth:",
@@ -784,7 +784,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-95": "Imagen de perfil",
     "__stack-auto-translation-96": "Repita la nueva contraseña",
     "__stack-auto-translation-97": "Repetir contraseña",
-    "__stack-auto-translation-98": "Repeat Password",
+    "__stack-auto-translation-98": "Repetir Contraseña",
     "__stack-auto-translation-99": "Restablecer Contraseña"
   } as const)),
   "fr-CA": new Map(typedEntries({
@@ -808,7 +808,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-113": "Connexion avec {provider}",
     "__stack-auto-translation-114": "Se déconnecter",
     "__stack-auto-translation-115": "S'inscrire",
-    "__stack-auto-translation-116": "Sign Up",
+    "__stack-auto-translation-116": "S'inscrire",
     "__stack-auto-translation-117": "L'inscription de nouveaux utilisateurs n'est pas activée pour le moment.",
     "__stack-auto-translation-118": "S'inscrire avec {provider}",
     "__stack-auto-translation-119": "Une erreur s'est produite lors du traitement du rappel OAuth :",
@@ -940,7 +940,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-95": "Image de profil",
     "__stack-auto-translation-96": "Répétez le nouveau mot de passe",
     "__stack-auto-translation-97": "Répéter le mot de passe",
-    "__stack-auto-translation-98": "Repeat Password",
+    "__stack-auto-translation-98": "Répéter le mot de passe",
     "__stack-auto-translation-99": "Réinitialiser le mot de passe"
   } as const)),
   "fr-FR": new Map(typedEntries({
@@ -964,7 +964,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-113": "Se connecter avec {provider}",
     "__stack-auto-translation-114": "Se déconnecter",
     "__stack-auto-translation-115": "S'inscrire",
-    "__stack-auto-translation-116": "Sign Up",
+    "__stack-auto-translation-116": "S'inscrire",
     "__stack-auto-translation-117": "L'inscription pour les nouveaux utilisateurs n'est pas activée pour le moment.",
     "__stack-auto-translation-118": "S'inscrire avec {provider}",
     "__stack-auto-translation-119": "Une erreur est survenue lors du traitement de la réponse OAuth :",
@@ -1096,7 +1096,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-95": "Image de profil",
     "__stack-auto-translation-96": "Répéter le nouveau mot de passe",
     "__stack-auto-translation-97": "Répéter le mot de passe",
-    "__stack-auto-translation-98": "Repeat Password",
+    "__stack-auto-translation-98": "Répéter le mot de passe",
     "__stack-auto-translation-99": "Réinitialiser le mot de passe"
   } as const)),
   "it-IT": new Map(typedEntries({
@@ -1120,7 +1120,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-113": "Accedi con {provider}",
     "__stack-auto-translation-114": "Esci",
     "__stack-auto-translation-115": "Registrati",
-    "__stack-auto-translation-116": "Sign Up",
+    "__stack-auto-translation-116": "Registrati",
     "__stack-auto-translation-117": "L'iscrizione per i nuovi utenti non è attualmente abilitata.",
     "__stack-auto-translation-118": "Registrati con {provider}",
     "__stack-auto-translation-119": "Qualcosa è andato storto durante l'elaborazione del callback OAuth:",
@@ -1252,7 +1252,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-95": "Immagine del profilo",
     "__stack-auto-translation-96": "Ripeti Nuova Password",
     "__stack-auto-translation-97": "Ripeti password",
-    "__stack-auto-translation-98": "Repeat Password",
+    "__stack-auto-translation-98": "Ripeti Password",
     "__stack-auto-translation-99": "Reimposta Password"
   } as const)),
   "pt-BR": new Map(typedEntries({
@@ -1276,7 +1276,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-113": "Entrar com {provider}",
     "__stack-auto-translation-114": "Sair",
     "__stack-auto-translation-115": "Cadastrar-se",
-    "__stack-auto-translation-116": "Sign Up",
+    "__stack-auto-translation-116": "Cadastrar-se",
     "__stack-auto-translation-117": "O cadastro para novos usuários não está disponível no momento.",
     "__stack-auto-translation-118": "Cadastre-se com o {provider}",
     "__stack-auto-translation-119": "Algo deu errado ao processar o retorno de chamada OAuth:",
@@ -1408,7 +1408,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-95": "Imagem de perfil",
     "__stack-auto-translation-96": "Repita a Nova Senha",
     "__stack-auto-translation-97": "Repetir senha",
-    "__stack-auto-translation-98": "Repeat Password",
+    "__stack-auto-translation-98": "Repetir Senha",
     "__stack-auto-translation-99": "Redefinir Senha"
   } as const)),
   "pt-PT": new Map(typedEntries({
@@ -1432,7 +1432,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-113": "Iniciar sessão com {provider}",
     "__stack-auto-translation-114": "Terminar sessão",
     "__stack-auto-translation-115": "Inscrever-se",
-    "__stack-auto-translation-116": "Sign Up",
+    "__stack-auto-translation-116": "Inscrever-se",
     "__stack-auto-translation-117": "As inscrições para novos utilizadores não estão ativadas de momento.",
     "__stack-auto-translation-118": "Registar-se com {provider}",
     "__stack-auto-translation-119": "Algo correu mal durante o processamento do callback OAuth:",
@@ -1564,7 +1564,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-95": "Imagem de perfil",
     "__stack-auto-translation-96": "Repetir Nova Palavra-passe",
     "__stack-auto-translation-97": "Repita a palavra-passe",
-    "__stack-auto-translation-98": "Repeat Password",
+    "__stack-auto-translation-98": "Repita a palavra-passe",
     "__stack-auto-translation-99": "Redefinir Palavra-passe"
   } as const)),
   "zh-CN": new Map(typedEntries({
@@ -1588,7 +1588,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-113": "使用{provider}登录",
     "__stack-auto-translation-114": "退出登录",
     "__stack-auto-translation-115": "注册",
-    "__stack-auto-translation-116": "Sign Up",
+    "__stack-auto-translation-116": "注册",
     "__stack-auto-translation-117": "目前不允许新用户注册。",
     "__stack-auto-translation-118": "用 {provider} 注册",
     "__stack-auto-translation-119": "处理 OAuth 回调时出现错误：",
@@ -1720,7 +1720,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-95": "头像",
     "__stack-auto-translation-96": "重复新密码",
     "__stack-auto-translation-97": "重复密码",
-    "__stack-auto-translation-98": "Repeat Password",
+    "__stack-auto-translation-98": "重复密码",
     "__stack-auto-translation-99": "重置密码"
   } as const)),
   "zh-TW": new Map(typedEntries({
@@ -1744,7 +1744,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-113": "以 {provider} 登入",
     "__stack-auto-translation-114": "登出",
     "__stack-auto-translation-115": "註冊",
-    "__stack-auto-translation-116": "Sign Up",
+    "__stack-auto-translation-116": "註冊",
     "__stack-auto-translation-117": "目前不開放新使用者註冊。",
     "__stack-auto-translation-118": "使用 {provider} 註冊",
     "__stack-auto-translation-119": "處理 OAuth 回調時出現錯誤：",
@@ -1876,7 +1876,7 @@ export const quetzalLocales = new Map(typedEntries({
     "__stack-auto-translation-95": "個人頭像",
     "__stack-auto-translation-96": "重複新密碼",
     "__stack-auto-translation-97": "重複密碼",
-    "__stack-auto-translation-98": "Repeat Password",
+    "__stack-auto-translation-98": "重複密碼",
     "__stack-auto-translation-99": "重設密碼"
   } as const)),
 } as const));

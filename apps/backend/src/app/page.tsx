@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function Home() {
   return <>
-    Welcome to Stack&apos;s API endpoint.<br />
+    Welcome to Stack Auth&apos;s API endpoint.<br />
     <br />
     Were you looking for <Link href="https://app.stack-auth.com">Stack&apos;s dashboard</Link> instead?<br />
     <br />
