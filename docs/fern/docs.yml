@@ -211,7 +211,7 @@ colors:
     dark: '#090909'
 layout:
   page-width: full
-  content-width: 40rem
+  content-width: 45rem
   disable-header: false
   header-height: 60px
   sidebar-width: 300px
