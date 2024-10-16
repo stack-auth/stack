@@ -114,8 +114,16 @@ navigation:
     layout: 
       - section: Components
         contents:
+          - page: <UserButton />
+            path: ./docs/pages/components/user-button.mdx
+          - page: <SelectedTeamSwitcher />
+            path: ./docs/pages/components/selected-team-switcher.mdx
           - page: <AccountSettings />
             path: ./docs/pages/components/account-settings.mdx
+          - page: <SignIn />
+            path: ./docs/pages/components/sign-in.mdx
+          - page: <SignUp />
+            path: ./docs/pages/components/sign-up.mdx
           - page: <CredentialSignIn />
             path: ./docs/pages/components/credential-sign-in.mdx
           - page: <CredentialSignUp />
@@ -124,14 +132,6 @@ navigation:
             path: ./docs/pages/components/oauth-button.mdx
           - page: <OAuthButtonGroup />
             path: ./docs/pages/components/oauth-button-group.mdx
-          - page: <SelectedTeamSwitcher />
-            path: ./docs/pages/components/selected-team-switcher.mdx
-          - page: <SignIn />
-            path: ./docs/pages/components/sign-in.mdx
-          - page: <SignUp />
-            path: ./docs/pages/components/sign-up.mdx
-          - page: <UserButton />
-            path: ./docs/pages/components/user-button.mdx
       - section: Utilities
         contents:
           - page: <StackHandler />
@@ -147,10 +147,26 @@ navigation:
         path: ./docs/pages/sdk/overview.mdx
       - section: Classes
         contents:
-          - page: CurrentUser
-            path: ./docs/pages/sdk/current-user.mdx
+          - page: User
+            path: ./docs/pages/sdk/user.mdx
           - page: StackApp
             path: ./docs/pages/sdk/stack-app.mdx
+          - page: Team
+            path: ./docs/pages/sdk/team.mdx
+          - page: TeamProfile
+            path: ./docs/pages/sdk/team-profile.mdx
+          - page: Project
+            path: ./docs/pages/sdk/project.mdx
+          - page: Permission
+            path: ./docs/pages/sdk/permission.mdx
+          - page: ConnectedAccount
+            path: ./docs/pages/sdk/connected-account.mdx
+      - section: Hooks
+        contents:
+          - page: useUser
+            path: ./docs/pages/sdk/use-user.mdx
+          - page: useStackApp
+            path: ./docs/pages/sdk/use-stack-app.mdx
   - tab: api
     layout: 
       - page: API Overview
