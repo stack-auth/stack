@@ -339,8 +339,10 @@ function HeaderBreadcrumb({
             <Link href="/projects">Home</Link>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
-          <BreadcrumbItem className="max-w-40 truncate">
-            <Link href={`/projects/${projectId}`}>{selectedProject?.displayName}</Link>
+          <BreadcrumbItem>
+            <span className="max-w-40 truncate">
+              <Link href={`/projects/${projectId}`}>{selectedProject?.displayName}</Link>
+            </span>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           {breadcrumbItems.map((name, index) => (
@@ -399,7 +401,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <FeedbackDialog
               trigger={<Button variant="outline" size='sm'>Feedback</Button>}
             />
-            <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')} showUserInfo />
+            <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}/>
           </div>
         </div>
         <div className="flex-grow">
