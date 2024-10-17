@@ -44,8 +44,6 @@ function createWebhookSender<T extends yup.Schema>(event: WebhookEvent<T>) {
   };
 }
 
-type x = yup.InferType<typeof userUpdatedWebhookEvent.schema>;
-
 export const sendUserCreatedWebhook = createWebhookSender(userCreatedWebhookEvent);
 export const sendUserUpdatedWebhook = createWebhookSender(userUpdatedWebhookEvent);
 export const sendUserDeletedWebhook = createWebhookSender(userDeletedWebhookEvent);
