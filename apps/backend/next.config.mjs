@@ -55,7 +55,6 @@ const nextConfig = {
 
   experimental: {
     instrumentationHook: true,
-    after: true,
   },
 
   async headers() {
