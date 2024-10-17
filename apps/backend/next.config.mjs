@@ -55,6 +55,7 @@ const nextConfig = {
 
   experimental: {
     instrumentationHook: true,
+    after: true,
   },
 
   async headers() {
@@ -92,8 +93,4 @@ const nextConfig = {
   },
 };
 
-export default withConfiguredSentryConfig(
-  withBundleAnalyzer(
-    nextConfig
-  )
-);
+export default withConfiguredSentryConfig(withBundleAnalyzer(nextConfig));

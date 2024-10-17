@@ -5,6 +5,7 @@ import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { legacySignGlobalJWT, legacyVerifyGlobalJWT, signJWT, verifyJWT } from '@stackframe/stack-shared/dist/utils/jwt';
 import { Result } from '@stackframe/stack-shared/dist/utils/results';
+import { waitUntil } from '@vercel/functions';
 import * as jose from 'jose';
 import { JOSEError, JWTExpired } from 'jose/errors';
 import { SystemEventTypes, logEvent } from './events';
@@ -74,7 +75,7 @@ export async function generateAccessToken(options: {
   useLegacyGlobalJWT: boolean,
   userId: string,
 }) {
-  await logEvent([SystemEventTypes.UserActivity], { projectId: options.projectId, userId: options.userId });
+  waitUntil(logEvent([SystemEventTypes.UserActivity], { projectId: options.projectId, userId: options.userId }));
 
   if (options.useLegacyGlobalJWT) {
     return await legacySignGlobalJWT(
