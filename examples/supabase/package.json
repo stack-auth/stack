@@ -3,7 +3,7 @@
   "version": "2.6.9",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 8115",
     "build": "next build",
     "start": "next start"
   },

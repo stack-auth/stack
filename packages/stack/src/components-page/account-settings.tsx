@@ -31,7 +31,7 @@ export function AccountSettings(props: {
     title: string,
     icon: LucideIcon,
     content: React.ReactNode,
-    subpath: string,
+    id: string,
   }[],
 }) {
   const { t } = useTranslation();
@@ -42,34 +42,34 @@ export function AccountSettings(props: {
 
   return (
     <MaybeFullPage fullPage={!!props.fullPage}>
-      <div style={{ alignSelf: 'stretch', flexGrow: 1, width: 0 }}>
+      <div className="self-stretch flex-grow w-full">
         <SidebarLayout
           items={([
             {
               title: t('My Profile'),
               type: 'item',
-              subpath: '/profile',
+              id: 'profile',
               icon: Contact,
               content: <ProfilePage/>,
             },
             {
               title: t('Security'),
               type: 'item',
-              subpath: '/security',
+              id: 'security',
               icon: ShieldCheck,
               content: <SecurityPage/>,
             },
             {
               title: t('Settings'),
               type: 'item',
-              subpath: '/settings',
+              id: 'settings',
               icon: Settings,
               content: <SettingsPage/>,
             },
             ...(props.extraItems?.map(item => ({
               title: item.title,
               type: 'item',
-              subpath: item.subpath,
+              id: item.id,
               icon: item.icon,
               content: item.content,
             } as const)) || []),
@@ -83,19 +83,18 @@ export function AccountSettings(props: {
                 <Typography className="max-w-[320px] md:w-[90%] truncate">{team.displayName}</Typography>
               </div>,
               type: 'item',
-              subpath: `/teams/${team.id}`,
+              id: `team-${team.id}`,
               content: <TeamPage team={team}/>,
             } as const)),
             ...project.config.clientTeamCreationEnabled ? [{
               title: t('Create a team'),
               icon: CirclePlus,
               type: 'item',
-              subpath: '/team-creation',
+              id: 'team-creation',
               content: <TeamCreation />,
             }] as const : [],
           ] as const).filter((p) => p.type === 'divider' || (p as any).content )}
           title={t("Account Settings")}
-          basePath={stackApp.urls.accountSettings}
         />
       </div>
     </MaybeFullPage>
@@ -729,7 +728,7 @@ export function TeamCreation() {
       setLoading(false);
     }
 
-    router.push(app.urls.accountSettings + `/teams/${team.id}`);
+    router.push(`#team-${team.id}`);
   };
 
   return (
