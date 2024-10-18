@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-dashboard",
-  "version": "2.6.8",
+  "version": "2.6.9",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
@@ -39,7 +39,7 @@
     "geist": "^1",
     "jose": "^5.2.2",
     "lucide-react": "^0.378.0",
-    "next": "^14.1",
+    "next": "^14.2.5",
     "next-themes": "^0.2.1",
     "nodemailer": "^6.9.10",
     "openid-client": "^5.6.4",

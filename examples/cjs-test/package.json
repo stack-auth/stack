@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/example-cjs-test",
-  "version": "2.6.8",
+  "version": "2.6.9",
   "private": true,
   "scripts": {
     "dev": "next dev --port 8110",
@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "next": "14.2.3",
+    "next": "^14.1",
     "react": "^18",
     "react-dom": "^18",
     "@stackframe/stack": "workspace:*"

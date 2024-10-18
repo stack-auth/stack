@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-backend",
-  "version": "2.6.8",
+  "version": "2.6.9",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
@@ -47,11 +47,12 @@
     "@stackframe/stack-emails": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@vercel/analytics": "^1.2.2",
+    "@vercel/functions": "^1.4.2",
     "@vercel/otel": "^1.10.0",
     "bcrypt": "^5.1.1",
     "dotenv-cli": "^7.3.0",
     "jose": "^5.2.2",
-    "next": "^14.1",
+    "next": "^14.2.5",
     "nodemailer": "^6.9.10",
     "openid-client": "^5.6.4",
     "oslo": "^1.2.1",

@@ -14,6 +14,7 @@ import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-sh
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { waitUntil } from '@vercel/functions';
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 
 export const userFullInclude = {
@@ -456,10 +457,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       });
     }
 
-    await sendUserCreatedWebhook({
+    waitUntil(sendUserCreatedWebhook({
       projectId: auth.project.id,
       data: result,
-    });
+    }));
 
     return result;
   },
@@ -743,10 +744,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     });
 
 
-    await sendUserUpdatedWebhook({
+    waitUntil(sendUserUpdatedWebhook({
       projectId: auth.project.id,
       data: result,
-    });
+    }));
 
     return result;
   },
@@ -781,15 +782,15 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       return { teams };
     });
 
-    await Promise.all(teams.map(t => sendTeamMembershipDeletedWebhook({
+    waitUntil(Promise.all(teams.map(t => sendTeamMembershipDeletedWebhook({
       projectId: auth.project.id,
       data: {
         team_id: t.teamId,
         user_id: params.user_id,
       },
-    })));
+    }))));
 
-    await sendUserDeletedWebhook({
+    waitUntil(sendUserDeletedWebhook({
       projectId: auth.project.id,
       data: {
         id: params.user_id,
@@ -797,7 +798,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           id: t.teamId,
         })),
       },
-    });
+    }));
   }
 }));
 

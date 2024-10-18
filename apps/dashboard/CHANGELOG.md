@@ -1,5 +1,18 @@
 # @stackframe/stack-dashboard
 
+## 2.6.9
+
+### Patch Changes
+
+- - New contact channel API
+  - Fixed some visual gitches and typos
+  - Bug fixes
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.9
+  - @stackframe/stack-shared@2.6.9
+  - @stackframe/stack-ui@2.6.9
+  - @stackframe/stack@2.6.9
+
 ## 2.6.8
 
 ### Patch Changes

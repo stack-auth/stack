@@ -1,5 +1,13 @@
 # @stackframe/init-stack
 
+## 2.6.9
+
+### Patch Changes
+
+- - New contact channel API
+  - Fixed some visual gitches and typos
+  - Bug fixes
+
 ## 2.6.8
 
 ## 2.6.7
