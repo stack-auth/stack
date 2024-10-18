@@ -109,7 +109,7 @@ export function ignoreUnhandledRejection<T extends Promise<any>>(promise: T): T 
 }
 
 export async function wait(ms: number) {
-  if (!Number.isInteger(ms) || ms < 0) {
+  if (!Number.isFinite(ms) || ms < 0) {
     throw new StackAssertionError("wait() requires a non-negative integer number of milliseconds to wait.");
   }
   if (ms >= 2**31) {
