@@ -1,5 +1,15 @@
 # e2e-tests
 
+## 2.6.9
+
+### Patch Changes
+
+- - New contact channel API
+  - Fixed some visual gitches and typos
+  - Bug fixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.9
+
 ## 2.6.8
 
 ### Patch Changes
