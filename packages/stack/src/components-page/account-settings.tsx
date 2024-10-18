@@ -728,7 +728,7 @@ export function TeamCreation() {
       setLoading(false);
     }
 
-    router.push(app.urls.accountSettings + `/teams/${team.id}`);
+    router.push(`#team-${team.id}`);
   };
 
   return (
