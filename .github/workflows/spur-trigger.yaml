@@ -1,0 +1,18 @@
+name: Trigger Spur Webhook on Push 🔔
+
+on:
+  push
+
+jobs:
+  trigger_webhook:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📡 Curl Request to Trigger TestSuites on Spur
+        run: |
+          curl -X POST \
+          -H "Content-Type: application/json" \
+          -H "SPUR_GITHUB_KEY: ${{ secrets.SPUR_GITHUB_KEY }}" \
+          -H "sha: ${{ github.sha }}" \
+          -H "repo: ${{ github.repository }}" \
+          "https://spurserverstaging.azurewebsites.net/api/integrations/github/webhook"
