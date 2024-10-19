@@ -1,5 +1,15 @@
 # @stackframe/stack
 
+## 2.6.11
+
+### Patch Changes
+
+- fixed account settings bugs
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.11
+  - @stackframe/stack-sc@2.6.11
+  - @stackframe/stack-ui@2.6.11
+
 ## 2.6.10
 
 ### Patch Changes
