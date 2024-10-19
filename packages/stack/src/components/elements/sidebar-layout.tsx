@@ -1,41 +1,45 @@
 'use client';
 
+import { useHash } from '@stackframe/stack-shared/dist/hooks/use-hash';
 import { Button, Typography, cn } from '@stackframe/stack-ui';
 import { LucideIcon, XIcon } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
-import React, { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { ReactNode, useEffect } from 'react';
 
 export type SidebarItem = {
   title: React.ReactNode,
   type: 'item' | 'divider',
   description?: React.ReactNode,
-  subpath?: string,
+  id?: string,
   icon?: LucideIcon,
   content?: React.ReactNode,
   contentTitle?: React.ReactNode,
 }
 
-export function SidebarLayout(props: { items: SidebarItem[], title?: ReactNode, basePath: string, className?: string }) {
-  const pathname = usePathname();
-  const selectedIndex = props.items.findIndex(item => item.subpath && (props.basePath + item.subpath === pathname));
+export function SidebarLayout(props: { items: SidebarItem[], title?: ReactNode, className?: string }) {
   const router = useRouter();
-  if (pathname !== props.basePath && selectedIndex === -1) {
-    router.push(props.basePath);
-  }
+  const hash = useHash();
+  const selectedIndex = props.items.findIndex(item => item.id && (item.id === hash));
+
+  useEffect(() => {
+    if (selectedIndex === -1) {
+      router.push('#' + props.items[0].id);
+    }
+  }, [hash]);
 
   return (
     <>
       <div className={cn("hidden sm:flex stack-scope h-full", props.className)}>
-        <DesktopLayout items={props.items} title={props.title} selectedIndex={selectedIndex} basePath={props.basePath} />
+        <DesktopLayout items={props.items} title={props.title} selectedIndex={selectedIndex} />
       </div>
       <div className={cn("sm:hidden stack-scope h-full", props.className)}>
-        <MobileLayout items={props.items} title={props.title} selectedIndex={selectedIndex} basePath={props.basePath} />
+        <MobileLayout items={props.items} title={props.title} selectedIndex={selectedIndex} />
       </div>
     </>
   );
 }
 
-function Items(props: { items: SidebarItem[], basePath: string, selectedIndex: number }) {
+function Items(props: { items: SidebarItem[], selectedIndex: number }) {
   const router = useRouter();
 
   return props.items.map((item, index) => (
@@ -49,8 +53,8 @@ function Items(props: { items: SidebarItem[], basePath: string, selectedIndex: n
           "justify-start text-md text-zinc-800 dark:text-zinc-300 px-2 text-left",
         )}
         onClick={() => {
-          if (item.subpath) {
-            router.push(props.basePath + item.subpath);
+          if (item.id) {
+            router.push('#' + item.id);
           }
         }}
       >
@@ -64,7 +68,7 @@ function Items(props: { items: SidebarItem[], basePath: string, selectedIndex: n
 
 }
 
-function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selectedIndex: number, basePath: string }) {
+function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selectedIndex: number }) {
   const selectedItem = props.items[props.selectedIndex === -1 ? 0 : props.selectedIndex];
 
   return (
@@ -74,7 +78,7 @@ function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selecte
           <Typography type='h2' className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">{props.title}</Typography>
         </div>}
 
-        <Items items={props.items} basePath={props.basePath} selectedIndex={props.selectedIndex} />
+        <Items items={props.items} selectedIndex={props.selectedIndex} />
       </div>
       <div className="flex-1 w-0 flex justify-center gap-4 py-2 px-4">
         <div className='flex flex-col max-w-[800px] w-[800px]'>
@@ -91,7 +95,7 @@ function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selecte
   );
 }
 
-function MobileLayout(props: { items: SidebarItem[], title?: ReactNode, selectedIndex: number, basePath: string }) {
+function MobileLayout(props: { items: SidebarItem[], title?: ReactNode, selectedIndex: number }) {
   const selectedItem = props.items[props.selectedIndex];
   const router = useRouter();
 
@@ -102,7 +106,7 @@ function MobileLayout(props: { items: SidebarItem[], title?: ReactNode, selected
           <Typography type='h2' className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">{props.title}</Typography>
         </div>}
 
-        <Items items={props.items} basePath={props.basePath} selectedIndex={props.selectedIndex} />
+        <Items items={props.items} selectedIndex={props.selectedIndex} />
       </div>
     );
   } else {
@@ -114,7 +118,7 @@ function MobileLayout(props: { items: SidebarItem[], title?: ReactNode, selected
             <Button
               variant='ghost'
               size='icon'
-              onClick={() => { router.push(props.basePath); }}
+              onClick={() => { router.push('#'); }}
             >
               <XIcon className='h-5 w-5' />
             </Button>

@@ -1,5 +1,25 @@
 # @stackframe/docs
 
+## 2.6.11
+
+### Patch Changes
+
+- fixed account settings bugs
+
+## 2.6.10
+
+### Patch Changes
+
+- Various bugfixes
+
+## 2.6.9
+
+### Patch Changes
+
+- - New contact channel API
+  - Fixed some visual gitches and typos
+  - Bug fixes
+
 ## 2.6.8
 
 ## 2.6.7

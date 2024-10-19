@@ -1,5 +1,31 @@
 # partial-prerendering
 
+## 2.6.11
+
+### Patch Changes
+
+- fixed account settings bugs
+- Updated dependencies
+  - @stackframe/stack@2.6.11
+
+## 2.6.10
+
+### Patch Changes
+
+- Various bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.6.10
+
+## 2.6.9
+
+### Patch Changes
+
+- - New contact channel API
+  - Fixed some visual gitches and typos
+  - Bug fixes
+- Updated dependencies
+  - @stackframe/stack@2.6.9
+
 ## 2.6.8
 
 ### Patch Changes

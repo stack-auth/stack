@@ -55,7 +55,6 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
   const app = useStackApp();
 
   const iconProps = { size: 20, className: 'h-4 w-4' };
-  const textClasses = 'text-ellipsis whitespace-nowrap overflow-hidden';
 
   return (
     <DropdownMenu>
@@ -64,8 +63,8 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
           <UserAvatar user={user} />
           {user && props.showUserInfo &&
             <div className="flex flex-col justify-center text-left">
-              <Typography className={textClasses}>{user.displayName}</Typography>
-              <Typography className={textClasses} variant="secondary" type='label'>{user.primaryEmail}</Typography>
+              <Typography className="max-w-40 truncate">{user.displayName}</Typography>
+              <Typography className="max-w-40 truncate" variant="secondary" type='label'>{user.primaryEmail}</Typography>
             </div>
           }
         </div>
@@ -75,8 +74,8 @@ function UserButtonInnerInner(props: UserButtonProps & { user: CurrentUser | nul
           <div className="flex gap-2 items-center">
             <UserAvatar user={user} />
             <div>
-              {user && <Typography>{user.displayName}</Typography>}
-              {user && <Typography variant="secondary" type='label'>{user.primaryEmail}</Typography>}
+              {user && <Typography className="max-w-40 truncate">{user.displayName}</Typography>}
+              {user && <Typography className="max-w-40 truncate" variant="secondary" type='label'>{user.primaryEmail}</Typography>}
               {!user && <Typography>{t('Not signed in')}</Typography>}
             </div>
           </div>
