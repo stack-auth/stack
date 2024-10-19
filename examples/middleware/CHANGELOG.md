@@ -1,5 +1,13 @@
 # middleware-demo
 
+## 2.6.11
+
+### Patch Changes
+
+- fixed account settings bugs
+- Updated dependencies
+  - @stackframe/stack@2.6.11
+
 ## 2.6.10
 
 ### Patch Changes
