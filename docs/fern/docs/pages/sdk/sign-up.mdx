@@ -1,14 +1,37 @@
 ---
-slug: sdk/sign-up
+title: <SignUp />
 ---
 
-The `SignUp` component is a pre-built component that displays all the sign up methods available based on the Stack dashboard configuration.
+A component that renders a sign-up page with various customization options.
 
-<Note>
-  This component does not redirect a signed-in user. To achieve automatic redirection for signed-in users, you can use the `useUser` hook to check the user's sign-in status and perform the redirection if necessary.
-</Note>
+![SignUp](../imgs/sign-up.png)
 
-![Sign Up Component](../imgs/sign-up.png)
+For more information, please refer to the [custom pages guide](../customization/custom-pages.mdx).
 
 ## Props
-- `fullPage` (boolean): Determines whether the component should occupy the full page. Default is `false`.
+
+- `fullPage` (optional): `boolean` - If true, renders the sign-up page in full-page mode.
+- `automaticRedirect` (optional): `boolean` - If true, redirect to `afterSignUp` URL if the user is already signed-in.
+- `noPasswordRepeat` (optional): `boolean` - If true, removes the password confirmation field.
+- `extraInfo` (optional): `React.ReactNode` - Additional information to display on the sign-up page.
+- `firstTab` (optional): `'magic-link' | 'password' - Determines which tab is initially active. Defaults to 'magic-link' if not specified.
+
+## Example
+
+```tsx
+import { SignUp } from '@stackframe/stack';
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Sign Up</h1>
+      <SignUp
+        fullPage={true}
+        automaticRedirect={true}
+        firstTab='password'
+        extraInfo={<>By signing up, you agree to our <a href="/terms">Terms</a></>}
+      />
+    </div>
+  );
+}
+```

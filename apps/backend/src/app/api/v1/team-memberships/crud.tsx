@@ -1,15 +1,16 @@
-import { ensureTeamExists, ensureTeamMembershipExists, ensureTeamMembershipDoesNotExist, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
+import { ensureTeamExists, ensureTeamMembershipDoesNotExist, ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
+import { PrismaTransaction } from "@/lib/types";
+import { sendTeamMembershipCreatedWebhook, sendTeamMembershipDeletedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
-import { PrismaTransaction } from "@/lib/types";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
-import { sendTeamMembershipCreatedWebhook, sendTeamMembershipDeletedWebhook } from "@/lib/webhooks";
+import { waitUntil } from "@vercel/functions";
 
 
 export async function addUserToTeam(tx: PrismaTransaction, options: {
@@ -94,10 +95,10 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       user_id: params.user_id,
     };
 
-    await sendTeamMembershipCreatedWebhook({
+    waitUntil(sendTeamMembershipCreatedWebhook({
       projectId: auth.project.id,
       data,
-    });
+    }));
 
     return data;
   },
@@ -137,12 +138,12 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       });
     });
 
-    await sendTeamMembershipDeletedWebhook({
+    waitUntil(sendTeamMembershipDeletedWebhook({
       projectId: auth.project.id,
       data: {
         team_id: params.team_id,
         user_id: params.user_id,
       },
-    });
+    }));
   },
 }));

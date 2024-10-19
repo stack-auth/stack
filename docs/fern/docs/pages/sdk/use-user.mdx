@@ -1,29 +1,38 @@
 ---
-slug: sdk/use-user
+title: useUser
 ---
 
-`useUser` is a hook that returns the user object if the user is authenticated; otherwise, it returns `null` by default. However, if you pass in `{ or: "redirect" }` or `{ or: "throw" }` as an option, it will redirect to the login page or throw an error respectively when the user is not authenticated.
+A React hook that fetches and manages user data.
 
-If you want to learn more about the `User` object, check out the [User](./current-user.mdx) documentation.
+## Returns
 
-## Default Usage
+- `user`: `User | null` - The user data object if available, or null if not fetched yet.
+- `loading`: `boolean` - Indicates whether the user data is currently being fetched.
 
-Check if the user is authenticated and display the user's name.
-```jsx
-import { useUser } from "@stackframe/stack";
+## Example
 
-function MyComponent() {
-  const user = useUser(); // user can be null
-  if (!user) {
-    return <div>Not authenticated</div>;
+```tsx
+import { useUser } from '@stackframe/stack';
+
+function UserProfile() {
+  const { user, loading } = useUser();
+
+  if (loading) {
+    return <div>Loading...</div>;
   }
-  return <div>Hello, {user.name}</div>;
-}
-```
 
-## Redirect when not authenticated
-By passing `{ or: "redirect" }` to the hook, it will redirect to the login page if the user is not authenticated. You can configure the login page in the StackApp component.
-```jsx
+  if (!user) {
+    return <div>User not found</div>;
+  }
+
+  return (
+    <div>
+      <h1>{user.name}</h1>
+      <p>Email: {user.email}</p>
+    </div>
+  );
+}
+``````jsx
 import { useUser } from "@stackframe/stack";
 
 function MyComponent() {

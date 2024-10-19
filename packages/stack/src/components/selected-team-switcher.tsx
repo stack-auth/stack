@@ -60,17 +60,17 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
         });
       }}
     >
-      <SelectTrigger className="stack-scope">
+      <SelectTrigger className="stack-scope max-w-64">
         <SelectValue placeholder="Select team"/>
       </SelectTrigger>
       <SelectContent className="stack-scope">
         {user?.selectedTeam ? <SelectGroup>
           <SelectLabel>
             <div className="flex items-center justify-between">
-              <span className="w-32 sm:w-44 truncate">
+              <span>
                 {t('Current team')}
               </span>
-              <Button variant='ghost' size='icon' className="h-6 w-6" onClick={() => router.push(`${app.urls.accountSettings}/teams/${user.selectedTeam?.id}`)}>
+              <Button variant='ghost' size='icon' className="h-6 w-6" onClick={() => router.push(`${app.urls.accountSettings}#team-${user.selectedTeam?.id}`)}>
                 <Settings className="h-4 w-4"/>
               </Button>
             </div>
@@ -78,7 +78,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
           <SelectItem value={user.selectedTeam.id}>
             <div className="flex items-center gap-2">
               <TeamIcon team={user.selectedTeam} />
-              <Typography className="w-32 sm:w-44 truncate">{user.selectedTeam.displayName}</Typography>
+              <Typography className="max-w-40 truncate">{user.selectedTeam.displayName}</Typography>
             </div>
           </SelectItem>
         </SelectGroup> : undefined}
@@ -91,7 +91,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
                 <SelectItem value={team.id} key={team.id}>
                   <div className="flex items-center gap-2">
                     <TeamIcon team={team} />
-                    <Typography className="w-32 sm:w-44 truncate">{team.displayName}</Typography>
+                    <Typography className="max-w-64 truncate">{team.displayName}</Typography>
                   </div>
                 </SelectItem>
               ))}
@@ -104,7 +104,7 @@ export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
           <SelectSeparator/>
           <div>
             <Button
-              onClick={() => router.push(`${app.urls.accountSettings}/team-creation`)}
+              onClick={() => router.push(`${app.urls.accountSettings}#team-creation`)}
               className="w-full"
               variant='ghost'
             >

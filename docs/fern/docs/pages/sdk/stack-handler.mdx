@@ -1,16 +1,38 @@
 ---
-slug: sdk/stack-handler
+title: <StackHandler />
 ---
 
-The `StackHandler` component is designed to manage navigation for all pages under the `/handler/*` route. It serves as a wrapper component that determines which page to display based on the URL path and configurations in the `StackApp`.
+Renders the appropriate authentication or account-related component based on the current route.
 
-<Note>
-  By default, this component will redirect users to appropriate pages. For example, if a user is not signed in and tries to access the account settings page, it will redirect the user to the sign-in page.
-</Note>
+For detailed usage instructions, please refer to the manual section of the [setup guide](../getting-started/setup.mdx).
 
 ## Props
 
-- `app` (StackServerApp): The component relies on the configurations from `app` to determine the correct page URLs and handle redirections.
-- `params` (object): This should be passed down from the parent component to relay any URL parameters.
-- `searchParams` (object): This should be passed down from the parent component to relay any search parameters from the URL.
-- `fullPage` (boolean): Determines whether the component should occupy the full page. The default value is `false`.
+- `app`: `StackServerApp` - The Stack server application instance.
+- `params`: `{ stack?: string[] }` - The route parameters, where `stack` is an array of path segments.
+- `searchParams`: `Record<string, string>` - The URL search parameters.
+- `fullPage`: `boolean` - Whether to render the component in full-page mode.
+- `componentProps`: `{ [K in keyof Components]?: Partial<ComponentProps<Components[K]>> }` - Props to pass to the rendered components.
+
+## Example
+
+```tsx title="app/handler/[...stack].tsx"
+import { StackHandler } from '@stackframe/stack';
+import { stackServerApp } from "@/stack";
+
+export default function Hanlder(props: { params: any, searchParams: any }) {
+  return (
+    <StackHandler
+      app={stackServerApp}
+      params={props.params}
+      searchParams={props.searchParams}
+      fullPage={true}
+      componentProps={{
+        SignIn: { /* SignIn component props */ },
+        SignUp: { /* SignUp component props */ },
+        // ... other component props
+      }}
+    />
+  );
+}
+```
