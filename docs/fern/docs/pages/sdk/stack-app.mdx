@@ -110,6 +110,106 @@ The type of the OAuth provider to sign in with.
 await stackClientApp.signInWithOAuth("google");
 ```
 
+### `signInWithCredential()`
+ 
+Sign in using email and password credentials. The behavior is as follows:
+
+1. If sign-in is successful:
+   - By default, redirects the user to the `afterSignIn` URL.
+   - If `after_auth_return_to` is provided in the query parameters, redirects to that URL instead.
+   - If `noRedirect` is set to `true`, it will not redirect and instead return a success `Result` object.
+
+2. If sign-in fails:
+   - No redirection occurs.
+   - Returns a `Result` object containing error information.
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="options" type="object">
+  <div className="indented">
+  <ParamField path="email" type="string" required>
+  The email of the user to sign in with.
+  </ParamField>
+  <ParamField path="password" type="string" required>
+  The password of the user to sign in with.
+  </ParamField>
+  <ParamField path="noRedirect" type="boolean">
+  Whether to not redirect the user after sign-in. Defaults to `false`.
+  </ParamField>
+  </div>
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"]>>`: A promise that resolves to a `Result` object.
+</div>
+
+**Example:**
+
+```typescript
+const result = await stackClientApp.signInWithCredential({
+  email: "test@example.com",
+  password: "password",
+});
+
+if (result.status === "error") {
+  console.error("Sign in failed", result.error.message);
+}
+```
+
+### `signUpWithCredential()`
+
+Sign up using email and password credentials. The behavior is as follows:
+
+1. If sign-up is successful:
+   - By default, redirects the user to the `afterSignUp` URL.
+   - If `after_auth_return_to` is provided in the query parameters, redirects to that URL instead.
+   - If `noRedirect` is set to `true`, it will not redirect and instead return a success `Result` object.
+
+2. If sign-up fails:
+   - No redirection occurs.
+   - Returns a `Result` object containing error information.
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="options" type="object">
+  <div className="indented">
+  <ParamField path="email" type="string" required>
+  The email of the user to sign up with.
+  </ParamField>
+  <ParamField path="password" type="string" required>
+  The password of the user to sign up with.
+  </ParamField>
+  <ParamField path="noRedirect" type="boolean">
+  Whether to not redirect the user after sign-up. Defaults to `false`.
+  </ParamField>
+  </div>
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>`: A promise that resolves to a `Result` object.
+</div>
+
+**Example:**
+
+```typescript
+const result = await stackClientApp.signUpWithCredential({
+  email: "test@example.com",
+  password: "password",
+});
+
+if (result.status === "error") {
+  console.error("Sign up failed", result.error.message);
+}
+```
+
 ## `StackServerApp`
 
 `StackServerApp` extends `StackClientApp`, so it has all the same capabilities, plus some extra ones listed below.
