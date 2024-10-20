@@ -34,16 +34,81 @@ Check out the manual [setup guide](../getting-started/setup.mdx) for more detail
 
 ### Properties
 
+<div className="indented">
 <ParamField path="projectId" type="string">
 The ID of the project that the app is associated with.
 </ParamField>
 
 <ParamField path="urls" type="object">
-The URLs that Stack uses to route and redirect.
+  The URLs that Stack uses to route and redirect.
+
+  <div className="indented">
+  <ParamField path="home" type="string">
+  The URL of the home page.
+  </ParamField>
+  <ParamField path="signIn" type="string">
+  The URL of the sign-in page.
+  </ParamField>
+  <ParamField path="afterSignIn" type="string">
+  The URL that the user will be redirected to after successful signing in.
+  </ParamField>
+  <ParamField path="signUp" type="string">
+  The URL of the sign-up page.
+  </ParamField>
+  <ParamField path="afterSignUp" type="string">
+  The URL that the user will be redirected to after successful signing up.
+  </ParamField>
+  <ParamField path="afterSignOut" type="string">
+  The URL that the user will be redirected to after successful signing out.
+  </ParamField>
+  <ParamField path="emailVerification" type="string">
+  The URL of the email verification page.
+  </ParamField>
+  <ParamField path="passwordReset" type="string">
+  The URL of the password reset page.
+  </ParamField>
+  <ParamField path="forgotPassword" type="string">
+  The URL of the forgot password page.
+  </ParamField>
+  <ParamField path="accountSettings" type="string">
+  The URL of the account settings page.
+  </ParamField>
+  <ParamField path="handler" type="string">
+  The URL of the handler root. 
+  </ParamField>
+  </div>
 </ParamField>
+</div>
 
+### `signInWithOAuth()`
 
+Initiates the OAuth sign-in process with the specified provider. This method:
 
+1. Redirects the user to the OAuth provider's sign-in page.
+2. After successful authentication, redirects the user back to your application.
+3. The final redirect destination is determined as follows:
+   - If an `after_auth_return_to` query parameter was provided when calling this function, it uses that URL.
+   - Otherwise, it uses the `afterSignIn` URL configured in the app settings.
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="provider" type="string" required>
+The type of the OAuth provider to sign in with.
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<void>`: A promise that resolves when the redirect is complete.
+</div>
+
+**Example:**
+
+```typescript
+await stackClientApp.signInWithOAuth("google");
+```
 
 ## `StackServerApp`
 
