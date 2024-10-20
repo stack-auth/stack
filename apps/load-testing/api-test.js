@@ -58,7 +58,7 @@ function signUp() {
   );
 
   check(res, {
-    "response code was 200": (res) => res.status == 200,
+    "Sign up response code was 200": (res) => res.status == 200,
   });
 
   const duration = new Date() - startTime;
@@ -84,7 +84,7 @@ function signIn(email, password) {
   );
 
   check(res, {
-    "response code was 200": (res) => res.status == 200,
+    "Sign in response code was 200": (res) => res.status == 200,
   });
 
   const duration = new Date() - startTime;
@@ -104,7 +104,7 @@ function getUser(accessToken) {
   });
 
   check(res, {
-    "response code was 200": (res) => res.status == 200,
+    "Get user response code was 200": (res) => res.status == 200,
   });
 
   const duration = new Date() - startTime;
@@ -128,7 +128,7 @@ function updateUser(accessToken) {
   );
 
   check(res, {
-    "response code was 200": (res) => res.status == 200,
+    "Update user response code was 200": (res) => res.status == 200,
   });
 
   const duration = new Date() - startTime;
@@ -144,7 +144,7 @@ function refreshAccessToken(refreshToken) {
   );
 
   check(res, {
-    "response code was 200": (res) => res.status == 200,
+    "Refresh token response code was 200": (res) => res.status == 200,
   });
 
   const duration = new Date() - startTime;
