@@ -1,6 +1,8 @@
 ---
-slug: sdk/current-user
+slug: sdk/user
 ---
+
+This is a detailed reference for the `User` object. If you need a more high-level overview, check out the getting started guide with users [here](../getting-started/users.mdx).
 
 ## Different types of user objects
 
@@ -542,3 +544,50 @@ The server metadata of the user. Only readable and writable on the server side.
 
 ### `update()`
 
+Update the user information.
+
+This is similar to the `CurrentUser.update()` method, but is strictly more powerful.
+
+**Parameters:**
+
+<ParamField path="options" type="object">
+  <div className="indented">
+    <ParamField path="displayName" type="string | undefined">
+    The new display name for the user.
+    </ParamField>
+    <ParamField path="clientMetadata" type="object | undefined">
+    Custom metadata visible to the client.
+    </ParamField>
+    <ParamField path="selectedTeamId" type="string | null | undefined">
+    The ID of the team to set as selected, or null to clear selection.
+    </ParamField>
+    <ParamField path="profileImageUrl" type="string | null | undefined">
+    The URL of the user's new profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
+    </ParamField>
+    <ParamField path="clientReadOnlyMetadata" type="object | undefined">
+    Metadata that can be read on the client side but can only be modified on the server side.
+    </ParamField>
+    <ParamField path="serverMetadata" type="object | undefined">
+    Metadata that can be read and modified on the server side.
+    </ParamField>
+    <ParamField path="password" type="string | undefined">
+    The new password for the user.
+    </ParamField>
+  </div>
+</ParamField>
+
+**Returns:**
+
+`Promise<void>`
+
+**Example:**
+
+```typescript
+await user.update({
+  displayName: "New Display Name",
+  password: "newPassword",
+  serverMetadata: {
+    secret: "shh",
+  },
+});
+```
