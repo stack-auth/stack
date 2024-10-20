@@ -14,8 +14,12 @@ tabs:
     display-name: Documentation
     icon: fa-solid fa-home
     slug: docs
+  components:
+    display-name: Components
+    icon: fa-solid fa-puzzle
+    slug: components
   sdk:
-    display-name: SDK & Components
+    display-name: SDK Reference
     icon: fa-solid fa-hammer
     slug: sdk
   api:
@@ -106,6 +110,36 @@ navigation:
           - page: Self-Hosting
             icon: fa-regular fa-house-laptop
             path: ./docs/pages/others/self-host.mdx
+  - tab: components
+    layout: 
+      - section: Components
+        contents:
+          - page: <UserButton />
+            path: ./docs/pages/components/user-button.mdx
+          - page: <SelectedTeamSwitcher />
+            path: ./docs/pages/components/selected-team-switcher.mdx
+          - page: <AccountSettings />
+            path: ./docs/pages/components/account-settings.mdx
+          - page: <SignIn />
+            path: ./docs/pages/components/sign-in.mdx
+          - page: <SignUp />
+            path: ./docs/pages/components/sign-up.mdx
+          - page: <CredentialSignIn />
+            path: ./docs/pages/components/credential-sign-in.mdx
+          - page: <CredentialSignUp />
+            path: ./docs/pages/components/credential-sign-up.mdx
+          - page: <OAuthButton />
+            path: ./docs/pages/components/oauth-button.mdx
+          - page: <OAuthButtonGroup />
+            path: ./docs/pages/components/oauth-button-group.mdx
+      - section: Utilities
+        contents:
+          - page: <StackHandler />
+            path: ./docs/pages/components/stack-handler.mdx
+          - page: <StackProvider />
+            path: ./docs/pages/components/stack-provider.mdx
+          - page: <StackTheme />
+            path: ./docs/pages/components/stack-theme.mdx
   - tab: sdk
     layout: 
       - page: SDK Overview
@@ -113,36 +147,26 @@ navigation:
         path: ./docs/pages/sdk/overview.mdx
       - section: Classes
         contents:
-          - page: CurrentUser
-            path: ./docs/pages/sdk/current-user.mdx
+          - page: User
+            path: ./docs/pages/sdk/user.mdx
           - page: StackApp
             path: ./docs/pages/sdk/stack-app.mdx
-      - section: Components
+          # - page: Team
+          #   path: ./docs/pages/sdk/team.mdx
+          # - page: TeamProfile
+          #   path: ./docs/pages/sdk/team-profile.mdx
+          # - page: Project
+          #   path: ./docs/pages/sdk/project.mdx
+          # - page: Permission
+          #   path: ./docs/pages/sdk/permission.mdx
+          # - page: ConnectedAccount
+          #   path: ./docs/pages/sdk/connected-account.mdx
+      - section: Hooks
         contents:
-          - page: <CredentialSignIn />
-            path: ./docs/pages/sdk/credential-sign-in.mdx
-          - page: <CredentialSignUp />
-            path: ./docs/pages/sdk/credential-sign-up.mdx
-          - page: <OAuthButton />
-            path: ./docs/pages/sdk/oauth-button.mdx
-          - page: <OAuthButtonGroup />
-            path: ./docs/pages/sdk/oauth-button-group.mdx
-          - page: <SelectedTeamSwitcher />
-            path: ./docs/pages/sdk/selected-team-switcher.mdx
-          - page: <SignIn />
-            path: ./docs/pages/sdk/sign-in.mdx
-          - page: <SignUp />
-            path: ./docs/pages/sdk/sign-up.mdx
-          - page: <UserButton />
-            path: ./docs/pages/sdk/user-button.mdx
-      - section: Utilities
-        contents:
-        - page: <StackHandler />
-          path: ./docs/pages/sdk/stack-handler.mdx
-        - page: <StackProvider />
-          path: ./docs/pages/sdk/stack-provider.mdx
-        - page: <StackTheme />
-          path: ./docs/pages/sdk/stack-theme.mdx
+          - page: useUser
+            path: ./docs/pages/sdk/use-user.mdx
+          - page: useStackApp
+            path: ./docs/pages/sdk/use-stack-app.mdx
   - tab: api
     layout: 
       - page: API Overview
@@ -187,7 +211,7 @@ colors:
     dark: '#090909'
 layout:
   page-width: full
-  content-width: 40rem
+  content-width: 45rem
   disable-header: false
   header-height: 60px
   sidebar-width: 300px
@@ -197,3 +221,4 @@ logo:
   dark: ./docs/assets/logo-dark-mode.svg
   height: 28
   href: https://stack-auth.com
+css: ./style.css
