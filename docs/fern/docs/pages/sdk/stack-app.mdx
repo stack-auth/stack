@@ -23,6 +23,8 @@ Choose the appropriate type based on your application's needs and environment.
 
 ## `StackClientApp`
 
+You can get a `StackClientApp` instance by calling `useStackApp()` in a Client Component.
+
 ### Initialization
 
 In most cases, we don't create a `StackClientApp` directly. Instead, we typically:
@@ -79,6 +81,78 @@ The ID of the project that the app is associated with.
   </div>
 </ParamField>
 </div>
+
+### `getUser()`
+
+Get the current user.
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="options" type="object">
+  <div className="indented">
+  <ParamField path="or" type="string" required>
+  What to do if the user is not signed in. Can be:
+  - `"redirect"`: Redirects the user to the `signIn` URL.
+  - `"throw"`: Throws an error.
+  </ParamField>
+  </div>
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+- If `or` is not provided, returns `Promise<CurrentUser | null>`.
+- If `or` is `"redirect"` or `"throw"`, always returns `Promise<CurrentUser>`.
+</div>
+
+**Example:**
+
+```typescript
+const user = await stackClientApp.getUser({ or: "redirect" });
+console.log(user); // always defined
+
+const user = await stackClientApp.getUser();
+console.log(user); // null if not signed in
+```
+
+### `useUser()`
+
+Get the current user.
+
+This is the same as `getUser()` but it is a React hook. The `useUser` hook imported from the package is an alias for this function.
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="options" type="object">
+  <div className="indented">
+  <ParamField path="or" type="string" required>
+  What to do if the user is not signed in. Can be:
+  - `"redirect"`: Redirects the user to the `signIn` URL.
+  - `"throw"`: Throws an error.
+  </ParamField>
+  </div>
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+- If `or` is not provided, returns `CurrentUser | null`.
+- If `or` is `"redirect"` or `"throw"`, always returns `CurrentUser`.
+</div>
+
+**Example:**
+
+```typescript
+const user = useUser({ or: "redirect" });
+console.log(user); // always defined
+
+const user = useUser();
+console.log(user); // null if not signed in
+```
 
 ### `signInWithOAuth()`
 
@@ -208,6 +282,60 @@ const result = await stackClientApp.signUpWithCredential({
 if (result.status === "error") {
   console.error("Sign up failed", result.error.message);
 }
+```
+
+### `sendForgotPasswordEmail()`
+
+Send a forgot password email to an email address.
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="email" type="string" required>
+The email of the user to send the forgot password email to.
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<Result<undefined, KnownErrors["UserNotFound"]>>`: A promise that resolves to a `Result` object.
+</div>
+
+**Example:**
+
+```typescript
+const result = await stackClientApp.sendForgotPasswordEmail("test@example.com");
+
+if (result.status === "success") {
+  console.log("Forgot password email sent");
+} else {
+  console.error("Failed to send forgot password email", result.error.message);
+}
+```
+
+### `sendMagicLinkEmail()`
+
+Send a magic link/OTP sign-in email to an email address.
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="email" type="string" required>
+The email of the user to send the magic link email to.
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>`: A promise that resolves to a `Result` object.
+</div>
+
+**Example:**
+
+```typescript
+const result = await stackClientApp.sendMagicLinkEmail("test@example.com");
 ```
 
 ## `StackServerApp`
