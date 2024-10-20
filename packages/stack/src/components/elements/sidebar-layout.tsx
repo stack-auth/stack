@@ -1,10 +1,10 @@
 'use client';
 
+import { useHash } from '@stackframe/stack-shared/dist/hooks/use-hash';
 import { Button, Typography, cn } from '@stackframe/stack-ui';
 import { LucideIcon, XIcon } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
-import React, { ReactNode } from 'react';
-import { useHash } from '@stackframe/stack-shared/dist/hooks/use-hash';
+import { useRouter } from 'next/navigation';
+import React, { ReactNode, useEffect } from 'react';
 
 export type SidebarItem = {
   title: React.ReactNode,
@@ -19,11 +19,13 @@ export type SidebarItem = {
 export function SidebarLayout(props: { items: SidebarItem[], title?: ReactNode, className?: string }) {
   const router = useRouter();
   const hash = useHash();
-
   const selectedIndex = props.items.findIndex(item => item.id && (item.id === hash));
-  if (selectedIndex === -1) {
-    router.push('#' + props.items[0].id);
-  }
+
+  useEffect(() => {
+    if (selectedIndex === -1) {
+      router.push('#' + props.items[0].id);
+    }
+  }, [hash]);
 
   return (
     <>
