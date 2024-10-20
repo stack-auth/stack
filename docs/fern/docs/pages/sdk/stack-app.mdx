@@ -21,98 +21,118 @@ Stack offers two types of app objects: `StackClientApp` and `StackServerApp`.
 Choose the appropriate type based on your application's needs and environment.
 
 
-## Initialization
+## `StackClientApp`
 
-We showed in the [setup guide](../getting-started/setup.mdx) that you can create a `StackServerApp` in a file like `stack.ts` like this:
+### Initialization
 
-```tsx
-import "server-only";
-import { StackServerApp } from "@stackframe/stack";
+In most cases, we don't create a `StackClientApp` directly. Instead, we typically:
 
-export const stackServerApp = new StackServerApp({
-  tokenStore: "nextjs-cookie", // storing auth tokens in cookies
-});
-```
+1. Create a `StackServerApp` instance, pass it into the `StackProvider` component
+2. Use the `useStackApp()` hook to obtain a `StackClientApp` from it
 
-Except for `tokenStore`, there are also a few other options you can pass to the `StackServerApp` constructor:
+Check out the manual [setup guide](../getting-started/setup.mdx) for more details. For details on how to initialize a `StackServerApp`, refer to the [StackServerApp section](#stackserverapp) below.
 
-### `urls`
+### Properties
 
-An object that contains some pre-defined URLs that Stack uses to route and redirect. You can override them for your own needs.
+<ParamField path="projectId" type="string">
+The ID of the project that the app is associated with.
+</ParamField>
 
-Example:
+<ParamField path="urls" type="object">
+The URLs that Stack uses to route and redirect.
+</ParamField>
 
-```tsx
-export const stackServerApp = new StackServerApp({
+
+
+
+## `StackServerApp`
+
+`StackServerApp` extends `StackClientApp`, so it has all the same capabilities, plus some extra ones listed below.
+
+### Initialization
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="options" type="object">
+  <div className="indented">
+  <ParamField path="tokenStore" type="string" required>
+  Where to store the auth tokens. Currently only `"nextjs-cookie"` is supported.
+  </ParamField>
+
+  <ParamField path="oauthScopesOnSignIn" type="object">
+  Extra OAuth scopes to request when signing in. It is an object of format `{ [provider: string]: string[] }`, where the key is the provider type (e.g. `"google"`, `"apple"`, etc.) and the value is an array of scopes to request. Checkout the [OAuth](../concepts/oauth.mdx) page for more details.
+  </ParamField>
+
+  <ParamField path="baseUrl" type="string">
+  The base URL of the Stack server. By default it is read from the `NEXT_PUBLIC_STACK_URL` environment variable if it exists, or use `https://api.stack-auth.com` if it doesn't.
+  </ParamField>
+
+  <ParamField path="projectId" type="string">
+  The ID of the project to use. By default it is read from the `NEXT_PUBLIC_STACK_PROJECT_ID` environment variable.
+  </ParamField>
+
+  <ParamField path="publishableClientKey" type="string">
+  The publishable client key to use. By default it is read from the `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` environment variable.
+  </ParamField>
+
+  <ParamField path="secretServerKey" type="string">
+  The secret server key to use. By default it is read from the `STACK_SECRET_SERVER_KEY` environment variable.
+  </ParamField>
+
+  <ParamField path="urls" type="object">
+    Modify the URLs that Stack uses to route and redirect.
+    <div className="indented">
+      <ParamField path="home" type="string" default="'/'" >
+      The URL of the home page.
+      </ParamField>
+      <ParamField path="signIn" type="string" default="urls.handler + '/sign-in'">
+      The URL of the sign-in page.
+      </ParamField>
+      <ParamField path="afterSignIn" type="string" default="urls.home">
+      The URL that the user will be redirected to after successful signing in.
+      </ParamField>
+      <ParamField path="signUp" type="string" default="urls.handler + '/sign-up'">
+      The URL of the sign-up page.
+      </ParamField>
+      <ParamField path="afterSignUp" type="string" default="urls.home">
+      The URL that the user will be redirected to after successful signing up.
+      </ParamField>
+      <ParamField path="afterSignOut" type="string" default="urls.home">
+      The URL that the user will be redirected to after successful signing out.
+      </ParamField>
+      <ParamField path="emailVerification" type="string" default="urls.handler + '/email-verification'">
+      The URL of the email verification page.
+      </ParamField>
+      <ParamField path="passwordReset" type="string" default="urls.handler + '/password-reset'">
+      The URL of the password reset page.
+      </ParamField>
+      <ParamField path="forgotPassword" type="string" default="urls.handler + '/forgot-password'">
+      The URL of the forgot password page.
+      </ParamField>
+      <ParamField path="accountSettings" type="string" default="urls.handler + '/account-settings'">
+      The URL of the account settings page.
+      </ParamField>
+      <ParamField path="handler" type="string" default="'/handler'">
+      The URL of the handler root. When changing this, you should also change the location of the `StackHandler` component and the domain handler path on the dashboard. Currently putting the handler at the root `/` is not supported.
+      </ParamField>
+    </div>
+  </ParamField>
+  </div>
+
+</ParamField>
+</div>
+
+**Example:**
+
+```typescript
+const stackServerApp = new StackServerApp({
   tokenStore: "nextjs-cookie",
+  oauthScopesOnSignIn: {
+    google: ["extra-scope"],
+  },
   urls: {
-    signIn: "/custom-sign-in",
-    signUp: "/custom-sign-up",
-    afterSignIn: "/user-profile",
-    afterSignUp: "/onboarding",
+    signIn: '/my-custom-sign-in-page',
   },
 });
 ```
-
-
-- `home`  
-    Default: `"/"`  
-
-    The URL of the home page.
-
--  `signIn`   
-    Default: `"/handler/sign-in"`  
-
-    The URL of the sign-in page.
-
-- `afterSignIn`    
-    Default: `"/"`
-
-    The URL that the user will be redirected to after successful signing in. Note the OAuth sign-in will distiguish if a user is registerd before or not, and not based on from where the user is clicking the OAuth sign-in button.
-
-- `signUp`    
-    Default: `"/handler/sign-up"`  
-
-    The URL of the sign-up page.
-
-- `afterSignUp`   
-    Default `"/"`
-
-    The URL that the user will be redirected to after successful signing up. Note the OAuth sign-up will distiguish if a user is registerd before or not, and not based on from where the user is clicking the OAuth sign-up button.
-
-- `signOut`   
-    Default: `"/handler/sign-out"`  
-
-    The URL of the sign-out page.
-
-- `afterSignOut`   
-    Default: `"/"`  
-
-    The URL that the user will be redirected to after successful signing out.
-
-- `emailVerification`   
-    Default: `"/handler/email-verification"`
-
-    The URL of the email verification page.
-
-- `passwordReset`   
-    Default `"/handler/password-reset"`
-
-    The URL of the password reset page.
-
-- `forgotPassword`   
-    Default `"/handler/forgot-password"`
-
-    The URL of the forgot password page.
-
-- `accountSettings`   
-    Default: `"/handler/account-settings"`
-
-    The URL of the account settings page.
-
-- `handler`    
-    Default: `"/handler"`  
-
-    The URL of the handler root. If you want to change the URL of your handler to something other than `/handler`, you can change it here. 
-
-    Note that you also need to change the `[...stack]/page.tsx` file to the corresponding location. When you want to use your website in a non-local environment, you need to change the handler URL in the Stack dashboard as well.

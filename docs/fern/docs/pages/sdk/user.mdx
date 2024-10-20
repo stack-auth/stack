@@ -33,6 +33,7 @@ You can call `useUser()` or `stackServerApp.getUser()` to get the `CurrentUser` 
 
 ### Properties
 
+<div className="indented">
 <ParamField path="id" type="string">
 The user ID. This is the unique identifier of the user.
 </ParamField>
@@ -72,6 +73,7 @@ Metadata that can be read on the client side but can only be modified on the ser
 <ParamField path="selectedTeam" type="Team | null">
 The currently selected team for the user, if applicable.
 </ParamField>
+</div>
 
 ### `update()`
 
@@ -79,26 +81,30 @@ Update the user information.
 
 **Parameters:**
 
-<ParamField path="options" type="object">
+<div className="indented">
+<ParamField path="options" type="object" required>
   <div className="indented">
-    <ParamField path="displayName" type="string | undefined">
+    <ParamField path="displayName" type="string">
     The new display name for the user.
     </ParamField>
-    <ParamField path="clientMetadata" type="object | undefined">
+    <ParamField path="clientMetadata" type="object">
     Custom metadata visible to the client.
     </ParamField>
-    <ParamField path="selectedTeamId" type="string | null | undefined">
+    <ParamField path="selectedTeamId" type="string | null">
     The ID of the team to set as selected, or null to clear selection.
     </ParamField>
-    <ParamField path="profileImageUrl" type="string | null | undefined">
+    <ParamField path="profileImageUrl" type="string | null">
     The URL of the user's new profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
     </ParamField>
   </div>
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<void>`
+</div>
 
 **Example:**
 
@@ -117,13 +123,17 @@ Get the team with the given ID.
 
 **Parameters:**
 
+<div className="indented">
 <ParamField path="id" type="string">
 The ID of the team to get.
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<Team | null>`: The team object, or null if the team is not found (either because it doesn't exist or because the user is not a member of the team).
+</div>
 
 **Example:**
 ```typescript
@@ -138,13 +148,17 @@ This is the same as `getTeam` but it is a React hook.
 
 **Parameters:**
 
-<ParamField path="id" type="string">
+<div className="indented">
+<ParamField path="id" type="string" required>
 The ID of the team to get.
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Team | null`: The team object, or null if the team is not found (either because it doesn't exist or because the user is not a member of the team).
+</div>
 
 **Example:**
 ```typescript
@@ -158,11 +172,15 @@ List all the teams the user is a member of.
 
 **Parameters:**
 
+<div className="indented">
 No parameters.
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<Team[]>`: The list of teams.
+</div>
 
 **Example:**
 
@@ -178,11 +196,15 @@ This is the same as `listTeams` but it is a React hook.
 
 **Parameters:**
 
+<div className="indented">
 No parameters.
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Team[]`: The list of teams.
+</div>
 
 **Example:**
 ```typescript
@@ -193,13 +215,17 @@ const teams = user.useTeams();
 
 **Parameters:**
 
-<ParamField path="team" type="Team | null">
+<div className="indented">
+<ParamField path="team" type="Team | null" required>
 The team to set as selected, or null to clear selection.
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<void>`
+</div>
 
 Set the currently selected team for the user.
 
@@ -217,7 +243,8 @@ Note that if client side team creation is disabled in the Stack dashboard, this 
 
 **Parameters:**
 
-<ParamField path="data" type="object">
+<div className="indented">
+<ParamField path="data" type="object" required>
   <div className="indented">
     <ParamField path="displayName" type="string">
     The display name for the team.
@@ -227,10 +254,13 @@ Note that if client side team creation is disabled in the Stack dashboard, this 
     </ParamField>
   </div>
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<Team>`: The created team.
+</div>
 
 **Example:**
 ```typescript
@@ -248,13 +278,17 @@ Note that if the user is not a member of the team, this will throw an error.
 
 **Parameters:**
 
-<ParamField path="team" type="Team">
+<div className="indented">
+<ParamField path="team" type="Team" required>
 The team to leave.
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<void>`
+</div>
 
 **Example:**
 ```typescript
@@ -267,13 +301,17 @@ Get the user's profile for a team.
 
 **Parameters:**
 
-<ParamField path="team" type="Team">
+<div className="indented">
+<ParamField path="team" type="Team" required>
 The team to get the profile for.
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<EditableTeamMemberProfile>`: The editable team member profile
+</div>
 
 **Example:**
 
@@ -289,10 +327,11 @@ This is the same as `getTeamProfile` but it is a React hook.
 
 **Parameters:**
 
-<ParamField path="team" type="Team">
+<div className="indented">
+<ParamField path="team" type="Team" required>
 The team to get the profile for.
 </ParamField>
-
+</div>
 **Returns:**
 
 `EditableTeamMemberProfile`: The editable team member profile
@@ -307,17 +346,21 @@ const profile = user.useTeamProfile(team);
 
 **Parameters:**
 
-<ParamField path="scope" type="Team">
+<div className="indented">
+<ParamField path="scope" type="Team" required>
 The team to check the permission for.
 </ParamField>
 
-<ParamField path="permissionId" type="string">
+<ParamField path="permissionId" type="string" required>
 The ID of the permission to check.
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<boolean>`: Whether the user has the permission.
+</div>
 
 This will check if the user has a permission for a team. Note that if the permission is not defined in the Stack dashboard, it will still return false.
 
@@ -330,11 +373,12 @@ const hasPermission = await user.hasPermission(team, "permissionId");
 
 **Parameters:**
 
-<ParamField path="scope" type="Team">
+<div className="indented">
+<ParamField path="scope" type="Team" required>
 The team to get the permission for.
 </ParamField>
 
-<ParamField path="permissionId" type="string">
+<ParamField path="permissionId" type="string" required>
 The ID of the permission to get.
 </ParamField>
 
@@ -345,10 +389,12 @@ The ID of the permission to get.
     </ParamField>
   </div>
 </ParamField>
-
+</div>
 **Returns:**
 
+<div className="indented">
 `Promise<TeamPermission | null>`: The permission object, or null if the permission is not found.
+</div>
 
 This will get the permission of a user for a team. Note that if the permission is not defined in the Stack dashboard, it will still return null.
 
@@ -368,11 +414,12 @@ This is the same as `getPermission` but it is a React hook.
 
 **Parameters:**
 
-<ParamField path="scope" type="Team">
+<div className="indented">
+<ParamField path="scope" type="Team" required>
 The team to get the permission for.
 </ParamField>
 
-<ParamField path="permissionId" type="string">
+<ParamField path="permissionId" type="string" required>
 The ID of the permission to get.
 </ParamField>
 
@@ -383,8 +430,12 @@ The ID of the permission to get.
     </ParamField>
   </div>
 </ParamField>
-
+</div>
 **Returns:**
+
+<div className="indented">
+`TeamPermission | null`: The permission object, or null if the permission is not found.
+</div>
 
 **Example:**
 
@@ -398,7 +449,8 @@ List all the permissions a user has for a team.
 
 **Parameters:**
 
-<ParamField path="scope" type="Team">
+<div className="indented">
+<ParamField path="scope" type="Team" required>
 The team to list the permissions for.
 </ParamField>
 
@@ -409,10 +461,12 @@ The team to list the permissions for.
     </ParamField>
   </div>
 </ParamField>
-
+</div>
 **Returns:**
 
+<div className="indented">
 `Promise<TeamPermission[]>`: The list of permissions.
+</div>
 
 **Example:**
 ```typescript
@@ -427,7 +481,8 @@ This is the same as `listPermissions` but it is a React hook.
 
 **Parameters:**
 
-<ParamField path="scope" type="Team">
+<div className="indented">
+<ParamField path="scope" type="Team" required>
 The team to use the permissions for.
 </ParamField>
 
@@ -438,10 +493,12 @@ The team to use the permissions for.
     </ParamField>
   </div>
 </ParamField>
-
+</div>
 **Returns:**
 
+<div className="indented">
 `TeamPermission[]`: The list of permissions.
+</div>
 
 **Example:**
 ```typescript
@@ -454,20 +511,24 @@ This will update the user's password. It will return an error object (not throw 
 
 **Parameters:**
 
-<ParamField path="options" type="object">
+<div className="indented">
+<ParamField path="options" type="object" required>
   <div className="indented">
-    <ParamField path="oldPassword" type="string">
+    <ParamField path="oldPassword" type="string" required>
     The old password.
     </ParamField>
-    <ParamField path="newPassword" type="string">
+    <ParamField path="newPassword" type="string" required>
     The new password.
     </ParamField>
   </div>
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<void>`
+</div>
 
 **Example:**
 
@@ -487,10 +548,17 @@ if (result.status === "error" ) {
 
 This will return the authentication tokens of the user. This is normally then used for authentication to an external server. See more details [here](../concepts/backend-integration.mdx).
 
+**Parameters:**
+
+<div className="indented">
+No parameters.
+</div>
+
 **Returns:**
 
+<div className="indented">
 `Promise<{ accessToken: string | null }>`
-
+</div>
 **Example:**
 
 ```typescript
@@ -504,11 +572,15 @@ This will sign out the user and clear the session.
 
 **Parameters:**
 
+<div className="indented">
 No parameters.
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<void>`
+</div>
 
 **Example:**
 
@@ -522,11 +594,15 @@ Delete the user. Use it with caution as it is irreversible. Note that this only 
 
 **Parameters:**
 
+<div className="indented">
 No parameters.
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<void>`
+</div>
 
 **Example:**
 
@@ -547,6 +623,7 @@ It also has some additional properties and methods (some of the methods have the
 
 ### Properties
 
+<div className="indented">
 <ParamField path="lastActiveAt" type="Date">
 The last active at date of the user.
 </ParamField>
@@ -554,7 +631,7 @@ The last active at date of the user.
 <ParamField path="serverMetadata" type="object">
 The server metadata of the user. Only readable and writable on the server side.
 </ParamField>
-
+</div>
 ### `update()`
 
 Update the user information.
@@ -563,35 +640,39 @@ This is similar to the `CurrentUser.update()` method, but is strictly more power
 
 **Parameters:**
 
-<ParamField path="options" type="object">
+<div className="indented">
+<ParamField path="options" type="object" required>
   <div className="indented">
-    <ParamField path="displayName" type="string | undefined">
+    <ParamField path="displayName" type="string">
     The new display name for the user.
     </ParamField>
-    <ParamField path="clientMetadata" type="object | undefined">
+    <ParamField path="clientMetadata" type="object">
     Custom metadata visible to the client.
     </ParamField>
-    <ParamField path="selectedTeamId" type="string | null | undefined">
+    <ParamField path="selectedTeamId" type="string | null">
     The ID of the team to set as selected, or null to clear selection.
     </ParamField>
-    <ParamField path="profileImageUrl" type="string | null | undefined">
+    <ParamField path="profileImageUrl" type="string | null">
     The URL of the user's new profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
     </ParamField>
-    <ParamField path="clientReadOnlyMetadata" type="object | undefined">
+    <ParamField path="clientReadOnlyMetadata" type="object">
     Metadata that can be read on the client side but can only be modified on the server side.
     </ParamField>
-    <ParamField path="serverMetadata" type="object | undefined">
+    <ParamField path="serverMetadata" type="object">
     Metadata that can be read and modified on the server side.
     </ParamField>
-    <ParamField path="password" type="string | undefined">
+    <ParamField path="password" type="string">
     The new password for the user.
     </ParamField>
   </div>
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<void>`
+</div>
 
 **Example:**
 
@@ -613,17 +694,21 @@ This action will still succeed if the permission is already granted. It will thr
 
 **Parameters:**
 
-<ParamField path="scope" type="Team">
+<div className="indented">
+<ParamField path="scope" type="Team" required>
 The team to grant the permission to.
 </ParamField>
 
-<ParamField path="permissionId" type="string">
+<ParamField path="permissionId" type="string" required>
 The ID of the permission to grant.
 </ParamField>
+</div>
 
 **Returns:**
 
+<div className="indented">
 `Promise<void>`
+</div>
 
 **Example:**
 
@@ -639,17 +724,20 @@ This action will still succeed if the permission is not granted in the first pla
 
 **Parameters:**
 
-<ParamField path="scope" type="Team">
+<div className="indented">
+<ParamField path="scope" type="Team" required>
 The team to revoke the permission from.
 </ParamField>
 
-<ParamField path="permissionId" type="string">
+<ParamField path="permissionId" type="string" required>
 The ID of the permission to revoke.
 </ParamField>
-
+</div>
 **Returns:**
 
+<div className="indented">
 `Promise<void>`
+</div>
 
 **Example:**
 
