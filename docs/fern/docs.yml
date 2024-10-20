@@ -151,16 +151,16 @@ navigation:
             path: ./docs/pages/sdk/user.mdx
           - page: StackApp
             path: ./docs/pages/sdk/stack-app.mdx
-          - page: Team
-            path: ./docs/pages/sdk/team.mdx
-          - page: TeamProfile
-            path: ./docs/pages/sdk/team-profile.mdx
-          - page: Project
-            path: ./docs/pages/sdk/project.mdx
-          - page: Permission
-            path: ./docs/pages/sdk/permission.mdx
-          - page: ConnectedAccount
-            path: ./docs/pages/sdk/connected-account.mdx
+          # - page: Team
+          #   path: ./docs/pages/sdk/team.mdx
+          # - page: TeamProfile
+          #   path: ./docs/pages/sdk/team-profile.mdx
+          # - page: Project
+          #   path: ./docs/pages/sdk/project.mdx
+          # - page: Permission
+          #   path: ./docs/pages/sdk/permission.mdx
+          # - page: ConnectedAccount
+          #   path: ./docs/pages/sdk/connected-account.mdx
       - section: Hooks
         contents:
           - page: useUser
