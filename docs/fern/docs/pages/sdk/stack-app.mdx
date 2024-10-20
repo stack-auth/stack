@@ -17,6 +17,7 @@ Stack offers two types of app objects: `StackClientApp` and `StackServerApp`.
    - extends `StackClientApp`
    - Has additional capabilities like being able to listing all the users in the project
    - Access it by importing the object from the file where you created it (`import { stackServerApp } from '@/stack'`)
+   - While `StackServerApp` includes `useXYZ` hooks, they are generally not usable in server-side code due to its non-reactive nature. These hooks are primarily designed for client-side use where reactivity is supported.
 
 Choose the appropriate type based on your application's needs and environment.
 
@@ -340,7 +341,9 @@ const result = await stackClientApp.sendMagicLinkEmail("test@example.com");
 
 ## `StackServerApp`
 
-`StackServerApp` extends `StackClientApp`, so it has all the same capabilities, plus some extra ones listed below.
+`StackServerApp` extends `StackClientApp`, so it has all the same capabilities, plus some extra ones listed below. 
+
+Note that although the `useXYZ` hooks are available on `StackServerApp`, they are generally not usable in server-side code due to its non-reactive nature. These hooks are primarily designed for client-side use where reactivity is supported.
 
 ### Initialization
 
@@ -430,13 +433,13 @@ const stackServerApp = new StackServerApp({
 });
 ```
 
+### Properties
+
+Same as `StackClientApp`.
+
 ### `getUser()`
 
 Get a user. There are two overloads:
-
-Overload 1: Get the current server user
-Overload 2: Get a user by ID
-
 
 **Overload 1 (get current server user):**
 
@@ -494,6 +497,24 @@ const user = await stackServerApp.getUser("user_id_123");
 console.log(user); // null if not found
 ```
 
+### `listUsers()`
+
+List all users.
+
+**Returns:**
+
+<div className="indented">
+`Promise<ServerUser[]>`: The list of users.
+</div>
+
+**Example:**
+
+```typescript
+const users = await stackServerApp.listUsers();
+console.log(users);
+```
+
+
 ### `createUser()`
 
 Create a new user. Currently only supports creating a user with email and password.
@@ -542,5 +563,82 @@ const user = await stackServerApp.createUser({
 });
 ```
 
+### `getTeam()`
 
-### `create
+Get a team by ID.
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="id" type="string" required>
+The ID of the team to get.
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<ServerTeam | null>`: The team, or null if not found.
+</div>
+
+**Example:**
+
+```typescript
+const team = await stackServerApp.getTeam("team_id_123");
+console.log(team); // null if not found
+```
+
+### `listTeams()`
+
+List all teams.
+
+**Returns:**
+
+<div className="indented">
+`Promise<ServerTeam[]>`: The list of teams.
+</div>
+
+**Example:**
+
+```typescript
+const teams = await stackServerApp.listTeams();
+console.log(teams);
+```
+
+### `createTeam()`
+
+create a team without a user.
+
+This is similar to `user.createTeam()`, except it does not add the user to the team.
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="data" type="object" required>
+  <div className="indented">
+    <ParamField path="displayName" type="string">
+    The display name for the team.
+    </ParamField>
+    <ParamField path="profileImageUrl" type="string | null">
+    The URL of the team's profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
+    </ParamField>
+  </div>
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<ServerTeam>`: The created team.
+</div>
+
+**Example:**
+
+```typescript
+const team = await stackServerApp.createTeam({
+  displayName: "New Team",
+  profileImageUrl: "https://example.com/profile.jpg",
+});
+```
+
+
