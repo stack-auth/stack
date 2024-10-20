@@ -2,11 +2,24 @@
 slug: sdk/stack-app
 ---
 
-## `StackServerApp` and `StackClientApp`
+This is a detailed reference for the `StackApp` object. [Here](../concepts/stack-app.mdx) is a more high-level overview.
 
-`StackClientApp` provides all the functionality you can use to build a client-side application with Stack, like `signInWithOAuth`, `useUser`, `useProject`, etc. You can get a `StackClientApp` object by calling `useStackApp()` in a Client Component.
+## Different types of stack apps
 
-`StackServerApp` is a subclass of `StackClientApp` that provides additional functionality for server side, like `getUser`, `getProject`, etc. To use your server app, you can just import the object from the file where you created it.
+Stack offers two types of app objects: `StackClientApp` and `StackServerApp`.
+
+1. `StackClientApp`:
+   - Designed for client-side applications
+   - Provides functionality like `signInWithOAuth`, `useUser`, `useProject`, etc.
+   - Obtain it by calling `useStackApp()` in a Client Component
+
+2. `StackServerApp`:
+   - extends `StackClientApp`
+   - Has additional capabilities like being able to listing all the users in the project
+   - Access it by importing the object from the file where you created it (`import { stackServerApp } from '@/stack'`)
+
+Choose the appropriate type based on your application's needs and environment.
+
 
 ## Initialization
 

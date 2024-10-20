@@ -6,13 +6,26 @@ This is a detailed reference for the `User` object. If you need a more high-leve
 
 ## Different types of user objects
 
-There are three main types of user objects you'll work with:
+There are three main types of user objects in Stack:
 
-- `CurrentUser`: Represents the currently authenticated user on the client side. It has an active session (typically stored in browser cookies) and can be used in client-side code.
-- `ServerUser`: Represents a user on the server side without an active session. This type has expanded capabilities compared to `CurrentUser`, such as the ability to update emails or passwords without requiring confirmation. However, it lacks session-dependent functions like `signOut()`.
-- `CurrentServerUser`: It combines the attribute and methods of both `ServerUser` and `CurrentUser`.
+1. `CurrentUser`
+   - Represents the authenticated user on the client side
+   - Has an active session (typically stored in browser cookies)
+   - Used in client-side code
+   - Obtained by calling `useUser()` in a Client Component
 
-Each of these types serves a specific purpose and is used in different contexts within your application, allowing for flexible and secure user management across both client and server environments.
+2. `ServerUser`
+   - Represents a user on the server side without an active session
+   - extends most of the attributes and methods of `CurrentUser`
+   - Has additional capabilities like being able to update emails or passwords without confirmation
+   - Lacks session-dependent functions like `signOut()`
+   - Obtained by calling `stackServerApp.getUser('user_id_123')` or `stackServerApp.listUsers()` on the server side
+
+3. `CurrentServerUser`
+   - Combines attributes and methods of both `ServerUser` and `CurrentUser`
+   - Obtained by calling `stackServerApp.getUser()` on the server side
+
+These user types provide flexible and secure user management across both client and server environments, each serving a specific purpose in different application contexts.
 
 ## `CurrentUser`
 
