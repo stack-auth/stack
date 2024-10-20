@@ -2649,8 +2649,9 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
 
 
 type ServerUserCreateOptions = {
-  primaryEmail: string,
-  password: string,
+  primaryEmail?: string,
+  primaryEmailAuthEnabled?: boolean,
+  password?: string,
   displayName?: string,
   primaryEmailVerified?: boolean,
 }
@@ -2658,7 +2659,7 @@ function serverUserCreateOptionsToCrud(options: ServerUserCreateOptions): UsersC
   return {
     primary_email: options.primaryEmail,
     password: options.password,
-    primary_email_auth_enabled: true,
+    primary_email_auth_enabled: options.primaryEmailAuthEnabled,
     display_name: options.displayName,
     primary_email_verified: options.primaryEmailVerified,
   };

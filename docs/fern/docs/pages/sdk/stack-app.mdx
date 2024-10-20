@@ -429,3 +429,118 @@ const stackServerApp = new StackServerApp({
   },
 });
 ```
+
+### `getUser()`
+
+Get a user. There are two overloads:
+
+Overload 1: Get the current server user
+Overload 2: Get a user by ID
+
+
+**Overload 1 (get current server user):**
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="options" type="object">
+  <div className="indented">
+  <ParamField path="or" type="string" required>
+  What to do if the user is not signed in. Can be:
+  - `"redirect"`: Redirects the user to the `signIn` URL.
+  - `"throw"`: Throws an error.
+  </ParamField>
+  </div>
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+- If `or` is not provided, returns `Promise<ServerUser | null>`.
+- If `or` is `"redirect"` or `"throw"`, always returns `Promise<ServerUser>`.
+</div>
+
+**Example:**
+
+```typescript
+const user = await stackServerApp.getUser({ or: "redirect" });
+console.log(user); // always defined
+
+const user = await stackServerApp.getUser();
+console.log(user); // null if not signed in
+```
+
+**Overload 2 (get user by ID):**
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="id" type="string" required>
+The ID of the user to get.
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<ServerUser | null>`: The user, or null if not found.
+</div>
+
+**Example:**
+
+```typescript
+const user = await stackServerApp.getUser("user_id_123");
+console.log(user); // null if not found
+```
+
+### `createUser()`
+
+Create a new user. Currently only supports creating a user with email and password.
+
+**Parameters:**
+
+<div className="indented">
+<ParamField path="options" type="object">
+  <div className="indented">
+  <ParamField path="primaryEmail" type="string">
+  The primary email of the user to create.
+  </ParamField>
+
+  <ParamField path="primaryEmailAuthEnabled" type="boolean">
+  Whether the primary email is enabled. When using password or otp auth, this must be set to `true`, otherwise the user will not be able to sign in.
+  </ParamField>
+
+  <ParamField path="password" type="string">
+  The password of the user to create.
+  </ParamField>
+
+  <ParamField path="displayName" type="string">
+  The display name of the user to create.
+  </ParamField>
+
+  <ParamField path="primaryEmailVerified" type="boolean" default="false">
+  Whether the primary email is verified.
+  </ParamField>
+  </div>
+</ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<ServerUser>`: The created user.
+</div>
+
+**Example:**
+
+```typescript
+const user = await stackServerApp.createUser({
+  primaryEmail: "test@example.com",
+  primaryEmailAuthEnabled: true,
+  password: "password123",
+});
+```
+
+
+### `create

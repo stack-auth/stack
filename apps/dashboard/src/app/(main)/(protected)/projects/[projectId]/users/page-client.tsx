@@ -29,7 +29,10 @@ function CreateDialog(props: {
     formSchema={formSchema}
     okButton={{ label: "Create" }}
     onSubmit={async (values) => {
-      await adminApp.createUser(values);
+      await adminApp.createUser({
+        ...values,
+        primaryEmailAuthEnabled: true,
+      });
     }}
     cancelButton
     render={(form) => (
