@@ -2603,8 +2603,6 @@ type ServerBaseUser = {
   grantPermission(scope: Team, permissionId: string): Promise<void>,
   revokePermission(scope: Team, permissionId: string): Promise<void>,
 
-  hasPermission(scope: Team, permissionId: string): Promise<boolean>,
-
   /**
    * Creates a new session object with a refresh token for this user. Can be used to impersonate them.
    */

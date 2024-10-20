@@ -523,9 +523,9 @@ await user.delete();
 
 ## `ServerUser`
 
-Some of the methods on the `StackServerApp` return `ServerUser` objects, for example `stackServerApp.listUsers()` or `stackServerApp.getUser('user_id_123')`.
+`ServerUser` is only available on the server side. Some of the methods on the `StackServerApp` return `ServerUser` objects, for example `stackServerApp.listUsers()` or `stackServerApp.getUser('user_id_123')`.
 
-It contains everything in the `CurrentUser` object, except for the following methods:
+The `ServerUser` object contains everything in the `CurrentUser` object, except for the following methods:
 
 - `signOut()`
 - `getAuthJson()`
@@ -546,7 +546,7 @@ The server metadata of the user. Only readable and writable on the server side.
 
 Update the user information.
 
-This is similar to the `CurrentUser.update()` method, but is strictly more powerful.
+This is similar to the `CurrentUser.update()` method, but is strictly more powerful (like update password, update server metadata, etc.)
 
 **Parameters:**
 
@@ -583,7 +583,7 @@ This is similar to the `CurrentUser.update()` method, but is strictly more power
 **Example:**
 
 ```typescript
-await user.update({
+await serverUser.update({
   displayName: "New Display Name",
   password: "newPassword",
   serverMetadata: {
@@ -591,3 +591,61 @@ await user.update({
   },
 });
 ```
+
+### `grantPermission()`
+
+Grant a permission to a user for a team.
+
+This action will still succeed if the permission is already granted. It will throw an error if the permission is not defined in the Stack dashboard.
+
+**Parameters:**
+
+<ParamField path="scope" type="Team">
+The team to grant the permission to.
+</ParamField>
+
+<ParamField path="permissionId" type="string">
+The ID of the permission to grant.
+</ParamField>
+
+**Returns:**
+
+`Promise<void>`
+
+**Example:**
+
+```typescript
+await serverUser.grantPermission(team, "read_secret_info");
+```
+
+### `revokePermission()`
+
+Revoke a permission from a user for a team.
+
+This action will still succeed if the permission is not granted in the first place. It will throw an error if the permission is not defined in the Stack dashboard.
+
+**Parameters:**
+
+<ParamField path="scope" type="Team">
+The team to revoke the permission from.
+</ParamField>
+
+<ParamField path="permissionId" type="string">
+The ID of the permission to revoke.
+</ParamField>
+
+**Returns:**
+
+`Promise<void>`
+
+**Example:**
+
+```typescript
+await serverUser.revokePermission(team, "read_secret_info");
+```
+
+## `CurrentServerUser`
+
+The `CurrentServerUser` has the same properties and methods from `ServerUser` and `CurrentUser` combined (for the overloaded methods like `update`, the `ServerUser` methods take precedence).
+
+To get a `CurrentServerUser` object, you can use the `stackServerApp.getUser()` method. Note that this can only be used on the server side.
