@@ -272,7 +272,7 @@ export const userOtpAuthEnabledSchema = yupBoolean().meta({ openapiField: { hidd
 export const userOtpAuthEnabledMutationSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled. Note that only accounts with verified emails can sign-in with OTP.', exampleValue: true } });
 export const userHasPasswordSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has a password set. If the user does not have a password set, it will not be able to sign in with email/password.', exampleValue: true } });
 export const userPasswordMutationSchema = yupString().meta({ openapiField: { description: 'Sets the user\'s password. Doing so revokes all current sessions.', exampleValue: 'my-new-password' } });
-export const userTotpSecretMutationSchema = base64Schema.meta({ openapiField: { description: 'Enables 2FA and sets a TOTP secret for the user. Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } });
+export const userTotpSecretMutationSchema = base64Schema.nullable().meta({ openapiField: { description: 'Enables 2FA and sets a TOTP secret for the user. Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } });
 
 // Auth
 export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
