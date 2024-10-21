@@ -23,7 +23,7 @@ tabs:
     icon: fa-solid fa-hammer
     slug: sdk
   api:
-    display-name: API Reference
+    display-name: API & Webhooks
     icon: fa-solid fa-code
     slug: rest-api
 
@@ -172,13 +172,13 @@ navigation:
       - page: API Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/rest-api/auth.mdx
-      - api: Client API Reference
+      - api: Client API
         slug: client
         api-name: client
-      - api: Server API Reference
+      - api: Server API
         slug: server
         api-name: server
-      - api: Webhooks API Reference
+      - api: Webhooks
         slug: webhooks
         api-name: webhooks
       # - api: Admin API Reference

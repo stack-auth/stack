@@ -2652,6 +2652,7 @@ type ServerUserCreateOptions = {
   primaryEmail?: string,
   primaryEmailAuthEnabled?: boolean,
   password?: string,
+  otpAuthEnabled?: boolean,
   displayName?: string,
   primaryEmailVerified?: boolean,
 }
@@ -2659,6 +2660,7 @@ function serverUserCreateOptionsToCrud(options: ServerUserCreateOptions): UsersC
   return {
     primary_email: options.primaryEmail,
     password: options.password,
+    otp_auth_enabled: options.otpAuthEnabled,
     primary_email_auth_enabled: options.primaryEmailAuthEnabled,
     display_name: options.displayName,
     primary_email_verified: options.primaryEmailVerified,
@@ -2977,7 +2979,6 @@ function serverTeamCreateOptionsToCrud(options: ServerTeamCreateOptions): TeamsC
 }
 
 export type ServerTeamUpdateOptions = TeamUpdateOptions & {
-
   clientReadOnlyMetadata?: ReadonlyJson,
   serverMetadata?: ReadonlyJson,
 };

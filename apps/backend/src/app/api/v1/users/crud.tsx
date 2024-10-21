@@ -80,7 +80,8 @@ export const userPrismaToCrud = (
     id: prisma.projectUserId,
     display_name: prisma.displayName || null,
     primary_email: primaryEmailContactChannel?.value || null,
-    primary_email_verified: primaryEmailContactChannel?.isVerified || false,
+    primary_email_verified: !!primaryEmailContactChannel?.isVerified,
+    primary_email_auth_enabled: !!primaryEmailContactChannel?.usedForAuth,
     profile_image_url: prisma.profileImageUrl,
     signed_up_at_millis: prisma.createdAt.getTime(),
     client_metadata: prisma.clientMetadata,
@@ -140,7 +141,10 @@ async function checkAuthData(
 async function getPasswordConfig(tx: PrismaTransaction, projectConfigId: string) {
   const passwordConfig = await tx.passwordAuthMethodConfig.findMany({
     where: {
-      projectConfigId: projectConfigId
+      projectConfigId: projectConfigId,
+      authMethodConfig: {
+        enabled: true,
+      }
     },
     include: {
       authMethodConfig: true,
@@ -158,7 +162,10 @@ async function getPasswordConfig(tx: PrismaTransaction, projectConfigId: string)
 async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
   const otpConfig = await tx.otpAuthMethodConfig.findMany({
     where: {
-      projectConfigId: projectConfigId
+      projectConfigId: projectConfigId,
+      authMethodConfig: {
+        enabled: true,
+      }
     },
     include: {
       authMethodConfig: true,
