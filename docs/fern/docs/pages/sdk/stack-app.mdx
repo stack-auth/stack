@@ -379,39 +379,39 @@ Note that although the `useXYZ` hooks are available on `StackServerApp`, they ar
   <ParamField path="urls" type="object">
     Modify the URLs that Stack uses to route and redirect.
     <div className="indented">
-      <ParamField path="home" type="string" default="'/'" >
-      The URL of the home page.
-      </ParamField>
-      <ParamField path="signIn" type="string" default="urls.handler + '/sign-in'">
-      The URL of the sign-in page.
-      </ParamField>
-      <ParamField path="afterSignIn" type="string" default="urls.home">
-      The URL that the user will be redirected to after successful signing in.
-      </ParamField>
-      <ParamField path="signUp" type="string" default="urls.handler + '/sign-up'">
-      The URL of the sign-up page.
-      </ParamField>
-      <ParamField path="afterSignUp" type="string" default="urls.home">
-      The URL that the user will be redirected to after successful signing up.
-      </ParamField>
-      <ParamField path="afterSignOut" type="string" default="urls.home">
-      The URL that the user will be redirected to after successful signing out.
-      </ParamField>
-      <ParamField path="emailVerification" type="string" default="urls.handler + '/email-verification'">
-      The URL of the email verification page.
-      </ParamField>
-      <ParamField path="passwordReset" type="string" default="urls.handler + '/password-reset'">
-      The URL of the password reset page.
-      </ParamField>
-      <ParamField path="forgotPassword" type="string" default="urls.handler + '/forgot-password'">
-      The URL of the forgot password page.
-      </ParamField>
-      <ParamField path="accountSettings" type="string" default="urls.handler + '/account-settings'">
-      The URL of the account settings page.
-      </ParamField>
-      <ParamField path="handler" type="string" default="'/handler'">
-      The URL of the handler root. When changing this, you should also change the location of the `StackHandler` component and the domain handler path on the dashboard. Currently putting the handler at the root `/` is not supported.
-      </ParamField>
+    <ParamField path="home" type="string" default="'/'" >
+    The URL of the home page.
+    </ParamField>
+    <ParamField path="signIn" type="string" default="urls.handler + '/sign-in'">
+    The URL of the sign-in page.
+    </ParamField>
+    <ParamField path="afterSignIn" type="string" default="urls.home">
+    The URL that the user will be redirected to after successful signing in.
+    </ParamField>
+    <ParamField path="signUp" type="string" default="urls.handler + '/sign-up'">
+    The URL of the sign-up page.
+    </ParamField>
+    <ParamField path="afterSignUp" type="string" default="urls.home">
+    The URL that the user will be redirected to after successful signing up.
+    </ParamField>
+    <ParamField path="afterSignOut" type="string" default="urls.home">
+    The URL that the user will be redirected to after successful signing out.
+    </ParamField>
+    <ParamField path="emailVerification" type="string" default="urls.handler + '/email-verification'">
+    The URL of the email verification page.
+    </ParamField>
+    <ParamField path="passwordReset" type="string" default="urls.handler + '/password-reset'">
+    The URL of the password reset page.
+    </ParamField>
+    <ParamField path="forgotPassword" type="string" default="urls.handler + '/forgot-password'">
+    The URL of the forgot password page.
+    </ParamField>
+    <ParamField path="accountSettings" type="string" default="urls.handler + '/account-settings'">
+    The URL of the account settings page.
+    </ParamField>
+    <ParamField path="handler" type="string" default="'/handler'">
+    The URL of the handler root. When changing this, you should also change the location of the `StackHandler` component and the domain handler path on the dashboard. Currently putting the handler at the root `/` is not supported.
+    </ParamField>
     </div>
   </ParamField>
   </div>
