@@ -123,7 +123,7 @@ pnpm run dev
 pnpm run test
 ```
 
-You can now open the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106.
+You can now open the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106. See the section below on more information on the ports of the running services.
 
 Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 
@@ -132,6 +132,29 @@ You can also open Prisma Studio to see the database interface and edit data dire
 ```sh
 pnpm run prisma studio
 ```
+
+### Development environment port mapping
+
+```
+8101: Dashboard (equivalent to https://app.stack-auth.com)
+8102: Backend (equivalent to https://api.stack-auth.com)
+8103: Demo app (equivalent to https://demo.stack-auth.com)
+8104: Docs (equivalent to https://docs.stack-auth.com)
+8105: Inbucket (e-mails)
+8106: Prisma Studio
+8107: Jaeger UI/OpenTelemetry (for performance tracing)
+8108: `examples/docs-examples`
+8109: `examples/partial-prerendering`
+8110: `examples/cjs-test`
+8111: `examples/e-commerce`
+8112: `examples/next-saaskit`
+8113: `examples/middleware`
+8114: Svix server (for webhooks)
+8115: `examples/supabase`
+```
+
+, API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106.
+
 
 ### Database migrations
 
