@@ -101,7 +101,7 @@ This is for you if you want to contribute to the Stack project or run the Stack 
 
 ### Setup
 
-Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages. You should copy all the `.env.development` files to `.env.local` in the respective packages for local development.
+Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages. (Note: If you're creating a production build (eg. with `pnpm run build`), you must supply the environment variables manually.)
 
 In a new terminal:
 
@@ -109,7 +109,7 @@ In a new terminal:
 pnpm install
 
 # Run build to build everything once
-pnpm run build
+pnpm run build:dev
 
 # reset & start the dependencies (DB, Inbucket, etc.) as Docker containers, seeding the DB with the Prisma schema
 pnpm run start-deps
