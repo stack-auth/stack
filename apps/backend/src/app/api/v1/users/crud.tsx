@@ -140,7 +140,10 @@ async function checkAuthData(
 async function getPasswordConfig(tx: PrismaTransaction, projectConfigId: string) {
   const passwordConfig = await tx.passwordAuthMethodConfig.findMany({
     where: {
-      projectConfigId: projectConfigId
+      projectConfigId: projectConfigId,
+      authMethodConfig: {
+        enabled: true,
+      }
     },
     include: {
       authMethodConfig: true,
@@ -158,7 +161,10 @@ async function getPasswordConfig(tx: PrismaTransaction, projectConfigId: string)
 async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
   const otpConfig = await tx.otpAuthMethodConfig.findMany({
     where: {
-      projectConfigId: projectConfigId
+      projectConfigId: projectConfigId,
+      authMethodConfig: {
+        enabled: true,
+      }
     },
     include: {
       authMethodConfig: true,

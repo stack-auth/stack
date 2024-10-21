@@ -517,7 +517,7 @@ console.log(users);
 
 ### `createUser()`
 
-Create a new user. Currently only supports creating a user with email and password.
+Create a new user.
 
 **Parameters:**
 
@@ -533,7 +533,14 @@ Create a new user. Currently only supports creating a user with email and passwo
   </ParamField>
 
   <ParamField path="password" type="string">
-  The password of the user to create.
+    The password for the new user. An error will be thrown if a password is provided
+    but password authentication is not enabled for the project in the dashboard.
+  </ParamField>
+
+  <ParamField path="otpAuthEnabled" type="boolean">
+    Enables OTP (One-Time Password) or magic link sign-in using the primary email.
+    Note: Only verified emails can be used for OTP sign-in. An error will be thrown
+    if set to `true` when OTP authentication is not enabled in the dashboard.
   </ParamField>
 
   <ParamField path="displayName" type="string">
@@ -556,10 +563,19 @@ Create a new user. Currently only supports creating a user with email and passwo
 **Example:**
 
 ```typescript
+// Create a user with password authentication
 const user = await stackServerApp.createUser({
   primaryEmail: "test@example.com",
   primaryEmailAuthEnabled: true,
   password: "password123",
+});
+
+// Create a user with OTP authentication
+const user = await stackServerApp.createUser({
+  primaryEmail: "test@example.com",
+  primaryEmailVerified: true,
+  primaryEmailAuthEnabled: true,
+  otpAuthEnabled: true,
 });
 ```
 
