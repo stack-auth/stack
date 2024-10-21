@@ -269,7 +269,7 @@ export const userOAuthProviderSchema = yupObject({
 });
 export const userLastActiveAtMillisSchema = yupNumber().nullable().meta({ openapiField: { description: _lastActiveAtMillisDescription, exampleValue: 1630000000000 } });
 export const userOtpAuthEnabledSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled. ', exampleValue: true } });
-export const userOtpAuthEnabledMutationSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled. Note that only verified email can be used for sign-in with OTP. If OTP auth is not enabled for the project, it will throw an error.', exampleValue: true } });
+export const userOtpAuthEnabledMutationSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled. Note that only accounts with verified emails can sign-in with OTP.', exampleValue: true } });
 export const userHasPasswordSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has a password set. If the user does not have a password set, it will not be able to sign in with email/password.', exampleValue: true } });
 export const userPasswordSchema = yupString().meta({ openapiField: { description: 'A new password for the user, overwriting the old one (if it exists). Specifying this option revokes all current sessions.', exampleValue: 'my-new-password' } });
 export const userTotpSecretSchema = base64Schema.meta({ openapiField: { description: 'A TOTP secret for the user, overwriting the old one (if it exists). Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } });
