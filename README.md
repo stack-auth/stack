@@ -136,7 +136,6 @@ pnpm run prisma studio
 
 ### Development environment port mapping
 
-```
 8101: Dashboard (equivalent to https://app.stack-auth.com)
 8102: Backend (equivalent to https://api.stack-auth.com)
 8103: Demo app (equivalent to https://demo.stack-auth.com)
@@ -152,9 +151,6 @@ pnpm run prisma studio
 8113: `examples/middleware`
 8114: Svix server (for webhooks)
 8115: `examples/supabase`
-```
-
-, API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106.
 
 
 ### Database migrations
