@@ -7,7 +7,7 @@ import { BooleanTrue, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { userIdOrMeSchema, yupArray, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
@@ -16,7 +16,6 @@ import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { waitUntil } from '@vercel/functions';
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
-import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 
 export const userFullInclude = {
   projectUserOAuthAccounts: {
@@ -235,18 +234,11 @@ export async function getUser(options: { projectId: string, userId: string }) {
 }
 
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
+  querySchema: yupObject({
+    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ] }})
+  }),
   paramsSchema: yupObject({
     user_id: userIdOrMeSchema.required(),
-  }),
-  querySchema: yupObject({
-    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by team" }}),
-    limit: yupNumber().integer().min(1).max(200).default(20).meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return" }}),
-    offset: yupNumber().integer().min(0).default(0).meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The number of items to skip before starting to collect the result set" }}),
-    sort_by: yupString().oneOf(['signed_up_at', 'primary_email']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by" }}),
-    sort_order: yupString().oneOf(['asc', 'desc']).default('desc').meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The order to sort the results in" }}),
-    primary_email_verified: yupArray().of(yupBoolean()).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by primary email verification status" }}),
-    // only used for dashboard for now
-    auth_methods: yupArray().of(yupString().oneOf(['password', 'otp', ...allProviders])).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by auth method", hidden: true }}),
   }),
   onRead: async ({ auth, params }) => {
     const user = await getUser({ projectId: auth.project.id, userId: params.user_id });
