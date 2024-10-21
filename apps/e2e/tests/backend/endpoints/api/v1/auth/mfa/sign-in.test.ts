@@ -57,6 +57,10 @@ it("should sign in users with MFA enabled", async ({ expect }) => {
     },
   });
   await Auth.expectToBeSignedIn();
+}, {
+  // the TOTP code may expire right as we try to use it
+  // for this rare case, retry the test once
+  retry: 1,
 });
 
 it("should reject invalid attempt codes", async ({ expect }) => {
