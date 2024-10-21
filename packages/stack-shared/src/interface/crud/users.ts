@@ -12,9 +12,9 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   primary_email: fieldSchema.primaryEmailSchema.nullable().optional(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.optional(),
   primary_email_auth_enabled: fieldSchema.primaryEmailAuthEnabledSchema.optional(),
-  password: fieldSchema.userPasswordSchema.nullable().optional(),
+  password: fieldSchema.userPasswordMutationSchema.optional(),
   otp_auth_enabled: fieldSchema.userOtpAuthEnabledMutationSchema.optional(),
-  totp_secret_base64: fieldSchema.userTotpSecretSchema.nullable().optional(),
+  totp_secret_base64: fieldSchema.userTotpSecretMutationSchema.optional(),
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().optional(),
 }).required();
 
