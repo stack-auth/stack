@@ -1,5 +1,3 @@
-
-
 # @stackframe/example-middleware-demo
 
 ## 2.6.11

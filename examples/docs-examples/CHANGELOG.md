@@ -1,5 +1,3 @@
-
-
 # @stackframe/docs-examples
 
 ## 2.6.11
