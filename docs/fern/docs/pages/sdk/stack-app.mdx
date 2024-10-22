@@ -339,6 +339,52 @@ Send a magic link/OTP sign-in email to an email address.
 const result = await stackClientApp.sendMagicLinkEmail("test@example.com");
 ```
 
+### `getProject()`
+
+Get the current project.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<Project>`: The current project.
+</div>
+
+**Example:**
+
+```typescript
+const project = await stackClientApp.getProject();
+```
+
+### `useProject()`
+
+Get the current project.
+
+This is the same as `getProject()` but it is a React hook. The `useProject` hook imported from the package is an alias for this function.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Project`: The current project.
+</div>
+
+**Example:**
+
+```typescript
+const project = useProject();
+```
+
 ## `StackServerApp`
 
 `StackServerApp` extends `StackClientApp`, so it has all the same capabilities, plus some extra ones listed below. 
