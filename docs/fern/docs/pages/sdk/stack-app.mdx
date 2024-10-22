@@ -2,104 +2,659 @@
 slug: sdk/stack-app
 ---
 
-## `StackServerApp` and `StackClientApp`
+This is a detailed reference for the `StackApp` object. [Here](../concepts/stack-app.mdx) is a more high-level overview.
 
-`StackClientApp` provides all the functionality you can use to build a client-side application with Stack, like `signInWithOAuth`, `useUser`, `useProject`, etc. You can get a `StackClientApp` object by calling `useStackApp()` in a Client Component.
+## Different types of stack apps
 
-`StackServerApp` is a subclass of `StackClientApp` that provides additional functionality for server side, like `getUser`, `getProject`, etc. To use your server app, you can just import the object from the file where you created it.
+Stack offers two types of app objects: `StackClientApp` and `StackServerApp`.
 
-## Initialization
+1. `StackClientApp`:
+   - Designed for client-side applications
+   - Provides functionality like `signInWithOAuth`, `useUser`, `useProject`, etc.
+   - Obtain it by calling `useStackApp()` in a Client Component
 
-We showed in the [setup guide](../getting-started/setup.mdx) that you can create a `StackServerApp` in a file like `stack.ts` like this:
+2. `StackServerApp`:
+   - extends `StackClientApp`
+   - Has additional capabilities like being able to listing all the users in the project
+   - Access it by importing the object from the file where you created it (`import { stackServerApp } from '@/stack'`)
+   - While `StackServerApp` includes `useXYZ` hooks, they are generally not usable in server-side code due to its non-reactive nature. These hooks are primarily designed for client-side use where reactivity is supported.
 
-```tsx
-import "server-only";
-import { StackServerApp } from "@stackframe/stack";
+Choose the appropriate type based on your application's needs and environment.
 
-export const stackServerApp = new StackServerApp({
-  tokenStore: "nextjs-cookie", // storing auth tokens in cookies
-});
+
+## `StackClientApp`
+
+You can get a `StackClientApp` instance by calling `useStackApp()` in a Client Component.
+
+### Initialization
+
+In most cases, we don't create a `StackClientApp` directly. Instead, we typically:
+
+1. Create a `StackServerApp` instance, pass it into the `StackProvider` component
+2. Use the `useStackApp()` hook to obtain a `StackClientApp` from it
+
+Check out the manual [setup guide](../getting-started/setup.mdx) for more details. For details on how to initialize a `StackServerApp`, refer to the [StackServerApp section](#stackserverapp) below.
+
+### Properties
+
+<div className="indented">
+  <ParamField path="projectId" type="string">
+  The ID of the project that the app is associated with.
+  </ParamField>
+
+  <ParamField path="urls" type="object">
+    The URLs that Stack uses to route and redirect.
+
+    <div className="indented">
+      <ParamField path="home" type="string">
+      The URL of the home page.
+      </ParamField>
+      <ParamField path="signIn" type="string">
+      The URL of the sign-in page.
+      </ParamField>
+      <ParamField path="afterSignIn" type="string">
+      The URL that the user will be redirected to after successful signing in.
+      </ParamField>
+      <ParamField path="signUp" type="string">
+      The URL of the sign-up page.
+      </ParamField>
+      <ParamField path="afterSignUp" type="string">
+      The URL that the user will be redirected to after successful signing up.
+      </ParamField>
+      <ParamField path="afterSignOut" type="string">
+      The URL that the user will be redirected to after successful signing out.
+      </ParamField>
+      <ParamField path="emailVerification" type="string">
+      The URL of the email verification page.
+      </ParamField>
+      <ParamField path="passwordReset" type="string">
+      The URL of the password reset page.
+      </ParamField>
+      <ParamField path="forgotPassword" type="string">
+      The URL of the forgot password page.
+      </ParamField>
+      <ParamField path="accountSettings" type="string">
+      The URL of the account settings page.
+      </ParamField>
+      <ParamField path="handler" type="string">
+      The URL of the handler root. 
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+### `getUser()`
+
+Get the current user.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="or" type="string" required>
+        What to do if the user is not signed in. Can be:
+        - `"redirect"`: Redirects the user to the `signIn` URL.
+        - `"throw"`: Throws an error.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+- If `or` is not provided, returns `Promise<CurrentUser | null>`.
+- If `or` is `"redirect"` or `"throw"`, always returns `Promise<CurrentUser>`.
+</div>
+
+**Example:**
+
+```typescript
+const user = await stackClientApp.getUser({ or: "redirect" });
+console.log(user); // always defined
+
+const user = await stackClientApp.getUser();
+console.log(user); // null if not signed in
 ```
 
-Except for `tokenStore`, there are also a few other options you can pass to the `StackServerApp` constructor:
+### `useUser()`
 
-### `urls`
+Get the current user.
 
-An object that contains some pre-defined URLs that Stack uses to route and redirect. You can override them for your own needs.
+This is the same as `getUser()` but it is a React hook. The `useUser` hook imported from the package is an alias for this function.
 
-Example:
+**Parameters:**
 
-```tsx
-export const stackServerApp = new StackServerApp({
+<div className="indented">
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="or" type="string" required>
+        What to do if the user is not signed in. Can be:
+        - `"redirect"`: Redirects the user to the `signIn` URL.
+        - `"throw"`: Throws an error.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+- If `or` is not provided, returns `CurrentUser | null`.
+- If `or` is `"redirect"` or `"throw"`, always returns `CurrentUser`.
+</div>
+
+**Example:**
+
+```typescript
+const user = useUser({ or: "redirect" });
+console.log(user); // always defined
+
+const user = useUser();
+console.log(user); // null if not signed in
+```
+
+### `signInWithOAuth()`
+
+Initiates the OAuth sign-in process with the specified provider. This method:
+
+1. Redirects the user to the OAuth provider's sign-in page.
+2. After successful authentication, redirects the user back to your application.
+3. The final redirect destination is determined as follows:
+   - If an `after_auth_return_to` query parameter was provided when calling this function, it uses that URL.
+   - Otherwise, it uses the `afterSignIn` URL configured in the app settings.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="provider" type="string" required>
+    The type of the OAuth provider to sign in with.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<void>`: A promise that resolves when the redirect is complete.
+</div>
+
+**Example:**
+
+```typescript
+await stackClientApp.signInWithOAuth("google");
+```
+
+### `signInWithCredential()`
+ 
+Sign in using email and password credentials. The behavior is as follows:
+
+1. If sign-in is successful:
+   - By default, redirects the user to the `afterSignIn` URL.
+   - If `after_auth_return_to` is provided in the query parameters, redirects to that URL instead.
+   - If `noRedirect` is set to `true`, it will not redirect and instead return a success `Result` object.
+
+2. If sign-in fails:
+   - No redirection occurs.
+   - Returns a `Result` object containing error information.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="email" type="string" required>
+        The email of the user to sign in with.
+      </ParamField>
+      <ParamField path="password" type="string" required>
+        The password of the user to sign in with.
+      </ParamField>
+      <ParamField path="noRedirect" type="boolean">
+        Whether to not redirect the user after sign-in. Defaults to `false`.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"]>>`: A promise that resolves to a `Result` object.
+</div>
+
+**Example:**
+
+```typescript
+const result = await stackClientApp.signInWithCredential({
+  email: "test@example.com",
+  password: "password",
+});
+
+if (result.status === "error") {
+  console.error("Sign in failed", result.error.message);
+}
+```
+
+### `signUpWithCredential()`
+
+Sign up using email and password credentials. The behavior is as follows:
+
+1. If sign-up is successful:
+   - By default, redirects the user to the `afterSignUp` URL.
+   - If `after_auth_return_to` is provided in the query parameters, redirects to that URL instead.
+   - If `noRedirect` is set to `true`, it will not redirect and instead return a success `Result` object.
+
+2. If sign-up fails:
+   - No redirection occurs.
+   - Returns a `Result` object containing error information.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="email" type="string" required>
+        The email of the user to sign up with.
+      </ParamField>
+      <ParamField path="password" type="string" required>
+        The password of the user to sign up with.
+      </ParamField>
+      <ParamField path="noRedirect" type="boolean">
+        Whether to not redirect the user after sign-up. Defaults to `false`.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>`: A promise that resolves to a `Result` object.
+</div>
+
+**Example:**
+
+```typescript
+const result = await stackClientApp.signUpWithCredential({
+  email: "test@example.com",
+  password: "password",
+});
+
+if (result.status === "error") {
+  console.error("Sign up failed", result.error.message);
+}
+```
+
+### `sendForgotPasswordEmail()`
+
+Send a forgot password email to an email address.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="email" type="string" required>
+    The email of the user to send the forgot password email to.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<Result<undefined, KnownErrors["UserNotFound"]>>`: A promise that resolves to a `Result` object.
+</div>
+
+**Example:**
+
+```typescript
+const result = await stackClientApp.sendForgotPasswordEmail("test@example.com");
+
+if (result.status === "success") {
+  console.log("Forgot password email sent");
+} else {
+  console.error("Failed to send forgot password email", result.error.message);
+}
+```
+
+### `sendMagicLinkEmail()`
+
+Send a magic link/OTP sign-in email to an email address.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="email" type="string" required>
+    The email of the user to send the magic link email to.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>`: A promise that resolves to a `Result` object.
+</div>
+
+**Example:**
+
+```typescript
+const result = await stackClientApp.sendMagicLinkEmail("test@example.com");
+```
+
+## `StackServerApp`
+
+`StackServerApp` extends `StackClientApp`, so it has all the same capabilities, plus some extra ones listed below. 
+
+Note that although the `useXYZ` hooks are available on `StackServerApp`, they are generally not usable in server-side code due to its non-reactive nature. These hooks are primarily designed for client-side use where reactivity is supported.
+
+### Initialization
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="tokenStore" type="string" required>
+        Where to store the auth tokens. Currently only `"nextjs-cookie"` is supported.
+      </ParamField>
+
+      <ParamField path="oauthScopesOnSignIn" type="object">
+        Extra OAuth scopes to request when signing in. It is an object of format `{ [provider: string]: string[] }`, where the key is the provider type (e.g. `"google"`, `"apple"`, etc.) and the value is an array of scopes to request. Checkout the [OAuth](../concepts/oauth.mdx) page for more details.
+      </ParamField>
+
+      <ParamField path="baseUrl" type="string">
+        The base URL of the Stack server. By default it is read from the `NEXT_PUBLIC_STACK_URL` environment variable if it exists, or use `https://api.stack-auth.com` if it doesn't.
+      </ParamField>
+
+      <ParamField path="projectId" type="string">
+        The ID of the project to use. By default it is read from the `NEXT_PUBLIC_STACK_PROJECT_ID` environment variable.
+      </ParamField>
+
+      <ParamField path="publishableClientKey" type="string">
+        The publishable client key to use. By default it is read from the `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` environment variable.
+      </ParamField>
+
+      <ParamField path="secretServerKey" type="string">
+        The secret server key to use. By default it is read from the `STACK_SECRET_SERVER_KEY` environment variable.
+      </ParamField>
+
+      <ParamField path="urls" type="object">
+        Modify the URLs that Stack uses to route and redirect.
+        <div className="indented">
+          <ParamField path="home" type="string" default="'/'" >
+            The URL of the home page.
+          </ParamField>
+          <ParamField path="signIn" type="string" default="urls.handler + '/sign-in'">
+            The URL of the sign-in page.
+          </ParamField>
+          <ParamField path="afterSignIn" type="string" default="urls.home">
+            The URL that the user will be redirected to after successful signing in.
+          </ParamField>
+          <ParamField path="signUp" type="string" default="urls.handler + '/sign-up'">
+            The URL of the sign-up page.
+          </ParamField>
+          <ParamField path="afterSignUp" type="string" default="urls.home">
+            The URL that the user will be redirected to after successful signing up.
+          </ParamField>
+          <ParamField path="afterSignOut" type="string" default="urls.home">
+            The URL that the user will be redirected to after successful signing out.
+          </ParamField>
+          <ParamField path="emailVerification" type="string" default="urls.handler + '/email-verification'">
+            The URL of the email verification page.
+          </ParamField>
+          <ParamField path="passwordReset" type="string" default="urls.handler + '/password-reset'">
+            The URL of the password reset page.
+          </ParamField>
+          <ParamField path="forgotPassword" type="string" default="urls.handler + '/forgot-password'">
+            The URL of the forgot password page.
+          </ParamField>
+          <ParamField path="accountSettings" type="string" default="urls.handler + '/account-settings'">
+            The URL of the account settings page.
+          </ParamField>
+          <ParamField path="handler" type="string" default="'/handler'">
+            The URL of the handler root. When changing this, you should also change the location of the `StackHandler` component and the domain handler path on the dashboard. Currently putting the handler at the root `/` is not supported.
+          </ParamField>
+        </div>
+      </ParamField>
+    </div>
+
+  </ParamField>
+</div>
+
+**Example:**
+
+```typescript
+const stackServerApp = new StackServerApp({
   tokenStore: "nextjs-cookie",
+  oauthScopesOnSignIn: {
+    google: ["extra-scope"],
+  },
   urls: {
-    signIn: "/custom-sign-in",
-    signUp: "/custom-sign-up",
-    afterSignIn: "/user-profile",
-    afterSignUp: "/onboarding",
+    signIn: '/my-custom-sign-in-page',
   },
 });
 ```
 
+### Properties
 
-- `home`  
-    Default: `"/"`  
+Same as `StackClientApp`.
 
-    The URL of the home page.
+### `getUser()`
 
--  `signIn`   
-    Default: `"/handler/sign-in"`  
+Get a user. There are two overloads:
 
-    The URL of the sign-in page.
+**Overload 1 (get current server user):**
 
-- `afterSignIn`    
-    Default: `"/"`
+**Parameters:**
 
-    The URL that the user will be redirected to after successful signing in. Note the OAuth sign-in will distiguish if a user is registerd before or not, and not based on from where the user is clicking the OAuth sign-in button.
+<div className="indented">
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="or" type="string" required>
+        What to do if the user is not signed in. Can be:
+        - `"redirect"`: Redirects the user to the `signIn` URL.
+        - `"throw"`: Throws an error.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
 
-- `signUp`    
-    Default: `"/handler/sign-up"`  
+**Returns:**
 
-    The URL of the sign-up page.
+<div className="indented">
+- If `or` is not provided, returns `Promise<ServerUser | null>`.
+- If `or` is `"redirect"` or `"throw"`, always returns `Promise<ServerUser>`.
+</div>
 
-- `afterSignUp`   
-    Default `"/"`
+**Example:**
 
-    The URL that the user will be redirected to after successful signing up. Note the OAuth sign-up will distiguish if a user is registerd before or not, and not based on from where the user is clicking the OAuth sign-up button.
+```typescript
+const user = await stackServerApp.getUser({ or: "redirect" });
+console.log(user); // always defined
 
-- `signOut`   
-    Default: `"/handler/sign-out"`  
+const user = await stackServerApp.getUser();
+console.log(user); // null if not signed in
+```
 
-    The URL of the sign-out page.
+**Overload 2 (get user by ID):**
 
-- `afterSignOut`   
-    Default: `"/"`  
+**Parameters:**
 
-    The URL that the user will be redirected to after successful signing out.
+<div className="indented">
+<ParamField path="id" type="string" required>
+The ID of the user to get.
+</ParamField>
+</div>
 
-- `emailVerification`   
-    Default: `"/handler/email-verification"`
+**Returns:**
 
-    The URL of the email verification page.
+<div className="indented">
+  `Promise<ServerUser | null>`: The user, or null if not found.
+</div>
 
-- `passwordReset`   
-    Default `"/handler/password-reset"`
+**Example:**
 
-    The URL of the password reset page.
+```typescript
+const user = await stackServerApp.getUser("user_id_123");
+console.log(user); // null if not found
+```
 
-- `forgotPassword`   
-    Default `"/handler/forgot-password"`
+### `listUsers()`
 
-    The URL of the forgot password page.
+List all users.
 
-- `accountSettings`   
-    Default: `"/handler/account-settings"`
+**Returns:**
 
-    The URL of the account settings page.
+<div className="indented">
+  `Promise<ServerUser[]>`: The list of users.
+</div>
 
-- `handler`    
-    Default: `"/handler"`  
+**Example:**
 
-    The URL of the handler root. If you want to change the URL of your handler to something other than `/handler`, you can change it here. 
+```typescript
+const users = await stackServerApp.listUsers();
+console.log(users);
+```
 
-    Note that you also need to change the `[...stack]/page.tsx` file to the corresponding location. When you want to use your website in a non-local environment, you need to change the handler URL in the Stack dashboard as well.
+
+### `createUser()`
+
+Create a new user.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="primaryEmail" type="string">
+        The primary email of the user to create.
+      </ParamField>
+
+      <ParamField path="primaryEmailAuthEnabled" type="boolean">
+        Whether the primary email is enabled. When using password or otp auth, this must be set to `true`, otherwise the user will not be able to sign in.
+      </ParamField>
+
+      <ParamField path="password" type="string">
+        The password for the new user. An error will be thrown if a password is provided
+        but password authentication is not enabled for the project in the dashboard.
+      </ParamField>
+
+      <ParamField path="otpAuthEnabled" type="boolean">
+        Enables OTP (One-Time Password) or magic link sign-in using the primary email.
+        Note: Only verified emails can be used for OTP sign-in. An error will be thrown
+        if set to `true` when OTP authentication is not enabled in the dashboard.
+      </ParamField>
+
+      <ParamField path="displayName" type="string">
+        The display name of the user to create.
+      </ParamField>
+
+      <ParamField path="primaryEmailVerified" type="boolean" default="false">
+        Whether the primary email is verified.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<ServerUser>`: The created user.
+</div>
+
+**Example:**
+
+```typescript
+// Create a user with password authentication
+const user = await stackServerApp.createUser({
+  primaryEmail: "test@example.com",
+  primaryEmailAuthEnabled: true,
+  password: "password123",
+});
+
+// Create a user with OTP authentication
+const user = await stackServerApp.createUser({
+  primaryEmail: "test@example.com",
+  primaryEmailVerified: true,
+  primaryEmailAuthEnabled: true,
+  otpAuthEnabled: true,
+});
+```
+
+### `getTeam()`
+
+Get a team by ID.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="id" type="string" required>
+    The ID of the team to get.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<ServerTeam | null>`: The team, or null if not found.
+</div>
+
+**Example:**
+
+```typescript
+const team = await stackServerApp.getTeam("team_id_123");
+console.log(team); // null if not found
+```
+
+### `listTeams()`
+
+List all teams.
+
+**Returns:**
+
+<div className="indented">
+  `Promise<ServerTeam[]>`: The list of teams.
+</div>
+
+**Example:**
+
+```typescript
+const teams = await stackServerApp.listTeams();
+console.log(teams);
+```
+
+### `createTeam()`
+
+create a team without a user.
+
+This is similar to `user.createTeam()`, except it does not add the user to the team.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="data" type="object" required>
+    <div className="indented">
+      <ParamField path="displayName" type="string">
+        The display name for the team.
+      </ParamField>
+      <ParamField path="profileImageUrl" type="string | null">
+        The URL of the team's profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<ServerTeam>`: The created team.
+</div>
+
+**Example:**
+
+```typescript
+const team = await stackServerApp.createTeam({
+  displayName: "New Team",
+  profileImageUrl: "https://example.com/profile.jpg",
+});
+```
+
+

@@ -7,7 +7,7 @@ import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-field
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, Badge, Button, Input, Label, PasswordInput, Separator, Switch, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
 import { CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
@@ -53,11 +53,11 @@ export function AccountSettings(props: {
               content: <ProfilePage/>,
             },
             {
-              title: t('Security'),
+              title: t('Emails & Auth'),
               type: 'item',
-              id: 'security',
+              id: 'auth',
               icon: ShieldCheck,
-              content: <SecurityPage/>,
+              content: <EmailsAndAuthPage/>,
             },
             {
               title: t('Settings'),
@@ -151,6 +151,7 @@ function ProfilePage() {
             await user.update({ displayName: newDisplayName });
           }}/>
       </Section>
+
       <Section
         title={t("Profile image")}
         description={t("Upload your own image as your avatar")}
@@ -166,17 +167,251 @@ function ProfilePage() {
   );
 }
 
-function SecurityPage() {
-  const emailVerificationSection = useEmailVerificationSection();
+function EmailsSection() {
+  const { t } = useTranslation();
+  const user = useUser({ or: 'redirect' });
+  const contactChannels = user.useContactChannels();
+  const [addingEmail, setAddingEmail] = useState(contactChannels.length === 0);
+  const [addingEmailLoading, setAddingEmailLoading] = useState(false);
+  const [addedEmail, setAddedEmail] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const isLastEmail = contactChannels.filter(x => x.usedForAuth && x.type === 'email').length === 1;
+
+  useEffect(() => {
+    if (addedEmail) {
+      runAsynchronously(async () => {
+        const cc = contactChannels.find(x => x.value === addedEmail);
+        if (cc && !cc.isVerified) {
+          await cc.sendVerificationEmail();
+        }
+        setAddedEmail(null);
+      });
+    }
+  }, [contactChannels, addedEmail]);
+
+  const emailSchema = yupObject({
+    email: yupString()
+      .email(t('Please enter a valid email address'))
+      .notOneOf(contactChannels.map(x => x.value), t('Email already exists'))
+      .required(t('Email is required')),
+  });
+
+  const { register, handleSubmit, formState: { errors }, reset } = useForm({
+    resolver: yupResolver(emailSchema)
+  });
+
+  const onSubmit = async (data: yup.InferType<typeof emailSchema>) => {
+    setAddingEmailLoading(true);
+    try {
+      await user.createContactChannel({ type: 'email', value: data.email, usedForAuth: false });
+      setAddedEmail(data.email);
+    } finally {
+      setAddingEmailLoading(false);
+    }
+    setAddingEmail(false);
+    reset();
+  };
+
+  return (
+    <div>
+      <div className='flex flex-col md:flex-row justify-between mb-4 gap-4'>
+        <Typography className='font-medium'>{t("Emails")}</Typography>
+        {addingEmail ? (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              runAsynchronously(handleSubmit(onSubmit));
+            }}
+            className='flex flex-col'
+          >
+            <div className='flex gap-2'>
+              <Input
+                {...register("email")}
+                placeholder={t("Enter email")}
+              />
+              <Button type="submit" loading={addingEmailLoading}>
+                {t("Add")}
+              </Button>
+              <Button
+                variant='secondary'
+                onClick={() => {
+                  setAddingEmail(false);
+                  reset();
+                }}
+              >
+                {t("Cancel")}
+              </Button>
+            </div>
+            {errors.email && <FormWarningText text={errors.email.message} />}
+          </form>
+        ) : (
+          <div className='flex md:justify-end'>
+            <Button variant='secondary' onClick={() => setAddingEmail(true)}>{t("Add an email")}</Button>
+          </div>
+        )}
+      </div>
+
+      {contactChannels.length > 0 ? (
+        <div className='border rounded-md'>
+          <Table>
+            <TableBody>
+              {/*eslint-disable-next-line @typescript-eslint/no-unnecessary-condition*/}
+              {contactChannels.filter(x => x.type === 'email')
+                .sort((a, b) => {
+                  if (a.isPrimary !== b.isPrimary) return a.isPrimary ? -1 : 1;
+                  if (a.isVerified !== b.isVerified) return a.isVerified ? -1 : 1;
+                  return 0;
+                })
+                .map(x => (
+                  <TableRow key={x.id}>
+                    <TableCell>
+                      <div className='flex flex-col md:flex-row gap-2 md:gap-4'>
+                        {x.value}
+                        <div className='flex gap-2'>
+                          {x.isPrimary ? <Badge>{t("Primary")}</Badge> : null}
+                          {!x.isVerified ? <Badge variant='destructive'>{t("Unverified")}</Badge> : null}
+                          {x.usedForAuth ? <Badge variant='outline'>{t("Used for sign-in")}</Badge> : null}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="flex justify-end">
+                      <ActionCell items={[
+                        ...(!x.isVerified ? [{
+                          item: t("Send verification email"),
+                          onClick: async () => { await x.sendVerificationEmail(); },
+                        }] : []),
+                        ...(!x.isPrimary && x.isVerified ? [{
+                          item: t("Set as primary"),
+                          onClick: async () => { await x.update({ isPrimary: true }); },
+                        }] :
+                          !x.isPrimary ? [{
+                            item: t("Set as primary"),
+                            onClick: async () => {},
+                            disabled: true,
+                            disabledTooltip: t("Please verify your email first"),
+                          }] : []),
+                        ...(!x.usedForAuth && x.isVerified ? [{
+                          item: t("Use for sign-in"),
+                          onClick: async () => { await x.update({ usedForAuth: true }); },
+                        }] : []),
+                        ...(x.usedForAuth && !isLastEmail ? [{
+                          item: t("Stop using for sign-in"),
+                          onClick: async () => { await x.update({ usedForAuth: false }); },
+                        }] : x.usedForAuth ? [{
+                          item: t("Stop using for sign-in"),
+                          onClick: async () => {},
+                          disabled: true,
+                          disabledTooltip: t("You can not remove your last sign-in email"),
+                        }] : []),
+                        ...(!isLastEmail || !x.usedForAuth ? [{
+                          item: t("Remove"),
+                          onClick: async () => { await x.delete(); },
+                          danger: true,
+                        }] : [{
+                          item: t("Remove"),
+                          onClick: async () => {},
+                          disabled: true,
+                          disabledTooltip: t("You can not remove your last sign-in email"),
+                        }]),
+                      ]}/>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function EmailsAndAuthPage() {
   const passwordSection = usePasswordSection();
   const mfaSection = useMfaSection();
+  const otpSection = useOtpSection();
 
   return (
     <PageLayout>
-      {emailVerificationSection}
+      <EmailsSection/>
       {passwordSection}
+      {otpSection}
       {mfaSection}
     </PageLayout>
+  );
+}
+
+function useOtpSection() {
+  const { t } = useTranslation();
+  const user = useUser({ or: "throw" });
+  const project = useStackApp().useProject();
+  const contactChannels = user.useContactChannels();
+  const isLastAuth = user.otpAuthEnabled && !user.hasPassword && user.oauthProviders.length === 0;
+  const [disabling, setDisabling] = useState(false);
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const hasValidEmail = contactChannels.filter(x => x.type === 'email' && x.isVerified && x.usedForAuth).length > 0;
+
+  if (!project.config.magicLinkEnabled) {
+    return null;
+  }
+
+  const handleDisableOTP = async () => {
+    await user.update({ otpAuthEnabled: false });
+    setDisabling(false);
+  };
+
+  return (
+    <Section title={t("OTP sign-in")} description={user.otpAuthEnabled ? t("OTP/magic link sign-in is currently enabled.") : t("Enable sign-in via magic link or OTP sent to your sign-in emails.")}>
+      <div className='flex md:justify-end'>
+        {hasValidEmail ? (
+          user.otpAuthEnabled ? (
+            !isLastAuth ? (
+              !disabling ? (
+                <Button
+                  variant='secondary'
+                  onClick={() => setDisabling(true)}
+                >
+                  {t("Disable OTP")}
+                </Button>
+              ) : (
+                <div className='flex flex-col gap-2'>
+                  <Typography variant='destructive'>
+                    {t("Are you sure you want to disable OTP sign-in? You will not be able to sign in with only emails anymore.")}
+                  </Typography>
+                  <div className='flex gap-2'>
+                    <Button
+                      variant='destructive'
+                      onClick={handleDisableOTP}
+                    >
+                      {t("Disable")}
+                    </Button>
+                    <Button
+                      variant='secondary'
+                      onClick={() => setDisabling(false)}
+                    >
+                      {t("Cancel")}
+                    </Button>
+                  </div>
+                </div>
+              )
+            ) : (
+              <Typography variant='secondary' type='label'>{t("OTP sign-in is enabled and cannot be disabled as it is currently the only sign-in method")}</Typography>
+            )
+          ) : (
+            <Button
+              variant='secondary'
+              onClick={async () => {
+                await user.update({ otpAuthEnabled: true });
+              }}
+            >
+              {t("Enable OTP")}
+            </Button>
+          )
+        ) : (
+          <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified email and set it as your sign-in email.")}</Typography>
+        )}
+      </div>
+    </Section>
   );
 }
 
@@ -192,46 +427,15 @@ function SettingsPage() {
   );
 }
 
-function useEmailVerificationSection() {
-  const { t } = useTranslation();
-  const user = useUser({ or: 'redirect' });
-  const [emailSent, setEmailSent] = useState(false);
-
-  if (!user.primaryEmail) {
-    return null;
-  }
-
-  return (
-    <Section
-      title={t("Email Verification")}
-      description={t("Verify your email address to secure your account")}
-    >
-      <div>
-        {user.primaryEmailVerified ? (
-          <Typography variant='success'>{t("Your email has been verified.")}</Typography>
-        ) : (
-          <div className='flex'>
-            <Button
-              disabled={emailSent}
-              onClick={async () => {
-                await user.sendVerificationEmail();
-                  setEmailSent(true);
-              }}
-            >
-              {emailSent ? t("Email sent!") : t("Send Verification Email")}
-            </Button>
-          </div>
-        )}
-      </div>
-    </Section>
-  );
-}
-
 function usePasswordSection() {
   const { t } = useTranslation();
+  const user = useUser({ or: "throw" });
+  const contactChannels = user.useContactChannels();
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const passwordSchema = yupObject({
-    oldPassword: yupString().required(t('Please enter your old password')),
+    oldPassword: user.hasPassword ? yupString().required(t('Please enter your old password')) : yupString(),
     newPassword: yupString().required(t('Please enter your password')).test({
       name: 'is-valid-password',
       test: (value, ctx) => {
@@ -246,24 +450,25 @@ function usePasswordSection() {
     newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
   });
 
-  const user = useUser({ or: "throw" });
-  const [changingPassword, setChangingPassword] = useState(false);
   const { register, handleSubmit, setError, formState: { errors }, clearErrors, reset } = useForm({
     resolver: yupResolver(passwordSchema)
   });
-  const [alreadyReset, setAlreadyReset] = useState(false);
-  const [loading, setLoading] = useState(false);
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const hasValidEmail = contactChannels.filter(x => x.type === 'email' && x.isVerified && x.usedForAuth).length > 0;
 
   const onSubmit = async (data: yup.InferType<typeof passwordSchema>) => {
     setLoading(true);
     try {
       const { oldPassword, newPassword } = data;
-      const error = await user.updatePassword({ oldPassword, newPassword });
+      const error = user.hasPassword
+        ? await user.updatePassword({ oldPassword: oldPassword!, newPassword })
+        : await user.setPassword({ password: newPassword! });
       if (error) {
         setError('oldPassword', { type: 'manual', message: t('Incorrect password') });
       } else {
         reset();
-        setAlreadyReset(true);
+        setChangingPassword(false);
       }
     } finally {
       setLoading(false);
@@ -273,28 +478,30 @@ function usePasswordSection() {
   const registerPassword = register('newPassword');
   const registerPasswordRepeat = register('newPasswordRepeat');
 
-  if (!user.hasPassword) {
-    return null;
-  }
-
   return (
-    <div>
-      <Label>{t("Change password")}</Label>
-      <div>
-        {
-          alreadyReset ?
-            <Typography variant='success'>{t("Password changed successfully!")}</Typography> :
-            !changingPassword ?
-              <Button
-                variant='secondary'
-                onClick={async () => {
-                  setChangingPassword(true);
-                }}
-              >{t("Change Password")}</Button> :
-              <form
-                onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
-                noValidate
-              >
+    <Section
+      title={t("Password")}
+      description={user.hasPassword ? t("Update your password") : t("Set a password for your account")}
+    >
+      <div className='flex flex-col gap-4'>
+        {!changingPassword ? (
+          hasValidEmail ? (
+            <Button
+              variant='secondary'
+              onClick={() => setChangingPassword(true)}
+            >
+              {user.hasPassword ? t("Update password") : t("Set password")}
+            </Button>
+          ) : (
+            <Typography variant='secondary' type='label'>{t("To set a password, please add a verified email and set it as your sign-in email.")}</Typography>
+          )
+        ) : (
+          <form
+            onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
+            noValidate
+          >
+            {user.hasPassword && (
+              <>
                 <Label htmlFor="old-password" className="mb-1">{t("Old password")}</Label>
                 <Input
                   id="old-password"
@@ -302,36 +509,51 @@ function usePasswordSection() {
                   {...register("oldPassword")}
                 />
                 <FormWarningText text={errors.oldPassword?.message?.toString()} />
+              </>
+            )}
 
-                <Label htmlFor="new-password" className="mt-4 mb-1">{t("Password")}</Label>
-                <PasswordInput
-                  id="new-password"
-                  {...registerPassword}
-                  onChange={(e) => {
-                    clearErrors('newPassword');
-                    clearErrors('newPasswordRepeat');
-                    runAsynchronously(registerPassword.onChange(e));
-                  }}
-                />
-                <FormWarningText text={errors.newPassword?.message?.toString()} />
+            <Label htmlFor="new-password" className="mt-4 mb-1">{t("New password")}</Label>
+            <PasswordInput
+              id="new-password"
+              {...registerPassword}
+              onChange={(e) => {
+                clearErrors('newPassword');
+                clearErrors('newPasswordRepeat');
+                runAsynchronously(registerPassword.onChange(e));
+              }}
+            />
+            <FormWarningText text={errors.newPassword?.message?.toString()} />
 
-                <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat password")}</Label>
-                <PasswordInput
-                  id="repeat-password"
-                  {...registerPasswordRepeat}
-                  onChange={(e) => {
-                    clearErrors('newPassword');
-                    clearErrors('newPasswordRepeat');
-                    runAsynchronously(registerPasswordRepeat.onChange(e));
-                  }}
-                />
-                <FormWarningText text={errors.newPasswordRepeat?.message?.toString()} />
+            <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat new password")}</Label>
+            <PasswordInput
+              id="repeat-password"
+              {...registerPasswordRepeat}
+              onChange={(e) => {
+                clearErrors('newPassword');
+                clearErrors('newPasswordRepeat');
+                runAsynchronously(registerPasswordRepeat.onChange(e));
+              }}
+            />
+            <FormWarningText text={errors.newPasswordRepeat?.message?.toString()} />
 
-                <Button type="submit" className="mt-6" loading={loading}>{t("Change Password")}</Button>
-              </form>
-        }
+            <div className="mt-6 flex gap-4">
+              <Button type="submit" loading={loading}>
+                {user.hasPassword ? t("Update Password") : t("Set Password")}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setChangingPassword(false);
+                  reset();
+                }}
+              >
+                {t("Cancel")}
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
-    </div>
+    </Section>
   );
 }
 
@@ -366,7 +588,7 @@ function useMfaSection() {
 
   return (
     <Section
-      title={t("Multi-factor Authentication")}
+      title={t("Multi-factor authentication")}
       description={isEnabled
         ? t("Multi-factor authentication is currently enabled.")
         : t("Multi-factor authentication is currently disabled.")}
@@ -414,18 +636,18 @@ function useMfaSection() {
                 });
               }}
             >
-              {t("Disable")}
+              {t("Disable MFA")}
             </Button>
           ) : !generatedSecret && (
             <Button
-              variant='default'
+              variant='secondary'
               onClick={async () => {
                 const secret = generateRandomValues(new Uint8Array(20));
                 setQrCodeUrl(await generateTotpQrCode(project, user, secret));
                 setGeneratedSecret(secret);
               }}
             >
-              {t("Enable")}
+              {t("Enable MFA")}
             </Button>
           )}
         </div>

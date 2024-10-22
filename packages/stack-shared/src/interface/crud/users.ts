@@ -11,31 +11,25 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   server_metadata: fieldSchema.userServerMetadataSchema.optional(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().optional(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.optional(),
-  primary_email_auth_enabled: fieldSchema.yupBoolean().optional().meta({ openapiField: { description: "Whether the primary email can be used to sign into this user's account", exampleValue: true } }),
-  password: fieldSchema.yupString().nullable().meta({ openapiField: { description: 'A new password for the user, overwriting the old one (if it exists). Specifying this option revokes all current sessions.', exampleValue: 'my-new-password' } }),
-  totp_secret_base64: fieldSchema.base64Schema.nullable().meta({ openapiField: { description: 'A TOTP secret for the user, overwriting the old one (if it exists). Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } }),
+  primary_email_auth_enabled: fieldSchema.primaryEmailAuthEnabledSchema.optional(),
+  password: fieldSchema.userPasswordMutationSchema.optional(),
+  otp_auth_enabled: fieldSchema.userOtpAuthEnabledMutationSchema.optional(),
+  totp_secret_base64: fieldSchema.userTotpSecretMutationSchema.optional(),
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().optional(),
-}).required();
-
-const contactChannelSchema = fieldSchema.yupObject({
-  id: fieldSchema.yupString().required(),
-  type: fieldSchema.yupString().required(),
-  value: fieldSchema.yupString().required(),
-  is_primary: fieldSchema.yupBoolean().required(),
-  is_verified: fieldSchema.yupBoolean().required(),
-  used_for_auth: fieldSchema.yupBoolean().required(),
 }).required();
 
 export const usersCrudServerReadSchema = fieldSchema.yupObject({
   id: fieldSchema.userIdSchema.required(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().defined(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.required(),
+  primary_email_auth_enabled: fieldSchema.primaryEmailAuthEnabledSchema.required(),
   display_name: fieldSchema.userDisplayNameSchema.nullable().defined(),
   selected_team: teamsCrudServerReadSchema.nullable().defined(),
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().defined(),
   profile_image_url: fieldSchema.profileImageUrlSchema.nullable().defined(),
   signed_up_at_millis: fieldSchema.signedUpAtMillisSchema.required(),
-  has_password: fieldSchema.yupBoolean().required().meta({ openapiField: { description: 'Whether the user has a password associated with their account', exampleValue: true } }),
+  has_password: fieldSchema.userHasPasswordSchema.required(),
+  otp_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.required(),
   client_metadata: fieldSchema.userClientMetadataSchema,
   client_read_only_metadata: fieldSchema.userClientReadOnlyMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,

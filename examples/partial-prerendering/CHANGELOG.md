@@ -1,4 +1,4 @@
-# partial-prerendering
+# @stackframe/example-partial-prerendering
 
 ## 2.6.11
 

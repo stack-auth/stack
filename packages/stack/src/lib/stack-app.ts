@@ -3,6 +3,7 @@ import { KnownErrors, StackAdminInterface, StackClientInterface, StackServerInte
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
 import { ApiKeyCreateCrudRequest, ApiKeyCreateCrudResponse } from "@stackframe/stack-shared/dist/interface/adminInterface";
 import { ApiKeysCrud } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
+import { ContactChannelsCrud } from "@stackframe/stack-shared/dist/interface/crud/contact-channels";
 import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { EmailTemplateCrud, EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
@@ -122,11 +123,11 @@ async function _redirectTo(url: URL | string, options?: { replace?: boolean }) {
 }
 
 function getDefaultProjectId() {
-  return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr(new Error("Welcome to Stack! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
+  return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
 }
 
 function getDefaultPublishableClientKey() {
-  return process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr(new Error("Welcome to Stack! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
+  return process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
 }
 
 function getDefaultSecretServerKey() {
@@ -329,6 +330,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserTeamProfileCache = createCacheBySession<[string], TeamMemberProfilesCrud['Client']['Read']>(
     async (session, [teamId]) => {
       return await this._interface.getTeamMemberProfile({ teamId, userId: 'me' }, session);
+    }
+  );
+  private readonly _clientContactChannelsCache = createCacheBySession<[], ContactChannelsCrud['Client']['Read'][]>(
+    async (session) => {
+      return await this._interface.listClientContactChannels(session);
     }
   );
 
@@ -750,6 +756,29 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
+  protected _clientContactChannelFromCrud(crud: ContactChannelsCrud['Client']['Read']): ContactChannel {
+    const app = this;
+    return {
+      id: crud.id,
+      value: crud.value,
+      type: crud.type,
+      isVerified: crud.is_verified,
+      isPrimary: crud.is_primary,
+      usedForAuth: crud.used_for_auth,
+
+      async sendVerificationEmail() {
+        return await app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, constructRedirectUrl(app.urls.emailVerification), app._getSession());
+      },
+      async update(data: ContactChannelUpdateOptions) {
+        await app._interface.updateClientContactChannel(crud.id, contactChannelUpdateOptionsToCrud(data), app._getSession());
+        await app._clientContactChannelsCache.refresh([app._getSession()]);
+      },
+      async delete() {
+        await app._interface.deleteClientContactChannel(crud.id, app._getSession());
+        await app._clientContactChannelsCache.refresh([app._getSession()]);
+      },
+    };
+  }
   protected _createAuth(session: InternalSession): Auth {
     const app = this;
     return {
@@ -793,6 +822,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       clientReadOnlyMetadata: crud.client_read_only_metadata,
       hasPassword: crud.has_password,
       emailAuthEnabled: crud.auth_with_email,
+      otpAuthEnabled: crud.otp_auth_enabled,
       oauthProviders: crud.oauth_providers,
       selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team),
       isMultiFactorRequired: crud.requires_totp_mfa,
@@ -910,7 +940,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await app._sendVerificationEmail(crud.primary_email, session);
       },
       async updatePassword(options: { oldPassword: string, newPassword: string}) {
-        return await app._updatePassword(options, session);
+        const result = await app._interface.updatePassword(options, session);
+        await app._currentUserCache.refresh([session]);
+        return result;
+      },
+      async setPassword(options: { password: string }) {
+        const result = await app._interface.setPassword(options, session);
+        await app._currentUserCache.refresh([session]);
+        return result;
       },
       async getTeamProfile(team: Team) {
         const result = await app._currentUserTeamProfileCache.getOrWait([session, team.id], "write-only");
@@ -923,6 +960,19 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async delete() {
         await app._interface.deleteCurrentUser(session);
         session.markInvalid();
+      },
+      async listContactChannels() {
+        const result = await app._clientContactChannelsCache.getOrWait([session], "write-only");
+        return result.map((crud) => app._clientContactChannelFromCrud(crud));
+      },
+      useContactChannels() {
+        const result = useAsyncCache(app._clientContactChannelsCache, [session], "user.useContactChannels()");
+        return result.map((crud) => app._clientContactChannelFromCrud(crud));
+      },
+      async createContactChannel(data: ContactChannelCreateOptions) {
+        const crud = await app._interface.createClientContactChannel(contactChannelCreateOptionsToCrud('me', data), session);
+        await app._clientContactChannelsCache.refresh([session]);
+        return app._clientContactChannelFromCrud(crud);
       },
     };
   }
@@ -1095,7 +1145,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async verifyEmail(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
-    return await this._interface.verifyEmail(code);
+    const result = await this._interface.verifyEmail(code);
+    await this._currentUserCache.refresh([this._getSession()]);
+    await this._clientContactChannelsCache.refresh([this._getSession()]);
+    return result;
   }
 
   async getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentUser<ProjectId>>;
@@ -1329,13 +1382,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.sendVerificationEmail(email, emailVerificationRedirectUrl, session);
   }
 
-  protected async _updatePassword(
-    options: { oldPassword: string, newPassword: string },
-    session: InternalSession
-  ): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void> {
-    return await this._interface.updatePassword(options, session);
-  }
-
   async signOut(): Promise<void> {
     const user = await this.getUser();
     if (user) {
@@ -1511,6 +1557,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return await this._interface.getServerTeamMemberProfile({ teamId, userId });
     }
   );
+  private readonly _serverContactChannelsCache = createCache<[string], ContactChannelsCrud['Server']['Read'][]>(
+    async ([userId]) => {
+      return await this._interface.listServerContactChannels(userId);
+    }
+  );
 
   private async _updateServerUser(userId: string, update: ServerUserUpdateOptions): Promise<UsersCrud['Server']['Read']> {
     const result = await this._interface.updateServerUser(userId, serverUserUpdateOptionsToCrud(update));
@@ -1527,6 +1578,22 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await clientProfile.update(update);
         await app._serverUserTeamProfileCache.refresh([crud.team_id, crud.user_id]);
       }
+    };
+  }
+
+  protected _serverContactChannelFromCrud(userId: string, crud: ContactChannelsCrud['Server']['Read']): ServerContactChannel {
+    const app = this;
+    return {
+      ...this._clientContactChannelFromCrud(crud),
+      async sendVerificationEmail() {
+        return await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, constructRedirectUrl(app.urls.emailVerification));
+      },
+      async update(data: ServerContactChannelUpdateOptions) {
+        await app._interface.updateServerContactChannel(userId, crud.id, serverContactChannelUpdateOptionsToCrud(data));
+      },
+      async delete() {
+        await app._interface.deleteServerContactChannel(userId, crud.id);
+      },
     };
   }
 
@@ -1682,7 +1749,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await app._checkFeatureSupport("sendVerificationEmail() on ServerUser", {});
       },
       async updatePassword(options: { oldPassword?: string, newPassword: string}) {
-        return await this.update({ password: options.newPassword });
+        const result = await this.update({ password: options.newPassword });
+        await app._serverUserCache.refresh([crud.id]);
+        return result;
+      },
+      async setPassword(options: { password: string }) {
+        const result = await this.update(options);
+        await app._serverUserCache.refresh([crud.id]);
+        return result;
       },
       async getTeamProfile(team: Team) {
         const result = await app._serverUserTeamProfileCache.getOrWait([team.id, crud.id], "write-only");
@@ -1691,6 +1765,19 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       useTeamProfile(team: Team) {
         const result = useAsyncCache(app._serverUserTeamProfileCache, [team.id, crud.id], "user.useTeamProfile()");
         return useMemo(() => app._serverEditableTeamProfileFromCrud(result), [result]);
+      },
+      async listContactChannels() {
+        const result = await app._serverContactChannelsCache.getOrWait([crud.id], "write-only");
+        return result.map((data) => app._serverContactChannelFromCrud(crud.id, data));
+      },
+      useContactChannels() {
+        const result = useAsyncCache(app._serverContactChannelsCache, [crud.id], "user.useContactChannels()");
+        return useMemo(() => result.map((data) => app._serverContactChannelFromCrud(crud.id, data)), [result]);
+      },
+      createContactChannel: async (data: ServerContactChannelCreateOptions) => {
+        const contactChannel = await app._interface.createServerContactChannel(serverContactChannelCreateOptionsToCrud(crud.id, data));
+        await app._serverContactChannelsCache.refresh([crud.id]);
+        return app._serverContactChannelFromCrud(crud.id, contactChannel);
       },
     };
   }
@@ -2207,6 +2294,76 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 }
 
+type _______________CONTACT_CHANNEL_______________ = never;  // this is a marker for VSCode's outline view
+
+type ContactChannel = {
+  id: string,
+  value: string,
+  type: 'email',
+  isPrimary: boolean,
+  isVerified: boolean,
+  usedForAuth: boolean,
+
+  sendVerificationEmail(): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>>,
+  update(data: ContactChannelUpdateOptions): Promise<void>,
+  delete(): Promise<void>,
+}
+
+type ContactChannelCreateOptions = {
+  value: string,
+  type: 'email',
+  usedForAuth: boolean,
+}
+
+function contactChannelCreateOptionsToCrud(userId: string, options: ContactChannelCreateOptions): ContactChannelsCrud["Client"]["Create"] {
+  return {
+    value: options.value,
+    type: options.type,
+    used_for_auth: options.usedForAuth,
+    user_id: userId,
+  };
+}
+
+type ContactChannelUpdateOptions = {
+  usedForAuth?: boolean,
+  value?: string,
+  isPrimary?: boolean,
+}
+
+function contactChannelUpdateOptionsToCrud(options: ContactChannelUpdateOptions): ContactChannelsCrud["Client"]["Update"] {
+  return {
+    value: options.value,
+    used_for_auth: options.usedForAuth,
+    is_primary: options.isPrimary,
+  };
+}
+
+type ServerContactChannel = ContactChannel;
+type ServerContactChannelUpdateOptions = ContactChannelUpdateOptions & {
+  isVerified?: boolean,
+}
+
+function serverContactChannelUpdateOptionsToCrud(options: ServerContactChannelUpdateOptions): ContactChannelsCrud["Server"]["Update"] {
+  return {
+    value: options.value,
+    is_verified: options.isVerified,
+    used_for_auth: options.usedForAuth,
+  };
+}
+
+type ServerContactChannelCreateOptions = ContactChannelCreateOptions & {
+  isVerified?: boolean,
+}
+function serverContactChannelCreateOptionsToCrud(userId: string, options: ServerContactChannelCreateOptions): ContactChannelsCrud["Server"]["Create"] {
+  return {
+    type: options.type,
+    value: options.value,
+    is_verified: options.isVerified,
+    user_id: userId,
+    used_for_auth: options.usedForAuth,
+  };
+}
+
 type _______________USER_______________ = never;  // this is a marker for VSCode's outline view
 type ___________client_user = never;  // this is a marker for VSCode's outline view
 
@@ -2326,7 +2483,6 @@ type BaseUser = {
    */
   readonly primaryEmail: string | null,
   readonly primaryEmailVerified: boolean,
-
   readonly profileImageUrl: string | null,
 
   readonly signedUpAt: Date,
@@ -2335,17 +2491,10 @@ type BaseUser = {
   readonly clientReadOnlyMetadata: any,
 
   /**
-   * Whether the primary e-mail can be used for authentication.
-   */
-  readonly emailAuthEnabled: boolean,
-  /**
    * Whether the user has a password set.
    */
   readonly hasPassword: boolean,
-  /**
-   * @deprecated
-   */
-  readonly oauthProviders: readonly { id: string }[],
+  readonly otpAuthEnabled: boolean,
 
   readonly isMultiFactorRequired: boolean,
 
@@ -2354,18 +2503,33 @@ type BaseUser = {
    */
   readonly selectedTeam: Team | null,
   toClientJson(): CurrentUserCrud["Client"]["Read"],
+
+  /**
+   * @deprecated, use contact channel's usedForAuth instead
+   */
+  readonly emailAuthEnabled: boolean,
+  /**
+   * @deprecated
+   */
+  readonly oauthProviders: readonly { id: string }[],
 }
 
 type UserExtra = {
   setDisplayName(displayName: string): Promise<void>,
+  /** @deprecated Use contact channel's sendVerificationEmail instead */
   sendVerificationEmail(): Promise<KnownErrors["EmailAlreadyVerified"] | void>,
   setClientMetadata(metadata: any): Promise<void>,
   updatePassword(options: { oldPassword: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+  setPassword(options: { password: string }): Promise<KnownErrors["PasswordRequirementsNotMet"] | void>,
 
   /**
    * A shorthand method to update multiple fields of the user at once.
    */
   update(update: UserUpdateOptions): Promise<void>,
+
+  useContactChannels(): ContactChannel[],
+  listContactChannels(): Promise<ContactChannel[]>,
+  createContactChannel(data: ContactChannelCreateOptions): Promise<ContactChannel>,
 
   delete(): Promise<void>,
 
@@ -2405,6 +2569,7 @@ type UserUpdateOptions = {
   selectedTeamId?: string | null,
   totpMultiFactorSecret?: Uint8Array | null,
   profileImageUrl?: string | null,
+  otpAuthEnabled?: boolean,
 }
 function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["Client"]["Update"] {
   return {
@@ -2412,7 +2577,8 @@ function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["C
     client_metadata: options.clientMetadata,
     selected_team_id: options.selectedTeamId,
     totp_secret_base64: options.totpMultiFactorSecret != null ? encodeBase64(options.totpMultiFactorSecret) : options.totpMultiFactorSecret,
-    profile_image_url: options.profileImageUrl
+    profile_image_url: options.profileImageUrl,
+    otp_auth_enabled: options.otpAuthEnabled,
   };
 }
 
@@ -2428,14 +2594,14 @@ type ServerBaseUser = {
   setServerMetadata(metadata: any): Promise<void>,
   setClientReadOnlyMetadata(metadata: any): Promise<void>,
 
-  updatePassword(options: { oldPassword?: string, newPassword: string}): Promise<KnownErrors["PasswordConfirmationMismatch"] | KnownErrors["PasswordRequirementsNotMet"] | void>,
+  useContactChannels(): ServerContactChannel[],
+  listContactChannels(): Promise<ServerContactChannel[]>,
+  createContactChannel(data: ServerContactChannelCreateOptions): Promise<ServerContactChannel>,
 
   update(user: ServerUserUpdateOptions): Promise<void>,
 
   grantPermission(scope: Team, permissionId: string): Promise<void>,
   revokePermission(scope: Team, permissionId: string): Promise<void>,
-
-  hasPermission(scope: Team, permissionId: string): Promise<boolean>,
 
   /**
    * Creates a new session object with a refresh token for this user. Can be used to impersonate them.
@@ -2483,8 +2649,10 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
 
 
 type ServerUserCreateOptions = {
-  primaryEmail: string,
-  password: string,
+  primaryEmail?: string,
+  primaryEmailAuthEnabled?: boolean,
+  password?: string,
+  otpAuthEnabled?: boolean,
   displayName?: string,
   primaryEmailVerified?: boolean,
 }
@@ -2492,7 +2660,8 @@ function serverUserCreateOptionsToCrud(options: ServerUserCreateOptions): UsersC
   return {
     primary_email: options.primaryEmail,
     password: options.password,
-    primary_email_auth_enabled: true,
+    otp_auth_enabled: options.otpAuthEnabled,
+    primary_email_auth_enabled: options.primaryEmailAuthEnabled,
     display_name: options.displayName,
     primary_email_verified: options.primaryEmailVerified,
   };
@@ -2810,7 +2979,6 @@ function serverTeamCreateOptionsToCrud(options: ServerTeamCreateOptions): TeamsC
 }
 
 export type ServerTeamUpdateOptions = TeamUpdateOptions & {
-
   clientReadOnlyMetadata?: ReadonlyJson,
   serverMetadata?: ReadonlyJson,
 };
@@ -3029,3 +3197,9 @@ type RedirectToOptions = {
 type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
   & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
+
+type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+type x = Prettify<CurrentUser>
