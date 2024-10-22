@@ -1,5 +1,3 @@
-
-
 # @stackframe/stack-backend
 
 ## 2.6.11

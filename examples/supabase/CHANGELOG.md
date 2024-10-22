@@ -1,5 +1,3 @@
-
-
 # @stackframe/example-supabase
 
 ## 2.6.11

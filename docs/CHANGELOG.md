@@ -1,5 +1,3 @@
-
-
 # @stackframe/docs
 
 ## 2.6.11

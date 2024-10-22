@@ -1,5 +1,3 @@
-
-
 # @stackframe/stack-sc
 
 ## 2.6.11

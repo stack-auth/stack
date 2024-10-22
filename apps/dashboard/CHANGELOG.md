@@ -1,5 +1,3 @@
-
-
 # @stackframe/stack-dashboard
 
 ## 2.6.11

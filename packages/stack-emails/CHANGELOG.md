@@ -1,5 +1,3 @@
-
-
 # @stackframe/stack-emails
 
 ## 2.6.11

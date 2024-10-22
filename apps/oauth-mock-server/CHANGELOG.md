@@ -1,5 +1,3 @@
-
-
 # @stackframe/oauth-mock-server
 
 ## 2.6.11

@@ -1,5 +1,3 @@
-
-
 # @stackframe/e-commerce-demo
 
 ## 2.6.11
