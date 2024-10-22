@@ -29,7 +29,7 @@ tabs:
 
 navigation:
   - tab: documentation
-    layout: 
+    layout:
       - page: Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/overview.mdx
@@ -110,6 +110,11 @@ navigation:
           - page: Self-Hosting
             icon: fa-regular fa-house-laptop
             path: ./docs/pages/others/self-host.mdx
+<<<<<<< HEAD
+          - page: Migration
+            icon: fa-regular fa-right-left
+            path: ./docs/pages/others/migration.mdx
+=======
   - tab: components
     layout: 
       - section: Components
@@ -140,8 +145,9 @@ navigation:
             path: ./docs/pages/components/stack-provider.mdx
           - page: <StackTheme />
             path: ./docs/pages/components/stack-theme.mdx
+>>>>>>> 32e32d25744f73f74ad5e6d2c5f688ecbb7b4ee5
   - tab: sdk
-    layout: 
+    layout:
       - page: SDK Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/sdk/overview.mdx
@@ -163,12 +169,39 @@ navigation:
           #   path: ./docs/pages/sdk/connected-account.mdx
       - section: Hooks
         contents:
+<<<<<<< HEAD
+          - page: <CredentialSignIn />
+            path: ./docs/pages/sdk/credential-sign-in.mdx
+          - page: <CredentialSignUp />
+            path: ./docs/pages/sdk/credential-sign-up.mdx
+          - page: <OAuthButton />
+            path: ./docs/pages/sdk/oauth-button.mdx
+          - page: <OAuthButtonGroup />
+            path: ./docs/pages/sdk/oauth-button-group.mdx
+          - page: <SelectedTeamSwitcher />
+            path: ./docs/pages/sdk/selected-team-switcher.mdx
+          - page: <SignIn />
+            path: ./docs/pages/sdk/sign-in.mdx
+          - page: <SignUp />
+            path: ./docs/pages/sdk/sign-up.mdx
+          - page: <UserButton />
+            path: ./docs/pages/sdk/user-button.mdx
+      - section: Utilities
+        contents:
+          - page: <StackHandler />
+            path: ./docs/pages/sdk/stack-handler.mdx
+          - page: <StackProvider />
+            path: ./docs/pages/sdk/stack-provider.mdx
+          - page: <StackTheme />
+            path: ./docs/pages/sdk/stack-theme.mdx
+=======
           - page: useUser
             path: ./docs/pages/sdk/use-user.mdx
           - page: useStackApp
             path: ./docs/pages/sdk/use-stack-app.mdx
+>>>>>>> 32e32d25744f73f74ad5e6d2c5f688ecbb7b4ee5
   - tab: api
-    layout: 
+    layout:
       - page: API Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/rest-api/auth.mdx
@@ -197,18 +230,18 @@ navbar-links:
     url: https://app.stack-auth.com
 
 colors:
-  accentPrimary: 
-    light: '#000000'
-    dark: '#FFFFFF'
-  background: 
-    light: '#FFFFFF'
-    dark: '#000000'
-  sidebar-background: 
-    light: '#FCFCFC'
-    dark: '#090909'
-  card-background: 
-    light: '#FCFCFC'
-    dark: '#090909'
+  accentPrimary:
+    light: "#000000"
+    dark: "#FFFFFF"
+  background:
+    light: "#FFFFFF"
+    dark: "#000000"
+  sidebar-background:
+    light: "#FCFCFC"
+    dark: "#090909"
+  card-background:
+    light: "#FCFCFC"
+    dark: "#090909"
 layout:
   page-width: full
   content-width: 45rem
