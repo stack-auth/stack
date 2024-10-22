@@ -159,8 +159,8 @@ navigation:
             path: ./docs/pages/sdk/team-profile.mdx
           - page: TeamPermission
             path: ./docs/pages/sdk/team-permission.mdx
-          # - page: Project
-          #   path: ./docs/pages/sdk/project.mdx
+          - page: Project
+            path: ./docs/pages/sdk/project.mdx
           # - page: ConnectedAccount
           #   path: ./docs/pages/sdk/connected-account.mdx
       - section: Hooks

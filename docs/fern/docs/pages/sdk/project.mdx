@@ -1,0 +1,45 @@
+---
+slug: sdk/project
+---
+
+The `Project` object contains the information and configuration of a project like the name, description, enabled auth methods, etc.
+
+You can obtain a `Project` object by calling `stackApp.getProject()` or `useProject()`.
+
+## `Project`
+
+### Properties
+
+<div className="indented">
+  <ParamField path="id" type="string">
+    The id of the project.
+  </ParamField>
+
+  <ParamField path="displayName" type="string">
+    The display name of the project.
+  </ParamField>
+
+  <ParamField path="config" type="object">
+    <div className="indented">
+      <ParamField path="signUpEnabled" type="boolean">
+        Whether sign up is enabled for the project.
+      </ParamField>
+
+      <ParamField path="credentialEnabled" type="boolean">
+        Whether credential auth is enabled for the project.
+      </ParamField>
+
+      <ParamField path="magicLinkEnabled" type="boolean">
+        Whether magic link auth is enabled for the project.
+      </ParamField>
+
+      <ParamField path="clientTeamCreationEnabled" type="boolean">
+        Whether client-side team creation is enabled for the project.
+      </ParamField>
+
+      <ParamField path="clientUserDeletionEnabled" type="boolean">
+        Whether client-side user deletion is enabled for the project.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
