@@ -9,6 +9,10 @@ Due to the nature of authentication, this may not be the easiest project to cont
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+- [How to contribute](#how-to-contribute)
+- [Security & bug bounties](#security--bug-bounties)
+- [Before creating a pull request](#before-creating-a-pull-request)
+
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 
