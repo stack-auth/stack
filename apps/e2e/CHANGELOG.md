@@ -1,6 +1,6 @@
 
 
-# e2e-tests
+# @stackframe/e2e-tests
 
 ## 2.6.11
 

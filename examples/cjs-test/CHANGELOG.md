@@ -1,6 +1,6 @@
 
 
-# cjs-test
+# @stackframe/example-cjs-test
 
 ## 2.6.11
 
