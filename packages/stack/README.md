@@ -1,5 +1,3 @@
-
-
 # Stack
 
 Stack is an open-source, self-hostable, and highly customizable authentication and user management system.
