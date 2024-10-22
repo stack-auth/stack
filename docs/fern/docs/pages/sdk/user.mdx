@@ -6,7 +6,7 @@ This is a detailed reference for the `User` object. If you're looking for a more
 
 ## Different types of `User` objects
 
-There are three main types of user objects in Stack Auth:
+There are a few types of user objects in Stack Auth:
 
 1. `CurrentUser`
    - Represents the authenticated user on the client side
@@ -750,3 +750,4 @@ await serverUser.revokePermission(team, "read_secret_info");
 The `CurrentServerUser` has the same properties and methods from `ServerUser` and `CurrentUser` combined (for the overloaded methods like `update`, the `ServerUser` methods take precedence).
 
 To get a `CurrentServerUser` object, you can use the `stackServerApp.getUser()` method. Note that this can only be used on the server side.
+

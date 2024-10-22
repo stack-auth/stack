@@ -1,0 +1,21 @@
+4. `TeamUser`
+    - This is only used in the context of a team.
+    - It contains minimal information about the user, specifically the user's ID and their profile for the team.
+
+## `TeamUser`
+
+This is only used in the context of a team. For example `team.listUsers()` returns an array of `TeamUser` objects.
+
+It only contains very basic information about the user.
+
+### Properties
+
+<div className="indented">
+  <ParamField path="id" type="string">
+    The ID of the user.
+  </ParamField>
+
+  <ParamField path="teamProfile" type="TeamMemberProfile">
+    The team profile of the user.
+  </ParamField>
+</div>

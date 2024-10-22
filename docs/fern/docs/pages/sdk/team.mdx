@@ -125,3 +125,203 @@ await team.inviteUser({
   email: 'user@example.com',
 });
 ```
+
+### `listUsers()`
+
+Get a list of users in the team.
+
+Note that this operation requires the current user to have the `$read_members` permission. If the user lacks this permission, an error will be thrown.
+
+**Parameters**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns**
+
+<div className="indented">
+  `Promise<TeamUser[]>`
+</div>
+
+**Example**
+
+```tsx
+const users = await team.listUsers();
+users.forEach(user => {
+  console.log(user.id, user.teamProfile.displayName);
+});
+```
+
+
+### `useUsers()`
+
+Get a list of users in the team.
+
+Note that this operation requires the current user to have the `$read_members` permission. If the user lacks this permission, an error will be thrown.
+
+This is the same as `listUsers` but it is a React hook.
+
+**Parameters**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns**
+
+<div className="indented">
+  `TeamUser[]`
+</div>
+
+**Example**
+
+```tsx
+const users = team.useUsers();
+users.forEach(user => {
+  console.log(user.id, user.teamProfile.displayName);
+});
+```
+
+
+## `ServerTeam`
+
+You can call `stackServerApp.getTeam('team_id_123')` or `stackServerApp.listTeams()` to get the `ServerTeam` object.
+
+`ServerTeam` extends the `Team` object, providing additional functions and properties as detailed below. It's important to note that while the `Team` object's functions may require specific user permissions, the corresponding functions in `ServerTeam` can be executed without these permission checks. This allows for more flexible and unrestricted team management on the server side.
+
+### Properties
+
+<div className="indented">
+  <ParamField path="createdAt" type="Date">
+    The date and time when the team was created.
+  </ParamField>
+
+  <ParamField path="serverMetadata" type="Json">
+    The server metadata of the team.
+  </ParamField>
+</div>
+
+### `listUsers()`
+
+Get a list of users in the team. 
+
+This is similar to the `listUsers` method on the `Team` object, but it returns `ServerTeamUser` objects instead of `TeamUser` objects and does not require any permissions.
+
+**Parameters**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns**
+
+<div className="indented">
+  `Promise<ServerTeamUser[]>`
+</div>
+
+**Example**
+
+```tsx
+const users = await team.listUsers();
+users.forEach(user => {
+  console.log(user.id, user.teamProfile.displayName);
+});
+```
+
+### `useUsers()`
+
+Get a list of users in the team. 
+
+This is similar to the `useUsers` method on the `Team` object, but it returns `ServerTeamUser` objects instead of `TeamUser` objects and does not require any permissions. This is the same as `listUsers` but it is a React hook.
+
+**Parameters**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns**
+
+<div className="indented">
+  `ServerTeamUser[]`
+</div>
+
+**Example**
+
+```tsx
+const users = team.useUsers();
+users.forEach(user => {
+  console.log(user.id, user.teamProfile.displayName);
+});
+```
+
+### `addUser()`
+
+Add a user to the team directly without sending an invitation email.
+
+**Parameters**
+
+<div className="indented">
+  <ParamField path="userId" type="string" required>
+    The ID of the user to add.
+  </ParamField>
+</div>
+
+**Returns**
+
+<div className="indented">
+  `Promise<void>`
+</div>
+
+**Example**
+
+```tsx
+await team.addUser('user_id_123');
+```
+
+### `removeUser()`
+
+Remove a user from the team.
+
+**Parameters**
+
+<div className="indented">
+  <ParamField path="userId" type="string" required>
+    The ID of the user to remove.
+  </ParamField>
+</div>
+
+**Returns**
+
+<div className="indented">
+  `Promise<void>`
+</div>
+
+**Example**
+
+```tsx
+await team.removeUser('user_id_123');
+```
+
+### `delete()`
+
+Delete the team.
+
+**Parameters**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns**
+
+<div className="indented">
+  `Promise<void>`
+</div>
+
+**Example**
+
+```tsx
+await team.delete();
+```
