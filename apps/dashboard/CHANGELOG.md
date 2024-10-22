@@ -1,5 +1,16 @@
 # @stackframe/stack-dashboard
 
+## 2.6.12
+
+### Patch Changes
+
+- Updated account settings page
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.12
+  - @stackframe/stack-shared@2.6.12
+  - @stackframe/stack-ui@2.6.12
+  - @stackframe/stack@2.6.12
+
 ## 2.6.11
 
 ### Patch Changes
