@@ -25,7 +25,7 @@ tabs:
 
 navigation:
   - tab: documentation
-    layout: 
+    layout:
       - page: Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/overview.mdx
@@ -106,8 +106,11 @@ navigation:
           - page: Self-Hosting
             icon: fa-regular fa-house-laptop
             path: ./docs/pages/others/self-host.mdx
+          - page: Migration
+            icon: fa-regular fa-right-left
+            path: ./docs/pages/others/migration.mdx
   - tab: sdk
-    layout: 
+    layout:
       - page: SDK Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/sdk/overview.mdx
@@ -137,14 +140,14 @@ navigation:
             path: ./docs/pages/sdk/user-button.mdx
       - section: Utilities
         contents:
-        - page: <StackHandler />
-          path: ./docs/pages/sdk/stack-handler.mdx
-        - page: <StackProvider />
-          path: ./docs/pages/sdk/stack-provider.mdx
-        - page: <StackTheme />
-          path: ./docs/pages/sdk/stack-theme.mdx
+          - page: <StackHandler />
+            path: ./docs/pages/sdk/stack-handler.mdx
+          - page: <StackProvider />
+            path: ./docs/pages/sdk/stack-provider.mdx
+          - page: <StackTheme />
+            path: ./docs/pages/sdk/stack-theme.mdx
   - tab: api
-    layout: 
+    layout:
       - page: API Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/rest-api/auth.mdx
@@ -173,18 +176,18 @@ navbar-links:
     url: https://app.stack-auth.com
 
 colors:
-  accentPrimary: 
-    light: '#000000'
-    dark: '#FFFFFF'
-  background: 
-    light: '#FFFFFF'
-    dark: '#000000'
-  sidebar-background: 
-    light: '#FCFCFC'
-    dark: '#090909'
-  card-background: 
-    light: '#FCFCFC'
-    dark: '#090909'
+  accentPrimary:
+    light: "#000000"
+    dark: "#FFFFFF"
+  background:
+    light: "#FFFFFF"
+    dark: "#000000"
+  sidebar-background:
+    light: "#FCFCFC"
+    dark: "#090909"
+  card-background:
+    light: "#FCFCFC"
+    dark: "#090909"
 layout:
   page-width: full
   content-width: 40rem

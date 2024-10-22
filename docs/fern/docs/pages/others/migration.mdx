@@ -1,0 +1,48 @@
+---
+slug: others/migration
+subtitle: Migrating from next-auth to stack-auth
+---
+
+You can easily migrate your existing next-auth project to stack-auth following these simple steps.
+
+<Note>This guide only applies to an next-auth project using nextjs.</Note>
+
+Run Stack’s installation wizard on your existing project with the following code:
+
+```sh title="Terminal"
+     npx @stackframe/init-stack@latest
+```
+
+You also have the option to use manual installation. For further details, please refer to [Setup](https://docs.stack-auth.com/getting-started/setup)
+
+After running the command, a `app/handler/[...stack]/page.tsx` file is created in your project, this file contains default pages for sign-out, account settings and more. You can learn how to customize them at [custom pages](/customization/custom-pages).
+
+Create an account on [our dashboard](https://app.stack-auth.com/projects), create a new project, then copy your API KEY into your `.env.local` file.
+
+you can now proceed to protecting your pages by updating your `middleware.ts` file with the following code.
+
+```tsx title="middleware.ts"
+import { NextResponse } from "next/server";
+import { stackServerApp } from "@/stack";
+
+export async function middleware(request: NextRequest) {
+  const user = await stackServerApp.getUser();
+  if (!user) {
+    return NextResponse.redirect(new URL("/handler/sign-in", request.url));
+  }
+  return NextResponse.next();
+}
+
+export const config = {
+  // You can add your own route protection logic here
+  // Make sure not to protect the root URL, as it would prevent users from accessing static Next.js files or Stack's /handler path
+  matcher: "/protected/:path*",
+};
+```
+
+you also have the option of protecting your client and server components, check out [Protecting pages](https://docs.stack-auth.com/getting-started/users#protecting-a-page).
+
+You can now clean up your codebase from next-auth related files
+
+- Delete `auth/[...nextauth]`
+- Delete `auth.ts`
