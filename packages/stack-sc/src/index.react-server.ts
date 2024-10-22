@@ -1,2 +1,2 @@
-export { cookies } from 'next/headers';
+export { cookies, headers } from 'next/headers';
 export const isReactServer = true;

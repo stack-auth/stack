@@ -1,15 +1,18 @@
 import { it } from "../../../../../helpers";
-import { backendContext, Auth, niceBackendFetch } from "../../../../backend-helpers";
-import { ContactChannels } from "../../../../backend-helpers";
+import { Auth, ContactChannels, backendContext, niceBackendFetch } from "../../../../backend-helpers";
 
 it("can't send a verification code while logged out", async ({ expect }) => {
-  await Auth.Password.signUpWithEmail();
+  const { userId } = await Auth.Password.signUpWithEmail();
+  const ccResponse = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
+    method: "GET",
+    accessType: "client",
+  });
+
   backendContext.set({ userAuth: null });
-  const response = await niceBackendFetch("/api/v1/contact-channels/send-verification-code", {
+  const response = await niceBackendFetch(`/api/v1/contact-channels/${userId}/${ccResponse.body.items[0].id}/send-verification-code`, {
     method: "POST",
     accessType: "client",
     body: {
-      email: backendContext.value.mailbox.emailAddress,
       callback_url: "http://localhost:12345",
     },
   });
@@ -17,12 +20,11 @@ it("can't send a verification code while logged out", async ({ expect }) => {
     NiceResponse {
       "status": 400,
       "body": {
-        "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on POST /api/v1/contact-channels/send-verification-code:\\n  - auth.user is a required field" },
-        "error": "Request validation failed on POST /api/v1/contact-channels/send-verification-code:\\n  - auth.user is a required field",
+        "code": "CANNOT_GET_OWN_USER_WITHOUT_USER",
+        "error": "You have specified 'me' as a userId, but did not provide authentication for a user.",
       },
       "headers": Headers {
-        "x-stack-known-error": "SCHEMA_ERROR",
+        "x-stack-known-error": "CANNOT_GET_OWN_USER_WITHOUT_USER",
         <some fields may have been hidden>,
       },
     }
@@ -54,11 +56,11 @@ it("should send a verification code per e-mail", async ({ expect }) => {
 
 it("can't verify an e-mail that has already been verified", async ({ expect }) => {
   await Auth.Otp.signIn();  // OTP accounts are verified by default
-  const response = await niceBackendFetch("/api/v1/contact-channels/send-verification-code", {
+  const ccResponse = await ContactChannels.getTheOnlyContactChannel();
+  const response = await niceBackendFetch(`/api/v1/contact-channels/me/${ccResponse.id}/send-verification-code`, {
     method: "POST",
     accessType: "client",
     body: {
-      email: backendContext.value.mailbox.emailAddress,
       callback_url: "http://localhost:12345",
     },
   });

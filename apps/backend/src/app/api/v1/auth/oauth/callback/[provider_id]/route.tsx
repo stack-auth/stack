@@ -1,4 +1,5 @@
 import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { getAuthContactChannel } from "@/lib/contact-channel";
 import { getProject } from "@/lib/projects";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
 import { oauthCookieSchema } from "@/lib/tokens";
@@ -9,7 +10,7 @@ import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse 
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -268,6 +269,24 @@ const handler = createSmartRouteHandler({
                   if (!project.config.sign_up_enabled) {
                     throw new KnownErrors.SignUpNotEnabled();
                   }
+
+                  let primaryEmailAuthEnabled = true;
+                  if (userInfo.email) {
+                    const oldContactChannel = await getAuthContactChannel(
+                      prismaClient,
+                      {
+                        projectId: outerInfo.projectId,
+                        type: 'EMAIL',
+                        value: userInfo.email,
+                      }
+                    );
+
+                    if (oldContactChannel && oldContactChannel.usedForAuth) {
+                      primaryEmailAuthEnabled = false;
+                    }
+                    // TODO: check whether this OAuth account can be used to login to another existing account instead
+                  }
+
                   const newAccount = await usersCrudHandlers.adminCreate({
                     project,
                     data: {
@@ -275,7 +294,7 @@ const handler = createSmartRouteHandler({
                       profile_image_url: userInfo.profileImageUrl || undefined,
                       primary_email: userInfo.email,
                       primary_email_verified: userInfo.emailVerified,
-                      primary_email_auth_enabled: false,
+                      primary_email_auth_enabled: primaryEmailAuthEnabled,
                       oauth_providers: [{
                         id: provider.id,
                         account_id: userInfo.accountId,

@@ -1,12 +1,12 @@
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { createAuthTokens } from "@/lib/tokens";
-import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { usersCrudHandlers } from "../../../users/crud";
+import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const signInVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -23,7 +23,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
   },
   type: VerificationCodeType.ONE_TIME_PASSWORD,
   data: yupObject({
-    user_id: yupString().required(),
+    user_id: yupString().uuid().optional(),
     is_new_user: yupBoolean().required(),
   }),
   method: yupObject({
@@ -35,15 +35,13 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     bodyType: yupString().oneOf(["json"]).required(),
     body: signInResponseSchema.required(),
   }),
-  async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
+  async send(codeObj, createOptions, sendOptions: { email: string }) {
     await sendEmailFromTemplate({
       project: createOptions.project,
-      user: sendOptions.user,
       email: createOptions.method.email,
+      user: null,
       templateType: "magic_link",
       extraVariables: {
-        userDisplayName: sendOptions.user.display_name,
-        userPrimaryEmail: sendOptions.user.primary_email,
         magicLink: codeObj.link.toString(),
         otp: codeObj.code.slice(0, 6).toUpperCase(),
       },
@@ -55,59 +53,42 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     };
   },
   async handler(project, { email }, data) {
-    const contactChannel = await prismaClient.contactChannel.findUnique({
-      where: {
-        projectId_type_value_usedForAuth: {
-          projectId: project.id,
-          type: "EMAIL",
-          value: email,
-          usedForAuth: "TRUE",
-        }
-      },
-      include: {
-        projectUser: {
-          include: {
-            authMethods: {
-              include: {
-                otpAuthMethod: true,
-              }
-            }
-          }
-        }
+    let user;
+    // the user_id check is just for the migration
+    // we can rely only on is_new_user starting from the next release
+    if (!data.user_id) {
+      if (!data.is_new_user) {
+        throw new StackAssertionError("When user ID is not provided, the user must be new");
       }
-    });
 
-    const otpAuthMethod = contactChannel?.projectUser.authMethods.find((m) => m.otpAuthMethod)?.otpAuthMethod;
-
-    if (!contactChannel || !otpAuthMethod) {
-      throw new StackAssertionError("Tried to use OTP sign in but auth method was not found?");
-    }
-
-    if (contactChannel.projectUser.requiresTotpMfa) {
-      throw await createMfaRequiredError({
+      user = await usersCrudHandlers.adminCreate({
         project,
-        isNewUser: data.is_new_user,
-        userId: contactChannel.projectUser.projectUserId,
+        data: {
+          primary_email: email,
+          primary_email_verified: true,
+          primary_email_auth_enabled: true,
+          otp_auth_enabled: true,
+        },
+        allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
+      });
+    } else {
+      user = await usersCrudHandlers.adminRead({
+        project,
+        user_id: data.user_id,
       });
     }
 
-    await prismaClient.contactChannel.update({
-      where: {
-        projectId_projectUserId_type_value: {
-          projectId: project.id,
-          projectUserId: contactChannel.projectUser.projectUserId,
-          type: "EMAIL",
-          value: email,
-        }
-      },
-      data: {
-        isVerified: true,
-      },
-    });
+    if (user.requires_totp_mfa) {
+      throw await createMfaRequiredError({
+        project,
+        isNewUser: data.is_new_user,
+        userId: user.id,
+      });
+    }
 
     const { refreshToken, accessToken } = await createAuthTokens({
       projectId: project.id,
-      projectUserId: contactChannel.projectUser.projectUserId,
+      projectUserId: user.id,
       useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
     });
 
@@ -118,7 +99,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
         refresh_token: refreshToken,
         access_token: accessToken,
         is_new_user: data.is_new_user,
-        user_id: data.user_id,
+        user_id: user.id,
       },
     };
   },

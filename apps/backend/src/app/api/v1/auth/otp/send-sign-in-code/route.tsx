@@ -2,10 +2,11 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, emailOtpSignInCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import semver from "semver";
 import { usersCrudHandlers } from "../../../users/crud";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
+import { getAuthContactChannel } from "@/lib/contact-channel";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -39,53 +40,67 @@ export const POST = createSmartRouteHandler({
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
 
-    const contactChannel = await prismaClient.contactChannel.findUnique({
-      where: {
-        projectId_type_value_usedForAuth: {
-          projectId: project.id,
-          type: "EMAIL",
-          value: email,
-          usedForAuth: "TRUE",
-        }
-      },
-      include: {
-        projectUser: {
-          include: {
-            authMethods: {
-              include: {
-                otpAuthMethod: true,
-              }
-            }
-          }
-        }
+    const contactChannel = await getAuthContactChannel(
+      prismaClient,
+      {
+        projectId: project.id,
+        type: "EMAIL",
+        value: email,
       }
-    });
-
-    const otpAuthMethod = contactChannel?.projectUser.authMethods.find((m) => m.otpAuthMethod)?.otpAuthMethod;
-
-    const isNewUser = !otpAuthMethod;
-    if (isNewUser && !project.config.sign_up_enabled) {
-      throw new KnownErrors.SignUpNotEnabled();
-    }
+    );
 
     let user;
+    let isNewUser;
 
-    if (!otpAuthMethod) {
-      // TODO this should be in the same transaction as the read above
-      user = await usersCrudHandlers.adminCreate({
-        project,
-        data: {
-          primary_email_auth_enabled: true,
-          primary_email: email,
-          primary_email_verified: false,
-        },
-        allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
-      });
+    if (contactChannel) {
+      const otpAuthMethod = contactChannel.projectUser.authMethods.find((m) => m.otpAuthMethod)?.otpAuthMethod;
+
+      if (contactChannel.isVerified) {
+        if (!otpAuthMethod) {
+          // automatically merge the otp auth method with the existing account
+
+          // TODO: use the contact channel handler
+          const rawProject = await prismaClient.project.findUnique({
+            where: {
+              id: project.id,
+            },
+            include: {
+              config: {
+                include: {
+                  authMethodConfigs: {
+                    include: {
+                      otpConfig: true,
+                    }
+                  }
+                }
+              }
+            }
+          });
+
+          const otpAuthMethodConfig = rawProject?.config.authMethodConfigs.find((m) => m.otpConfig) ?? throwErr("OTP auth method config not found.");
+          await prismaClient.authMethod.create({
+            data: {
+              projectUserId: contactChannel.projectUser.projectUserId,
+              projectId: project.id,
+              projectConfigId: project.config.id,
+              authMethodConfigId: otpAuthMethodConfig.id,
+            },
+          });
+        }
+
+        user = await usersCrudHandlers.adminRead({
+          project,
+          user_id: contactChannel.projectUser.projectUserId,
+        });
+      } else {
+        throw new KnownErrors.UserEmailAlreadyExists();
+      }
+      isNewUser = false;
     } else {
-      user = await usersCrudHandlers.adminRead({
-        project,
-        user_id: contactChannel.projectUser.projectUserId,
-      });
+      if (!project.config.sign_up_enabled) {
+        throw new KnownErrors.SignUpNotEnabled();
+      }
+      isNewUser = true;
     }
 
     let type: "legacy" | "standard";
@@ -101,11 +116,11 @@ export const POST = createSmartRouteHandler({
         callbackUrl,
         method: { email, type },
         data: {
-          user_id: user.id,
+          user_id: user?.id,
           is_new_user: isNewUser,
         },
       },
-      { user }
+      { email }
     );
 
     return {

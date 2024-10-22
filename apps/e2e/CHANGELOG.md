@@ -1,4 +1,66 @@
-# e2e-tests
+# @stackframe/e2e-tests
+
+## 2.6.11
+
+### Patch Changes
+
+- fixed account settings bugs
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.11
+
+## 2.6.10
+
+### Patch Changes
+
+- Various bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.10
+
+## 2.6.9
+
+### Patch Changes
+
+- - New contact channel API
+  - Fixed some visual gitches and typos
+  - Bug fixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.9
+
+## 2.6.8
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.8
+
+## 2.6.7
+
+### Patch Changes
+
+- @stackframe/stack-shared@2.6.7
+
+## 2.6.6
+
+### Patch Changes
+
+- @stackframe/stack-shared@2.6.6
+
+## 2.6.5
+
+### Patch Changes
+
+- Minor improvements
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.5
+
+## 2.6.4
+
+### Patch Changes
+
+- fixed small problems
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.4
 
 ## 2.6.3
 

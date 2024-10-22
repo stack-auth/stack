@@ -20,6 +20,7 @@ import './globals.css';
 import { CSPostHogProvider, UserIdentity } from './providers';
 import dynamic from 'next/dynamic';
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { VersionAlerter } from '../components/version-alerter';
 
 export const metadata: Metadata = {
   metadataBase: new URL(env('NEXT_PUBLIC_STACK_URL') || ''),
@@ -100,6 +101,7 @@ export default function RootLayout({
                 <ClientPolyfill />
                 <RouterProvider>
                   <UserIdentity />
+                  <VersionAlerter severeOnly={false} />
                   {children}
                 </RouterProvider>
               </StackTheme>

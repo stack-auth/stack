@@ -6,6 +6,7 @@
   "scripts": {
     "preinstall": "npx -y only-allow pnpm",
     "typecheck": "only-allow pnpm && turbo typecheck",
+    "build:dev": "NODE_ENV=development pnpm run build",
     "build": "only-allow pnpm && turbo build",
     "build:backend": "only-allow pnpm && turbo run build --filter=@stackframe/stack-backend...",
     "build:dashboard": "only-allow pnpm && turbo run build --filter=@stackframe/stack-dashboard...",
@@ -18,6 +19,7 @@
     "start-deps:no-delay": "pnpm run deps-compose up --detach && sleep 5 && pnpm run init-db && echo \"\\nDependencies started in the background as Docker containers. 'pnpm run stop-deps' to stop them\"n",
     "start-deps": "POSTGRES_DELAY_MS=${POSTGRES_DELAY_MS:-20} pnpm run start-deps:no-delay",
     "restart-deps": "pnpm run stop-deps && pnpm run start-deps",
+    "restart-deps:no-delay": "pnpm run stop-deps && pnpm run start-deps:no-delay",
     "psql": "only-allow pnpm && pnpm run --filter=@stackframe/stack-backend psql",
     "prisma": "only-allow pnpm && pnpm run --filter=@stackframe/stack-backend prisma",
     "fern": "only-allow pnpm && pnpm run --filter=@stackframe/docs fern",

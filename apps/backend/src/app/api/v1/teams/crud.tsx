@@ -1,4 +1,4 @@
-import { ensureTeamExist, ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
+import { ensureTeamExists, ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { sendTeamCreatedWebhook, sendTeamDeletedWebhook, sendTeamUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -9,6 +9,7 @@ import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
+import { waitUntil } from "@vercel/functions";
 import { addUserToTeam } from "../team-memberships/crud";
 
 
@@ -92,10 +93,10 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
     const result = teamPrismaToCrud(db);
 
-    await sendTeamCreatedWebhook({
+    waitUntil(sendTeamCreatedWebhook({
       projectId: auth.project.id,
       data: result,
-    });
+    }));
 
     return result;
   },
@@ -144,7 +145,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         });
       }
 
-      await ensureTeamExist(tx, { projectId: auth.project.id, teamId: params.team_id });
+      await ensureTeamExists(tx, { projectId: auth.project.id, teamId: params.team_id });
 
       return await tx.team.update({
         where: {
@@ -165,10 +166,10 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
     const result = teamPrismaToCrud(db);
 
-    await sendTeamUpdatedWebhook({
+    waitUntil(sendTeamUpdatedWebhook({
       projectId: auth.project.id,
       data: result,
-    });
+    }));
 
     return result;
   },
@@ -184,7 +185,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
           recursive: true,
         });
       }
-      await ensureTeamExist(tx, { projectId: auth.project.id, teamId: params.team_id });
+      await ensureTeamExists(tx, { projectId: auth.project.id, teamId: params.team_id });
 
       await tx.team.delete({
         where: {
@@ -196,12 +197,12 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
       });
     });
 
-    await sendTeamDeletedWebhook({
+    waitUntil(sendTeamDeletedWebhook({
       projectId: auth.project.id,
       data: {
         id: params.team_id,
       },
-    });
+    }));
   },
   onList: async ({ query, auth }) => {
     if (auth.type === 'client') {

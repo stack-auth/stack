@@ -73,17 +73,11 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     oauthCallback: 'oauth-callback',
     magicLinkCallback: 'magic-link-callback',
     teamInvitation: 'team-invitation',
+    accountSettings: 'account-settings',
     error: 'error',
   };
 
   const path = props.params.stack.join('/');
-
-  if (path.startsWith('account-settings')) {
-    return <AccountSettings
-      fullPage={props.fullPage}
-      {...filterUndefinedINU(props.componentProps?.AccountSettings)}
-    />;
-  }
 
   switch (path) {
     case availablePaths.signIn: {
@@ -153,6 +147,12 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
         searchParams={props.searchParams || {}}
         fullPage={props.fullPage}
         {...filterUndefinedINU(props.componentProps?.TeamInvitation)}
+      />;
+    }
+    case availablePaths.accountSettings: {
+      return <AccountSettings
+        fullPage={props.fullPage}
+        {...filterUndefinedINU(props.componentProps?.AccountSettings)}
       />;
     }
     case availablePaths.error: {

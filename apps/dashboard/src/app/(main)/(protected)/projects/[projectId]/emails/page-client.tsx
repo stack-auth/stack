@@ -39,7 +39,7 @@ export default function PageClient() {
           </div>
         </SettingText>
         <SettingText label="Sender Email">
-          {emailConfig?.type === 'standard' ? emailConfig.senderEmail : 'noreply@stack-auth.com'}
+          {emailConfig?.type === 'standard' ? emailConfig.senderEmail : 'noreply@stackframe.co'}
         </SettingText>
       </SettingCard>
 

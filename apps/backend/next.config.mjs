@@ -96,8 +96,4 @@ const nextConfig = {
   },
 };
 
-export default withConfiguredSentryConfig(
-  withBundleAnalyzer(
-    nextConfig
-  )
-);
+export default withConfiguredSentryConfig(withBundleAnalyzer(nextConfig));

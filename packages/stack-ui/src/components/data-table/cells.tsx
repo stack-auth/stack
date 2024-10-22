@@ -64,6 +64,8 @@ type ActionItem = '-' | {
   item: React.ReactNode,
   onClick: (e: React.MouseEvent) => void | Promise<void>,
   danger?: boolean,
+  disabled?: boolean,
+  disabledTooltip?: string,
 }
 
 export function ActionCell(props: {
@@ -84,14 +86,36 @@ export function ActionCell(props: {
           <span className="sr-only">Open menu</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[160px]">
-        {props.items?.map((item, index) => item === '-' ? (
-          <DropdownMenuSeparator key={index} />
-        ) : (
-          <DropdownMenuItem key={index} onClick={item.onClick} className={item.danger ? "text-destructive" : ""}>
-            {item.item}
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent align="end" className="min-w-[150px] max-w-[300px]">
+        {props.items?.map((item, index) => {
+          if (item === '-') {
+            return <DropdownMenuSeparator key={index} />;
+          }
+
+          const menuItemProps = {
+            onClick: item.onClick,
+            className: cn(item.danger ? "text-destructive" : ""),
+            disabled: item.disabled
+          };
+
+          const menuItem = (
+            <DropdownMenuItem {...menuItemProps} key={index}>
+              {item.item}
+            </DropdownMenuItem>
+          );
+
+          if (item.disabled && item.disabledTooltip) {
+            return (
+              <SimpleTooltip tooltip={item.disabledTooltip} key={index}>
+                {React.cloneElement(menuItem, {
+                  className: cn(menuItemProps.className, "opacity-50 cursor-not-allowed")
+                })}
+              </SimpleTooltip>
+            );
+          }
+
+          return menuItem;
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

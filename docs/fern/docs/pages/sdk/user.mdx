@@ -1,0 +1,752 @@
+---
+slug: sdk/user
+---
+
+This is a detailed reference for the `User` object. If you need a more high-level overview, check out the getting started guide with users [here](../getting-started/users.mdx).
+
+## Different types of user objects
+
+There are three main types of user objects in Stack:
+
+1. `CurrentUser`
+   - Represents the authenticated user on the client side
+   - Has an active session (typically stored in browser cookies)
+   - Used in client-side code
+   - Obtained by calling `useUser()` in a Client Component
+
+2. `ServerUser`
+   - Represents a user on the server side without an active session
+   - extends most of the attributes and methods of `CurrentUser`
+   - Has additional capabilities like being able to update emails or passwords without confirmation
+   - Lacks session-dependent functions like `signOut()`
+   - Obtained by calling `stackServerApp.getUser('user_id_123')` or `stackServerApp.listUsers()` on the server side
+
+3. `CurrentServerUser`
+   - Combines attributes and methods of both `ServerUser` and `CurrentUser`
+   - Obtained by calling `stackServerApp.getUser()` on the server side
+
+These user types provide flexible and secure user management across both client and server environments, each serving a specific purpose in different application contexts.
+
+## `CurrentUser`
+
+You can call `useUser()` or `stackServerApp.getUser()` to get the `CurrentUser` object.
+
+### Properties
+
+<div className="indented">
+<ParamField path="id" type="string">
+The user ID. This is the unique identifier of the user.
+</ParamField>
+
+<ParamField path="displayName" type="string | null">
+The display name of the user. Can be changed by the user.
+</ParamField>
+
+<ParamField path="primaryEmail" type="string | null">
+The primary email of the user. Note: this is not unique.
+</ParamField>
+
+<ParamField path="primaryEmailVerified" type="boolean">
+Whether the primary email is verified.
+</ParamField>
+
+<ParamField path="profileImageUrl" type="string | null">
+The profile image URL of the user.
+</ParamField>
+
+<ParamField path="signedUpAt" type="Date">
+The Date when the user signed up.
+</ParamField>
+
+<ParamField path="hasPassword" type="boolean">
+Whether the user has a password set.
+</ParamField>
+
+<ParamField path="clientMetadata" type="object">
+The JSON metadata that is visible on the client side. Note that this should not contain information that should be kept private on the server side or information that should not be modified by the client.
+</ParamField>
+
+<ParamField path="clientReadOnlyMetadata" type="object">
+Metadata that can be read on the client side but can only be modified on the server side.
+</ParamField>
+
+<ParamField path="selectedTeam" type="Team | null">
+The currently selected team for the user, if applicable.
+</ParamField>
+</div>
+
+### `update()`
+
+Update the user information.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="options" type="object" required>
+    <div className="indented">
+      <ParamField path="displayName" type="string">
+        The new display name for the user.
+      </ParamField>
+      <ParamField path="clientMetadata" type="object">
+        Custom metadata visible to the client.
+      </ParamField>
+      <ParamField path="selectedTeamId" type="string | null">
+        The ID of the team to set as selected, or null to clear selection.
+      </ParamField>
+      <ParamField path="profileImageUrl" type="string | null">
+        The URL of the user's new profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<void>`
+</div>
+
+**Example:**
+
+```typescript
+await user.update({
+  displayName: "New Display Name",
+  clientMetadata: {
+    address: "123 Main St",
+  },
+});
+```
+
+### `getTeam()`
+
+Get the team with the given ID.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="id" type="string">
+    The ID of the team to get.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<Team | null>`: The team object, or null if the team is not found (either because it doesn't exist or because the user is not a member of the team).
+</div>
+
+**Example:**
+```typescript
+const team = await user.getTeam("teamId");
+```
+
+### `useTeam()`
+
+Get the team with the given ID.
+
+This is the same as `getTeam` but it is a React hook.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="id" type="string" required>
+    The ID of the team to get.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Team | null`: The team object, or null if the team is not found (either because it doesn't exist or because the user is not a member of the team).
+</div>
+
+**Example:**
+```typescript
+const team = user.useTeam("teamId");
+```
+
+### `listTeams()`
+
+
+List all the teams the user is a member of.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<Team[]>`: The list of teams.
+</div>
+
+**Example:**
+
+```typescript
+const teams = await user.listTeams();
+```
+
+### `useTeams()`
+
+List all the teams the user is a member of.
+
+This is the same as `listTeams` but it is a React hook.
+
+**Parameters:**
+
+<div className="indented">
+No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Team[]`: The list of teams.
+</div>
+
+**Example:**
+```typescript
+const teams = user.useTeams();
+```
+
+### `setSelectedTeam()`
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="team" type="Team | null" required>
+    The team to set as selected, or null to clear selection.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<void>`
+</div>
+
+Set the currently selected team for the user.
+
+**Example:**
+```typescript
+const team = await user.getTeam("team_id_123");
+await user.setSelectedTeam(team);
+```
+
+### `createTeam()`
+
+Create a new team for the user. The user will be added to the team and be given the creator permissions.
+
+Note that if client side team creation is disabled in the Stack dashboard, this will throw an error.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="data" type="object" required>
+    <div className="indented">
+      <ParamField path="displayName" type="string">
+        The display name for the team.
+      </ParamField>
+      <ParamField path="profileImageUrl" type="string | null">
+        The URL of the team's profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<Team>`: The created team.
+</div>
+
+**Example:**
+```typescript
+const team = await user.createTeam({
+  displayName: "New Team",
+  profileImageUrl: "https://example.com/profile.jpg",
+});
+```
+
+### `leaveTeam()`
+
+Leave a team.
+
+Note that if the user is not a member of the team, this will throw an error.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="team" type="Team" required>
+    The team to leave.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<void>`
+</div>
+
+**Example:**
+```typescript
+await user.leaveTeam(team);
+```
+
+### `getTeamProfile()`
+
+Get the user's profile for a team.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="team" type="Team" required>
+    The team to get the profile for.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<EditableTeamMemberProfile>`: The editable team member profile
+</div>
+
+**Example:**
+
+```typescript
+const profile = await user.getTeamProfile(team);
+```
+
+### `useTeamProfile()`
+
+Get the user's profile for a team.
+
+This is the same as `getTeamProfile` but it is a React hook.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="team" type="Team" required>
+    The team to get the profile for.
+  </ParamField>
+</div>
+**Returns:**
+
+`EditableTeamMemberProfile`: The editable team member profile
+
+**Example:**
+```typescript
+const profile = user.useTeamProfile(team);
+```
+
+
+### `hasPermission()`
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="scope" type="Team" required>
+  The team to check the permission for.
+  </ParamField>
+
+  <ParamField path="permissionId" type="string" required>
+  The ID of the permission to check.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<boolean>`: Whether the user has the permission.
+</div>
+
+This will check if the user has a permission for a team. Note that if the permission is not defined in the Stack dashboard, it will still return false.
+
+**Example:**
+```typescript
+const hasPermission = await user.hasPermission(team, "permissionId");
+```
+
+### `getPermission()`
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="scope" type="Team" required>
+    The team to get the permission for.
+  </ParamField>
+
+  <ParamField path="permissionId" type="string" required>
+    The ID of the permission to get.
+  </ParamField>
+
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="recursive" type="boolean">
+        Whether to get the permission recursively. default `true`.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+**Returns:**
+
+<div className="indented">
+  `Promise<TeamPermission | null>`: The permission object, or null if the permission is not found.
+</div>
+
+This will get the permission of a user for a team. Note that if the permission is not defined in the Stack dashboard, it will still return null.
+
+**Example:**
+
+```typescript
+const permission = await user.getPermission(team, "read_secret_info");
+```
+
+### `usePermission()`
+
+- `TeamPermission | null`: The permission object, or null if the permission is not found.
+
+This will get the permission of a user for a team. Note that if the permission is not defined in the Stack dashboard, it will still return null.
+
+This is the same as `getPermission` but it is a React hook.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="scope" type="Team" required>
+    The team to get the permission for.
+  </ParamField>
+
+  <ParamField path="permissionId" type="string" required>
+    The ID of the permission to get.
+  </ParamField>
+
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="recursive" type="boolean">
+        Whether to get the permission recursively. default `true`.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+**Returns:**
+
+<div className="indented">
+  `TeamPermission | null`: The permission object, or null if the permission is not found.
+</div>
+
+**Example:**
+
+```typescript
+const permission = user.usePermission(team, "read_secret_info");
+```
+
+### `listPermissions()`
+
+List all the permissions a user has for a team.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="scope" type="Team" required>
+    The team to list the permissions for.
+  </ParamField>
+
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="recursive" type="boolean">
+      Whether to list the permissions recursively. default `true`.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+**Returns:**
+
+<div className="indented">
+  `Promise<TeamPermission[]>`: The list of permissions.
+</div>
+
+**Example:**
+```typescript
+const permissions = await user.listPermissions(team);
+```
+
+### `usePermissions()`
+
+List all the permissions a user has for a team.
+
+This is the same as `listPermissions` but it is a React hook.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="scope" type="Team" required>
+    The team to use the permissions for.
+  </ParamField>
+
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="recursive" type="boolean">
+        Whether to use the permissions recursively. default `true`.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+**Returns:**
+
+<div className="indented">
+  `TeamPermission[]`: The list of permissions.
+</div>
+
+**Example:**
+```typescript
+const permissions = user.usePermissions(team);
+```
+
+### `updatePassword()`
+
+This will update the user's password. It will return an error object (not throw an error) if the passwords mismatch or if the new password does not meet the requirements. If successful, it will return undefined.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="options" type="object" required>
+    <div className="indented">
+      <ParamField path="oldPassword" type="string" required>
+        The old password.
+      </ParamField>
+      <ParamField path="newPassword" type="string" required>
+        The new password.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<void>`
+</div>
+
+**Example:**
+
+```typescript
+const result = await user.updatePassword({
+  currentPassword: "oldPassword",
+  newPassword: "newPassword",
+});
+if (result.status === "error" ) {
+  console.error("Error updating password", result.error);
+} else {
+  console.log("Password updated");
+}
+```
+
+### `getAuthJson()`
+
+This will return the authentication tokens of the user. This is normally then used for authentication to an external server. See more details [here](../concepts/backend-integration.mdx).
+
+**Parameters:**
+
+<div className="indented">
+No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<{ accessToken: string | null }>`
+</div>
+**Example:**
+
+```typescript
+const { accessToken } = await user.getAuthJson();
+```
+
+
+### `signOut()`
+
+This will sign out the user and clear the session.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<void>`
+</div>
+
+**Example:**
+
+```typescript
+await user.signOut();
+```
+
+### `delete()`
+
+Delete the user. Use it with caution as it is irreversible. Note that this only works if the "allow client side user deletion" option is enabled in the Stack dashboard.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<void>`
+</div>
+
+**Example:**
+
+```typescript
+await user.delete();
+```
+
+## `ServerUser`
+
+`ServerUser` is only available on the server side. Some of the methods on the `StackServerApp` return `ServerUser` objects, for example `stackServerApp.listUsers()` or `stackServerApp.getUser('user_id_123')`.
+
+The `ServerUser` object contains everything in the `CurrentUser` object, except for the following methods:
+
+- `signOut()`
+- `getAuthJson()`
+
+It also has some additional properties and methods (some of the methods have the same name but more capabilities):
+
+### Properties
+
+<div className="indented">
+  <ParamField path="lastActiveAt" type="Date">
+    The last active at date of the user.
+  </ParamField>
+
+  <ParamField path="serverMetadata" type="object">
+    The server metadata of the user. Only readable and writable on the server side.
+  </ParamField>
+</div>
+### `update()`
+
+Update the user information.
+
+This is similar to the `CurrentUser.update()` method, but is strictly more powerful (like update password, update server metadata, etc.)
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="options" type="object" required>
+    <div className="indented">
+      <ParamField path="displayName" type="string">
+        The new display name for the user.
+      </ParamField>
+      <ParamField path="clientMetadata" type="object">
+        Custom metadata visible to the client.
+      </ParamField>
+      <ParamField path="selectedTeamId" type="string | null">
+        The ID of the team to set as selected, or null to clear selection.
+      </ParamField>
+      <ParamField path="profileImageUrl" type="string | null">
+        The URL of the user's new profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
+      </ParamField>
+      <ParamField path="clientReadOnlyMetadata" type="object">
+        Metadata that can be read on the client side but can only be modified on the server side.
+      </ParamField>
+      <ParamField path="serverMetadata" type="object">
+        Metadata that can be read and modified on the server side.
+      </ParamField>
+      <ParamField path="password" type="string">
+        The new password for the user.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+`Promise<void>`
+</div>
+
+**Example:**
+
+```typescript
+await serverUser.update({
+  displayName: "New Display Name",
+  password: "newPassword",
+  serverMetadata: {
+    secret: "shh",
+  },
+});
+```
+
+### `grantPermission()`
+
+Grant a permission to a user for a team.
+
+This action will still succeed if the permission is already granted. It will throw an error if the permission is not defined in the Stack dashboard.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="scope" type="Team" required>
+    The team to grant the permission to.
+  </ParamField>
+
+  <ParamField path="permissionId" type="string" required>
+    The ID of the permission to grant.
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<void>`
+</div>
+
+**Example:**
+
+```typescript
+await serverUser.grantPermission(team, "read_secret_info");
+```
+
+### `revokePermission()`
+
+Revoke a permission from a user for a team.
+
+This action will still succeed if the permission is not granted in the first place. It will throw an error if the permission is not defined in the Stack dashboard.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="scope" type="Team" required>
+    The team to revoke the permission from.
+  </ParamField>
+
+  <ParamField path="permissionId" type="string" required>
+    The ID of the permission to revoke.
+  </ParamField>
+</div>
+**Returns:**
+
+<div className="indented">
+  `Promise<void>`
+</div>
+
+**Example:**
+
+```typescript
+await serverUser.revokePermission(team, "read_secret_info");
+```
+
+## `CurrentServerUser`
+
+The `CurrentServerUser` has the same properties and methods from `ServerUser` and `CurrentUser` combined (for the overloaded methods like `update`, the `ServerUser` methods take precedence).
+
+To get a `CurrentServerUser` object, you can use the `stackServerApp.getUser()` method. Note that this can only be used on the server side.

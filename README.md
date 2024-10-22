@@ -33,6 +33,7 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 - [🏗 Development & Contribution](#-development--contribution)
   - [Requirements](#requirements)
   - [Setup](#setup)
+  - [Development environment port mapping](#development-environment-port-mapping)
   - [Database migrations](#database-migrations)
   - [Chat with the codebase](#chat-with-the-codebase)
   - [Architecture overview](#architecture-overview)
@@ -51,6 +52,8 @@ Ask yourself about `X`:
 If you answered "no" to any of these questions, then that's how Stack Auth is different from `X`.
 
 ## ✨ Features
+
+To get notified first when we add new features, please subscribe to [our newsletter](https://stack-auth.beehiiv.com/subscribe).
 
 | | |
 |-|:-:|
@@ -99,7 +102,7 @@ This is for you if you want to contribute to the Stack project or run the Stack 
 
 ### Setup
 
-Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages. You should copy all the `.env.development` files to `.env.local` in the respective packages for local development.
+Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages. (Note: If you're creating a production build (eg. with `pnpm run build`), you must supply the environment variables manually.)
 
 In a new terminal:
 
@@ -107,7 +110,7 @@ In a new terminal:
 pnpm install
 
 # Run build to build everything once
-pnpm run build
+pnpm run build:dev
 
 # reset & start the dependencies (DB, Inbucket, etc.) as Docker containers, seeding the DB with the Prisma schema
 pnpm run start-deps
@@ -121,7 +124,7 @@ pnpm run dev
 pnpm run test
 ```
 
-You can now open the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106.
+You can now open the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106. See the section below on more information on the ports of the running services.
 
 Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 
@@ -130,6 +133,25 @@ You can also open Prisma Studio to see the database interface and edit data dire
 ```sh
 pnpm run prisma studio
 ```
+
+### Development environment port mapping
+
+8101. Dashboard (equivalent to https://app.stack-auth.com)
+8102. Backend (equivalent to https://api.stack-auth.com)
+8103. Demo app (equivalent to https://demo.stack-auth.com)
+8104. Docs (equivalent to https://docs.stack-auth.com)
+8105. Inbucket (e-mails)
+8106. Prisma Studio
+8107. Jaeger UI/OpenTelemetry (for performance tracing)
+8108. `examples/docs-examples`
+8109. `examples/partial-prerendering`
+8110. `examples/cjs-test`
+8111. `examples/e-commerce`
+8112. `examples/middleware`
+8113. Svix server (for webhooks)
+8114. OAuth mock server
+8115. `examples/supabase`
+
 
 ### Database migrations
 
@@ -151,16 +173,16 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
       User((User))
       Admin((Admin))
       subgraph "Stack Auth System"
-          Dashboard[Stack Dashboard<br/>Next.js]
-          Backend[Stack API Backend<br/>Next.js]
+          Dashboard[Stack Dashboard<br/>/apps/dashboard]
+          Backend[Stack API Backend<br/>/apps/backend]
           Database[(PostgreSQL Database)]
           EmailService[Email Service<br/>Inbucket]
           WebhookService[Webhook Service<br/>Svix]
-          subgraph "Shared Packages"
-              StackSDK[Stack<br/>Client SDK]
-              StackUI[Stack UI<br/>React Components]
-              StackShared[Stack Shared<br/>Utilities]
-              StackEmails[Stack Emails<br/>Email Templates]
+          StackSDK[Client SDK<br/>/packages/stack]
+          subgraph Shared
+              StackUI[Stack UI<br/>/packages/stack-ui]
+              StackShared[Stack Shared<br/>/packages/stack-shared]
+              StackEmails[Stack Emails<br/>/packages/stack-emails]
           end
       end
       Admin --> Dashboard
@@ -169,13 +191,11 @@ Storia trained an [AI on our codebase](https://sage.storia.ai/stack-auth) that c
       Backend --> Database
       Backend --> EmailService
       Backend --> WebhookService
-      Dashboard --> StackUI
-      Dashboard --> StackShared
-      Dashboard --> StackEmails
+      Dashboard --> Shared
       Dashboard --> StackSDK
       StackSDK --HTTP Requests--> Backend
-      Backend --> StackShared
-      Backend --> StackEmails
+      StackSDK --> Shared
+      Backend --> Shared
       classDef container fill:#1168bd,stroke:#0b4884,color:#ffffff
       classDef database fill:#2b78e4,stroke:#1a4d91,color:#ffffff
       classDef external fill:#999999,stroke:#666666,color:#ffffff

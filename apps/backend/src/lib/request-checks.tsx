@@ -4,7 +4,8 @@ import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/proje
 import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { listUserTeamPermissions } from "./permissions";
 import { PrismaTransaction } from "./types";
-import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 
 async function _getTeamMembership(
@@ -33,7 +34,7 @@ export async function ensureTeamMembershipExists(
     userId: string,
   }
 ) {
-  await ensureUserExist(tx, { projectId: options.projectId, userId: options.userId });
+  await ensureUserExists(tx, { projectId: options.projectId, userId: options.userId });
 
   const member = await _getTeamMembership(tx, options);
 
@@ -57,7 +58,7 @@ export async function ensureTeamMembershipDoesNotExist(
   }
 }
 
-export async function ensureTeamExist(
+export async function ensureTeamExists(
   tx: PrismaTransaction,
   options: {
     projectId: string,
@@ -112,7 +113,7 @@ export async function ensureUserTeamPermissionExists(
   }
 }
 
-export async function ensureUserExist(
+export async function ensureUserExists(
   tx: PrismaTransaction,
   options: {
     projectId: string,
@@ -149,4 +150,52 @@ export function ensureStandardProvider(
     throw new KnownErrors.InvalidStandardOAuthProviderId(providerId);
   }
   return providerId as any;
+}
+
+export async function ensureContactChannelDoesNotExists(
+  tx: PrismaTransaction,
+  options: {
+    projectId: string,
+    userId: string,
+    type: 'email',
+    value: string,
+  }
+) {
+  const contactChannel = await tx.contactChannel.findUnique({
+    where: {
+      projectId_projectUserId_type_value: {
+        projectId: options.projectId,
+        projectUserId: options.userId,
+        type: typedToUppercase(options.type),
+        value: options.value,
+      },
+    },
+  });
+
+  if (contactChannel) {
+    throw new StatusError(StatusError.BadRequest, 'Contact channel already exists');
+  }
+}
+
+export async function ensureContactChannelExists(
+  tx: PrismaTransaction,
+  options: {
+    projectId: string,
+    userId: string,
+    contactChannelId: string,
+  }
+) {
+  const contactChannel = await tx.contactChannel.findUnique({
+    where: {
+      projectId_projectUserId_id: {
+        projectId: options.projectId,
+        projectUserId: options.userId,
+        id: options.contactChannelId,
+      },
+    },
+  });
+
+  if (!contactChannel) {
+    throw new StatusError(StatusError.BadRequest, 'Contact channel not found');
+  }
 }

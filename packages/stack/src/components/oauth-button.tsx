@@ -302,7 +302,7 @@ export function OAuthButton({
       <style>{styleSheet}</style>
       <Button
         onClick={() => stackApp.signInWithOAuth(provider)}
-        className={`stack-oauth-button-${styleId}`}
+        className={`stack-oauth-button-${styleId} stack-scope`}
       >
         <div className='flex items-center w-full gap-4'>
           {style.icon}

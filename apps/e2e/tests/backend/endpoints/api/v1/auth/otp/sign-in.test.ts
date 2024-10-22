@@ -38,6 +38,7 @@ it("should sign in users created with the server API", async ({ expect }) => {
     body: {
       primary_email: backendContext.value.mailbox.emailAddress,
       primary_email_auth_enabled: true,
+      primary_email_verified: true,
     },
   });
   expect(response.status).toBe(201);
@@ -64,6 +65,7 @@ it("should sign in users created with the server API even if sign up is disabled
     body: {
       primary_email: backendContext.value.mailbox.emailAddress,
       primary_email_auth_enabled: true,
+      primary_email_verified: true,
     },
   });
   expect(response.status).toBe(201);
@@ -82,13 +84,49 @@ it("should sign in users created with the server API even if sign up is disabled
   `);
 });
 
+it("should not allow signing in if email is not verified", async ({ expect }) => {
+  await niceBackendFetch("/api/v1/users", {
+    accessType: "server",
+    method: "POST",
+    body: {
+      primary_email: backendContext.value.mailbox.emailAddress,
+      primary_email_auth_enabled: true,
+      primary_email_verified: false,
+    },
+  });
+
+  const response = await niceBackendFetch("/api/v1/auth/otp/send-sign-in-code", {
+    method: "POST",
+    accessType: "client",
+    body: {
+      email: backendContext.value.mailbox.emailAddress,
+      callback_url: "http://localhost:12345/some-callback-url",
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "USER_EMAIL_ALREADY_EXISTS",
+        "error": "User already exists.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+
 it("should sign up a new user even if one already exists with email auth disabled", async ({ expect }) => {
-  const response = await niceBackendFetch("/api/v1/users", {
+  await niceBackendFetch("/api/v1/users", {
     accessType: "server",
     method: "POST",
     body: {
       primary_email: backendContext.value.mailbox.emailAddress,
       primary_email_auth_enabled: false,
+      primary_email_verified: true,
     },
   });
   const res2 = await Auth.Otp.signIn();
@@ -107,7 +145,7 @@ it("should sign up a new user even if one already exists with email auth disable
 });
 
 it("should not allow signing in when MFA is required", async ({ expect }) => {
-  const res = await Auth.Otp.signIn();
+  await Auth.Otp.signIn();
   await Auth.Mfa.setupTotpMfa();
   await Auth.signOut();
 
@@ -170,7 +208,7 @@ it("should sign in with otp code", async ({ expect }) => {
       "status": 200,
       "body": {
         "access_token": <stripped field 'access_token'>,
-        "is_new_user": false,
+        "is_new_user": true,
         "refresh_token": <stripped field 'refresh_token'>,
         "user_id": "<stripped UUID>",
       },

@@ -4,10 +4,11 @@ import { UserTable } from "@/components/data-table/user-table";
 import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { StyledLink } from "@/components/link";
-import { Alert, Button } from "@stackframe/stack-ui";
+import { Alert, Button, Label, Switch } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
+import { useState } from "react";
 
 function CreateDialog(props: {
   existingEmails: string[],
@@ -16,11 +17,23 @@ function CreateDialog(props: {
   trigger?: React.ReactNode,
 }) {
   const adminApp = useAdminApp();
+  const project = adminApp.useProject();
   const formSchema = yup.object({
     displayName: yup.string().optional(),
     primaryEmail: yup.string().email().notOneOf(props.existingEmails, "Email already exists").required(),
-    primaryEmailVerified: yup.boolean().optional(),
-    password: yup.string().required(),
+    primaryEmailVerified: yup.boolean().optional().test({
+      name: 'otp-verified',
+      message: 'Primary email must be verified if OTP/magic link sign-in is enabled',
+      test: (value, context) => {
+        if (context.parent.otpAuthEnabled) {
+          return !!value;
+        }
+        return true;
+      },
+    }).optional(),
+    password: yup.string().optional(),
+    otpAuthEnabled: yup.boolean().optional(),
+    passwordEnabled: yup.boolean().optional(),
   });
 
   return <FormDialog
@@ -29,23 +42,20 @@ function CreateDialog(props: {
     formSchema={formSchema}
     okButton={{ label: "Create" }}
     onSubmit={async (values) => {
-      await adminApp.createUser(values);
+      await adminApp.createUser({
+        ...values,
+        primaryEmailAuthEnabled: true,
+      });
     }}
     cancelButton
     render={(form) => (
       <>
-        <InputField control={form.control} label="Display Name" name="displayName" />
-
-        <div className="flex gap-4 items-end">
-          <div className="flex-1">
-            <InputField control={form.control} label="Primary Email" name="primaryEmail" required />
-          </div>
-          <div className="mb-2">
-            <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" />
-          </div>
-        </div>
-
-        <InputField control={form.control} label="Password" name="password" type="password" required />
+        <InputField control={form.control} label="Display name" name="displayName" />
+        <InputField control={form.control} label="Primary email" name="primaryEmail" required />
+        <SwitchField control={form.control} label="Primary email verified" name="primaryEmailVerified" />
+        {project.config.magicLinkEnabled && <SwitchField control={form.control} label="OTP/magic link sign-in" name="otpAuthEnabled" />}
+        {project.config.credentialEnabled && <SwitchField control={form.control} label="Password sign-in" name="passwordEnabled" />}
+        {form.watch("passwordEnabled") ? <InputField control={form.control} label="Password" name="password" type="password" /> : null}
       </>
     )}
   />;

@@ -1,13 +1,13 @@
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
-import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { prismaClient } from "@/prisma-client";
+import { getAuthContactChannel } from "@/lib/contact-channel";
 import { createAuthTokens } from "@/lib/tokens";
-import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { prismaClient } from "@/prisma-client";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { usersCrudHandlers } from "../../../users/crud";
+import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
+import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
+import { usersCrudHandlers } from "../../../users/crud";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
@@ -50,15 +50,27 @@ export const POST = createSmartRouteHandler({
       throw new KnownErrors.SignUpNotEnabled();
     }
 
+    const contactChannel = await getAuthContactChannel(
+      prismaClient,
+      {
+        projectId: project.id,
+        type: "EMAIL",
+        value: email,
+      }
+    );
+
+    if (contactChannel) {
+      throw new KnownErrors.UserEmailAlreadyExists();
+    }
+
     const createdUser = await usersCrudHandlers.adminCreate({
       project,
       data: {
-        primary_email_auth_enabled: true,
         primary_email: email,
         primary_email_verified: false,
+        primary_email_auth_enabled: true,
         password,
       },
-      allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
     });
 
     try {

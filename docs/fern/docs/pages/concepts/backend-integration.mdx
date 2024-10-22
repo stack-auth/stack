@@ -3,22 +3,21 @@ slug: concepts/backend-integration
 subtitle: Integrate Stack Auth with your own server with the REST APIs
 ---
 
-To authenticate your endpoints, you need to send the user's access token and refresh token in the headers of the request to your server, and then making a request to Stack's server API to verify the user's identity.
+To authenticate your endpoints, you need to send the user's access token in the headers of the request to your server, and then making a request to Stack's server API to verify the user's identity.
 
 ## Sending requests to your server endpoints
 
-To authenticate your own server endpoints using Stack's server API, you need to protect your endpoints by sending the user's access token and refresh token in the headers of the request.
+To authenticate your own server endpoints using Stack's server API, you need to protect your endpoints by sending the user's access token in the headers of the request.
 
-On the client side, you can retrieve the access token and refresh token from the `user` object by calling `user.getAuthJson()`. This will return an object containing `accessToken` and `refreshToken`.
+On the client side, you can retrieve the access token from the `user` object by calling `user.getAuthJson()`. This will return an object containing `accessToken`.
 
 Then, you can call your server endpoint with these two tokens in the headers, like this:
 
 ```typescript
-const { accessToken, refreshToken } = await user.getAuthJson();
+const { accessToken } = await user.getAuthJson();
 const response = await fetch('/api/users/me', {
   headers: {
     'x-stack-access-token': accessToken,
-    'x-stack-refresh-token': refreshToken
   },
   // your other options and parameters
 });
@@ -26,7 +25,7 @@ const response = await fetch('/api/users/me', {
 
 ## Authenticating the user on the server endpoints
 
-On the server side, you can extract the access token and refresh token from the headers of the request and use them to authenticate the user. (more details on the headers [here](./../rest-api/auth.mdx).)
+On the server side, you can extract the access token from the headers of the request and use it to authenticate the user. (more details on the headers [here](./../rest-api/auth.mdx).)
 
 <Tabs>
   <Tab title="Node.js">
@@ -37,7 +36,6 @@ On the server side, you can extract the access token and refresh token from the 
       'x-stack-project-id': 'generated from the Stack dashboard',
       'x-stack-secret-server-key': 'generated from the Stack dashboard',
       'x-stack-access-token': 'access token from headers',
-      'x-stack-refresh-token': 'refresh token from headers'
     };
 
     fetch(url, { headers })
@@ -62,7 +60,6 @@ On the server side, you can extract the access token and refresh token from the 
       'x-stack-project-id': 'generated from the Stack dashboard',
       'x-stack-secret-server-key': 'generated from the Stack dashboard',
       'x-stack-access-token': 'access token from headers',
-      'x-stack-refresh-token': 'refresh token from headers'
     }
 
     response = requests.get(url, headers=headers)

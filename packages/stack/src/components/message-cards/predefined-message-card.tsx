@@ -1,7 +1,7 @@
 "use client";
 
 import { Typography } from "@stackframe/stack-ui";
-import { useStackApp } from "../..";
+import { useStackApp, useUser } from "../..";
 import { MessageCard } from "./message-card";
 import { useTranslation } from "../../lib/translations";
 
@@ -13,6 +13,7 @@ export function PredefinedMessageCard({
   fullPage?: boolean,
 }) {
   const stackApp = useStackApp();
+  const user = useUser();
   const { t } = useTranslation();
 
   let title: string;
@@ -62,8 +63,13 @@ export function PredefinedMessageCard({
     case 'emailVerified': {
       title = t("Email verified!");
       message = t("Your have successfully verified your email.");
-      primaryAction = () => stackApp.redirectToSignIn({ noRedirectBack: true });
-      primaryButton = t("Sign in");
+      if (user) {
+        primaryAction = () => stackApp.redirectToSignIn({ noRedirectBack: true });
+        primaryButton = t("Sign in");
+      } else {
+        primaryAction = () => stackApp.redirectToHome();
+        primaryButton = t("Go to home");
+      }
       break;
     }
     case 'unknownError': {
