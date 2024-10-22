@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.6.12
+
+### Patch Changes
+
+- Updated account settings page
+
 ## 2.6.11
 
 ### Patch Changes
