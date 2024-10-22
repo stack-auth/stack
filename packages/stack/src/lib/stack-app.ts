@@ -33,7 +33,7 @@ import * as NextNavigationUnscrambled from "next/navigation"; // import the enti
 import React, { useCallback, useMemo } from "react";
 import { constructRedirectUrl } from "../utils/url";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
-import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
+import { deleteCookieClient, getCookie, getCookieClient, setOrDeleteCookie, setOrDeleteCookieClient } from "./cookie";
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
@@ -469,7 +469,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _memoryTokenStore = createEmptyTokenStore();
   protected _requestTokenStores = new WeakMap<RequestLike, Store<TokenObject>>();
-  protected _storedCookieTokenStore: Store<TokenObject> | null = null;
+  protected _storedBrowserCookieTokenStore: Store<TokenObject> | null = null;
   protected get _refreshTokenCookieName() {
     return `stack-refresh-${this.projectId}`;
   }
@@ -489,39 +489,39 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     // the access token on page reload.
     return `stack-access`;
   }
-  protected _getCookieTokenStore(): Store<TokenObject> {
+  protected _getBrowserCookieTokenStore(): Store<TokenObject> {
     if (!isBrowserLike()) {
       throw new Error("Cannot use cookie token store on the server!");
     }
 
-    if (this._storedCookieTokenStore === null) {
+    if (this._storedBrowserCookieTokenStore === null) {
       const getCurrentValue = (old: TokenObject | null) => {
         const tokens = this._getTokensFromCookies({
-          refreshTokenCookie: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
-          accessTokenCookie: getCookie(this._accessTokenCookieName),
+          refreshTokenCookie: getCookieClient(this._refreshTokenCookieName) ?? getCookieClient('stack-refresh'),  // keep old cookie name for backwards-compatibility
+          accessTokenCookie: getCookieClient(this._accessTokenCookieName),
         });
         return {
           refreshToken: tokens.refreshToken,
           accessToken: tokens.accessToken ?? (old?.refreshToken === tokens.refreshToken ? old.accessToken : null),
         };
       };
-      this._storedCookieTokenStore = new Store<TokenObject>(getCurrentValue(null));
+      this._storedBrowserCookieTokenStore = new Store<TokenObject>(getCurrentValue(null));
       let hasSucceededInWriting = true;
 
       setInterval(() => {
         if (hasSucceededInWriting) {
-          const oldValue = this._storedCookieTokenStore!.get();
+          const oldValue = this._storedBrowserCookieTokenStore!.get();
           const currentValue = getCurrentValue(oldValue);
           if (!deepPlainEquals(currentValue, oldValue)) {
-            this._storedCookieTokenStore!.set(currentValue);
+            this._storedBrowserCookieTokenStore!.set(currentValue);
           }
         }
       }, 100);
-      this._storedCookieTokenStore.onChange((value) => {
+      this._storedBrowserCookieTokenStore.onChange((value) => {
         try {
-          setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-          setOrDeleteCookie(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24 });
-          deleteCookie('stack-refresh');  // delete cookie name from previous versions (for backwards-compatibility)
+          setOrDeleteCookieClient(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+          setOrDeleteCookieClient(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24 });
+          deleteCookieClient('stack-refresh');  // delete cookie name from previous versions (for backwards-compatibility)
           hasSucceededInWriting = true;
         } catch (e) {
           if (!isBrowserLike()) {
@@ -534,28 +534,28 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       });
     }
 
-    return this._storedCookieTokenStore;
+    return this._storedBrowserCookieTokenStore;
   };
-  protected _getOrCreateTokenStore(overrideTokenStoreInit?: TokenStoreInit): Store<TokenObject> {
+  protected async _getOrCreateTokenStore(overrideTokenStoreInit?: TokenStoreInit): Promise<Store<TokenObject>> {
     const tokenStoreInit = overrideTokenStoreInit === undefined ? this._tokenStoreInit : overrideTokenStoreInit;
 
     switch (tokenStoreInit) {
       case "cookie": {
-        return this._getCookieTokenStore();
+        return this._getBrowserCookieTokenStore();
       }
       case "nextjs-cookie": {
         if (isBrowserLike()) {
-          return this._getCookieTokenStore();
+          return this._getBrowserCookieTokenStore();
         } else {
           const tokens = this._getTokensFromCookies({
-            refreshTokenCookie: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
-            accessTokenCookie: getCookie(this._accessTokenCookieName),
+            refreshTokenCookie: await getCookie(this._refreshTokenCookieName) ?? await getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
+            accessTokenCookie: await getCookie(this._accessTokenCookieName),
           });
           const store = new Store<TokenObject>(tokens);
           store.onChange((value) => {
             try {
-              setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-              setOrDeleteCookie(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24 });
+              runAsynchronously(setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 }));
+              runAsynchronously(setOrDeleteCookie(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24 }));
             } catch (e) {
               // ignore
             }
@@ -583,7 +583,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
             } catch (e) {
               throw new Error(`Invalid x-stack-auth header: ${stackAuthHeader}`, { cause: e });
             }
-            return this._getOrCreateTokenStore({
+            return await this._getOrCreateTokenStore({
               accessToken: parsed.accessToken ?? null,
               refreshToken: parsed.refreshToken ?? null,
             });
@@ -608,6 +608,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         throw new Error(`Invalid token store ${tokenStoreInit}`);
       }
     }
+  }
+
+  protected _useTokenStore(overrideTokenStoreInit?: TokenStoreInit): Store<TokenObject> {
+    const tokenStore = await this._getOrCreateTokenStore(overrideTokenStoreInit);
+    return tokenStore;
   }
 
   /**
@@ -648,8 +653,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     sessionsBySessionKey.set(sessionKey, session);
     return session;
   }
-  protected _getSession(overrideTokenStoreInit?: TokenStoreInit): InternalSession {
-    const tokenStore = this._getOrCreateTokenStore(overrideTokenStoreInit);
+  protected async _getSession(overrideTokenStoreInit?: TokenStoreInit): Promise<InternalSession> {
+    const tokenStore = await this._getOrCreateTokenStore(overrideTokenStoreInit);
     return this._getSessionFromTokenStore(tokenStore);
   }
   protected _useSession(overrideTokenStoreInit?: TokenStoreInit): InternalSession {
@@ -668,7 +673,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (!("accessToken" in tokens) || !("refreshToken" in tokens)) {
       throw new StackAssertionError("Invalid tokens object; can't sign in with this", { tokens });
     }
-    const tokenStore = this._getOrCreateTokenStore();
+    const tokenStore = await this._getOrCreateTokenStore();
     tokenStore.set(tokens);
   }
 

@@ -1,18 +1,30 @@
 import { cookies as rscCookies, headers as rscHeaders } from '@stackframe/stack-sc/force-react-server';
+import { isBrowserLike } from '@stackframe/stack-shared/dist/utils/env';
 import Cookies from "js-cookie";
 import { calculatePKCECodeChallenge, generateRandomCodeVerifier, generateRandomState } from "oauth4webapi";
 
 type SetCookieOptions = { maxAge?: number };
 
-export function getCookie(name: string): string | null {
+function ensureClient() {
+  if (!isBrowserLike()) {
+    throw new Error("cookieClient functions can only be called in a browser environment, yet window is undefined");
+  }
+}
+
+export function getCookieClient(name: string): string | null {
+  ensureClient();
+  // set a helper cookie, see comment in `setCookie` below
+  Cookies.set("stack-is-https", "true", { secure: true });
+  return Cookies.get(name) ?? null;
+}
+
+export async function getCookie(name: string): Promise<string | null> {
   if (typeof window !== "undefined") {
-    // set a helper cookie, see comment in `setCookie` below
-    Cookies.set("stack-is-https", "true", { secure: true });
-    return Cookies.get(name) ?? null;
+    return getCookieClient(name);
   } else {
     // set a helper cookie, see comment in `setCookie` below
     try {
-      rscCookies().set("stack-is-https", "true", { secure: true });
+      (await rscCookies()).set("stack-is-https", "true", { secure: true });
     } catch (e) {
       if (
         typeof e === 'object'
@@ -26,27 +38,49 @@ export function getCookie(name: string): string | null {
         throw e;
       }
     }
-    return rscCookies().get(name)?.value ?? null;
+    return (await rscCookies()).get(name)?.value ?? null;
   }
 }
 
-export function setOrDeleteCookie(name: string, value: string | null, options: SetCookieOptions = {}) {
+export function setOrDeleteCookieClient(name: string, value: string | null, options: SetCookieOptions = {}) {
+  ensureClient();
   if (value === null) {
-    deleteCookie(name);
+    deleteCookieClient(name);
   } else {
-    setCookie(name, value, options);
+    setCookieClient(name, value, options);
   }
 }
 
-export function deleteCookie(name: string) {
+export async function setOrDeleteCookie(name: string, value: string | null, options: SetCookieOptions = {}) {
+  if (value === null) {
+    await deleteCookie(name);
+  } else {
+    await setCookie(name, value, options);
+  }
+}
+
+export function deleteCookieClient(name: string) {
+  ensureClient();
+  Cookies.remove(name);
+}
+
+export async function deleteCookie(name: string) {
   if (typeof window !== "undefined") {
-    Cookies.remove(name);
+    deleteCookieClient(name);
   } else {
-    rscCookies().delete(name);
+    (await rscCookies()).delete(name);
   }
 }
 
-export function setCookie(name: string, value: string, options: SetCookieOptions = {}) {
+export function setCookieClient(name: string, value: string, options: SetCookieOptions = {}) {
+  ensureClient();
+  Cookies.set(name, value, {
+    expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
+    sameSite: "Strict"
+  });
+}
+
+export async function setCookie(name: string, value: string, options: SetCookieOptions = {}) {
   // Whenever the client is on HTTPS, we want to set the Secure flag on the cookie.
   //
   // This is not easy to find out on a Next.js server, so we use the following steps:
@@ -62,18 +96,14 @@ export function setCookie(name: string, value: string, options: SetCookieOptions
   // though.
 
   if (typeof window !== "undefined") {
-    Cookies.set(name, value, {
-      secure: window.location.protocol === "https:",
-      expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
-      sameSite: "Strict"
-    });
+    setCookieClient(name, value, options);
   } else {
-    let isSecureCookie = !!rscCookies().get("stack-is-https");
-    if (rscHeaders().get("x-forwarded-proto") === "https") {
+    let isSecureCookie = !!(await rscCookies()).get("stack-is-https");
+    if ((await rscHeaders()).get("x-forwarded-proto") === "https") {
       isSecureCookie = true;
     }
 
-    rscCookies().set(name, value, {
+    (await rscCookies()).set(name, value, {
       secure: isSecureCookie,
       maxAge: options.maxAge,
     });
@@ -85,7 +115,7 @@ export async function saveVerifierAndState() {
   const codeChallenge = await calculatePKCECodeChallenge(codeVerifier);
   const state = generateRandomState();
 
-  setCookie("stack-oauth-outer-" + state, codeVerifier, { maxAge: 60 * 60 });
+  await setCookie("stack-oauth-outer-" + state, codeVerifier, { maxAge: 60 * 60 });
 
   return {
     codeChallenge,
@@ -94,12 +124,13 @@ export async function saveVerifierAndState() {
 }
 
 export function consumeVerifierAndStateCookie(state: string) {
+  ensureClient();
   const cookieName = "stack-oauth-outer-" + state;
-  const codeVerifier = getCookie(cookieName);
+  const codeVerifier = getCookieClient(cookieName);
   if (!codeVerifier) {
     return null;
   }
-  deleteCookie(cookieName);
+  deleteCookieClient(cookieName);
   return {
     codeVerifier,
   };
