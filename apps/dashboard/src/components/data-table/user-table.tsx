@@ -4,9 +4,18 @@ import { ServerUser } from '@stackframe/stack';
 import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { allProviders } from '@stackframe/stack-shared/dist/utils/oauth';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTable, DataTableColumnHeader, DataTableFacetedFilter, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
-import { ColumnDef, Row, Table } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableFacetedFilter, DateCell, SearchToolbarItem, SimpleTooltip, TableView, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
+import {
+  ColumnDef, ColumnFiltersState,
+  GlobalFiltering, Row, SortingState, Table, Table as TableType, VisibilityState, getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable
+} from "@tanstack/react-table";
+import React, { useEffect, useMemo, useState } from "react";
 import * as yup from "yup";
 import { FormDialog } from "../form-dialog";
 import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
@@ -261,12 +270,56 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   } satisfies ExtendedServerUser)).sort((a, b) => a.signedUpAt > b.signedUpAt ? -1 : 1);
 }
 
-export function UserTable(props: { users: ServerUser[] }) {
-  const extendedUsers: ExtendedServerUser[] = useMemo(() => extendUsers(props.users), [props.users]);
-  return <DataTable
-    data={extendedUsers}
-    columns={columns}
-    toolbarRender={userToolbarRender}
-    defaultVisibility={{ emailVerified: false }}
-  />;
+export function UserTable() {
+  const stackAdminApp = useAdminApp();
+  const [users, setUsers] = useState<ExtendedServerUser[]>([]);
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const [rowCount, setRowCount] = useState(0);
+
+  useEffect(() => {
+    stackAdminApp.listUsers({
+      offset: pagination.pageIndex * pagination.pageSize,
+      limit: pagination.pageSize,
+    }).then((users) => {
+      setUsers(extendUsers(users));
+      setRowCount(users.totalCount);
+    }).catch(console.error);
+  }, [pagination, stackAdminApp]);
+
+  const table: TableType<ExtendedServerUser> = useReactTable({
+    data: users,
+    columns,
+    state: {
+      sorting,
+      columnVisibility,
+      rowSelection,
+      columnFilters,
+      pagination,
+    },
+    enableRowSelection: true,
+    onPaginationChange: setPagination,
+    onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    getColumnCanGlobalFilter: (c) => c.columnDef.enableGlobalFilter ?? GlobalFiltering.getDefaultOptions!(table).getColumnCanGlobalFilter!(c),
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+    rowCount,
+    autoResetAll: false,
+    manualPagination: true,
+  });
+
+  return <TableView table={table} columns={columns} toolbarRender={userToolbarRender} />;
 }

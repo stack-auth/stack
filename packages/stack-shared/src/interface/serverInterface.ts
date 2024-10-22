@@ -169,10 +169,16 @@ export class StackServerInterface extends StackClientInterface {
     return result.items;
   }
 
-  async listServerUsers(): Promise<UsersCrud['Server']['Read'][]> {
-    const response = await this.sendServerRequest("/users", {}, null);
-    const result = await response.json() as UsersCrud['Server']['List'];
-    return result.items;
+  async listServerUsers(options: {
+    offset?: number,
+    limit?: number,
+  }): Promise<UsersCrud['Server']['List']> {
+    const searchParams = new URLSearchParams(filterUndefined({
+      offset: options.offset?.toString(),
+      limit: options.limit?.toString(),
+    }));
+    const response = await this.sendServerRequest("/users?" + searchParams.toString(), {}, null);
+    return await response.json();
   }
 
   async listServerTeams(options?: {

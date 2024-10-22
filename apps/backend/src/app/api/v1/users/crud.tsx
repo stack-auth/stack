@@ -13,7 +13,7 @@ import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
-import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { waitUntil } from '@vercel/functions';
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
@@ -247,13 +247,13 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   }),
   querySchema: yupObject({
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by team" }}),
-    limit: yupNumber().integer().min(1).max(200).default(20).meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return" }}),
-    offset: yupNumber().integer().min(0).default(0).meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The number of items to skip before starting to collect the result set" }}),
-    sort_by: yupString().oneOf(['signed_up_at', 'primary_email']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by" }}),
-    sort_order: yupString().oneOf(['asc', 'desc']).default('desc').meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The order to sort the results in" }}),
-    primary_email_verified: yupArray().of(yupBoolean()).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by primary email verification status" }}),
-    // only used for dashboard for now
-    auth_methods: yupArray().of(yupString().oneOf(['password', 'otp', ...allProviders])).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by auth method", hidden: true }}),
+    limit: yupNumber().integer().min(1).max(200).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return. Defaults to 100, max is 200" }}),
+    offset: yupNumber().integer().min(0).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The number of items to skip before starting to collect the result set. Defaults to 0" }}),
+    sort_by: yupString().oneOf(['signed_up_at', 'display_name', 'id']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
+    sort_order: yupString().oneOf(['asc', 'desc']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The order to sort the results in. Defaults to desc" }}),
+    primary_email_verified: yupArray().of(yupBoolean().required()).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by primary email verification status" }}),
+    // only used for dashboard for now. We might want to change this parameter in the future.
+    auth_methods: yupArray().of(yupString().oneOf(['password', 'otp', ...allProviders]).required()).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by auth method", hidden: true }}),
   }),
   onRead: async ({ auth, params }) => {
     const user = await getUser({ projectId: auth.project.id, userId: params.user_id });
@@ -263,25 +263,90 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     return user;
   },
   onList: async ({ auth, query }) => {
-    const db = await prismaClient.projectUser.findMany({
-      where: {
-        projectId: auth.project.id,
-        ...query.team_id ? {
-          teamMembers: {
-            some: {
-              teamId: query.team_id,
-            },
+    const where = {
+      projectId: auth.project.id,
+      ...query.team_id ? {
+        teamMembers: {
+          some: {
+            teamId: query.team_id,
           },
-        } : {},
-      },
-      include: userFullInclude,
-    });
+        },
+      } : {},
+      ...query.auth_methods ? {
+        authMethods: {
+          some: {
+            OR: [
+              ...query.auth_methods.map((authMethod) => {
+                if (authMethod === "password") {
+                  return {
+                    authMethodConfig: {
+                      passwordConfig: {
+                        isNot: null,
+                      }
+                    }
+                  };
+                } else if (authMethod === "otp") {
+                  return {
+                    authMethodConfig: {
+                      otpConfig: {
+                        isNot: null,
+                      }
+                    }
+                  };
+                } else {
+                  return {
+                    authMethodConfig: {
+                      oauthProviderConfig: {
+                        OR: [
+                          {
+                            proxiedOAuthConfig: {
+                              type: typedToUppercase(authMethod),
+                            }
+                          },
+                          {
+                            standardOAuthConfig: {
+                              type: typedToUppercase(authMethod),
+                            }
+                          }
+                        ]
+                      } as any
+                    }
+                  };
+                }
+              }),
+            ],
+          },
+        },
+      } : {},
+    };
+
+    const [db, totalCount] = await prismaClient.$transaction([
+      prismaClient.projectUser.findMany({
+        where,
+        include: userFullInclude,
+        orderBy: {
+          [({
+            signed_up_at: 'createdAt',
+            display_name: 'displayName',
+            id: 'projectUserId',
+          } as const)[query.sort_by ?? 'signed_up_at']]: query.sort_order ?? 'desc',
+        },
+        take: query.limit ?? 100,
+        skip: query.offset ?? 0,
+      }),
+      prismaClient.projectUser.count({
+        where,
+      }),
+    ]);
 
     const lastActiveAtMillis = await getUsersLastActiveAtMillis(db.map(user => user.projectUserId), db.map(user => user.createdAt));
 
     return {
       items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])),
-      is_paginated: false,
+      is_paginated: true,
+      pagination: {
+        total_count: totalCount,
+      },
     };
   },
   onCreate: async ({ auth, data }) => {
@@ -821,7 +886,7 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
       project: auth.project,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
       data,
-      allowedErrorTypes: [StatusError]
+      allowedErrorTypes: [StatusError],
     });
   },
   async onDelete({ auth }) {

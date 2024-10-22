@@ -1505,8 +1505,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentServerUserCache = createCacheBySession(async (session) => {
     return await this._interface.getServerUserByToken(session);
   });
-  private readonly _serverUsersCache = createCache(async () => {
-    return await this._interface.listServerUsers();
+  private readonly _serverUsersCache = createCache<[offset?: number, limit?: number], UsersCrud['Server']['List']>(async ([offset, limit]) => {
+    return await this._interface.listServerUsers({ offset, limit });
   });
   private readonly _serverUserCache = createCache<string[], UsersCrud['Server']['Read'] | null>(async ([userId]) => {
     const user = await this._interface.getServerUserById(userId);
@@ -1951,15 +1951,17 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }, [crud]);
   }
 
-  async listUsers(): Promise<ServerUser[]> {
-    const crud = await this._serverUsersCache.getOrWait([], "write-only");
-    return crud.map((j) => this._serverUserFromCrud(j));
+  async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { totalCount: number }> {
+    const crud = await this._serverUsersCache.getOrWait([options?.offset, options?.limit], "write-only");
+    const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
+    result.totalCount = 1000;
+    return result;
   }
 
   useUsers(): ServerUser[] {
     const crud = useAsyncCache(this._serverUsersCache, [], "useServerUsers()");
     return useMemo(() => {
-      return crud.map((j) => this._serverUserFromCrud(j));
+      return crud.items.map((j) => this._serverUserFromCrud(j));
     }, [crud]);
   }
 
@@ -2973,6 +2975,11 @@ export type ServerTeam = {
   removeUser(userId: string): Promise<void>,
 } & Team;
 
+export type ServerListUsersOptions = {
+  offset?: number,
+  limit?: number,
+};
+
 export type ServerTeamCreateOptions = TeamCreateOptions;
 function serverTeamCreateOptionsToCrud(options: ServerTeamCreateOptions): TeamsCrud["Server"]["Create"] {
   return teamCreateOptionsToCrud(options);
@@ -3121,9 +3128,11 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentServerUser<ProjectId>>,
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>,
     getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>,
+
+    listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { totalCount: number }>,
   }
   & AsyncStoreProperty<"user", [id: string], ServerUser | null, false>
-  & AsyncStoreProperty<"users", [], ServerUser[], true>
+  & Omit<AsyncStoreProperty<"users", [], ServerUser[], true>, "listUsers">
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
   & StackClientApp<HasTokenStore, ProjectId>

@@ -132,7 +132,14 @@ export function createCrudHandlers<
             crudOperation === "List"
               ? yupObject({
                 items: yupArray(read).required(),
-                is_paginated: yupBoolean().oneOf([false]).required().meta({ openapiField: { hidden: true } }),
+                is_paginated: yupBoolean().required().meta({ openapiField: { hidden: true } }),
+                pagination: yupObject({
+                  total_count: yupNumber().required(),
+                }).when('is_paginated', {
+                  is: true,
+                  then: (schema) => schema.required(),
+                  otherwise: (schema) => schema.optional(),
+                }),
               }).required()
               : crudOperation === "Delete"
                 ? yupMixed<any>().oneOf([undefined])
