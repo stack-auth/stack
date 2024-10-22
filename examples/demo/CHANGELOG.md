@@ -1,4 +1,4 @@
-# demo-app
+# @stackframe/example-demo-app
 
 ## 2.6.11
 
