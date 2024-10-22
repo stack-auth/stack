@@ -153,8 +153,10 @@ navigation:
             path: ./docs/pages/sdk/stack-app.mdx
           - page: Team
             path: ./docs/pages/sdk/team.mdx
-          # - page: TeamProfile
-          #   path: ./docs/pages/sdk/team-profile.mdx
+          - page: TeamUser
+            path: ./docs/pages/sdk/team-user.mdx
+          - page: TeamProfile
+            path: ./docs/pages/sdk/team-profile.mdx
           # - page: Project
           #   path: ./docs/pages/sdk/project.mdx
           # - page: Permission
