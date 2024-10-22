@@ -141,10 +141,7 @@ navigation:
           - page: <StackTheme />
             path: ./docs/pages/components/stack-theme.mdx
   - tab: sdk
-    layout: 
-      - page: SDK Overview
-        icon: fa-regular fa-globe
-        path: ./docs/pages/sdk/overview.mdx
+    layout:
       - section: Classes
         contents:
           - page: User
