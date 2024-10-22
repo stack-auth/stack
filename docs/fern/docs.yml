@@ -165,9 +165,9 @@ navigation:
           #   path: ./docs/pages/sdk/connected-account.mdx
       - section: Hooks
         contents:
-          - page: useUser
+          - page: useUser()
             path: ./docs/pages/sdk/use-user.mdx
-          - page: useStackApp
+          - page: useStackApp()
             path: ./docs/pages/sdk/use-stack-app.mdx
   - tab: api
     layout: 
