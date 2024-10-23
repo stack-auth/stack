@@ -224,6 +224,7 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
       {row.original.primaryEmail}
     </TextCell>,
     enableGlobalFilter: true,
+    enableSorting: false,
   },
   {
     accessorKey: "lastActiveAt",
@@ -284,14 +285,24 @@ export function UserTable() {
   const [rowCount, setRowCount] = useState(0);
 
   useEffect(() => {
+    const orderMap = {
+      signedUpAt: "signedUpAt",
+      displayName: "displayName",
+      id: "id",
+    } as const;
+
     stackAdminApp.listUsers({
       offset: pagination.pageIndex * pagination.pageSize,
       limit: pagination.pageSize,
+      ...sorting.length > 0 && sorting[0].id in orderMap && {
+        orderBy: orderMap[sorting[0].id as keyof typeof orderMap],
+        desc: sorting[0].desc,
+      },
     }).then((users) => {
       setUsers(extendUsers(users));
       setRowCount(users.totalCount);
     }).catch(console.error);
-  }, [pagination, stackAdminApp]);
+  }, [pagination, stackAdminApp, sorting]);
 
   const table: TableType<ExtendedServerUser> = useReactTable({
     data: users,

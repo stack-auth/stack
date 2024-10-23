@@ -1505,8 +1505,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentServerUserCache = createCacheBySession(async (session) => {
     return await this._interface.getServerUserByToken(session);
   });
-  private readonly _serverUsersCache = createCache<[offset?: number, limit?: number], UsersCrud['Server']['List']>(async ([offset, limit]) => {
-    return await this._interface.listServerUsers({ offset, limit });
+  private readonly _serverUsersCache = createCache<[offset?: number, limit?: number, orderBy?: 'signedUpAt' | 'displayName' | 'id', desc?: boolean], UsersCrud['Server']['List']>(async ([offset, limit, orderBy, desc]) => {
+    return await this._interface.listServerUsers({ offset, limit, orderBy, desc});
   });
   private readonly _serverUserCache = createCache<string[], UsersCrud['Server']['Read'] | null>(async ([userId]) => {
     const user = await this._interface.getServerUserById(userId);
@@ -1952,7 +1952,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { totalCount: number }> {
-    const crud = await this._serverUsersCache.getOrWait([options?.offset, options?.limit], "write-only");
+    const crud = await this._serverUsersCache.getOrWait([options?.offset, options?.limit, options?.orderBy, options?.desc], "write-only");
     const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
     result.totalCount = crud.pagination?.total_count ?? throwErr("total_count is missing");
     return result;
@@ -2978,6 +2978,8 @@ export type ServerTeam = {
 export type ServerListUsersOptions = {
   offset?: number,
   limit?: number,
+  orderBy?: 'signedUpAt' | 'displayName' | 'id',
+  desc?: boolean,
 };
 
 export type ServerTeamCreateOptions = TeamCreateOptions;

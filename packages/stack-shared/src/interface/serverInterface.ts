@@ -172,10 +172,20 @@ export class StackServerInterface extends StackClientInterface {
   async listServerUsers(options: {
     offset?: number,
     limit?: number,
+    orderBy?: 'signedUpAt' | 'displayName' | 'id',
+    desc?: boolean,
   }): Promise<UsersCrud['Server']['List']> {
     const searchParams = new URLSearchParams(filterUndefined({
       offset: options.offset?.toString(),
       limit: options.limit?.toString(),
+      ...options.orderBy ? {
+        order_by: {
+          signedUpAt: "signed_up_at",
+          displayName: "display_name",
+          id: "id",
+        }[options.orderBy],
+      } : {},
+      desc: options.desc?.toString(),
     }));
     const response = await this.sendServerRequest("/users?" + searchParams.toString(), {}, null);
     return await response.json();
