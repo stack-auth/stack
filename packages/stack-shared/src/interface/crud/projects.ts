@@ -55,7 +55,7 @@ export const projectsCrudAdminReadSchema = yupObject({
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
     client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.required(),
     oauth_providers: yupArray(oauthProviderSchema.required()).required(),
-    enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
+    enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required().meta({ openapiField: { hidden: true } }),
     domains: yupArray(domainSchema.required()).required(),
     email_config: emailConfigSchema.required(),
     create_team_on_sign_up: schemaFields.projectCreateTeamOnSignUpSchema.required(),
@@ -73,7 +73,7 @@ export const projectsCrudClientReadSchema = yupObject({
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
     client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.required(),
-    enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
+    enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required().meta({ openapiField: { hidden: true } }),
   }).required(),
 }).required();
 
