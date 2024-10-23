@@ -4,7 +4,7 @@ slug: sdk/stack-app
 
 This is a detailed reference for the `StackApp` object. [Here](../concepts/stack-app.mdx) is a more high-level overview.
 
-## Different types of stack apps
+## Different types of `StackApp` objects
 
 Stack offers two types of app objects: `StackClientApp` and `StackServerApp`.
 
@@ -337,6 +337,52 @@ Send a magic link/OTP sign-in email to an email address.
 
 ```typescript
 const result = await stackClientApp.sendMagicLinkEmail("test@example.com");
+```
+
+### `getProject()`
+
+Get the current project.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<Project>`: The current project.
+</div>
+
+**Example:**
+
+```typescript
+const project = await stackClientApp.getProject();
+```
+
+### `useProject()`
+
+Get the current project.
+
+This is the same as `getProject()` but it is a React hook. The `useProject` hook imported from the package is an alias for this function.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Project`: The current project.
+</div>
+
+**Example:**
+
+```typescript
+const project = useProject();
 ```
 
 ## `StackServerApp`

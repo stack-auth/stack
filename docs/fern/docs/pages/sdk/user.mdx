@@ -2,11 +2,11 @@
 slug: sdk/user
 ---
 
-This is a detailed reference for the `User` object. If you need a more high-level overview, check out the getting started guide with users [here](../getting-started/users.mdx).
+This is a detailed reference for the `User` object. If you're looking for a more high-level overview, please refer to our guide on users [here](../concepts/orgs-and-teams.mdx).
 
-## Different types of user objects
+## Different types of `User` objects
 
-There are three main types of user objects in Stack:
+There are a few types of user objects in Stack Auth:
 
 1. `CurrentUser`
    - Represents the authenticated user on the client side
@@ -34,45 +34,45 @@ You can call `useUser()` or `stackServerApp.getUser()` to get the `CurrentUser` 
 ### Properties
 
 <div className="indented">
-<ParamField path="id" type="string">
-The user ID. This is the unique identifier of the user.
-</ParamField>
+  <ParamField path="id" type="string">
+  The user ID. This is the unique identifier of the user.
+  </ParamField>
 
-<ParamField path="displayName" type="string | null">
-The display name of the user. Can be changed by the user.
-</ParamField>
+  <ParamField path="displayName" type="string | null">
+  The display name of the user. Can be changed by the user.
+  </ParamField>
 
-<ParamField path="primaryEmail" type="string | null">
-The primary email of the user. Note: this is not unique.
-</ParamField>
+  <ParamField path="primaryEmail" type="string | null">
+  The primary email of the user. Note: this is not unique.
+  </ParamField>
 
-<ParamField path="primaryEmailVerified" type="boolean">
-Whether the primary email is verified.
-</ParamField>
+  <ParamField path="primaryEmailVerified" type="boolean">
+  Whether the primary email is verified.
+  </ParamField>
 
-<ParamField path="profileImageUrl" type="string | null">
-The profile image URL of the user.
-</ParamField>
+  <ParamField path="profileImageUrl" type="string | null">
+  The profile image URL of the user.
+  </ParamField>
 
-<ParamField path="signedUpAt" type="Date">
-The Date when the user signed up.
-</ParamField>
+  <ParamField path="signedUpAt" type="Date">
+  The Date when the user signed up.
+  </ParamField>
 
-<ParamField path="hasPassword" type="boolean">
-Whether the user has a password set.
-</ParamField>
+  <ParamField path="hasPassword" type="boolean">
+  Whether the user has a password set.
+  </ParamField>
 
-<ParamField path="clientMetadata" type="object">
-The JSON metadata that is visible on the client side. Note that this should not contain information that should be kept private on the server side or information that should not be modified by the client.
-</ParamField>
+  <ParamField path="clientMetadata" type="object">
+  The JSON metadata that is visible on the client side. Note that this should not contain information that should be kept private on the server side or information that should not be modified by the client.
+  </ParamField>
 
-<ParamField path="clientReadOnlyMetadata" type="object">
-Metadata that can be read on the client side but can only be modified on the server side.
-</ParamField>
+  <ParamField path="clientReadOnlyMetadata" type="object">
+  Metadata that can be read on the client side but can only be modified on the server side.
+  </ParamField>
 
-<ParamField path="selectedTeam" type="Team | null">
-The currently selected team for the user, if applicable.
-</ParamField>
+  <ParamField path="selectedTeam" type="Team | null">
+  The currently selected team for the user, if applicable.
+  </ParamField>
 </div>
 
 ### `update()`
@@ -750,3 +750,4 @@ await serverUser.revokePermission(team, "read_secret_info");
 The `CurrentServerUser` has the same properties and methods from `ServerUser` and `CurrentUser` combined (for the overloaded methods like `update`, the `ServerUser` methods take precedence).
 
 To get a `CurrentServerUser` object, you can use the `stackServerApp.getUser()` method. Note that this can only be used on the server side.
+
