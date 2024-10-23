@@ -25,7 +25,7 @@ const response = await fetch('/api/users/me', {
 
 ## Authenticating the user on the server endpoints
 
-On the server side, you can extract the access token from the headers of the request and use it to authenticate the user. (more details on the headers [here](./../rest-api/auth.mdx).)
+On the server side, you can extract the access token from the headers of the request and use it to [authenticate the user with the REST API](./../rest-api/auth.mdx).
 
 <Tabs>
   <Tab title="Node.js">
@@ -33,9 +33,9 @@ On the server side, you can extract the access token from the headers of the req
     const url = 'https://api.stack-auth.com/api/v1/users/me';
     const headers = {
       'x-stack-access-type': 'server',
-      'x-stack-project-id': 'generated from the Stack dashboard',
-      'x-stack-secret-server-key': 'generated from the Stack dashboard',
-      'x-stack-access-token': 'access token from headers',
+      'x-stack-project-id': 'generated on the Stack Auth dashboard',
+      'x-stack-secret-server-key': 'generated on the Stack Auth dashboard',
+      'x-stack-access-token': 'access token from the headers',
     };
 
     fetch(url, { headers })
@@ -57,9 +57,9 @@ On the server side, you can extract the access token from the headers of the req
     url = 'https://api.stack-auth.com/api/v1/users/me'
     headers = {
       'x-stack-access-type': 'server',
-      'x-stack-project-id': 'generated from the Stack dashboard',
-      'x-stack-secret-server-key': 'generated from the Stack dashboard',
-      'x-stack-access-token': 'access token from headers',
+      'x-stack-project-id': 'generated on the Stack Auth dashboard',
+      'x-stack-secret-server-key': 'generated on the Stack Auth dashboard',
+      'x-stack-access-token': 'access token from the headers',
     }
 
     response = requests.get(url, headers=headers)
