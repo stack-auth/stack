@@ -4,7 +4,7 @@ import { ServerUser } from '@stackframe/stack';
 import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { allProviders } from '@stackframe/stack-shared/dist/utils/oauth';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableFacetedFilter, DateCell, SearchToolbarItem, SimpleTooltip, TableView, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableFacetedFilter, DataTableManualPagination, DateCell, SearchToolbarItem, SimpleTooltip, TableView, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
 import {
   ColumnDef, ColumnFiltersState,
   GlobalFiltering, Row, SortingState, Table, Table as TableType, VisibilityState, getCoreRowModel,
@@ -230,6 +230,7 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     accessorKey: "lastActiveAt",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Last Active" />,
     cell: ({ row }) => <DateCell date={row.original.lastActiveAt} />,
+    enableSorting: false,
   },
   {
     accessorKey: "emailVerified",
@@ -237,6 +238,7 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
     filterFn: standardFilterFn,
     enableGlobalFilter: false,
+    enableSorting: false,
   },
 ] satisfies ColumnDef<T>[];
 
@@ -247,6 +249,7 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Auth Method" />,
     cell: ({ row }) => <BadgeCell badges={row.original.authTypes} />,
     filterFn: arrayFilterFn,
+    enableSorting: false,
   },
   {
     accessorKey: "signedUpAt",
@@ -274,14 +277,8 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
 export function UserTable() {
   const stackAdminApp = useAdminApp();
   const [users, setUsers] = useState<ExtendedServerUser[]>([]);
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 10,
-  });
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [rowCount, setRowCount] = useState(0);
 
   useEffect(() => {
@@ -290,7 +287,6 @@ export function UserTable() {
       displayName: "displayName",
       id: "id",
     } as const;
-
     stackAdminApp.listUsers({
       offset: pagination.pageIndex * pagination.pageSize,
       limit: pagination.pageSize,
@@ -304,33 +300,15 @@ export function UserTable() {
     }).catch(console.error);
   }, [pagination, stackAdminApp, sorting]);
 
-  const table: TableType<ExtendedServerUser> = useReactTable({
-    data: users,
-    columns,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-      pagination,
-    },
-    enableRowSelection: true,
-    onPaginationChange: setPagination,
-    onRowSelectionChange: setRowSelection,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onColumnVisibilityChange: setColumnVisibility,
-    getColumnCanGlobalFilter: (c) => c.columnDef.enableGlobalFilter ?? GlobalFiltering.getDefaultOptions!(table).getColumnCanGlobalFilter!(c),
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    rowCount,
-    autoResetAll: false,
-    manualPagination: true,
-  });
-
-  return <TableView table={table} columns={columns} toolbarRender={userToolbarRender} />;
+  return <DataTableManualPagination
+    columns={columns}
+    data={users}
+    toolbarRender={userToolbarRender}
+    sorting={sorting}
+    setSorting={setSorting}
+    pagination={pagination}
+    setPagination={setPagination}
+    rowCount={rowCount}
+    defaultVisibility={{ emailVerified: false }}
+  />;
 }
