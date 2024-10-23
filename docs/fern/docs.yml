@@ -23,7 +23,7 @@ tabs:
     icon: fa-solid fa-hammer
     slug: sdk
   api:
-    display-name: API & Webhooks
+    display-name: REST API & Webhooks
     icon: fa-solid fa-code
     slug: rest-api
 
