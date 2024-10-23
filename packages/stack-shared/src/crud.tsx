@@ -107,6 +107,9 @@ type InnerCrudTypeOf<S extends InnerCrudSchema> =
   & (S['readSchema'] extends {} ? { List: {
     items: yup.InferType<S['readSchema']>[],
     is_paginated: boolean,
+    pagination?: {
+      total_count: number,
+    },
   }, } : {});
 
 export type CrudTypeOf<S extends CrudSchema> = {

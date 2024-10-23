@@ -1954,7 +1954,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { totalCount: number }> {
     const crud = await this._serverUsersCache.getOrWait([options?.offset, options?.limit], "write-only");
     const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
-    result.totalCount = 1000;
+    result.totalCount = crud.pagination?.total_count ?? throwErr("total_count is missing");
     return result;
   }
 

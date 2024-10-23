@@ -320,7 +320,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       } : {},
     };
 
-    const [db, totalCount] = await prismaClient.$transaction([
+    const [db, totalCount] = await Promise.all([
       prismaClient.projectUser.findMany({
         where,
         include: userFullInclude,
