@@ -190,9 +190,6 @@ function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capit
       return { type: 'object', ...openapiFieldExtra };
     }
     case 'object': {
-      if ('oauth_providers' in (field as any).fields) {
-        console.log('????????', (field as any).fields['oauth_providers'].meta, '!!!!!!!!!!');
-      }
       return {
         type: 'object',
         properties: typedFromEntries(typedEntries((field as any).fields)
