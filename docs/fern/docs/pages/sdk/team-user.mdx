@@ -1,0 +1,46 @@
+---
+slug: sdk/team-user
+---
+
+
+`TeamUser` is represents a user in the context of a team. There are two types of `TeamUser`
+
+1. `TeamUser`
+    - This is used on the client side.
+    - It contains minimal information about the user, only the user's ID.
+    - It contains a `teamProfile` object, which is the user's profile for the team.
+    - You can obtain it by calling `team.useUsers()` or `team.listUsers()` on a `Team` object.
+
+2. `ServerTeamUser`
+    - This is used on the server side.
+    - Currently it only contains the user's ID, but in the future it will extend `ServerUser`.
+    - You can obtain it by calling `serverTeam.listUsers()` on a `ServerTeam` object.
+
+
+## `TeamUser`
+
+### Properties
+
+<div className="indented">
+  <ParamField path="id" type="string">
+    The ID of the user.
+  </ParamField>
+
+  <ParamField path="teamProfile" type="TeamMemberProfile">
+    The team profile of the user.
+  </ParamField>
+</div>
+
+## `ServerTeamUser`
+
+### Properties
+
+<div className="indented">
+  <ParamField path="id" type="string">
+    The ID of the user.
+  </ParamField>
+
+  <ParamField path="teamProfile" type="ServerTeamMemberProfile">
+    The team profile of the user.
+  </ParamField>
+</div>

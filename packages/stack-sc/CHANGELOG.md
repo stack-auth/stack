@@ -1,5 +1,13 @@
 # @stackframe/stack-sc
 
+## 2.6.13
+
+## 2.6.12
+
+### Patch Changes
+
+- Updated account settings page
+
 ## 2.6.11
 
 ### Patch Changes

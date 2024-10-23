@@ -136,21 +136,21 @@ pnpm run prisma studio
 
 ### Development environment port mapping
 
-8101. Dashboard (equivalent to https://app.stack-auth.com)
-8102. Backend (equivalent to https://api.stack-auth.com)
-8103. Demo app (equivalent to https://demo.stack-auth.com)
-8104. Docs (equivalent to https://docs.stack-auth.com)
-8105. Inbucket (e-mails)
-8106. Prisma Studio
-8107. Jaeger UI/OpenTelemetry (for performance tracing)
-8108. `examples/docs-examples`
-8109. `examples/partial-prerendering`
-8110. `examples/cjs-test`
-8111. `examples/e-commerce`
-8112. `examples/middleware`
-8113. Svix server (for webhooks)
-8114. OAuth mock server
-8115. `examples/supabase`
+`8101`: Dashboard `apps/dashboard` (equivalent to https://app.stack-auth.com)  
+`8102`: Backend `apps/backend` (equivalent to https://api.stack-auth.com)  
+`8103`: Demo app `examples/demo` (equivalent to https://demo.stack-auth.com)  
+`8104`: Docs `docs` (equivalent to https://docs.stack-auth.com)  
+`8105`: Inbucket (e-mails)  
+`8106`: Prisma Studio  
+`8107`: Jaeger UI/OpenTelemetry (for performance tracing)  
+`8108`: `examples/docs-examples`  
+`8109`: `examples/partial-prerendering`  
+`8110`: `examples/cjs-test`  
+`8111`: `examples/e-commerce`  
+`8112`: `examples/middleware`  
+`8113`: Svix server (for webhooks)  
+`8114`: OAuth mock server  
+`8115`: `examples/supabase`  
 
 
 ### Database migrations

@@ -39,12 +39,12 @@ function ClientComponent() {
 
 ## Client vs. server
 
-`StackClientApp` is the app which contains everything needed to build a frontend application, for example the own user object. It requires a publishable client key in its initialization (usually set by the `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` environment variable).
+`StackClientApp` contains everything needed to build a frontend application, for example the currently authenticated user. It requires a publishable client key in its initialization (usually set by the `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` environment variable).
 
-`StackServerApp` has all the functionality of `StackClientApp`, but also some server-only functions, eg. listing or modifying ALL users. This requires a secret server key (usually set by the `STACK_SECRET_SERVER_KEY` environment variable), which **must always be kept secret**.
+`StackServerApp` has all the functionality of `StackClientApp`, but also some functions with elevated permissions, eg. listing or modifying ALL users. This requires a secret server key (usually set by the `STACK_SECRET_SERVER_KEY` environment variable), which **must always be kept secret**.
 
-There is also a third type, `StackAdminApp`, but it is rarely used. It is meant for internal tools that have special requirements, and can edit the Stack project configuration. This is useful for configuring Stack programmatically, for example with Terraform.
+There is also a third type, `StackAdminApp`, but it is rarely used. You can use it for automation or internal tools, and can edit your project's configuration.
 
 <Note>
-  Some of the functions have different return types; for example, `StackClientApp.getUser()` returns a `Promise<User>` while `StackServerApp.getUser()` returns a `Promise<ServerUser>`. The `Server` or `Admin` prefixes indicates that the object contains server-/admin-only functionality.
+  Some of the functions have different return types; for example, `StackClientApp.getUser()` returns a `Promise<User>` while `StackServerApp.getUser()` returns a `Promise<ServerUser>`. The `Server` or `Admin` prefixes indicate that the object contains server-/admin-only functionality.
 </Note>

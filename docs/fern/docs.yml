@@ -23,7 +23,7 @@ tabs:
     icon: fa-solid fa-hammer
     slug: sdk
   api:
-    display-name: API & Webhooks
+    display-name: REST API & Webhooks
     icon: fa-solid fa-code
     slug: rest-api
 
@@ -141,31 +141,30 @@ navigation:
           - page: <StackTheme />
             path: ./docs/pages/components/stack-theme.mdx
   - tab: sdk
-    layout: 
-      - page: SDK Overview
-        icon: fa-regular fa-globe
-        path: ./docs/pages/sdk/overview.mdx
+    layout:
       - section: Classes
         contents:
           - page: User
             path: ./docs/pages/sdk/user.mdx
           - page: StackApp
             path: ./docs/pages/sdk/stack-app.mdx
-          # - page: Team
-          #   path: ./docs/pages/sdk/team.mdx
-          # - page: TeamProfile
-          #   path: ./docs/pages/sdk/team-profile.mdx
-          # - page: Project
-          #   path: ./docs/pages/sdk/project.mdx
-          # - page: Permission
-          #   path: ./docs/pages/sdk/permission.mdx
+          - page: Team
+            path: ./docs/pages/sdk/team.mdx
+          - page: TeamUser
+            path: ./docs/pages/sdk/team-user.mdx
+          - page: TeamProfile
+            path: ./docs/pages/sdk/team-profile.mdx
+          - page: TeamPermission
+            path: ./docs/pages/sdk/team-permission.mdx
+          - page: Project
+            path: ./docs/pages/sdk/project.mdx
           # - page: ConnectedAccount
           #   path: ./docs/pages/sdk/connected-account.mdx
       - section: Hooks
         contents:
-          - page: useUser
+          - page: useUser()
             path: ./docs/pages/sdk/use-user.mdx
-          - page: useStackApp
+          - page: useStackApp()
             path: ./docs/pages/sdk/use-stack-app.mdx
   - tab: api
     layout: 

@@ -734,7 +734,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       clientMetadata: crud.client_metadata,
       clientReadOnlyMetadata: crud.client_read_only_metadata,
       async inviteUser(options: { email: string }) {
-        return await app._interface.sendTeamInvitation({
+        await app._interface.sendTeamInvitation({
           teamId: crud.id,
           email: options.email,
           session: app._getSession(),
@@ -1845,7 +1845,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._serverTeamMemberProfilesCache.refresh([crud.id]);
       },
       async inviteUser(options: { email: string }) {
-        return await app._interface.sendTeamInvitation({
+        await app._interface.sendTeamInvitation({
           teamId: crud.id,
           email: options.email,
           session: null,
@@ -2925,7 +2925,7 @@ export type Team = {
   profileImageUrl: string | null,
   clientMetadata: any,
   clientReadOnlyMetadata: any,
-  inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
+  inviteUser(options: { email: string }): Promise<void>,
   listUsers(): Promise<TeamUser[]>,
   useUsers(): TeamUser[],
   update(update: TeamUpdateOptions): Promise<void>,
@@ -2971,7 +2971,7 @@ export type ServerTeam = {
   update(update: ServerTeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,
   addUser(userId: string): Promise<void>,
-  inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
+  inviteUser(options: { email: string }): Promise<void>,
   removeUser(userId: string): Promise<void>,
 } & Team;
 

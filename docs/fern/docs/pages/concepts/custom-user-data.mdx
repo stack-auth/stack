@@ -5,11 +5,11 @@ subtitle: How to store custom user metadata in Stack Auth
 
 Stack Auth allows storing additional user information through three types of metadata fields:
 
-1. **clientMetadata**: Readable and writable on the client-side.
-2. **serverMetadata**: Readable and writable only on the server-side.
-3. **clientReadOnlyMetadata**: Readable on the client-side, writable only on the server-side.
+1. **clientMetadata**: Readable and writable from a [client](/concepts/stack-app#client-vs-server).
+2. **serverMetadata**: Readable and writable only from a [server](/concepts/stack-app#client-vs-server).
+3. **clientReadOnlyMetadata**: Readable from a client, writable only from a server.
 
-## Client-side metadata
+## Client metadata
 You can use the `clientMetadata` field to store non-sensitive information that both the client and server can read and write.
 
 ```tsx
@@ -41,7 +41,7 @@ console.log(user.serverMetadata);
 ```
 
 ## Client read-only metadata
-Use `clientReadOnlyMetadata` for data that clients need to read but should not modify, such as subscription status.
+Use `clientReadOnlyMetadata` for data that clients need to read but never modify, such as subscription status.
 
 ```tsx
 // On the server:
