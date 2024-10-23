@@ -107,15 +107,19 @@ export function DataTable<TData, TValue>({
   defaultVisibility,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
-  return <DataTableManualPagination
+  return <DataTableManual
     columns={columns}
     data={data}
     toolbarRender={toolbarRender}
     defaultVisibility={defaultVisibility}
     sorting={sorting}
     setSorting={setSorting}
+    columnFilters={columnFilters}
+    setColumnFilters={setColumnFilters}
     manualPagination={false}
+    manualFiltering={false}
   />;
 }
 
@@ -125,10 +129,13 @@ type DataTableServerProps<TData, TValue> = DataTableProps<TData, TValue> & {
   pagination?: PaginationState,
   setPagination?: OnChangeFn<PaginationState>,
   rowCount?: number,
+  columnFilters?: ColumnFiltersState,
+  setColumnFilters?: OnChangeFn<ColumnFiltersState>,
   manualPagination?: boolean,
+  manualFiltering?: boolean,
 }
 
-export function DataTableManualPagination<TData, TValue>({
+export function DataTableManual<TData, TValue>({
   columns,
   data,
   toolbarRender,
@@ -138,11 +145,13 @@ export function DataTableManualPagination<TData, TValue>({
   pagination,
   setPagination,
   rowCount,
+  columnFilters,
+  setColumnFilters,
   manualPagination = true,
+  manualFiltering = true,
 }: DataTableServerProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(defaultVisibility || {});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
 
   const table: TableType<TData> = useReactTable({
     data,
@@ -169,6 +178,7 @@ export function DataTableManualPagination<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
     autoResetAll: false,
     manualPagination,
+    manualFiltering,
     rowCount,
   });
 

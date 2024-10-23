@@ -174,6 +174,8 @@ export class StackServerInterface extends StackClientInterface {
     limit?: number,
     orderBy?: 'signedUpAt' | 'displayName' | 'id',
     desc?: boolean,
+    authMethods?: string[],
+    primaryEmailVerified?: boolean[],
   }): Promise<UsersCrud['Server']['List']> {
     const searchParams = new URLSearchParams(filterUndefined({
       offset: options.offset?.toString(),
@@ -186,6 +188,12 @@ export class StackServerInterface extends StackClientInterface {
         }[options.orderBy],
       } : {},
       desc: options.desc?.toString(),
+      ...options.authMethods ? {
+        auth_methods: options.authMethods.join(","),
+      } : {},
+      ...options.primaryEmailVerified ? {
+        primary_email_verified: options.primaryEmailVerified.join(","),
+      } : {},
     }));
     const response = await this.sendServerRequest("/users?" + searchParams.toString(), {}, null);
     return await response.json();

@@ -4,18 +4,12 @@ import { ServerUser } from '@stackframe/stack';
 import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { allProviders } from '@stackframe/stack-shared/dist/utils/oauth';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableFacetedFilter, DataTableManualPagination, DateCell, SearchToolbarItem, SimpleTooltip, TableView, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableFacetedFilter, DataTableManual, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
 import {
   ColumnDef, ColumnFiltersState,
-  GlobalFiltering, Row, SortingState, Table, Table as TableType, VisibilityState, getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable
+  Row, SortingState, Table
 } from "@tanstack/react-table";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as yup from "yup";
 import { FormDialog } from "../form-dialog";
 import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
@@ -32,7 +26,7 @@ function userToolbarRender<TData>(table: Table<TData>) {
       <DataTableFacetedFilter
         column={table.getColumn("authTypes")}
         title="Auth Method"
-        options={['email', 'password', ...allProviders].map((provider) => ({
+        options={['otp', 'password', ...allProviders].map((provider) => ({
           value: provider,
           label: provider,
         }))}
@@ -236,7 +230,6 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Email Verified" />,
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
-    filterFn: standardFilterFn,
     enableGlobalFilter: false,
     enableSorting: false,
   },
@@ -248,7 +241,6 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
     accessorKey: "authTypes",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Auth Method" />,
     cell: ({ row }) => <BadgeCell badges={row.original.authTypes} />,
-    filterFn: arrayFilterFn,
     enableSorting: false,
   },
   {
@@ -266,7 +258,7 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   return users.map((user) => ({
     ...user,
     authTypes: [
-      ...user.emailAuthEnabled ? ["email"] : [],
+      ...user.otpAuthEnabled ? ["otp"] : [],
       ...user.hasPassword ? ["password"] : [],
       ...user.oauthProviders.map(p => p.id),
     ],
@@ -280,27 +272,44 @@ export function UserTable() {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [rowCount, setRowCount] = useState(0);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   useEffect(() => {
+    let filters: any = {};
+
     const orderMap = {
       signedUpAt: "signedUpAt",
       displayName: "displayName",
       id: "id",
     } as const;
+    if (sorting.length > 0 && sorting[0].id in orderMap) {
+      filters.orderBy = orderMap[sorting[0].id as keyof typeof orderMap];
+      filters.desc = sorting[0].desc;
+    }
+
+    if (columnFilters.length > 0) {
+      const authTypes = columnFilters.find((c) => c.id === "authTypes");
+      if (authTypes) {
+        filters.authMethods = authTypes.value;
+      }
+
+      const emailVerified = columnFilters.find((c) => c.id === "emailVerified");
+      if (emailVerified) {
+        filters.emailVerified = emailVerified.value;
+      }
+    }
+
     stackAdminApp.listUsers({
       offset: pagination.pageIndex * pagination.pageSize,
       limit: pagination.pageSize,
-      ...sorting.length > 0 && sorting[0].id in orderMap && {
-        orderBy: orderMap[sorting[0].id as keyof typeof orderMap],
-        desc: sorting[0].desc,
-      },
+      ...filters,
     }).then((users) => {
       setUsers(extendUsers(users));
       setRowCount(users.totalCount);
     }).catch(console.error);
-  }, [pagination, stackAdminApp, sorting]);
+  }, [pagination, stackAdminApp, sorting, columnFilters]);
 
-  return <DataTableManualPagination
+  return <DataTableManual
     columns={columns}
     data={users}
     toolbarRender={userToolbarRender}
@@ -308,6 +317,8 @@ export function UserTable() {
     setSorting={setSorting}
     pagination={pagination}
     setPagination={setPagination}
+    columnFilters={columnFilters}
+    setColumnFilters={setColumnFilters}
     rowCount={rowCount}
     defaultVisibility={{ emailVerified: false }}
   />;

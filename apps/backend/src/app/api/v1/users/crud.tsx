@@ -7,16 +7,16 @@ import { BooleanTrue, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { userIdOrMeSchema, yupArray, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { userIdOrMeSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { waitUntil } from '@vercel/functions';
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
-import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 
 export const userFullInclude = {
   projectUserOAuthAccounts: {
@@ -251,9 +251,23 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     offset: yupNumber().integer().min(0).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The number of items to skip before starting to collect the result set. Defaults to 0" }}),
     order_by: yupString().oneOf(['signed_up_at', 'display_name', 'id']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
     desc: yupBoolean().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Whether to sort the results in descending order. Defaults to false" }}),
-    primary_email_verified: yupArray().of(yupBoolean().required()).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by primary email verification status" }}),
+    primary_email_verified: yupString().test(
+      'valid-boolean-array',
+      'must be a comma separated list of booleans',
+      (value) => {
+        if (!value) return true;
+        return value.split(',').every((v) => v === 'true' || v === 'false');
+      }
+    ).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by primary email verification status" }}),
     // only used for dashboard for now. We might want to change this parameter in the future.
-    auth_methods: yupArray().of(yupString().oneOf(['password', 'otp', ...allProviders]).required()).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by auth method", hidden: true }}),
+    auth_methods: yupString().test(
+      'valid-auth-methods-array',
+      'must be a comma separated list of auth methods',
+      (value) => {
+        if (!value) return true;
+        return value.split(',').every((v) => ['password', 'otp', ...allProviders].includes(v));
+      }
+    ).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by auth method", hidden: true }}),
   }),
   onRead: async ({ auth, params }) => {
     const user = await getUser({ projectId: auth.project.id, userId: params.user_id });
@@ -272,49 +286,57 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           },
         },
       } : {},
+      // ...query.primary_email_verified ? {
+      //   contactChannels: {
+      //     some: {
+      //       type: "EMAIL",
+      //       value: query.primary_email_verified,
+      //       usedForAuth: true,
+      //       isPrimary: 'TRUE',
+      //     },
+      //   },
+      // } : {},
       ...query.auth_methods ? {
         authMethods: {
           some: {
-            OR: [
-              ...query.auth_methods.map((authMethod) => {
-                if (authMethod === "password") {
-                  return {
-                    authMethodConfig: {
-                      passwordConfig: {
-                        isNot: null,
-                      }
+            OR: query.auth_methods.split(',').map((authMethod) => {
+              if (authMethod === "password") {
+                return {
+                  authMethodConfig: {
+                    passwordConfig: {
+                      isNot: null,
                     }
-                  };
-                } else if (authMethod === "otp") {
-                  return {
-                    authMethodConfig: {
-                      otpConfig: {
-                        isNot: null,
-                      }
+                  }
+                };
+              } else if (authMethod === "otp") {
+                return {
+                  authMethodConfig: {
+                    otpConfig: {
+                      isNot: null,
                     }
-                  };
-                } else {
-                  return {
-                    authMethodConfig: {
-                      oauthProviderConfig: {
-                        OR: [
-                          {
-                            proxiedOAuthConfig: {
-                              type: typedToUppercase(authMethod),
-                            }
-                          },
-                          {
-                            standardOAuthConfig: {
-                              type: typedToUppercase(authMethod),
-                            }
+                  }
+                };
+              } else {
+                return {
+                  authMethodConfig: {
+                    oauthProviderConfig: {
+                      OR: [
+                        {
+                          proxiedOAuthConfig: {
+                            type: typedToUppercase(authMethod),
                           }
-                        ]
-                      } as any
-                    }
-                  };
-                }
-              }),
-            ],
+                        },
+                        {
+                          standardOAuthConfig: {
+                            type: typedToUppercase(authMethod),
+                          }
+                        }
+                      ]
+                    } as any
+                  }
+                };
+              }
+            }),
           },
         },
       } : {},
