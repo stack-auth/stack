@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.6.13
+
+### Patch Changes
+
+- Updated docs
+  - @stackframe/stack-sc@2.6.13
+
 ## 2.6.12
 
 ### Patch Changes
