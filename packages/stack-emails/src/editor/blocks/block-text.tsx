@@ -98,7 +98,7 @@ export const TextPropsDefaults = {
 };
 
 const parseText = (text: string) => {
-  const regex = /\[(.*?)\]\((.*?)\)/g;
+  const regex = /\[(.*?)\]\((.*?)\)|\*\*(.*?)\*\*/g;
   const parts = [];
   let lastIndex = 0;
   let match;
@@ -121,6 +121,12 @@ const parseText = (text: string) => {
         >
           {match[1]}
         </a>
+      );
+    } else if (match[3]) {
+      parts.push(
+        <strong key={match.index}>
+          {match[3]}
+        </strong>
       );
     }
 
