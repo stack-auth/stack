@@ -1,6 +1,7 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
-import { KnownErrors } from "@stackframe/stack-shared";
+import { KnownErrors  } from "@stackframe/stack-shared";
+import { PublicKeyCredentialRequestOptionsJSON } from "@stackframe/stack-shared/dist/utils/passkey";
 import { adaptSchema, clientOrHigherAuthTypeSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { passkeySignInVerificationCodeHandler } from "../sign-in/verification-code-handler";
 
