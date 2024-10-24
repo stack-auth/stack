@@ -29,7 +29,8 @@ export async function createCookieHelper(): Promise<CookieHelper> {
   }
 }
 
-function createBrowserCookieHelper(): CookieHelper {
+// TODO next-release: don't export this
+export function createBrowserCookieHelper(): CookieHelper {
   return {
     get: getCookieClient,
     set: setCookieClient,
