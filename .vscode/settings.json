@@ -67,5 +67,10 @@
           "source.organizeImports": "explicit"
       }
   },
-  "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|"
+  "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+  },
+  "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|",
+  "editor.formatOnSave": false,
+  "prettier.enable": false
 }

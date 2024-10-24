@@ -4,7 +4,7 @@ slug: sdk/stack-app
 
 This is a detailed reference for the `StackApp` object. [Here](../concepts/stack-app.mdx) is a more high-level overview.
 
-## Different types of stack apps
+## Different types of `StackApp` objects
 
 Stack offers two types of app objects: `StackClientApp` and `StackServerApp`.
 
@@ -38,49 +38,49 @@ Check out the manual [setup guide](../getting-started/setup.mdx) for more detail
 ### Properties
 
 <div className="indented">
-<ParamField path="projectId" type="string">
-The ID of the project that the app is associated with.
-</ParamField>
+  <ParamField path="projectId" type="string">
+  The ID of the project that the app is associated with.
+  </ParamField>
 
-<ParamField path="urls" type="object">
-  The URLs that Stack uses to route and redirect.
+  <ParamField path="urls" type="object">
+    The URLs that Stack uses to route and redirect.
 
-  <div className="indented">
-  <ParamField path="home" type="string">
-  The URL of the home page.
+    <div className="indented">
+      <ParamField path="home" type="string">
+      The URL of the home page.
+      </ParamField>
+      <ParamField path="signIn" type="string">
+      The URL of the sign-in page.
+      </ParamField>
+      <ParamField path="afterSignIn" type="string">
+      The URL that the user will be redirected to after successful signing in.
+      </ParamField>
+      <ParamField path="signUp" type="string">
+      The URL of the sign-up page.
+      </ParamField>
+      <ParamField path="afterSignUp" type="string">
+      The URL that the user will be redirected to after successful signing up.
+      </ParamField>
+      <ParamField path="afterSignOut" type="string">
+      The URL that the user will be redirected to after successful signing out.
+      </ParamField>
+      <ParamField path="emailVerification" type="string">
+      The URL of the email verification page.
+      </ParamField>
+      <ParamField path="passwordReset" type="string">
+      The URL of the password reset page.
+      </ParamField>
+      <ParamField path="forgotPassword" type="string">
+      The URL of the forgot password page.
+      </ParamField>
+      <ParamField path="accountSettings" type="string">
+      The URL of the account settings page.
+      </ParamField>
+      <ParamField path="handler" type="string">
+      The URL of the handler root. 
+      </ParamField>
+    </div>
   </ParamField>
-  <ParamField path="signIn" type="string">
-  The URL of the sign-in page.
-  </ParamField>
-  <ParamField path="afterSignIn" type="string">
-  The URL that the user will be redirected to after successful signing in.
-  </ParamField>
-  <ParamField path="signUp" type="string">
-  The URL of the sign-up page.
-  </ParamField>
-  <ParamField path="afterSignUp" type="string">
-  The URL that the user will be redirected to after successful signing up.
-  </ParamField>
-  <ParamField path="afterSignOut" type="string">
-  The URL that the user will be redirected to after successful signing out.
-  </ParamField>
-  <ParamField path="emailVerification" type="string">
-  The URL of the email verification page.
-  </ParamField>
-  <ParamField path="passwordReset" type="string">
-  The URL of the password reset page.
-  </ParamField>
-  <ParamField path="forgotPassword" type="string">
-  The URL of the forgot password page.
-  </ParamField>
-  <ParamField path="accountSettings" type="string">
-  The URL of the account settings page.
-  </ParamField>
-  <ParamField path="handler" type="string">
-  The URL of the handler root. 
-  </ParamField>
-  </div>
-</ParamField>
 </div>
 
 ### `getUser()`
@@ -90,15 +90,15 @@ Get the current user.
 **Parameters:**
 
 <div className="indented">
-<ParamField path="options" type="object">
-  <div className="indented">
-  <ParamField path="or" type="string" required>
-  What to do if the user is not signed in. Can be:
-  - `"redirect"`: Redirects the user to the `signIn` URL.
-  - `"throw"`: Throws an error.
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="or" type="string" required>
+        What to do if the user is not signed in. Can be:
+        - `"redirect"`: Redirects the user to the `signIn` URL.
+        - `"throw"`: Throws an error.
+      </ParamField>
+    </div>
   </ParamField>
-  </div>
-</ParamField>
 </div>
 
 **Returns:**
@@ -127,15 +127,15 @@ This is the same as `getUser()` but it is a React hook. The `useUser` hook impor
 **Parameters:**
 
 <div className="indented">
-<ParamField path="options" type="object">
-  <div className="indented">
-  <ParamField path="or" type="string" required>
-  What to do if the user is not signed in. Can be:
-  - `"redirect"`: Redirects the user to the `signIn` URL.
-  - `"throw"`: Throws an error.
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="or" type="string" required>
+        What to do if the user is not signed in. Can be:
+        - `"redirect"`: Redirects the user to the `signIn` URL.
+        - `"throw"`: Throws an error.
+      </ParamField>
+    </div>
   </ParamField>
-  </div>
-</ParamField>
 </div>
 
 **Returns:**
@@ -168,15 +168,15 @@ Initiates the OAuth sign-in process with the specified provider. This method:
 **Parameters:**
 
 <div className="indented">
-<ParamField path="provider" type="string" required>
-The type of the OAuth provider to sign in with.
-</ParamField>
+  <ParamField path="provider" type="string" required>
+    The type of the OAuth provider to sign in with.
+  </ParamField>
 </div>
 
 **Returns:**
 
 <div className="indented">
-`Promise<void>`: A promise that resolves when the redirect is complete.
+  `Promise<void>`: A promise that resolves when the redirect is complete.
 </div>
 
 **Example:**
@@ -201,25 +201,25 @@ Sign in using email and password credentials. The behavior is as follows:
 **Parameters:**
 
 <div className="indented">
-<ParamField path="options" type="object">
-  <div className="indented">
-  <ParamField path="email" type="string" required>
-  The email of the user to sign in with.
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="email" type="string" required>
+        The email of the user to sign in with.
+      </ParamField>
+      <ParamField path="password" type="string" required>
+        The password of the user to sign in with.
+      </ParamField>
+      <ParamField path="noRedirect" type="boolean">
+        Whether to not redirect the user after sign-in. Defaults to `false`.
+      </ParamField>
+    </div>
   </ParamField>
-  <ParamField path="password" type="string" required>
-  The password of the user to sign in with.
-  </ParamField>
-  <ParamField path="noRedirect" type="boolean">
-  Whether to not redirect the user after sign-in. Defaults to `false`.
-  </ParamField>
-  </div>
-</ParamField>
 </div>
 
 **Returns:**
 
 <div className="indented">
-`Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"]>>`: A promise that resolves to a `Result` object.
+  `Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"]>>`: A promise that resolves to a `Result` object.
 </div>
 
 **Example:**
@@ -251,19 +251,19 @@ Sign up using email and password credentials. The behavior is as follows:
 **Parameters:**
 
 <div className="indented">
-<ParamField path="options" type="object">
-  <div className="indented">
-  <ParamField path="email" type="string" required>
-  The email of the user to sign up with.
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="email" type="string" required>
+        The email of the user to sign up with.
+      </ParamField>
+      <ParamField path="password" type="string" required>
+        The password of the user to sign up with.
+      </ParamField>
+      <ParamField path="noRedirect" type="boolean">
+        Whether to not redirect the user after sign-up. Defaults to `false`.
+      </ParamField>
+    </div>
   </ParamField>
-  <ParamField path="password" type="string" required>
-  The password of the user to sign up with.
-  </ParamField>
-  <ParamField path="noRedirect" type="boolean">
-  Whether to not redirect the user after sign-up. Defaults to `false`.
-  </ParamField>
-  </div>
-</ParamField>
 </div>
 
 **Returns:**
@@ -292,15 +292,15 @@ Send a forgot password email to an email address.
 **Parameters:**
 
 <div className="indented">
-<ParamField path="email" type="string" required>
-The email of the user to send the forgot password email to.
-</ParamField>
+  <ParamField path="email" type="string" required>
+    The email of the user to send the forgot password email to.
+  </ParamField>
 </div>
 
 **Returns:**
 
 <div className="indented">
-`Promise<Result<undefined, KnownErrors["UserNotFound"]>>`: A promise that resolves to a `Result` object.
+  `Promise<Result<undefined, KnownErrors["UserNotFound"]>>`: A promise that resolves to a `Result` object.
 </div>
 
 **Example:**
@@ -322,21 +322,67 @@ Send a magic link/OTP sign-in email to an email address.
 **Parameters:**
 
 <div className="indented">
-<ParamField path="email" type="string" required>
-The email of the user to send the magic link email to.
-</ParamField>
+  <ParamField path="email" type="string" required>
+    The email of the user to send the magic link email to.
+  </ParamField>
 </div>
 
 **Returns:**
 
 <div className="indented">
-`Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>`: A promise that resolves to a `Result` object.
+  `Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>`: A promise that resolves to a `Result` object.
 </div>
 
 **Example:**
 
 ```typescript
 const result = await stackClientApp.sendMagicLinkEmail("test@example.com");
+```
+
+### `getProject()`
+
+Get the current project.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<Project>`: The current project.
+</div>
+
+**Example:**
+
+```typescript
+const project = await stackClientApp.getProject();
+```
+
+### `useProject()`
+
+Get the current project.
+
+This is the same as `getProject()` but it is a React hook. The `useProject` hook imported from the package is an alias for this function.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Project`: The current project.
+</div>
+
+**Example:**
+
+```typescript
+const project = useProject();
 ```
 
 ## `StackServerApp`
@@ -350,73 +396,73 @@ Note that although the `useXYZ` hooks are available on `StackServerApp`, they ar
 **Parameters:**
 
 <div className="indented">
-<ParamField path="options" type="object">
-  <div className="indented">
-  <ParamField path="tokenStore" type="string" required>
-  Where to store the auth tokens. Currently only `"nextjs-cookie"` is supported.
-  </ParamField>
-
-  <ParamField path="oauthScopesOnSignIn" type="object">
-  Extra OAuth scopes to request when signing in. It is an object of format `{ [provider: string]: string[] }`, where the key is the provider type (e.g. `"google"`, `"apple"`, etc.) and the value is an array of scopes to request. Checkout the [OAuth](../concepts/oauth.mdx) page for more details.
-  </ParamField>
-
-  <ParamField path="baseUrl" type="string">
-  The base URL of the Stack server. By default it is read from the `NEXT_PUBLIC_STACK_URL` environment variable if it exists, or use `https://api.stack-auth.com` if it doesn't.
-  </ParamField>
-
-  <ParamField path="projectId" type="string">
-  The ID of the project to use. By default it is read from the `NEXT_PUBLIC_STACK_PROJECT_ID` environment variable.
-  </ParamField>
-
-  <ParamField path="publishableClientKey" type="string">
-  The publishable client key to use. By default it is read from the `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` environment variable.
-  </ParamField>
-
-  <ParamField path="secretServerKey" type="string">
-  The secret server key to use. By default it is read from the `STACK_SECRET_SERVER_KEY` environment variable.
-  </ParamField>
-
-  <ParamField path="urls" type="object">
-    Modify the URLs that Stack uses to route and redirect.
+  <ParamField path="options" type="object">
     <div className="indented">
-      <ParamField path="home" type="string" default="'/'" >
-      The URL of the home page.
+      <ParamField path="tokenStore" type="string" required>
+        Where to store the auth tokens. Currently only `"nextjs-cookie"` is supported.
       </ParamField>
-      <ParamField path="signIn" type="string" default="urls.handler + '/sign-in'">
-      The URL of the sign-in page.
+
+      <ParamField path="oauthScopesOnSignIn" type="object">
+        Extra OAuth scopes to request when signing in. It is an object of format `{ [provider: string]: string[] }`, where the key is the provider type (e.g. `"google"`, `"apple"`, etc.) and the value is an array of scopes to request. Checkout the [OAuth](../concepts/oauth.mdx) page for more details.
       </ParamField>
-      <ParamField path="afterSignIn" type="string" default="urls.home">
-      The URL that the user will be redirected to after successful signing in.
+
+      <ParamField path="baseUrl" type="string">
+        The base URL of the Stack server. By default it is read from the `NEXT_PUBLIC_STACK_URL` environment variable if it exists, or use `https://api.stack-auth.com` if it doesn't.
       </ParamField>
-      <ParamField path="signUp" type="string" default="urls.handler + '/sign-up'">
-      The URL of the sign-up page.
+
+      <ParamField path="projectId" type="string">
+        The ID of the project to use. By default it is read from the `NEXT_PUBLIC_STACK_PROJECT_ID` environment variable.
       </ParamField>
-      <ParamField path="afterSignUp" type="string" default="urls.home">
-      The URL that the user will be redirected to after successful signing up.
+
+      <ParamField path="publishableClientKey" type="string">
+        The publishable client key to use. By default it is read from the `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` environment variable.
       </ParamField>
-      <ParamField path="afterSignOut" type="string" default="urls.home">
-      The URL that the user will be redirected to after successful signing out.
+
+      <ParamField path="secretServerKey" type="string">
+        The secret server key to use. By default it is read from the `STACK_SECRET_SERVER_KEY` environment variable.
       </ParamField>
-      <ParamField path="emailVerification" type="string" default="urls.handler + '/email-verification'">
-      The URL of the email verification page.
-      </ParamField>
-      <ParamField path="passwordReset" type="string" default="urls.handler + '/password-reset'">
-      The URL of the password reset page.
-      </ParamField>
-      <ParamField path="forgotPassword" type="string" default="urls.handler + '/forgot-password'">
-      The URL of the forgot password page.
-      </ParamField>
-      <ParamField path="accountSettings" type="string" default="urls.handler + '/account-settings'">
-      The URL of the account settings page.
-      </ParamField>
-      <ParamField path="handler" type="string" default="'/handler'">
-      The URL of the handler root. When changing this, you should also change the location of the `StackHandler` component and the domain handler path on the dashboard. Currently putting the handler at the root `/` is not supported.
+
+      <ParamField path="urls" type="object">
+        Modify the URLs that Stack uses to route and redirect.
+        <div className="indented">
+          <ParamField path="home" type="string" default="'/'" >
+            The URL of the home page.
+          </ParamField>
+          <ParamField path="signIn" type="string" default="urls.handler + '/sign-in'">
+            The URL of the sign-in page.
+          </ParamField>
+          <ParamField path="afterSignIn" type="string" default="urls.home">
+            The URL that the user will be redirected to after successful signing in.
+          </ParamField>
+          <ParamField path="signUp" type="string" default="urls.handler + '/sign-up'">
+            The URL of the sign-up page.
+          </ParamField>
+          <ParamField path="afterSignUp" type="string" default="urls.home">
+            The URL that the user will be redirected to after successful signing up.
+          </ParamField>
+          <ParamField path="afterSignOut" type="string" default="urls.home">
+            The URL that the user will be redirected to after successful signing out.
+          </ParamField>
+          <ParamField path="emailVerification" type="string" default="urls.handler + '/email-verification'">
+            The URL of the email verification page.
+          </ParamField>
+          <ParamField path="passwordReset" type="string" default="urls.handler + '/password-reset'">
+            The URL of the password reset page.
+          </ParamField>
+          <ParamField path="forgotPassword" type="string" default="urls.handler + '/forgot-password'">
+            The URL of the forgot password page.
+          </ParamField>
+          <ParamField path="accountSettings" type="string" default="urls.handler + '/account-settings'">
+            The URL of the account settings page.
+          </ParamField>
+          <ParamField path="handler" type="string" default="'/handler'">
+            The URL of the handler root. When changing this, you should also change the location of the `StackHandler` component and the domain handler path on the dashboard. Currently putting the handler at the root `/` is not supported.
+          </ParamField>
+        </div>
       </ParamField>
     </div>
-  </ParamField>
-  </div>
 
-</ParamField>
+  </ParamField>
 </div>
 
 **Example:**
@@ -446,15 +492,15 @@ Get a user. There are two overloads:
 **Parameters:**
 
 <div className="indented">
-<ParamField path="options" type="object">
-  <div className="indented">
-  <ParamField path="or" type="string" required>
-  What to do if the user is not signed in. Can be:
-  - `"redirect"`: Redirects the user to the `signIn` URL.
-  - `"throw"`: Throws an error.
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="or" type="string" required>
+        What to do if the user is not signed in. Can be:
+        - `"redirect"`: Redirects the user to the `signIn` URL.
+        - `"throw"`: Throws an error.
+      </ParamField>
+    </div>
   </ParamField>
-  </div>
-</ParamField>
 </div>
 
 **Returns:**
@@ -487,7 +533,7 @@ The ID of the user to get.
 **Returns:**
 
 <div className="indented">
-`Promise<ServerUser | null>`: The user, or null if not found.
+  `Promise<ServerUser | null>`: The user, or null if not found.
 </div>
 
 **Example:**
@@ -504,7 +550,7 @@ List all users.
 **Returns:**
 
 <div className="indented">
-`Promise<ServerUser[]>`: The list of users.
+  `Promise<ServerUser[]>`: The list of users.
 </div>
 
 **Example:**
@@ -517,49 +563,65 @@ console.log(users);
 
 ### `createUser()`
 
-Create a new user. Currently only supports creating a user with email and password.
+Create a new user.
 
 **Parameters:**
 
 <div className="indented">
-<ParamField path="options" type="object">
-  <div className="indented">
-  <ParamField path="primaryEmail" type="string">
-  The primary email of the user to create.
-  </ParamField>
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="primaryEmail" type="string">
+        The primary email of the user to create.
+      </ParamField>
 
-  <ParamField path="primaryEmailAuthEnabled" type="boolean">
-  Whether the primary email is enabled. When using password or otp auth, this must be set to `true`, otherwise the user will not be able to sign in.
-  </ParamField>
+      <ParamField path="primaryEmailAuthEnabled" type="boolean">
+        Whether the primary email is enabled. When using password or otp auth, this must be set to `true`, otherwise the user will not be able to sign in.
+      </ParamField>
 
-  <ParamField path="password" type="string">
-  The password of the user to create.
-  </ParamField>
+      <ParamField path="password" type="string">
+        The password for the new user. An error will be thrown if a password is provided
+        but password authentication is not enabled for the project in the dashboard.
+      </ParamField>
 
-  <ParamField path="displayName" type="string">
-  The display name of the user to create.
-  </ParamField>
+      <ParamField path="otpAuthEnabled" type="boolean">
+        Enables OTP (One-Time Password) or magic link sign-in using the primary email.
+        Note: Only verified emails can be used for OTP sign-in. An error will be thrown
+        if set to `true` when OTP authentication is not enabled in the dashboard.
+      </ParamField>
 
-  <ParamField path="primaryEmailVerified" type="boolean" default="false">
-  Whether the primary email is verified.
+      <ParamField path="displayName" type="string">
+        The display name of the user to create.
+      </ParamField>
+
+      <ParamField path="primaryEmailVerified" type="boolean" default="false">
+        Whether the primary email is verified.
+      </ParamField>
+    </div>
   </ParamField>
-  </div>
-</ParamField>
 </div>
 
 **Returns:**
 
 <div className="indented">
-`Promise<ServerUser>`: The created user.
+  `Promise<ServerUser>`: The created user.
 </div>
 
 **Example:**
 
 ```typescript
+// Create a user with password authentication
 const user = await stackServerApp.createUser({
   primaryEmail: "test@example.com",
   primaryEmailAuthEnabled: true,
   password: "password123",
+});
+
+// Create a user with OTP authentication
+const user = await stackServerApp.createUser({
+  primaryEmail: "test@example.com",
+  primaryEmailVerified: true,
+  primaryEmailAuthEnabled: true,
+  otpAuthEnabled: true,
 });
 ```
 
@@ -570,15 +632,15 @@ Get a team by ID.
 **Parameters:**
 
 <div className="indented">
-<ParamField path="id" type="string" required>
-The ID of the team to get.
-</ParamField>
+  <ParamField path="id" type="string" required>
+    The ID of the team to get.
+  </ParamField>
 </div>
 
 **Returns:**
 
 <div className="indented">
-`Promise<ServerTeam | null>`: The team, or null if not found.
+  `Promise<ServerTeam | null>`: The team, or null if not found.
 </div>
 
 **Example:**
@@ -595,7 +657,7 @@ List all teams.
 **Returns:**
 
 <div className="indented">
-`Promise<ServerTeam[]>`: The list of teams.
+  `Promise<ServerTeam[]>`: The list of teams.
 </div>
 
 **Example:**
@@ -614,22 +676,22 @@ This is similar to `user.createTeam()`, except it does not add the user to the t
 **Parameters:**
 
 <div className="indented">
-<ParamField path="data" type="object" required>
-  <div className="indented">
-    <ParamField path="displayName" type="string">
-    The display name for the team.
-    </ParamField>
-    <ParamField path="profileImageUrl" type="string | null">
-    The URL of the team's profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
-    </ParamField>
-  </div>
-</ParamField>
+  <ParamField path="data" type="object" required>
+    <div className="indented">
+      <ParamField path="displayName" type="string">
+        The display name for the team.
+      </ParamField>
+      <ParamField path="profileImageUrl" type="string | null">
+        The URL of the team's profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
+      </ParamField>
+    </div>
+  </ParamField>
 </div>
 
 **Returns:**
 
 <div className="indented">
-`Promise<ServerTeam>`: The created team.
+  `Promise<ServerTeam>`: The created team.
 </div>
 
 **Example:**

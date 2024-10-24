@@ -646,8 +646,8 @@ export class StackClientInterface {
     teamId: string,
     callbackUrl: string,
     session: InternalSession | null,
-  }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>> {
-    const res = await this.sendClientRequestAndCatchKnownError(
+  }): Promise<void> {
+    await this.sendClientRequest(
       "/team-invitations/send-code",
       {
         method: "POST",
@@ -661,14 +661,7 @@ export class StackClientInterface {
         }),
       },
       options.session,
-      [KnownErrors.TeamPermissionRequired]
     );
-
-    if (res.status === "error") {
-      return Result.error(res.error);
-    } else {
-      return Result.ok(undefined);
-    }
   }
 
   async acceptTeamInvitation<T extends 'use' | 'details' | 'check'>(options: {
