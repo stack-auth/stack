@@ -14,6 +14,7 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   primary_email_auth_enabled: fieldSchema.yupBoolean().optional().meta({ openapiField: { description: "Whether the primary email is used for authentication", exampleValue: true } }),
   password: fieldSchema.yupString().nullable().meta({ openapiField: { description: 'A new password for the user, overwriting the old one (if it exists). Specifying this option revokes all current sessions.', exampleValue: 'my-new-password' } }),
   otp_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.optional(),
+  passkey_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.optional(),
   totp_secret_base64: fieldSchema.base64Schema.nullable().meta({ openapiField: { description: 'A TOTP secret for the user, overwriting the old one (if it exists). Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } }),
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().optional(),
 }).required();
@@ -29,6 +30,7 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
   signed_up_at_millis: fieldSchema.signedUpAtMillisSchema.required(),
   has_password: fieldSchema.yupBoolean().required().meta({ openapiField: { description: 'Whether the user has a password associated with their account', exampleValue: true } }),
   otp_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.required(),
+  passkey_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.required(),
   client_metadata: fieldSchema.userClientMetadataSchema,
   client_read_only_metadata: fieldSchema.userClientReadOnlyMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,

@@ -1,3 +1,4 @@
+import { WebAuthnError, startAuthentication, startRegistration } from "@simplewebauthn/browser";
 import { isReactServer } from "@stackframe/stack-sc";
 import { KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
@@ -700,6 +701,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         signUpEnabled: crud.config.sign_up_enabled,
         credentialEnabled: crud.config.credential_enabled,
         magicLinkEnabled: crud.config.magic_link_enabled,
+        passkeyEnabled: crud.config.passkey_enabled,
         clientTeamCreationEnabled: crud.config.client_team_creation_enabled,
         clientUserDeletionEnabled: crud.config.client_user_deletion_enabled,
         oauthProviders: crud.config.enabled_oauth_providers.map((p) => ({
@@ -824,6 +826,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       emailAuthEnabled: crud.auth_with_email,
       otpAuthEnabled: crud.otp_auth_enabled,
       oauthProviders: crud.oauth_providers,
+      passkeyAuthEnabled: crud.passkey_auth_enabled,
       selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team),
       isMultiFactorRequired: crud.requires_totp_mfa,
       toClientJson(): CurrentUserCrud['Client']['Read'] {
@@ -1340,6 +1343,74 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return Result.error(result.error);
     }
   }
+
+  async signInWithPasskey(): Promise<Result<undefined, KnownErrors["PasskeyAuthenticationFailed"] | KnownErrors["InvalidTotpCode"] | KnownErrors["PasskeyWebAuthnError"]>> {
+    this._ensurePersistentTokenStore();
+    let result;
+    try {
+      result = await this._catchMfaRequiredError(async () => {
+
+        const initiationResult = await this._interface.initiatePasskeyAuthentication({}, this._getSession());
+        if (initiationResult.status !== "ok") {
+          return Result.error(new KnownErrors.PasskeyAuthenticationFailed());
+        }
+
+        const {optionsJSON, code} = initiationResult.data;
+
+        // HACK: Override the rpID to be the actual domain
+        optionsJSON.rpId = window.location.hostname;
+
+
+        const authenticationResponse = await startAuthentication({ optionsJSON });
+        return await this._interface.signInWithPasskey({ authenticationResponse, code });
+      });
+    } catch (error) {
+      if (error instanceof WebAuthnError) {
+        return Result.error(new KnownErrors.PasskeyWebAuthnError(error.message, error.name));
+      } else {
+        // This should never happen
+        return Result.error(new KnownErrors.PasskeyAuthenticationFailed());
+      }
+    }
+
+    if (result.status === 'ok') {
+      await this._signInToAccountWithTokens(result.data);
+      await this.redirectToAfterSignIn({ replace: true });
+      return Result.ok(undefined);
+    } else {
+      return Result.error(result.error);
+    }
+  }
+
+  async registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>> {
+    const initiationResult = await this._interface.initiatePasskeyRegistration({}, this._getSession());
+
+    if (initiationResult.status !== "ok") {
+      return Result.error(new KnownErrors.PasskeyRegistrationFailed());
+    }
+
+    const {optionsJSON, code} = initiationResult.data;
+
+    // HACK: Override the rpID to be the actual domain
+    optionsJSON.rp.id = window.location.hostname;
+
+    let attResp;
+    try {
+      attResp = await startRegistration({ optionsJSON });
+    } catch (error: any) {
+      if (error instanceof WebAuthnError) {
+        return Result.error(new KnownErrors.PasskeyWebAuthnError(error.message, error.name));
+      } else {
+        // This should never happen
+        return Result.error(new KnownErrors.PasskeyRegistrationFailed());
+      }
+    }
+
+
+    const registrationResult = await this._interface.registerPasskey({ credential: attResp, code }, this._getSession());
+    return registrationResult;
+  }
+
 
   async callOAuthCallback() {
     this._ensurePersistentTokenStore();
@@ -2090,6 +2161,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         signUpEnabled: data.config.sign_up_enabled,
         credentialEnabled: data.config.credential_enabled,
         magicLinkEnabled: data.config.magic_link_enabled,
+        passkeyEnabled: data.config.passkey_enabled,
         legacyGlobalJwtSigning: data.config.legacy_global_jwt_signing,
         clientTeamCreationEnabled: data.config.client_team_creation_enabled,
         clientUserDeletionEnabled: data.config.client_user_deletion_enabled,
@@ -2495,6 +2567,7 @@ type BaseUser = {
    */
   readonly hasPassword: boolean,
   readonly otpAuthEnabled: boolean,
+  readonly passkeyAuthEnabled: boolean,
 
   readonly isMultiFactorRequired: boolean,
 
@@ -2570,6 +2643,7 @@ type UserUpdateOptions = {
   totpMultiFactorSecret?: Uint8Array | null,
   profileImageUrl?: string | null,
   otpAuthEnabled?: boolean,
+  passkeyAuthEnabled?:boolean,
 }
 function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["Client"]["Update"] {
   return {
@@ -2579,6 +2653,7 @@ function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["C
     totp_secret_base64: options.totpMultiFactorSecret != null ? encodeBase64(options.totpMultiFactorSecret) : options.totpMultiFactorSecret,
     profile_image_url: options.profileImageUrl,
     otp_auth_enabled: options.otpAuthEnabled,
+    passkey_auth_enabled: options.passkeyAuthEnabled,
   };
 }
 
@@ -2737,6 +2812,7 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
       sign_up_enabled: options.config?.signUpEnabled,
       credential_enabled: options.config?.credentialEnabled,
       magic_link_enabled: options.config?.magicLinkEnabled,
+      passkey_enabled: options.config?.passkeyEnabled,
       allow_localhost: options.config?.allowLocalhost,
       create_team_on_sign_up: options.config?.createTeamOnSignUp,
       client_team_creation_enabled: options.config?.clientTeamCreationEnabled,
@@ -2764,6 +2840,7 @@ export type ProjectConfig = {
   readonly signUpEnabled: boolean,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
+  readonly passkeyEnabled: boolean,
   readonly clientTeamCreationEnabled: boolean,
   readonly clientUserDeletionEnabled: boolean,
   readonly oauthProviders: OAuthProviderConfig[],
@@ -2778,6 +2855,7 @@ export type AdminProjectConfig = {
   readonly signUpEnabled: boolean,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
+  readonly passkeyEnabled: boolean,
   readonly clientTeamCreationEnabled: boolean,
   readonly clientUserDeletionEnabled: boolean,
   readonly legacyGlobalJwtSigning: boolean,
@@ -2833,6 +2911,7 @@ export type AdminProjectConfigUpdateOptions = {
   signUpEnabled?: boolean,
   credentialEnabled?: boolean,
   magicLinkEnabled?: boolean,
+  passkeyEnabled?: boolean,
   clientTeamCreationEnabled?: boolean,
   clientUserDeletionEnabled?: boolean,
   allowLocalhost?: boolean,
@@ -3061,6 +3140,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signInWithOAuth(provider: string): Promise<void>,
     signInWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"]>>,
     signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>,
+    signInWithPasskey(): Promise<Result<undefined, KnownErrors["PasskeyAuthenticationFailed"]| KnownErrors["InvalidTotpCode"] | KnownErrors["PasskeyWebAuthnError"]>>,
     callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>>,
     sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>,
@@ -3071,6 +3151,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     getTeamInvitationDetails(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
     verifyEmail(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     signInWithMagicLink(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"]>>,
+    registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>>,
 
     redirectToOAuthCallback(): Promise<void>,
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,

@@ -50,6 +50,7 @@ export const projectsCrudAdminReadSchema = yupObject({
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.required(),
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
+    passkey_enabled: schemaFields.projectPasskeyEnabledSchema.required(),
     // TODO: remove this
     legacy_global_jwt_signing: schemaFields.yupBoolean().required(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
@@ -71,6 +72,7 @@ export const projectsCrudClientReadSchema = yupObject({
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.required(),
     credential_enabled: schemaFields.projectCredentialEnabledSchema.required(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.required(),
+    passkey_enabled: schemaFields.projectPasskeyEnabledSchema.required(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.required(),
     client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.required(),
     enabled_oauth_providers: yupArray(enabledOAuthProviderSchema.required()).required(),
@@ -86,6 +88,7 @@ export const projectsCrudAdminUpdateSchema = yupObject({
     sign_up_enabled: schemaFields.projectSignUpEnabledSchema.optional(),
     credential_enabled: schemaFields.projectCredentialEnabledSchema.optional(),
     magic_link_enabled: schemaFields.projectMagicLinkEnabledSchema.optional(),
+    passkey_enabled: schemaFields.projectPasskeyEnabledSchema.optional(),
     client_team_creation_enabled: schemaFields.projectClientTeamCreationEnabledSchema.optional(),
     client_user_deletion_enabled: schemaFields.projectClientUserDeletionEnabledSchema.optional(),
     legacy_global_jwt_signing: schemaFields.yupBoolean().isFalse().optional(),

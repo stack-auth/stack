@@ -84,6 +84,11 @@ async function seed() {
                   create: {}
                 }
               },
+              {
+                passkeyConfig: {
+                  create: {}
+                }
+              },
               ...(['github', 'spotify', 'google', 'microsoft'] as const).map((id) => ({
                 oauthProviderConfig: {
                   connect: {
