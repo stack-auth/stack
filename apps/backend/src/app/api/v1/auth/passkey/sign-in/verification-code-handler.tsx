@@ -6,7 +6,7 @@ import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import {decodeClientDataJSON} from "@simplewebauthn/server/helpers";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { signInResponseSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { captureError, StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 import { AuthenticationResponseJSON } from "@stackframe/stack-shared/dist/utils/passkey";
 
@@ -33,7 +33,9 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
     bodyType: yupString().oneOf(["json"]).required(),
     body: signInResponseSchema.required(),
   }),
-  async send() {},
+  async send() {
+    throw new StackAssertionError("send() called on a Passkey sign in verification code handler");
+  },
   async handler(project, _, {challenge}, {authenticationResponse}) {
 
     if (!project.config.passkey_enabled) {
@@ -57,10 +59,10 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
 
 
     if (!passkey) {
-      throw new StackAssertionError("Passkey not found", { credentialId });
+      throw new KnownErrors.PasskeyAuthenticationFailed("Passkey not found");
     }
 
-    // HACK: validate origin an rpid outside of simpleauth, this should be replaced once we have a primary authentication domain
+    // HACK: we validate origin and rpid outside of simpleauth, this should be replaced once we have a primary authentication domain
     let expectedRPID = "";
     let expectedOrigin = "";
     const clientDataJSON = decodeClientDataJSON(authenticationResponse.response.clientDataJSON);
@@ -70,7 +72,7 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
     const isLocalhost = parsedOrigin.hostname === "localhost";
 
     if (!localhostAllowed && isLocalhost) {
-      throw new KnownErrors.PasskeyAuthenticationFailed();
+      throw new KnownErrors.PasskeyAuthenticationFailed("Passkey authentication failed because localhost is not allowed");
     }
 
     if (localhostAllowed && isLocalhost) {
@@ -80,29 +82,35 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
 
     if (!isLocalhost) {
       if (!project.config.domains.map(e => e.domain).includes(parsedOrigin.origin)) {
-        throw new KnownErrors.PasskeyAuthenticationFailed();
+        throw new KnownErrors.PasskeyAuthenticationFailed("Passkey authentication failed because the origin is not allowed");
       } else {
         expectedRPID = parsedOrigin.hostname;
         expectedOrigin = origin;
       }
     }
 
-    const authVerify = await verifyAuthenticationResponse({
-      response: authenticationResponse,
-      expectedChallenge: challenge,
-      expectedOrigin,
-      expectedRPID,
-      credential: {
-        id: passkey.userHandle,
-        publicKey: new Uint8Array(Buffer.from(passkey.publicKey, 'base64')),
-        counter: passkey.counter,
-      },
-      requireUserVerification: false,
-    });
+    let authVerify;
+    try {
+      authVerify = await verifyAuthenticationResponse({
+        response: authenticationResponse,
+        expectedChallenge: challenge,
+        expectedOrigin,
+        expectedRPID,
+        credential: {
+          id: passkey.userHandle,
+          publicKey: new Uint8Array(Buffer.from(passkey.publicKey, 'base64')),
+          counter: passkey.counter,
+        },
+        requireUserVerification: false,
+      });
+    } catch (error) {
+      captureError("Failed to verify passkey authentication response", error);
+      throw new KnownErrors.PasskeyAuthenticationFailed("Failed to verify passkey authentication response");
+    }
 
 
     if (!authVerify.verified) {
-      throw new StackAssertionError("Passkey authentication failed", { authVerify });
+      throw new KnownErrors.PasskeyAuthenticationFailed("Failed to verify passkey authentication response");
     }
     const authenticationInfo = authVerify.authenticationInfo;
 

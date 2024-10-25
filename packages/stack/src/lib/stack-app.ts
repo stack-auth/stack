@@ -1352,14 +1352,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
         const initiationResult = await this._interface.initiatePasskeyAuthentication({}, this._getSession());
         if (initiationResult.status !== "ok") {
-          return Result.error(new KnownErrors.PasskeyAuthenticationFailed());
+          return Result.error(new KnownErrors.PasskeyAuthenticationFailed("Failed to get initiation options for passkey authentication"));
         }
 
         const {optionsJSON, code} = initiationResult.data;
 
         // HACK: Override the rpID to be the actual domain
         if (optionsJSON.rpId !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
-          throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${optionsJSON.rp.id}`);
+          throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${optionsJSON.rpId}`);
         }
         optionsJSON.rpId = window.location.hostname;
 
@@ -1371,7 +1371,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return Result.error(new KnownErrors.PasskeyWebAuthnError(error.message, error.name));
       } else {
         // This should never happen
-        return Result.error(new KnownErrors.PasskeyAuthenticationFailed());
+        return Result.error(new KnownErrors.PasskeyAuthenticationFailed("Failed to sign in with passkey"));
       }
     }
 
@@ -1389,14 +1389,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const initiationResult = await this._interface.initiatePasskeyRegistration({}, session);
 
     if (initiationResult.status !== "ok") {
-      return Result.error(new KnownErrors.PasskeyRegistrationFailed());
+      return Result.error(new KnownErrors.PasskeyRegistrationFailed("Failed to get initiation options for passkey registration"));
     }
 
     const {optionsJSON, code} = initiationResult.data;
 
     // HACK: Override the rpID to be the actual domain
     if (optionsJSON.rp.id !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
-      throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${optionsJSON.rpId}`);
+      throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${optionsJSON.rp.id}`);
     }
     optionsJSON.rp.id = window.location.hostname;
 
@@ -1408,7 +1408,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return Result.error(new KnownErrors.PasskeyWebAuthnError(error.message, error.name));
       } else {
         // This should never happen
-        return Result.error(new KnownErrors.PasskeyRegistrationFailed());
+        return Result.error(new KnownErrors.PasskeyRegistrationFailed("Failed to start passkey registration"));
       }
     }
 

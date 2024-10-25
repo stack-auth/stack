@@ -855,11 +855,11 @@ const EmailIsNotPrimaryEmail = createKnownErrorConstructor(
 const PasskeyRegistrationFailed = createKnownErrorConstructor(
   KnownError,
   "PASSKEY_REGISTRATION_FAILED",
-  () => [
+  (message: string) => [
     400,
-    "Passkey registration failed.",
+    message,
   ] as const,
-  () => [] as const,
+  (json: any) => [json.message] as const,
 );
 
 
@@ -880,11 +880,11 @@ const PasskeyWebAuthnError = createKnownErrorConstructor(
 const PasskeyAuthenticationFailed = createKnownErrorConstructor(
   KnownError,
   "PASSKEY_AUTHENTICATION_FAILED",
-  () => [
+  (message: string) => [
     400,
-    "Passkey authentication failed.",
+    message,
   ] as const,
-  () => [] as const,
+  (json: any) => [json.message] as const,
 );
 
 

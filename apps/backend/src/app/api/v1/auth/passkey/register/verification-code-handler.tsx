@@ -4,7 +4,7 @@ import { VerificationCodeType } from "@prisma/client";
 import { verifyRegistrationResponse } from "@simplewebauthn/server";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { captureError, StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { RegistrationResponseJSON } from "@stackframe/stack-shared/dist/utils/passkey";
 import {decodeClientDataJSON} from "@simplewebauthn/server/helpers";
 
@@ -36,7 +36,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
     }),
   }),
   async send() {
-    throw new StackAssertionError("send() called on a Passkey registration verification code handler")
+    throw new StackAssertionError("send() called on a Passkey registration verification code handler");
   },
   async handler(project, _, {challenge}, {credential}, user) {
     if (!user) {
@@ -45,7 +45,8 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
       });
     }
 
-    // HACK: validate origin an rpid outside of simpleauth, this should be replaced once we have a primary authentication domain
+    // HACK: we validate origin and rpid outside of simpleauth, this should be replaced once we have a primary authentication domain
+
     let expectedRPID = "";
     let expectedOrigin = "";
     const clientDataJSON = decodeClientDataJSON(credential.response.clientDataJSON);
@@ -55,7 +56,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
     const isLocalhost = parsedOrigin.hostname === "localhost";
 
     if (!localhostAllowed && isLocalhost) {
-      throw new KnownErrors.PasskeyAuthenticationFailed();
+      throw new KnownErrors.PasskeyAuthenticationFailed("Passkey registration failed because localhost is not allowed");
     }
 
     if (localhostAllowed && isLocalhost) {
@@ -65,7 +66,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
 
     if (!isLocalhost) {
       if (!project.config.domains.map(e => e.domain).includes(parsedOrigin.origin)) {
-        throw new KnownErrors.PasskeyAuthenticationFailed();
+        throw new KnownErrors.PasskeyAuthenticationFailed("Passkey registration failed because the origin is not allowed");
       } else {
         expectedRPID = parsedOrigin.hostname;
         expectedOrigin = origin;
@@ -81,15 +82,20 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
         expectedOrigin,
         expectedRPID,
         expectedType: "webauthn.create",
-        // TODO bazumo we could also set this to true, see https://simplewebauthn.dev/docs/advanced/passkeys
+        // we don't need user verification for most websites, in the future this might be an option. See https://simplewebauthn.dev/docs/advanced/passkeys#verifyregistrationresponse
         requireUserVerification: false,
       });
     } catch (error) {
-      throw new KnownErrors.PasskeyRegistrationFailed();
+      if (error instanceof Error) {
+        captureError("Passkey registration verification failed", error);
+        throw new KnownErrors.PasskeyRegistrationFailed("Passkey registration verification failed");
+      } else {
+        throw error;
+      }
     }
 
     if (!verification.verified || !verification.registrationInfo) {
-      throw new KnownErrors.PasskeyRegistrationFailed();
+      throw new KnownErrors.PasskeyRegistrationFailed("Passkey registration failed because the verification response is invalid");
     }
 
     const registrationInfo = verification.registrationInfo;

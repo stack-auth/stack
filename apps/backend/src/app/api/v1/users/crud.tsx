@@ -646,6 +646,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       // Hacky passkey auth method crud, should be replaced by authHandler endpoints in the future
       if (data.passkey_auth_enabled !== undefined) {
         if (data.passkey_auth_enabled) {
+          throw new StatusError(StatusError.BadRequest, "Cannot manually enable passkey auth, it is enabled iff there is a passkey auth method");
           // Case: passkey_auth_enabled is set to true. This should only happen after a user added a passkey and is a no-op since passkey_auth_enabled is true iff there is a passkey auth method.
           // Here to update the ui for the settings page.
           // The passkey auth method is created in the registerPasskey endpoint!
