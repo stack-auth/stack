@@ -13,6 +13,7 @@ import { PasswordReset } from "./password-reset";
 import { SignOut } from "./sign-out";
 import { TeamInvitation } from "./team-invitation";
 import { FilterUndefined, filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { Auth } from "./auth";
 
 type Components = {
   SignIn: typeof SignIn,
@@ -66,6 +67,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
   const availablePaths = {
     signIn: 'sign-in',
     signUp: 'sign-up',
+    auth: 'auth',
     emailVerification: 'email-verification',
     passwordReset: 'password-reset',
     forgotPassword: 'forgot-password',
@@ -157,6 +159,13 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     }
     case availablePaths.error: {
       return <ErrorPage
+        searchParams={props.searchParams || {}}
+        fullPage={props.fullPage}
+        {...filterUndefinedINU(props.componentProps?.ErrorPage)}
+      />;
+    }
+    case availablePaths.auth: {
+      return <Auth
         searchParams={props.searchParams || {}}
         fullPage={props.fullPage}
         {...filterUndefinedINU(props.componentProps?.ErrorPage)}

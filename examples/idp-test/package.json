@@ -1,11 +1,13 @@
 {
-  "name": "idp-test",
+  "name": "@stackframe/example-idp-test",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf .next && rimraf node_modules",
+    "dev": "next dev --port 8116",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 8116",
     "lint": "next lint"
   },
   "dependencies": {
