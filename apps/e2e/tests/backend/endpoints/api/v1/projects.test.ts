@@ -42,7 +42,7 @@ it("gets current project (internal)", async ({ expect }) => {
             { "id": "spotify" },
           ],
           "magic_link_enabled": true,
-          "passkey_enabled": true,
+          "passkey_enabled": false,
           "sign_up_enabled": true,
         },
         "display_name": "Stack Dashboard",
