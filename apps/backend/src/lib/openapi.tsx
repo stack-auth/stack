@@ -165,7 +165,7 @@ function parseRouteHandler(options: {
   return result;
 }
 
-function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): { type: string, items?: any, properties?: any, required?: any } | undefined {
+function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): { type: string, items?: any, properties?: any, required?: any, default?: any } | undefined {
   const meta = "meta" in field ? field.meta : {};
   if (meta?.openapiField?.hidden) {
     return undefined;
@@ -178,6 +178,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capit
   const openapiFieldExtra = {
     example: meta?.openapiField?.exampleValue,
     description: meta?.openapiField?.description,
+    default: (field as any).default,
   };
 
   switch (field.type) {

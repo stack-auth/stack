@@ -4,9 +4,12 @@ import { ServerUser } from '@stackframe/stack';
 import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { allProviders } from '@stackframe/stack-shared/dist/utils/oauth';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTable, DataTableColumnHeader, DataTableFacetedFilter, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
-import { ColumnDef, Row, Table } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableFacetedFilter, DataTableManual, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
+import {
+  ColumnDef, ColumnFiltersState,
+  Row, SortingState, Table
+} from "@tanstack/react-table";
+import React, { useEffect, useState } from "react";
 import * as yup from "yup";
 import { FormDialog } from "../form-dialog";
 import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
@@ -23,7 +26,7 @@ function userToolbarRender<TData>(table: Table<TData>) {
       <DataTableFacetedFilter
         column={table.getColumn("authTypes")}
         title="Auth Method"
-        options={['email', 'password', ...allProviders].map((provider) => ({
+        options={['otp', 'password', ...allProviders].map((provider) => ({
           value: provider,
           label: provider,
         }))}
@@ -215,18 +218,20 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
       {row.original.primaryEmail}
     </TextCell>,
     enableGlobalFilter: true,
+    enableSorting: false,
   },
   {
     accessorKey: "lastActiveAt",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Last Active" />,
     cell: ({ row }) => <DateCell date={row.original.lastActiveAt} />,
+    enableSorting: false,
   },
   {
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Email Verified" />,
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
-    filterFn: standardFilterFn,
     enableGlobalFilter: false,
+    enableSorting: false,
   },
 ] satisfies ColumnDef<T>[];
 
@@ -236,7 +241,7 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
     accessorKey: "authTypes",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Auth Method" />,
     cell: ({ row }) => <BadgeCell badges={row.original.authTypes} />,
-    filterFn: arrayFilterFn,
+    enableSorting: false,
   },
   {
     accessorKey: "signedUpAt",
@@ -253,7 +258,7 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   return users.map((user) => ({
     ...user,
     authTypes: [
-      ...user.emailAuthEnabled ? ["email"] : [],
+      ...user.otpAuthEnabled ? ["otp"] : [],
       ...user.hasPassword ? ["password"] : [],
       ...user.oauthProviders.map(p => p.id),
     ],
@@ -261,12 +266,66 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   } satisfies ExtendedServerUser)).sort((a, b) => a.signedUpAt > b.signedUpAt ? -1 : 1);
 }
 
-export function UserTable(props: { users: ServerUser[] }) {
-  const extendedUsers: ExtendedServerUser[] = useMemo(() => extendUsers(props.users), [props.users]);
-  return <DataTable
-    data={extendedUsers}
+export function UserTable() {
+  const stackAdminApp = useAdminApp();
+  const [users, setUsers] = useState<ExtendedServerUser[]>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [cursors, setCursors] = useState<Record<number, string>>({});
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  useEffect(() => {
+    let filters: any = {};
+
+    const orderMap = {
+      signedUpAt: "signedUpAt",
+      displayName: "displayName",
+      id: "id",
+    } as const;
+    if (sorting.length > 0 && sorting[0].id in orderMap) {
+      filters.orderBy = orderMap[sorting[0].id as keyof typeof orderMap];
+      filters.desc = sorting[0].desc;
+    }
+
+    if (columnFilters.length > 0) {
+      const authTypes = columnFilters.find((c) => c.id === "authTypes");
+      if (authTypes) {
+        filters.authMethods = authTypes.value;
+      }
+
+      const emailVerified = columnFilters.find((c) => c.id === "emailVerified");
+      if (emailVerified) {
+        filters.emailVerified = emailVerified.value;
+      }
+    }
+
+    stackAdminApp.listUsers({
+      cursor: cursors[pagination.pageIndex],
+      limit: pagination.pageSize,
+      ...filters,
+    }).then((users) => {
+      setUsers(extendUsers(users));
+      setCursors(c => users.nextCursor ? { ...c, [pagination.pageIndex + 1]: users.nextCursor } : c);
+    }).catch(console.error);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination, stackAdminApp, sorting, columnFilters]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setPagination(pagination => ({ ...pagination, pageIndex: 0 }));
+  }, [columnFilters, sorting, pagination.pageSize]);
+
+  return <DataTableManual
     columns={columns}
+    data={users}
     toolbarRender={userToolbarRender}
+    sorting={sorting}
+    setSorting={setSorting}
+    pagination={pagination}
+    setPagination={setPagination}
+    columnFilters={columnFilters}
+    setColumnFilters={setColumnFilters}
     defaultVisibility={{ emailVerified: false }}
+    rowCount={1000}
   />;
 }
