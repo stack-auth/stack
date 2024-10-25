@@ -244,7 +244,7 @@ model ProjectUser {
   authMethods                   AuthMethod[]
   connectedAccounts             ConnectedAccount[]
 
-  // Here for unique constraint
+  // some backlinks for the unique constraints on some auth methods
   passwordAuthMethod            PasswordAuthMethod[]
   passkeyAuthMethod             PasskeyAuthMethod[]
   otpAuthMethod                 OtpAuthMethod[]
