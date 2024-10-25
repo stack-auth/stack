@@ -134,7 +134,7 @@ export function createCrudHandlers<
                 items: yupArray(read).required(),
                 is_paginated: yupBoolean().required().meta({ openapiField: { hidden: true } }),
                 pagination: yupObject({
-                  total_count: yupNumber().required(),
+                  next_cursor: yupString().nullable().defined(),
                 }).when('is_paginated', {
                   is: true,
                   then: (schema) => schema.required(),

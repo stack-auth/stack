@@ -271,7 +271,7 @@ export function UserTable() {
   const [users, setUsers] = useState<ExtendedServerUser[]>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const [rowCount, setRowCount] = useState(0);
+  const [cursors, setCursors] = useState<Record<number, string>>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   useEffect(() => {
@@ -300,14 +300,20 @@ export function UserTable() {
     }
 
     stackAdminApp.listUsers({
-      offset: pagination.pageIndex * pagination.pageSize,
+      cursor: cursors[pagination.pageIndex],
       limit: pagination.pageSize,
       ...filters,
     }).then((users) => {
       setUsers(extendUsers(users));
-      setRowCount(users.totalCount);
+      setCursors(c => users.nextCursor ? { ...c, [pagination.pageIndex + 1]: users.nextCursor } : c);
     }).catch(console.error);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination, stackAdminApp, sorting, columnFilters]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setPagination(pagination => ({ ...pagination, pageIndex: 0 }));
+  }, [columnFilters, sorting, pagination.pageSize]);
 
   return <DataTableManual
     columns={columns}
@@ -319,7 +325,7 @@ export function UserTable() {
     setPagination={setPagination}
     columnFilters={columnFilters}
     setColumnFilters={setColumnFilters}
-    rowCount={rowCount}
     defaultVisibility={{ emailVerified: false }}
+    rowCount={1000}
   />;
 }

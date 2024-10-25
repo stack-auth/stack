@@ -108,7 +108,7 @@ type InnerCrudTypeOf<S extends InnerCrudSchema> =
     items: yup.InferType<S['readSchema']>[],
     is_paginated: boolean,
     pagination?: {
-      total_count: number,
+      next_cursor: string | null,
     },
   }, } : {});
 

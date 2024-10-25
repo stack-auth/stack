@@ -170,7 +170,7 @@ export class StackServerInterface extends StackClientInterface {
   }
 
   async listServerUsers(options: {
-    offset?: number,
+    cursor?: string,
     limit?: number,
     orderBy?: 'signedUpAt' | 'displayName' | 'id',
     desc?: boolean,
@@ -178,7 +178,7 @@ export class StackServerInterface extends StackClientInterface {
     primaryEmailVerified?: boolean[],
   }): Promise<UsersCrud['Server']['List']> {
     const searchParams = new URLSearchParams(filterUndefined({
-      offset: options.offset?.toString(),
+      cursor: options.cursor,
       limit: options.limit?.toString(),
       ...options.orderBy ? {
         order_by: {

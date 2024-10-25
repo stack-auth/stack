@@ -1506,14 +1506,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.getServerUserByToken(session);
   });
   private readonly _serverUsersCache = createCache<[
-    offset?: number,
+    cursor?: string,
     limit?: number,
     orderBy?: 'signedUpAt' | 'displayName' | 'id',
     desc?: boolean,
     authMethods?: string[],
     primaryEmailVerified?: boolean[],
-  ], UsersCrud['Server']['List']>(async ([offset, limit, orderBy, desc, authMethods, primaryEmailVerified]) => {
-    return await this._interface.listServerUsers({ offset, limit, orderBy, desc, authMethods, primaryEmailVerified });
+  ], UsersCrud['Server']['List']>(async ([cursor, limit, orderBy, desc, authMethods, primaryEmailVerified]) => {
+    return await this._interface.listServerUsers({ cursor, limit, orderBy, desc, authMethods, primaryEmailVerified });
   });
   private readonly _serverUserCache = createCache<string[], UsersCrud['Server']['Read'] | null>(async ([userId]) => {
     const user = await this._interface.getServerUserById(userId);
@@ -1958,10 +1958,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }, [crud]);
   }
 
-  async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { totalCount: number }> {
-    const crud = await this._serverUsersCache.getOrWait([options?.offset, options?.limit, options?.orderBy, options?.desc, options?.authMethods, options?.primaryEmailVerified], "write-only");
+  async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { nextCursor: string | null }> {
+    const crud = await this._serverUsersCache.getOrWait([options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.authMethods, options?.primaryEmailVerified], "write-only");
     const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
-    result.totalCount = crud.pagination?.total_count ?? throwErr("total_count is missing");
+    result.nextCursor = crud.pagination?.next_cursor ?? null;
     return result;
   }
 
@@ -2983,7 +2983,7 @@ export type ServerTeam = {
 } & Team;
 
 export type ServerListUsersOptions = {
-  offset?: number,
+  cursor?: string,
   limit?: number,
   orderBy?: 'signedUpAt' | 'displayName' | 'id',
   desc?: boolean,
@@ -3140,7 +3140,7 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>,
     getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>,
 
-    listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { totalCount: number }>,
+    listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { nextCursor: string | null }>,
   }
   & AsyncStoreProperty<"user", [id: string], ServerUser | null, false>
   & Omit<AsyncStoreProperty<"users", [], ServerUser[], true>, "listUsers">

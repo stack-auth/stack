@@ -108,6 +108,10 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
 
   return <DataTableManual
     columns={columns}
@@ -120,6 +124,8 @@ export function DataTable<TData, TValue>({
     setColumnFilters={setColumnFilters}
     manualPagination={false}
     manualFiltering={false}
+    pagination={pagination}
+    setPagination={setPagination}
   />;
 }
 

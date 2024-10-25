@@ -248,7 +248,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   querySchema: yupObject({
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by team" }}),
     limit: yupNumber().integer().min(1).max(200).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return. Defaults to 100, max is 200" }}),
-    offset: yupNumber().integer().min(0).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The number of items to skip before starting to collect the result set. Defaults to 0" }}),
+    cursor: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The cursor to start the result set from." }}),
     order_by: yupString().oneOf(['signed_up_at', 'display_name', 'id']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
     desc: yupBoolean().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Whether to sort the results in descending order. Defaults to false" }}),
     primary_email_verified: yupString().test(
@@ -342,24 +342,27 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       } : {},
     };
 
-    const [db, totalCount] = await Promise.all([
-      prismaClient.projectUser.findMany({
-        where,
-        include: userFullInclude,
-        orderBy: {
-          [({
-            signed_up_at: 'createdAt',
-            display_name: 'displayName',
-            id: 'projectUserId',
-          } as const)[query.order_by ?? 'signed_up_at']]: query.desc ? 'desc' : 'asc',
+    const db = await prismaClient.projectUser.findMany({
+      where,
+      include: userFullInclude,
+      orderBy: {
+        [({
+          signed_up_at: 'createdAt',
+          display_name: 'displayName',
+          id: 'projectUserId',
+        } as const)[query.order_by ?? 'signed_up_at']]: query.desc ? 'desc' : 'asc',
+      },
+      take: query.limit ?? 100,
+      skip: query.cursor ? 1 : undefined,
+      ...query.cursor ? {
+        cursor: {
+          projectId_projectUserId: {
+            projectId: auth.project.id,
+            projectUserId: query.cursor,
+          },
         },
-        take: query.limit ?? 100,
-        skip: query.offset ?? 0,
-      }),
-      prismaClient.projectUser.count({
-        where,
-      }),
-    ]);
+      } : {},
+    });
 
     const lastActiveAtMillis = await getUsersLastActiveAtMillis(db.map(user => user.projectUserId), db.map(user => user.createdAt));
 
@@ -367,7 +370,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])),
       is_paginated: true,
       pagination: {
-        total_count: totalCount,
+        next_cursor: db[db.length - 1].projectUserId,
       },
     };
   },
