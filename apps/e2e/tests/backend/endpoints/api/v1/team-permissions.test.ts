@@ -197,6 +197,7 @@ it("can customize default team permissions", async ({ expect }) => {
           "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "passkey_enabled": false,
           "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "test" }],

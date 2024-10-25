@@ -34,6 +34,7 @@ export const fullProjectInclude = {
           },
           otpConfig: true,
           passwordConfig: true,
+          passkeyConfig: true,
         }
       },
       connectedAccountConfigs: {
@@ -107,6 +108,7 @@ export function projectPrismaToCrud(
 
   const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig && config.enabled);
   const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig && config.enabled);
+  const passkeyAuth = prisma.config.authMethodConfigs.find((config) => config.passkeyConfig && config.enabled);
 
   return {
     id: prisma.id,
@@ -121,6 +123,7 @@ export function projectPrismaToCrud(
       sign_up_enabled: prisma.config.signUpEnabled,
       credential_enabled: !!passwordAuth,
       magic_link_enabled: !!otpAuth,
+      passkey_enabled: !!passkeyAuth,
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,
       client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
       client_user_deletion_enabled: prisma.config.clientUserDeletionEnabled,

@@ -12,7 +12,7 @@ import * as yup from "yup";
 
 export const projectFormSchema = yup.object({
   displayName: yup.string().min(1, "Display name is required").required("Display name is required"),
-  signInMethods: yup.array(yup.string().oneOf(["credential", "magicLink"].concat(allProviders)).required())
+  signInMethods: yup.array(yup.string().oneOf(["credential", "magicLink", "passkey"].concat(allProviders)).required())
     .min(1, "At least one sign-in method is required")
     .required("At least one sign-in method is required"),
 });
@@ -40,6 +40,7 @@ export default function PageClient () {
       signUpEnabled: true,
       credentialEnabled: form.watch("signInMethods").includes("credential"),
       magicLinkEnabled: form.watch("signInMethods").includes("magicLink"),
+      passkeyEnabled: form.watch("signInMethods").includes("passkey"),
       oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "spotify"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
     }
   };
@@ -54,6 +55,7 @@ export default function PageClient () {
         config: {
           credentialEnabled: values.signInMethods.includes("credential"),
           magicLinkEnabled: values.signInMethods.includes("magicLink"),
+          passkeyEnabled: values.signInMethods.includes("passkey"),
           oauthProviders: (["google", "facebook", "github", "microsoft"] as const).map(provider => ({
             id: provider,
             enabled: values.signInMethods.includes(provider),
@@ -88,6 +90,7 @@ export default function PageClient () {
                 options={[
                   { value: "credential", label: "Email password" },
                   { value: "magicLink", label: "Magic link/OTP" },
+                  { value: "passkey", label: "Passkey" },
                   { value: "google", label: "Google" },
                   { value: "github", label: "GitHub" },
                   { value: "microsoft", label: "Microsoft" },

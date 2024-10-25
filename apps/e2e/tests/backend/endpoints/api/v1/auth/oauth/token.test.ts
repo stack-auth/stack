@@ -48,6 +48,7 @@ describe("with grant_type === 'authorization_code'", async () => {
             },
           ],
           "otp_auth_enabled": false,
+          "passkey_auth_enabled": false,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,

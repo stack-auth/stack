@@ -401,6 +401,40 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
         }
       }
 
+      // ======================= update passkey auth method =======================
+      const passkeyAuth = await tx.passkeyAuthMethodConfig.findFirst({
+        where: {
+          projectConfigId: oldProject.config.id,
+        },
+      });
+      if (data.config?.passkey_enabled !== undefined) {
+        if (!passkeyAuth) {
+          await tx.authMethodConfig.create({
+            data: {
+              projectConfigId: oldProject.config.id,
+              enabled: data.config.passkey_enabled,
+              passkeyConfig: {
+                create: {
+                  // passkey has no settings yet
+                },
+              },
+            },
+          });
+        } else {
+          await tx.authMethodConfig.update({
+            where: {
+              projectConfigId_id: {
+                projectConfigId: oldProject.config.id,
+                id: passkeyAuth.authMethodConfigId,
+              },
+            },
+            data: {
+              enabled: data.config.passkey_enabled,
+            },
+          });
+        }
+      }
+
       // ======================= update the rest =======================
 
       // check domain uniqueness

@@ -108,6 +108,17 @@ export default function PageClient() {
             });
           }}
         />
+        <SettingSwitch
+          label="Passkey"
+          checked={project.config.passkeyEnabled}
+          onCheckedChange={async (checked) => {
+            await project.update({
+              config: {
+                passkeyEnabled: checked,
+              },
+            });
+          }}
+        />
         <CardSubtitle className="mt-2">
           SSO (OAuth)
         </CardSubtitle>

@@ -12,6 +12,7 @@ import { MagicLinkSignIn } from '../components/magic-link-sign-in';
 import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
 import { OAuthButtonGroup } from '../components/oauth-button-group';
 import { useTranslation } from '../lib/translations';
+import { PasskeyButton } from '../components/passkey-button';
 
 export function AuthPage(props: {
   noPasswordRepeat?: boolean,
@@ -24,6 +25,7 @@ export function AuthPage(props: {
     config: {
       signUpEnabled: boolean,
       credentialEnabled: boolean,
+      passkeyEnabled: boolean,
       magicLinkEnabled: boolean,
       oauthProviders: {
         id: string,
@@ -82,7 +84,11 @@ export function AuthPage(props: {
             </Typography>
           )}
         </div>
-        <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />
+        <div className='gap-4 flex flex-col items-stretch stack-scope'>
+          <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />
+          {project.config.passkeyEnabled  && <PasskeyButton type={props.type} />}
+        </div>
+
         {enableSeparator && <SeparatorWithText text={t('Or continue with')} />}
         {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
           <Tabs defaultValue={props.firstTab || 'magic-link'}>
