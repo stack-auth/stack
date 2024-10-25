@@ -39,7 +39,7 @@ export const POST = createSmartRouteHandler({
 
     const opts: GenerateRegistrationOptionsOpts = {
       rpName: project.display_name,
-      rpID: "localhost", // HACK: will be overridden in the frontend to be the actual domain, this is a temporary solution until we have a primary authentication domain
+      rpID: "THIS_VALUE_WILL_BE_REPLACED.example.com", // HACK: will be overridden in the frontend to be the actual domain, this is a temporary solution until we have a primary authentication domain
       // Here we set the userId to the user's id, this will cause to have the browser always store only one passkey per user! (browser stores one passkey per userId/rpID pair)
       userID: isoUint8Array.fromUTF8String(user.id),
       userName: user.display_name || user.primary_email || "Stack Auth User",
