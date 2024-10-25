@@ -1358,8 +1358,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const {optionsJSON, code} = initiationResult.data;
 
         // HACK: Override the rpID to be the actual domain
+        if (optionsJSON.rpId !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
+          throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${optionsJSON.rp.id}`);
+        }
         optionsJSON.rpId = window.location.hostname;
-
 
         const authenticationResponse = await startAuthentication({ optionsJSON });
         return await this._interface.signInWithPasskey({ authenticationResponse, code });
@@ -1383,7 +1385,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>> {
-    const initiationResult = await this._interface.initiatePasskeyRegistration({}, this._getSession());
+    const session = this._getSession();
+    const initiationResult = await this._interface.initiatePasskeyRegistration({}, session);
 
     if (initiationResult.status !== "ok") {
       return Result.error(new KnownErrors.PasskeyRegistrationFailed());
@@ -1392,6 +1395,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const {optionsJSON, code} = initiationResult.data;
 
     // HACK: Override the rpID to be the actual domain
+    if (optionsJSON.rp.id !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
+      throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${optionsJSON.rpId}`);
+    }
     optionsJSON.rp.id = window.location.hostname;
 
     let attResp;
@@ -1407,7 +1413,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
 
 
-    const registrationResult = await this._interface.registerPasskey({ credential: attResp, code }, this._getSession());
+    const registrationResult = await this._interface.registerPasskey({ credential: attResp, code }, session);
+
+    await this._refreshUser(session);
     return registrationResult;
   }
 

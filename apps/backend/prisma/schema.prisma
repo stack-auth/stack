@@ -553,8 +553,6 @@ model PasskeyAuthMethod {
 
   credentialId String
   publicKey String
-
-  // Some not strictly necessary fields
   userHandle String 
   transports String[]
   credentialDeviceType String

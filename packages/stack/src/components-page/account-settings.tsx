@@ -372,8 +372,6 @@ function usePasskeySection() {
 
   const handleAddNewPasskey = async () => {
     await stackApp.registerPasskey();
-    // HACK:update the ui for the settings page
-    await user.update({ passkeyAuthEnabled: true });
   };
 
   return (
