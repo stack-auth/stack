@@ -4,11 +4,8 @@ import { ServerUser } from '@stackframe/stack';
 import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { allProviders } from '@stackframe/stack-shared/dist/utils/oauth';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableFacetedFilter, DataTableManual, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
-import {
-  ColumnDef, ColumnFiltersState,
-  Row, SortingState, Table
-} from "@tanstack/react-table";
+import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableFacetedFilter, DataTableManual, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
+import { ColumnDef, ColumnFiltersState, Row, SortingState, Table } from "@tanstack/react-table";
 import React, { useEffect, useState } from "react";
 import * as yup from "yup";
 import { FormDialog } from "../form-dialog";
@@ -202,6 +199,7 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
     cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
     enableGlobalFilter: true,
+    enableSorting: false,
   },
   {
     accessorKey: "displayName",
@@ -313,7 +311,12 @@ export function UserTable() {
   // Reset to first page when filters change
   useEffect(() => {
     setPagination(pagination => ({ ...pagination, pageIndex: 0 }));
+    setCursors({});
   }, [columnFilters, sorting, pagination.pageSize]);
+
+  console.log(
+    cursors
+  );
 
   return <DataTableManual
     columns={columns}
@@ -326,6 +329,6 @@ export function UserTable() {
     columnFilters={columnFilters}
     setColumnFilters={setColumnFilters}
     defaultVisibility={{ emailVerified: false }}
-    rowCount={1000}
+    rowCount={pagination.pageSize * Object.keys(cursors).length + (cursors[pagination.pageIndex + 1] ? 1 : 0)}
   />;
 }

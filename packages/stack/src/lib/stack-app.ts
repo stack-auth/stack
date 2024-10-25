@@ -1508,7 +1508,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _serverUsersCache = createCache<[
     cursor?: string,
     limit?: number,
-    orderBy?: 'signedUpAt' | 'displayName' | 'id',
+    orderBy?: 'signedUpAt' | 'displayName',
     desc?: boolean,
     authMethods?: string[],
     primaryEmailVerified?: boolean[],
@@ -2985,7 +2985,7 @@ export type ServerTeam = {
 export type ServerListUsersOptions = {
   cursor?: string,
   limit?: number,
-  orderBy?: 'signedUpAt' | 'displayName' | 'id',
+  orderBy?: 'signedUpAt' | 'displayName',
   desc?: boolean,
   authMethods?: string[],
   primaryEmailVerified?: boolean[],

@@ -172,7 +172,7 @@ export class StackServerInterface extends StackClientInterface {
   async listServerUsers(options: {
     cursor?: string,
     limit?: number,
-    orderBy?: 'signedUpAt' | 'displayName' | 'id',
+    orderBy?: 'signedUpAt' | 'displayName',
     desc?: boolean,
     authMethods?: string[],
     primaryEmailVerified?: boolean[],
@@ -184,7 +184,6 @@ export class StackServerInterface extends StackClientInterface {
         order_by: {
           signedUpAt: "signed_up_at",
           displayName: "display_name",
-          id: "id",
         }[options.orderBy],
       } : {},
       desc: options.desc?.toString(),

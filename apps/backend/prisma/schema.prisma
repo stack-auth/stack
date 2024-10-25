@@ -248,6 +248,12 @@ model ProjectUser {
   oauthAuthMethod               OAuthAuthMethod[]
 
   @@id([projectId, projectUserId])
+
+  // indices for sorting and filtering
+  @@index([projectId, displayName(sort: Asc)], name: "ProjectUser_displayName_asc")
+  @@index([projectId, displayName(sort: Desc)], name: "ProjectUser_displayName_desc")
+  @@index([projectId, createdAt(sort: Asc)], name: "ProjectUser_createdAt_asc")
+  @@index([projectId, createdAt(sort: Desc)], name: "ProjectUser_createdAt_desc")
 }
 
 // This should be renamed to "OAuthAccount" as it is not always bound to a user

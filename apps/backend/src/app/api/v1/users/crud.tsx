@@ -249,8 +249,9 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by team" }}),
     limit: yupNumber().integer().min(1).max(200).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return. Defaults to 100, max is 200" }}),
     cursor: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The cursor to start the result set from." }}),
-    order_by: yupString().oneOf(['signed_up_at', 'display_name', 'id']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
+    order_by: yupString().oneOf(['signed_up_at', 'display_name']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
     desc: yupBoolean().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Whether to sort the results in descending order. Defaults to false" }}),
+    // only used for dashboard for now. We might want to change these parameters in the future.
     primary_email_verified: yupString().test(
       'valid-boolean-array',
       'must be a comma separated list of booleans',
@@ -258,8 +259,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         if (!value) return true;
         return value.split(',').every((v) => v === 'true' || v === 'false');
       }
-    ).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by primary email verification status" }}),
-    // only used for dashboard for now. We might want to change this parameter in the future.
+    ).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by primary email verification status", hidden: true }}),
     auth_methods: yupString().test(
       'valid-auth-methods-array',
       'must be a comma separated list of auth methods',
@@ -342,6 +342,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       } : {},
     };
 
+    const limit = query.limit ?? 100;
     const db = await prismaClient.projectUser.findMany({
       where,
       include: userFullInclude,
@@ -349,11 +350,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         [({
           signed_up_at: 'createdAt',
           display_name: 'displayName',
-          id: 'projectUserId',
         } as const)[query.order_by ?? 'signed_up_at']]: query.desc ? 'desc' : 'asc',
       },
-      take: query.limit ?? 100,
-      skip: query.cursor ? 1 : undefined,
+      // +1 because we need to know if there is a next page
+      take: limit + 1,
       ...query.cursor ? {
         cursor: {
           projectId_projectUserId: {
@@ -365,12 +365,13 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     });
 
     const lastActiveAtMillis = await getUsersLastActiveAtMillis(db.map(user => user.projectUserId), db.map(user => user.createdAt));
-
     return {
-      items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])),
+      // remove the last item because it's the next cursor
+      items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])).slice(0, limit),
       is_paginated: true,
       pagination: {
-        next_cursor: db[db.length - 1].projectUserId,
+        // if result is not full length, there is no next cursor
+        next_cursor: db.length >= limit + 1 ? db[db.length - 1].projectUserId : null,
       },
     };
   },
