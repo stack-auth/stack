@@ -35,7 +35,9 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
       user_handle: yupString().required(),
     }),
   }),
-  async send() {},
+  async send() {
+    throw new StackAssertionError("send() called on a Passkey registration verification code handler")
+  },
   async handler(project, _, {challenge}, {credential}, user) {
     if (!user) {
       throw new StackAssertionError("User not found", {
