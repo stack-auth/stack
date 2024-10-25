@@ -35,7 +35,7 @@ export const POST = createSmartRouteHandler({
     const SIGN_IN_TIMEOUT_MS = 60000;
 
     const optionsJSON: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
-      rpID: "localhost", // HACK: will be overridden in the frontend to be the actual domain, this is a temporary solution until we have a primary authentication domain
+      rpID: "THIS_VALUE_WILL_BE_REPLACED.example.com", // HACK: will be overridden in the frontend to be the actual domain, this is a temporary solution until we have a primary authentication domain
       userVerification: "preferred",
       allowCredentials: [],
       timeout: SIGN_IN_TIMEOUT_MS,
