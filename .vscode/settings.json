@@ -38,6 +38,7 @@
     "otlp",
     "pageleave",
     "pageview",
+    "PKCE",
     "posthog",
     "Proxied",
     "psql",
