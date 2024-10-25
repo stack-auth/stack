@@ -39,6 +39,10 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
     throw new StackAssertionError("send() called on a Passkey registration verification code handler");
   },
   async handler(project, _, {challenge}, {credential}, user) {
+    if (!project.config.passkey_enabled) {
+      throw new KnownErrors.PasskeyAuthenticationNotEnabled();
+    }
+
     if (!user) {
       throw new StackAssertionError("User not found", {
         projectId: project.id,
@@ -115,7 +119,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
       }
 
       if (authMethodConfig.length === 0) {
-        throw new KnownErrors.PasskeyAuthenticationNotEnabled();
+        throw new StackAssertionError("Project has no passkey auth method config. This should never happen if passkey is enabled on the project.", { projectId: project.id });
       }
 
       const authMethods = await tx.passkeyAuthMethod.findMany({

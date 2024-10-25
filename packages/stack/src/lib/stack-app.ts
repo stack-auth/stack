@@ -1355,16 +1355,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           return Result.error(new KnownErrors.PasskeyAuthenticationFailed("Failed to get initiation options for passkey authentication"));
         }
 
-        const {optionsJSON, code} = initiationResult.data;
+        const {options_json, code} = initiationResult.data;
 
         // HACK: Override the rpID to be the actual domain
-        if (optionsJSON.rpId !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
-          throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${optionsJSON.rpId}`);
+        if (options_json.rpId !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
+          throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${options_json.rpId}`);
         }
-        optionsJSON.rpId = window.location.hostname;
+        options_json.rpId = window.location.hostname;
 
-        const authenticationResponse = await startAuthentication({ optionsJSON });
-        return await this._interface.signInWithPasskey({ authenticationResponse, code });
+        const authentication_response = await startAuthentication({ optionsJSON: options_json });
+        return await this._interface.signInWithPasskey({ authentication_response, code });
       });
     } catch (error) {
       if (error instanceof WebAuthnError) {
@@ -1392,17 +1392,18 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return Result.error(new KnownErrors.PasskeyRegistrationFailed("Failed to get initiation options for passkey registration"));
     }
 
-    const {optionsJSON, code} = initiationResult.data;
+    const {options_json, code} = initiationResult.data;
 
     // HACK: Override the rpID to be the actual domain
-    if (optionsJSON.rp.id !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
-      throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${optionsJSON.rp.id}`);
+    if (options_json.rp.id !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
+      throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${options_json.rp.id}`);
     }
-    optionsJSON.rp.id = window.location.hostname;
+    options_json.rp.id = window.location.hostname;
 
     let attResp;
     try {
-      attResp = await startRegistration({ optionsJSON });
+      attResp = await startRegistration({ optionsJSON: options_json });
+      debugger;
     } catch (error: any) {
       if (error instanceof WebAuthnError) {
         return Result.error(new KnownErrors.PasskeyWebAuthnError(error.message, error.name));

@@ -21,7 +21,7 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
   },
   type: VerificationCodeType.PASSKEY_AUTHENTICATION_CHALLENGE,
   requestBody: yupObject({
-    authenticationResponse: yupMixed<AuthenticationResponseJSON>().required(),
+    authentication_response: yupMixed<AuthenticationResponseJSON>().required(),
     code: yupString().required(),
   }),
   data: yupObject({
@@ -36,14 +36,14 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
   async send() {
     throw new StackAssertionError("send() called on a Passkey sign in verification code handler");
   },
-  async handler(project, _, {challenge}, {authenticationResponse}) {
+  async handler(project, _, {challenge}, {authentication_response}) {
 
     if (!project.config.passkey_enabled) {
       throw new KnownErrors.PasskeyAuthenticationNotEnabled();
     }
 
 
-    const credentialId = authenticationResponse.id;
+    const credentialId = authentication_response.id;
 
 
     // Get passkey from DB with userHandle
@@ -65,7 +65,7 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
     // HACK: we validate origin and rpid outside of simpleauth, this should be replaced once we have a primary authentication domain
     let expectedRPID = "";
     let expectedOrigin = "";
-    const clientDataJSON = decodeClientDataJSON(authenticationResponse.response.clientDataJSON);
+    const clientDataJSON = decodeClientDataJSON(authentication_response.response.clientDataJSON);
     const { origin } = clientDataJSON;
     const localhostAllowed = project.config.allow_localhost;
     const parsedOrigin = new URL(origin);
@@ -92,7 +92,7 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
     let authVerify;
     try {
       authVerify = await verifyAuthenticationResponse({
-        response: authenticationResponse,
+        response: authentication_response,
         expectedChallenge: challenge,
         expectedOrigin,
         expectedRPID,

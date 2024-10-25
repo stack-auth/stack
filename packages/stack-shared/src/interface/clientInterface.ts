@@ -573,7 +573,7 @@ export class StackClientInterface {
   async initiatePasskeyRegistration(
     options: {},
     session: InternalSession
-  ): Promise<Result<{ optionsJSON: PublicKeyCredentialCreationOptionsJSON, code: string }, KnownErrors[]>> {
+  ): Promise<Result<{ options_json: PublicKeyCredentialCreationOptionsJSON, code: string }, KnownErrors[]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/passkey/initiate-passkey-registration",
       {
@@ -620,7 +620,7 @@ export class StackClientInterface {
     options: {
     },
     session: InternalSession
-  ): Promise<Result<{ optionsJSON: PublicKeyCredentialRequestOptionsJSON, code: string }, KnownErrors[]>> {
+  ): Promise<Result<{ options_json: PublicKeyCredentialRequestOptionsJSON, code: string }, KnownErrors[]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/passkey/initiate-passkey-authentication",
       {
@@ -814,7 +814,7 @@ export class StackClientInterface {
     });
   }
 
-  async signInWithPasskey(body: { authenticationResponse: AuthenticationResponseJSON, code: string }): Promise<Result<{accessToken: string, refreshToken: string }, KnownErrors["PasskeyAuthenticationFailed"]>> {
+  async signInWithPasskey(body: { authentication_response: AuthenticationResponseJSON, code: string }): Promise<Result<{accessToken: string, refreshToken: string }, KnownErrors["PasskeyAuthenticationFailed"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/passkey/sign-in",
       {

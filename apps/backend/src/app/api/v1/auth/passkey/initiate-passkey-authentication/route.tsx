@@ -4,6 +4,8 @@ import { KnownErrors  } from "@stackframe/stack-shared";
 import { PublicKeyCredentialRequestOptionsJSON } from "@stackframe/stack-shared/dist/utils/passkey";
 import { adaptSchema, clientOrHigherAuthTypeSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { passkeySignInVerificationCodeHandler } from "../sign-in/verification-code-handler";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { isoUint8Array } from "@simplewebauthn/server/helpers";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -22,7 +24,7 @@ export const POST = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["json"]).required(),
     body: yupObject({
-      optionsJSON: yupMixed().required(),
+      options_json: yupMixed().required(),
       code: yupString().required(),
     }).required(),
   }),
@@ -34,9 +36,10 @@ export const POST = createSmartRouteHandler({
 
     const SIGN_IN_TIMEOUT_MS = 60000;
 
-    const optionsJSON: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
+    const options_json: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
       rpID: "THIS_VALUE_WILL_BE_REPLACED.example.com", // HACK: will be overridden in the frontend to be the actual domain, this is a temporary solution until we have a primary authentication domain
       userVerification: "preferred",
+      challenge: getEnvVariable("ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING", "") ? isoUint8Array.fromUTF8String("MOCK") : undefined,
       allowCredentials: [],
       timeout: SIGN_IN_TIMEOUT_MS,
     });
@@ -47,7 +50,7 @@ export const POST = createSmartRouteHandler({
       method: {},
       expiresInMs: SIGN_IN_TIMEOUT_MS + 5000,
       data: {
-        challenge: optionsJSON.challenge
+        challenge: options_json.challenge
       },
       callbackUrl: undefined
     });
@@ -57,7 +60,7 @@ export const POST = createSmartRouteHandler({
       statusCode: 200,
       bodyType: "json",
       body: {
-        optionsJSON,
+        options_json,
         code,
       },
     };

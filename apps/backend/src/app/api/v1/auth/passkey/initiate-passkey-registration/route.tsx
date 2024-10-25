@@ -7,6 +7,7 @@ const { isoUint8Array } = require('@simplewebauthn/server/helpers');
 import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { registerVerificationCodeHandler } from "../register/verification-code-handler";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 export const POST = createSmartRouteHandler({
   metadata: {
     summary: "Initialize registration of new passkey",
@@ -26,7 +27,7 @@ export const POST = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["json"]).required(),
     body: yupObject({
-      optionsJSON: yupMixed().required(),
+      options_json: yupMixed().required(),
       code: yupString().required(),
     }),
   }),
@@ -43,6 +44,7 @@ export const POST = createSmartRouteHandler({
       // Here we set the userId to the user's id, this will cause to have the browser always store only one passkey per user! (browser stores one passkey per userId/rpID pair)
       userID: isoUint8Array.fromUTF8String(user.id),
       userName: user.display_name || user.primary_email || "Stack Auth User",
+      challenge: getEnvVariable("ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING", "") ? isoUint8Array.fromUTF8String("MOCK") : undefined,
       userDisplayName: user.display_name || user.primary_email || "Stack Auth User",
       // Force passkey (discoverable/resident)
       authenticatorSelection: {
@@ -70,9 +72,10 @@ export const POST = createSmartRouteHandler({
       statusCode: 200,
       bodyType: "json",
       body: {
-        optionsJSON: registrationOptions,
+        options_json: registrationOptions,
         code: code,
       },
     };
   },
 });
+

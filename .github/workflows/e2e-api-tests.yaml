@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_ENV: test
+      ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING: ""
 
     strategy:
       matrix:

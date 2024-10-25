@@ -144,6 +144,12 @@ export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHand
                   create: {}
                 },
               }] : [],
+              ...data.config?.passkey_enabled ? [{
+                enabled: true,
+                passkeyConfig: {
+                  create: {}
+                },
+              }] : [],
             ]
           }
         }
