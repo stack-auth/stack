@@ -87,7 +87,11 @@ export const POST = createSmartRouteHandler({
         user: createdUser,
       });
     } catch (error) {
-      captureError("Error sending verification code on sign up. Continued without sending verification code.", error);
+      if (error instanceof KnownErrors.RedirectUrlNotWhitelisted) {
+        throw error;
+      } else {
+        captureError("Error sending verification code on sign up. Continued without sending verification code.", error);
+      }
     }
 
     if (createdUser.requires_totp_mfa) {
