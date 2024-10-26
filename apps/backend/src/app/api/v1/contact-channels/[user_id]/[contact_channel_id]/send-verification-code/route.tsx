@@ -16,7 +16,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     params: yupObject({
       user_id: userIdOrMeSchema.required(),
-      contact_channel_id: yupString().required(),
+      contact_channel_id: yupString().uuid().required(),
     }).required(),
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
