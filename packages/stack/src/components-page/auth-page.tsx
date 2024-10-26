@@ -86,7 +86,7 @@ export function AuthPage(props: {
         </div>
         <div className='gap-4 flex flex-col items-stretch stack-scope'>
           <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />
-          {project.config.passkeyEnabled  && <PasskeyButton type={props.type} />}
+          {project.config.passkeyEnabled && props.type === "sign-in" && <PasskeyButton type={props.type} />}
         </div>
 
         {enableSeparator && <SeparatorWithText text={t('Or continue with')} />}
