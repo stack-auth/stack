@@ -1510,10 +1510,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     limit?: number,
     orderBy?: 'signedUpAt' | 'displayName',
     desc?: boolean,
-    authMethods?: string[],
-    primaryEmailVerified?: boolean[],
-  ], UsersCrud['Server']['List']>(async ([cursor, limit, orderBy, desc, authMethods, primaryEmailVerified]) => {
-    return await this._interface.listServerUsers({ cursor, limit, orderBy, desc, authMethods, primaryEmailVerified });
+    query?: string,
+  ], UsersCrud['Server']['List']>(async ([cursor, limit, orderBy, desc, query]) => {
+    return await this._interface.listServerUsers({ cursor, limit, orderBy, desc, query });
   });
   private readonly _serverUserCache = createCache<string[], UsersCrud['Server']['Read'] | null>(async ([userId]) => {
     const user = await this._interface.getServerUserById(userId);
@@ -1959,7 +1958,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { nextCursor: string | null }> {
-    const crud = await this._serverUsersCache.getOrWait([options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.authMethods, options?.primaryEmailVerified], "write-only");
+    const crud = await this._serverUsersCache.getOrWait([options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.query], "write-only");
     const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
     result.nextCursor = crud.pagination?.next_cursor ?? null;
     return result;
@@ -2985,10 +2984,9 @@ export type ServerTeam = {
 export type ServerListUsersOptions = {
   cursor?: string,
   limit?: number,
-  orderBy?: 'signedUpAt' | 'displayName',
+  orderBy?: 'displayName',
   desc?: boolean,
-  authMethods?: string[],
-  primaryEmailVerified?: boolean[],
+  query?: string,
 };
 
 export type ServerTeamCreateOptions = TeamCreateOptions;

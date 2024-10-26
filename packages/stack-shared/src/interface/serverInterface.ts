@@ -172,26 +172,22 @@ export class StackServerInterface extends StackClientInterface {
   async listServerUsers(options: {
     cursor?: string,
     limit?: number,
-    orderBy?: 'signedUpAt' | 'displayName',
+    orderBy?: 'displayName',
     desc?: boolean,
-    authMethods?: string[],
-    primaryEmailVerified?: boolean[],
+    query?: string,
   }): Promise<UsersCrud['Server']['List']> {
     const searchParams = new URLSearchParams(filterUndefined({
       cursor: options.cursor,
       limit: options.limit?.toString(),
+      desc: options.desc?.toString(),
       ...options.orderBy ? {
         order_by: {
           signedUpAt: "signed_up_at",
           displayName: "display_name",
         }[options.orderBy],
       } : {},
-      desc: options.desc?.toString(),
-      ...options.authMethods ? {
-        auth_methods: options.authMethods.join(","),
-      } : {},
-      ...options.primaryEmailVerified ? {
-        primary_email_verified: options.primaryEmailVerified.join(","),
+      ...options.query ? {
+        query: options.query,
       } : {},
     }));
     const response = await this.sendServerRequest("/users?" + searchParams.toString(), {}, null);

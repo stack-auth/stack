@@ -20,7 +20,7 @@ function userToolbarRender<TData>(table: Table<TData>) {
   return (
     <>
       <SearchToolbarItem table={table} placeholder="Search table" />
-      <DataTableFacetedFilter
+      {/* <DataTableFacetedFilter
         column={table.getColumn("authTypes")}
         title="Auth Method"
         options={['otp', 'password', ...allProviders].map((provider) => ({
@@ -35,7 +35,7 @@ function userToolbarRender<TData>(table: Table<TData>) {
           { value: "verified", label: "verified" },
           { value: "unverified", label: "unverified" },
         ]}
-      />
+      /> */}
     </>
   );
 }
@@ -198,14 +198,13 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
     cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
-    enableGlobalFilter: true,
     enableSorting: false,
   },
   {
     accessorKey: "displayName",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Display Name" />,
     cell: ({ row }) =>  <TextCell size={120}><span className={row.original.displayName === null ? 'text-slate-400' : ''}>{row.original.displayName ?? '–'}</span></TextCell>,
-    enableGlobalFilter: true,
+    enableSorting: false,
   },
   {
     accessorKey: "primaryEmail",
@@ -215,7 +214,6 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
       icon={row.original.emailVerified === "unverified" && <SimpleTooltip tooltip='Email not verified' type='warning'/>}>
       {row.original.primaryEmail}
     </TextCell>,
-    enableGlobalFilter: true,
     enableSorting: false,
   },
   {
@@ -228,7 +226,6 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Email Verified" />,
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
-    enableGlobalFilter: false,
     enableSorting: false,
   },
 ] satisfies ColumnDef<T>[];
@@ -271,42 +268,31 @@ export function UserTable() {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [cursors, setCursors] = useState<Record<number, string>>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState<any>();
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
   useEffect(() => {
     let filters: any = {};
 
     const orderMap = {
       signedUpAt: "signedUpAt",
-      displayName: "displayName",
-      id: "id",
     } as const;
     if (sorting.length > 0 && sorting[0].id in orderMap) {
       filters.orderBy = orderMap[sorting[0].id as keyof typeof orderMap];
       filters.desc = sorting[0].desc;
     }
 
-    if (columnFilters.length > 0) {
-      const authTypes = columnFilters.find((c) => c.id === "authTypes");
-      if (authTypes) {
-        filters.authMethods = authTypes.value;
-      }
-
-      const emailVerified = columnFilters.find((c) => c.id === "emailVerified");
-      if (emailVerified) {
-        filters.emailVerified = emailVerified.value;
-      }
-    }
-
     stackAdminApp.listUsers({
       cursor: cursors[pagination.pageIndex],
       limit: pagination.pageSize,
+      query: globalFilter,
       ...filters,
     }).then((users) => {
       setUsers(extendUsers(users));
       setCursors(c => users.nextCursor ? { ...c, [pagination.pageIndex + 1]: users.nextCursor } : c);
     }).catch(console.error);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination, stackAdminApp, sorting, columnFilters]);
+  }, [pagination, stackAdminApp, sorting, columnFilters, refreshCounter]);
 
   // Reset to first page when filters change
   useEffect(() => {
@@ -314,9 +300,13 @@ export function UserTable() {
     setCursors({});
   }, [columnFilters, sorting, pagination.pageSize]);
 
-  console.log(
-    cursors
-  );
+  // Refresh the users when the global filter changes. Delay to prevent unnecessary re-renders.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setRefreshCounter(x => x + 1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [globalFilter]);
 
   return <DataTableManual
     columns={columns}
@@ -330,5 +320,7 @@ export function UserTable() {
     setColumnFilters={setColumnFilters}
     defaultVisibility={{ emailVerified: false }}
     rowCount={pagination.pageSize * Object.keys(cursors).length + (cursors[pagination.pageIndex + 1] ? 1 : 0)}
+    globalFilter={globalFilter}
+    setGlobalFilter={setGlobalFilter}
   />;
 }

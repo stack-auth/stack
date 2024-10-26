@@ -112,6 +112,7 @@ export function DataTable<TData, TValue>({
     pageIndex: 0,
     pageSize: 10,
   });
+  const [globalFilter, setGlobalFilter] = React.useState<any>();
 
   return <DataTableManual
     columns={columns}
@@ -126,6 +127,8 @@ export function DataTable<TData, TValue>({
     manualFiltering={false}
     pagination={pagination}
     setPagination={setPagination}
+    globalFilter={globalFilter}
+    setGlobalFilter={setGlobalFilter}
   />;
 }
 
@@ -139,6 +142,8 @@ type DataTableServerProps<TData, TValue> = DataTableProps<TData, TValue> & {
   setColumnFilters?: OnChangeFn<ColumnFiltersState>,
   manualPagination?: boolean,
   manualFiltering?: boolean,
+  globalFilter?: any,
+  setGlobalFilter?: OnChangeFn<any>,
 }
 
 export function DataTableManual<TData, TValue>({
@@ -153,6 +158,8 @@ export function DataTableManual<TData, TValue>({
   rowCount,
   columnFilters,
   setColumnFilters,
+  globalFilter,
+  setGlobalFilter,
   manualPagination = true,
   manualFiltering = true,
 }: DataTableServerProps<TData, TValue>) {
@@ -168,8 +175,10 @@ export function DataTableManual<TData, TValue>({
       rowSelection,
       columnFilters,
       pagination,
+      globalFilter: globalFilter,
     },
     enableRowSelection: true,
+    onGlobalFilterChange: setGlobalFilter,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

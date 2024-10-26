@@ -249,25 +249,9 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by team" }}),
     limit: yupNumber().integer().min(1).max(200).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return. Defaults to 100, max is 200" }}),
     cursor: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The cursor to start the result set from." }}),
-    order_by: yupString().oneOf(['signed_up_at', 'display_name']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
+    order_by: yupString().oneOf(['signed_up_at']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
     desc: yupBoolean().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Whether to sort the results in descending order. Defaults to false" }}),
-    // only used for dashboard for now. We might want to change these parameters in the future.
-    primary_email_verified: yupString().test(
-      'valid-boolean-array',
-      'must be a comma separated list of booleans',
-      (value) => {
-        if (!value) return true;
-        return value.split(',').every((v) => v === 'true' || v === 'false');
-      }
-    ).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by primary email verification status", hidden: true }}),
-    auth_methods: yupString().test(
-      'valid-auth-methods-array',
-      'must be a comma separated list of auth methods',
-      (value) => {
-        if (!value) return true;
-        return value.split(',').every((v) => ['password', 'otp', ...allProviders].includes(v));
-      }
-    ).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by auth method", hidden: true }}),
+    query: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "A search query to filter the results by. This is a free-text search that is applied to the user's display name and primary email." }}),
   }),
   onRead: async ({ auth, params }) => {
     const user = await getUser({ projectId: auth.project.id, userId: params.user_id });
@@ -286,59 +270,25 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           },
         },
       } : {},
-      // ...query.primary_email_verified ? {
-      //   contactChannels: {
-      //     some: {
-      //       type: "EMAIL",
-      //       value: query.primary_email_verified,
-      //       usedForAuth: true,
-      //       isPrimary: 'TRUE',
-      //     },
-      //   },
-      // } : {},
-      ...query.auth_methods ? {
-        authMethods: {
-          some: {
-            OR: query.auth_methods.split(',').map((authMethod) => {
-              if (authMethod === "password") {
-                return {
-                  authMethodConfig: {
-                    passwordConfig: {
-                      isNot: null,
-                    }
-                  }
-                };
-              } else if (authMethod === "otp") {
-                return {
-                  authMethodConfig: {
-                    otpConfig: {
-                      isNot: null,
-                    }
-                  }
-                };
-              } else {
-                return {
-                  authMethodConfig: {
-                    oauthProviderConfig: {
-                      OR: [
-                        {
-                          proxiedOAuthConfig: {
-                            type: typedToUppercase(authMethod),
-                          }
-                        },
-                        {
-                          standardOAuthConfig: {
-                            type: typedToUppercase(authMethod),
-                          }
-                        }
-                      ]
-                    } as any
-                  }
-                };
-              }
-            }),
+      ...query.query ? {
+        OR: [
+          {
+            displayName: {
+              contains: query.query,
+              mode: 'insensitive',
+            },
           },
-        },
+          {
+            contactChannels: {
+              some: {
+                value: {
+                  contains: query.query,
+                  mode: 'insensitive',
+                },
+              },
+            },
+          },
+        ] as any,
       } : {},
     };
 
