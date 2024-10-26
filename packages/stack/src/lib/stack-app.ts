@@ -1508,7 +1508,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _serverUsersCache = createCache<[
     cursor?: string,
     limit?: number,
-    orderBy?: 'signedUpAt' | 'displayName',
+    orderBy?: 'signedUpAt',
     desc?: boolean,
     query?: string,
   ], UsersCrud['Server']['List']>(async ([cursor, limit, orderBy, desc, query]) => {
@@ -2984,7 +2984,7 @@ export type ServerTeam = {
 export type ServerListUsersOptions = {
   cursor?: string,
   limit?: number,
-  orderBy?: 'displayName',
+  orderBy?: 'signedUpAt',
   desc?: boolean,
   query?: string,
 };

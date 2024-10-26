@@ -172,7 +172,7 @@ export class StackServerInterface extends StackClientInterface {
   async listServerUsers(options: {
     cursor?: string,
     limit?: number,
-    orderBy?: 'displayName',
+    orderBy?: 'signedUpAt',
     desc?: boolean,
     query?: string,
   }): Promise<UsersCrud['Server']['List']> {
@@ -183,7 +183,6 @@ export class StackServerInterface extends StackClientInterface {
       ...options.orderBy ? {
         order_by: {
           signedUpAt: "signed_up_at",
-          displayName: "display_name",
         }[options.orderBy],
       } : {},
       ...options.query ? {

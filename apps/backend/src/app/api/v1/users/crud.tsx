@@ -299,7 +299,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       orderBy: {
         [({
           signed_up_at: 'createdAt',
-          display_name: 'displayName',
         } as const)[query.order_by ?? 'signed_up_at']]: query.desc ? 'desc' : 'asc',
       },
       // +1 because we need to know if there is a next page
