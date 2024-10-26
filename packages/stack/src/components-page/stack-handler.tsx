@@ -12,7 +12,7 @@ import { OAuthCallback } from "./oauth-callback";
 import { PasswordReset } from "./password-reset";
 import { SignOut } from "./sign-out";
 import { TeamInvitation } from "./team-invitation";
-import { FilterUndefined, filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { FilterUndefined, filterUndefined, pick } from "@stackframe/stack-shared/dist/utils/objects";
 
 type Components = {
   SignIn: typeof SignIn,
@@ -28,20 +28,30 @@ type Components = {
   AccountSettings: typeof AccountSettings,
 };
 
+type RouteProps = {
+  params: Promise<{ stack?: string[] }> | { stack?: string[] },
+  searchParams: Promise<Record<string, string>> | Record<string, string>,
+};
 
 export default async function StackHandler<HasTokenStore extends boolean>(props: {
   app: StackServerApp<HasTokenStore>,
-  params?: { stack?: string[] },
-  searchParams?: Record<string, string>,
   fullPage: boolean,
   componentProps?: {
     [K in keyof Components]?: Parameters<Components[K]>;
   },
-}) {
-  if (!props.params?.stack) {
+} & (
+  | Partial<RouteProps>
+  | {
+    routeProps: RouteProps,
+  }
+)) {
+  const routeProps = "routeProps" in props ? props.routeProps : pick(props, ["params", "searchParams"] as any);
+  const params = await routeProps.params;
+  const searchParams = await routeProps.searchParams;
+  if (!params?.stack) {
     return (
       <MessageCard title="Invalid Stack Handler Setup" fullPage={props.fullPage}>
-        <p>Can't use Stack handler at this location. Make sure that the file is in a folder called [...stack].</p>
+        <p>Can't use {"<StackHandler />"} at this location. Make sure that the file is in a folder called [...stack].</p>
       </MessageCard>
     );
   }
@@ -56,7 +66,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     }
 
     const urlObj = new URL(url, "http://example.com");
-    for (const [key, value] of Object.entries(props.searchParams || {})) {
+    for (const [key, value] of Object.entries(routeProps.searchParams || {})) {
       urlObj.searchParams.set(key, value);
     }
 
@@ -77,7 +87,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     error: 'error',
   };
 
-  const path = props.params.stack.join('/');
+  const path = params.stack.join('/');
 
   switch (path) {
     case availablePaths.signIn: {
@@ -99,7 +109,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     case availablePaths.emailVerification: {
       redirectIfNotHandler('emailVerification');
       return <EmailVerification
-        searchParams={props.searchParams}
+        searchParams={searchParams}
         fullPage={props.fullPage}
         {...filterUndefinedINU(props.componentProps?.EmailVerification)}
       />;
@@ -107,7 +117,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     case availablePaths.passwordReset: {
       redirectIfNotHandler('passwordReset');
       return <PasswordReset
-        searchParams={props.searchParams || {}}
+        searchParams={searchParams || {}}
         fullPage={props.fullPage}
         {...filterUndefinedINU(props.componentProps?.PasswordReset)}
       />;
@@ -136,7 +146,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     case availablePaths.magicLinkCallback: {
       redirectIfNotHandler('magicLinkCallback');
       return <MagicLinkCallback
-        searchParams={props.searchParams || {}}
+        searchParams={searchParams || {}}
         fullPage={props.fullPage}
         {...filterUndefinedINU(props.componentProps?.MagicLinkCallback)}
       />;
@@ -144,7 +154,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     case availablePaths.teamInvitation: {
       redirectIfNotHandler('teamInvitation');
       return <TeamInvitation
-        searchParams={props.searchParams || {}}
+        searchParams={searchParams || {}}
         fullPage={props.fullPage}
         {...filterUndefinedINU(props.componentProps?.TeamInvitation)}
       />;
@@ -157,7 +167,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     }
     case availablePaths.error: {
       return <ErrorPage
-        searchParams={props.searchParams || {}}
+        searchParams={searchParams || {}}
         fullPage={props.fullPage}
         {...filterUndefinedINU(props.componentProps?.ErrorPage)}
       />;
