@@ -65,7 +65,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
-        "is_paginated": false,
+        "is_paginated": true,
         "items": [
           {
             "auth_with_email": true,
@@ -108,6 +108,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
           },
         ],
+        "pagination": { "next_cursor": null },
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -135,7 +136,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
-        "is_paginated": false,
+        "is_paginated": true,
         "items": [
           {
             "auth_with_email": true,
@@ -158,6 +159,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
           },
         ],
+        "pagination": { "next_cursor": null },
       },
       "headers": Headers { <some fields may have been hidden> },
     }
