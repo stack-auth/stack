@@ -3,6 +3,7 @@ import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import * as jose from "jose";
 import { expect } from "vitest";
 import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
@@ -117,7 +118,7 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
 
 export namespace Auth {
   export async function ensureParsableAccessToken() {
-    /*const accessToken = backendContext.value.userAuth?.accessToken;
+    const accessToken = backendContext.value.userAuth?.accessToken;
     if (accessToken) {
       const aud = jose.decodeJwt(accessToken).aud;
       const jwks = jose.createRemoteJWKSet(new URL(`api/v1/projects/${aud}/.well-known/jwks.json`, STACK_BACKEND_BASE_URL));
@@ -129,7 +130,7 @@ export namespace Auth {
         "aud": expect.any(String),
         "sub": expect.any(String),
       });
-    }*/
+    }
   }
 
   /**

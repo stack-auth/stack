@@ -1,4 +1,19 @@
-# e2e-tests
+# @stackframe/e2e-tests
+
+## 2.6.13
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.13
+
+## 2.6.12
+
+### Patch Changes
+
+- Updated account settings page
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.12
 
 ## 2.6.11
 

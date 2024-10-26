@@ -10,6 +10,7 @@ import { ReadonlyJson } from '../utils/json';
 import { filterUndefined } from '../utils/objects';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
+import { ContactChannelsCrud } from './crud/contact-channels';
 import { CurrentUserCrud } from './crud/current-user';
 import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
@@ -514,6 +515,28 @@ export class StackClientInterface {
     }
   }
 
+  async setPassword(
+    options: { password: string },
+    session: InternalSession
+  ): Promise<KnownErrors["PasswordRequirementsNotMet"] | undefined> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/password/set",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(options),
+      },
+      session,
+      [KnownErrors.PasswordRequirementsNotMet]
+    );
+
+    if (res.status === "error") {
+      return res.error;
+    }
+  }
+
   async verifyPasswordResetCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     const res = await this.resetPassword({ code, onlyVerifyCode: true });
     if (res.status === "error") {
@@ -551,8 +574,8 @@ export class StackClientInterface {
     teamId: string,
     callbackUrl: string,
     session: InternalSession | null,
-  }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>> {
-    const res = await this.sendClientRequestAndCatchKnownError(
+  }): Promise<void> {
+    await this.sendClientRequest(
       "/team-invitations/send-code",
       {
         method: "POST",
@@ -566,14 +589,7 @@ export class StackClientInterface {
         }),
       },
       options.session,
-      [KnownErrors.TeamPermissionRequired]
     );
-
-    if (res.status === "error") {
-      return Result.error(res.error);
-    } else {
-      return Result.ok(undefined);
-    }
   }
 
   async acceptTeamInvitation<T extends 'use' | 'details' | 'check'>(options: {
@@ -1098,6 +1114,94 @@ export class StackClientInterface {
       },
       session,
     );
+  }
+
+  async createClientContactChannel(
+    data: ContactChannelsCrud['Client']['Create'],
+    session: InternalSession,
+  ): Promise<ContactChannelsCrud['Client']['Read']> {
+    const response = await this.sendClientRequest(
+      "/contact-channels",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      session,
+    );
+    return await response.json();
+  }
+
+  async updateClientContactChannel(
+    id: string,
+    data: ContactChannelsCrud['Client']['Update'],
+    session: InternalSession,
+  ): Promise<ContactChannelsCrud['Client']['Read']> {
+    const response = await this.sendClientRequest(
+      `/contact-channels/me/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+      session,
+    );
+    return await response.json();
+  }
+
+  async deleteClientContactChannel(
+    id: string,
+    session: InternalSession,
+  ): Promise<void> {
+    await this.sendClientRequest(
+      `/contact-channels/me/${id}`,
+      {
+        method: "DELETE",
+      },
+      session,
+    );
+  }
+
+  async listClientContactChannels(
+    session: InternalSession,
+  ): Promise<ContactChannelsCrud['Client']['Read'][]> {
+    const response = await this.sendClientRequest(
+      "/contact-channels?user_id=me",
+      {
+        method: "GET",
+      },
+      session,
+    );
+    const json = await response.json() as ContactChannelsCrud['Client']['List'];
+    return json.items;
+  }
+
+  async sendCurrentUserContactChannelVerificationEmail(
+    contactChannelId: string,
+    callbackUrl: string,
+    session: InternalSession,
+  ): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>> {
+    const responseOrError = await this.sendClientRequestAndCatchKnownError(
+      `/contact-channels/me/${contactChannelId}/send-verification-code`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ callback_url: callbackUrl }),
+      },
+      session,
+      [KnownErrors.EmailAlreadyVerified]
+    );
+
+    if (responseOrError.status === "error") {
+      return Result.error(responseOrError.error);
+    }
+    return Result.ok(undefined);
   }
 }
 

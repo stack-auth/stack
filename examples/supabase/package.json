@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/example-supabase",
-  "version": "2.6.11",
+  "version": "2.6.13",
   "private": true,
   "scripts": {
     "dev": "next dev --port 8115",

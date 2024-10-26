@@ -253,6 +253,7 @@ export const userIdOrMeSchema = yupString().uuid().transform(v => {
 }).meta({ openapiField: { description: 'The ID of the user, or the special value `me` for the currently authenticated user', exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
 export const userIdSchema = yupString().uuid().meta({ openapiField: { description: _idDescription('user'), exampleValue: '3241a285-8329-4d69-8f3d-316e08cf140c' } });
 export const primaryEmailSchema = emailSchema.meta({ openapiField: { description: 'Primary email', exampleValue: 'johndoe@example.com' } });
+export const primaryEmailAuthEnabledSchema = yupBoolean().meta({ openapiField: { description: 'Whether the primary email is used for authentication. If this is set to `false`, the user will not be able to sign in with the primary email with password or OTP', exampleValue: true } });
 export const primaryEmailVerifiedSchema = yupBoolean().meta({ openapiField: { description: 'Whether the primary email has been verified to belong to this user', exampleValue: true } });
 export const userDisplayNameSchema = yupString().nullable().meta({ openapiField: { description: _displayNameDescription('user'), exampleValue: 'John Doe' } });
 export const selectedTeamIdSchema = yupString().uuid().meta({ openapiField: { description: 'ID of the team currently selected by the user', exampleValue: 'team-id' } });
@@ -267,6 +268,11 @@ export const userOAuthProviderSchema = yupObject({
   provider_user_id: yupString().required(),
 });
 export const userLastActiveAtMillisSchema = yupNumber().nullable().meta({ openapiField: { description: _lastActiveAtMillisDescription, exampleValue: 1630000000000 } });
+export const userOtpAuthEnabledSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled. ', exampleValue: true } });
+export const userOtpAuthEnabledMutationSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled. Note that only accounts with verified emails can sign-in with OTP.', exampleValue: true } });
+export const userHasPasswordSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has a password set. If the user does not have a password set, they will not be able to sign in with email/password.', exampleValue: true } });
+export const userPasswordMutationSchema = yupString().nullable().meta({ openapiField: { description: 'Sets the user\'s password. Doing so revokes all current sessions.', exampleValue: 'my-new-password' } });
+export const userTotpSecretMutationSchema = base64Schema.nullable().meta({ openapiField: { description: 'Enables 2FA and sets a TOTP secret for the user. Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } });
 
 // Auth
 export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });

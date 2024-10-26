@@ -10,3 +10,4 @@ jobs:
       - uses: technote-space/toc-generator@v4
         with:
           TOC_TITLE: ""
+          TARGET_PATHS: "README*.md,CONTRIBUTING.md"

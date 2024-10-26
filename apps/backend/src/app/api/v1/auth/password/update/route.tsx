@@ -3,7 +3,7 @@ import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 
 export const POST = createSmartRouteHandler({
@@ -19,7 +19,6 @@ export const POST = createSmartRouteHandler({
       user: adaptSchema.required(),
     }).required(),
     body: yupObject({
-      auth_method_id: yupString().optional(),
       old_password: yupString().required(),
       new_password: yupString().required(),
     }).required(),
@@ -31,7 +30,7 @@ export const POST = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).required(),
     bodyType: yupString().oneOf(["success"]).required(),
   }),
-  async handler({ auth: { project, user }, body: { old_password, new_password, auth_method_id }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
+  async handler({ auth: { project, user }, body: { old_password, new_password }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
     if (!project.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
@@ -49,21 +48,16 @@ export const POST = createSmartRouteHandler({
         },
       });
 
-      let authMethod;
       if (authMethods.length > 1) {
-        if (!auth_method_id) {
-          throw new StatusError(StatusError.BadRequest, "auth_method_id is required when there are multiple password auth methods. If you see this error on the client, please upgrade your client to the latest version.");
-        }
-        authMethod = authMethods.find((x) => x.authMethodId === auth_method_id);
-
-        if (!authMethod) {
-          throw new StatusError(StatusError.NotFound, "Auth method not found");
-        }
-      } else if (authMethods.length === 1) {
-        authMethod = authMethods[0];
-      } else {
+        throw new StackAssertionError("User has multiple password auth methods.", {
+          projectId: project.id,
+          projectUserId: user.id,
+        });
+      } else if (authMethods.length === 0) {
         throw new KnownErrors.UserDoesNotHavePassword();
       }
+
+      const authMethod = authMethods[0];
 
       if (!await comparePassword(old_password, authMethod.passwordHash)) {
         throw new KnownErrors.PasswordConfirmationMismatch();
