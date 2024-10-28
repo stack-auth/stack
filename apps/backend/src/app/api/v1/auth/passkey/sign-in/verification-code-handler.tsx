@@ -107,7 +107,7 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
       if (error instanceof Error){
         throw new KnownErrors.PasskeyAuthenticationFailed(error.message);
       }
-      throw new KnownErrors.PasskeyAuthenticationFailed("Failed to verify passkey authentication response");
+      throw error;
     }
 
 
