@@ -79,24 +79,16 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
 
 
     let verification;
-    try {
-      verification = await verifyRegistrationResponse({
-        response: credential,
-        expectedChallenge: challenge,
-        expectedOrigin,
-        expectedRPID,
-        expectedType: "webauthn.create",
-        // we don't need user verification for most websites, in the future this might be an option. See https://simplewebauthn.dev/docs/advanced/passkeys#verifyregistrationresponse
-        requireUserVerification: false,
-      });
-    } catch (error) {
-      if (error instanceof Error) {
-        captureError("Passkey registration verification failed", error);
-        throw new KnownErrors.PasskeyRegistrationFailed("Passkey registration verification failed");
-      } else {
-        throw error;
-      }
-    }
+    verification = await verifyRegistrationResponse({
+      response: credential,
+      expectedChallenge: challenge,
+      expectedOrigin,
+      expectedRPID,
+      expectedType: "webauthn.create",
+      // we don't need user verification for most websites, in the future this might be an option. See https://simplewebauthn.dev/docs/advanced/passkeys#verifyregistrationresponse
+      requireUserVerification: false,
+    });
+
 
     if (!verification.verified || !verification.registrationInfo) {
       throw new KnownErrors.PasskeyRegistrationFailed("Passkey registration failed because the verification response is invalid");

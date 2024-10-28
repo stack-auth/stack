@@ -90,29 +90,22 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
     }
 
     let authVerify;
-    try {
-      authVerify = await verifyAuthenticationResponse({
-        response: authentication_response,
-        expectedChallenge: challenge,
-        expectedOrigin,
-        expectedRPID,
-        credential: {
-          id: passkey.userHandle,
-          publicKey: new Uint8Array(Buffer.from(passkey.publicKey, 'base64')),
-          counter: passkey.counter,
-        },
-        requireUserVerification: false,
-      });
-    } catch (error) {
-      if (error instanceof Error){
-        throw new KnownErrors.PasskeyAuthenticationFailed(error.message);
-      }
-      throw error;
-    }
+    authVerify = await verifyAuthenticationResponse({
+      response: authentication_response,
+      expectedChallenge: challenge,
+      expectedOrigin,
+      expectedRPID,
+      credential: {
+        id: passkey.userHandle,
+        publicKey: new Uint8Array(Buffer.from(passkey.publicKey, 'base64')),
+        counter: passkey.counter,
+      },
+      requireUserVerification: false,
+    });
 
 
     if (!authVerify.verified) {
-      throw new KnownErrors.PasskeyAuthenticationFailed("Signature verification failed");
+      throw new KnownErrors.PasskeyAuthenticationFailed("The signature of the authentication response could not be verified with the stored public key tied to this credential ID");
     }
     const authenticationInfo = authVerify.authenticationInfo;
 
