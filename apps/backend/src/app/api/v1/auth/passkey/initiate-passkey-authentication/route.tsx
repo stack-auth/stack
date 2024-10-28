@@ -36,7 +36,7 @@ export const POST = createSmartRouteHandler({
 
     const SIGN_IN_TIMEOUT_MS = 60000;
 
-    const options_json: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
+    const authenticationOptions: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
       rpID: "THIS_VALUE_WILL_BE_REPLACED.example.com", // HACK: will be overridden in the frontend to be the actual domain, this is a temporary solution until we have a primary authentication domain
       userVerification: "preferred",
       challenge: getEnvVariable("STACK_ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING", "") ? isoUint8Array.fromUTF8String("MOCK") : undefined,
@@ -50,7 +50,7 @@ export const POST = createSmartRouteHandler({
       method: {},
       expiresInMs: SIGN_IN_TIMEOUT_MS + 5000,
       data: {
-        challenge: options_json.challenge
+        challenge: authenticationOptions.challenge
       },
       callbackUrl: undefined
     });
@@ -60,7 +60,7 @@ export const POST = createSmartRouteHandler({
       statusCode: 200,
       bodyType: "json",
       body: {
-        options_json,
+        options_json: authenticationOptions,
         code,
       },
     };

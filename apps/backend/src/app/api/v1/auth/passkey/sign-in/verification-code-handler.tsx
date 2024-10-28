@@ -104,13 +104,15 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
         requireUserVerification: false,
       });
     } catch (error) {
-      captureError("Failed to verify passkey authentication response", error);
+      if (error instanceof Error){
+        throw new KnownErrors.PasskeyAuthenticationFailed(error.message);
+      }
       throw new KnownErrors.PasskeyAuthenticationFailed("Failed to verify passkey authentication response");
     }
 
 
     if (!authVerify.verified) {
-      throw new KnownErrors.PasskeyAuthenticationFailed("Failed to verify passkey authentication response");
+      throw new KnownErrors.PasskeyAuthenticationFailed("Signature verification failed");
     }
     const authenticationInfo = authVerify.authenticationInfo;
 
