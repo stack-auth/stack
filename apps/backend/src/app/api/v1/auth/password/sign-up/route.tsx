@@ -90,7 +90,10 @@ export const POST = createSmartRouteHandler({
       if (error instanceof KnownErrors.RedirectUrlNotWhitelisted) {
         throw error;
       } else {
-        captureError("Error sending verification code on sign up. Continued without sending verification code.", error);
+        // we can ignore it because it's not critical, but we should log it
+        // a common error is that the developer's specified email service is down
+        // later, we should let the user know instead of logging this to Sentry
+        captureError("send-sign-up-verification-code", error);
       }
     }
 
