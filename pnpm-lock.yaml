@@ -423,6 +423,25 @@ importers:
         specifier: ^4.16.2
         version: 4.16.2
 
+  apps/oidc-mock-server:
+    dependencies:
+      '@stackframe/stack-shared':
+        specifier: workspace:*
+        version: link:../../packages/stack-shared
+      '@types/oidc-provider':
+        specifier: ^8.5.1
+        version: 8.5.1
+      oidc-provider:
+        specifier: ^8.5.1
+        version: 8.5.1
+      quick-lru:
+        specifier: ^7.0.0
+        version: 7.0.0
+    devDependencies:
+      tsx:
+        specifier: ^4.16.2
+        version: 4.16.2
+
   docs:
     dependencies:
       fern-api:
@@ -15552,7 +15571,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.30.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.21.0(eslint@8.30.0)(typescript@5.3.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.21.0(eslint@8.30.0)(typescript@5.3.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@6.21.0(eslint@8.30.0)(typescript@5.3.3))(eslint@8.30.0))(eslint@8.30.0))(eslint@8.30.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.21.0(eslint@8.30.0)(typescript@5.3.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.21.0(eslint@8.30.0)(typescript@5.3.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.31.0)(eslint@8.30.0))(eslint@8.30.0)
       hasown: 2.0.2
       is-core-module: 2.13.1
       is-glob: 4.0.3
