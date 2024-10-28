@@ -1,14 +1,19 @@
-import { signIn } from "@/auth"
+import { auth, signIn } from "@/auth"
  
-export default function SignIn() {
+export default async function SignIn() {
+  const session = await auth()
+
   return (
-    <form
-      action={async () => {
+    <>
+      <pre>{JSON.stringify(session, null, 2)}</pre>
+      <form
+        action={async () => {
         "use server"
         await signIn("stack-auth")
       }}
     >
       <button type="submit">Sign-in with Stack</button>
-    </form>
+      </form>
+    </>
   )
 } 

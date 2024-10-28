@@ -99,6 +99,7 @@ class MemoryAdapter {
     storage.set(key, payload, { maxAge: expiresIn * 1000 });
   }
 
+
   async revokeByGrantId(grantId: string): Promise<void> {
     const grantKey = grantKeyFor(grantId);
     const grant = storage.get(grantKey) as string[];
@@ -134,12 +135,47 @@ const configuration: Configuration  = {
     },
   },
   
+  async loadExistingGrant(ctx: any) {
+    const grantId = ctx.oidc.result?.consent?.grantId 
+      || ctx.oidc.session!.grantIdFor(ctx.oidc.client!.clientId);
+
+    if (grantId) {
+      // keep grant expiry aligned with session expiry
+      // to prevent consent prompt being requested when grant expires
+      const grant = await ctx.oidc.provider.Grant.find(grantId);
+
+      // this aligns the Grant ttl with that of the current session
+      // if the same Grant is used for multiple sessions, or is set
+      // to never expire, you probably do not want this in your code
+      if (ctx.oidc.account && grant.exp < ctx.oidc.session!.exp) {
+        grant.exp = ctx.oidc.session!.exp;
+
+        await grant.save();
+      }
+
+      if (true /*HACK*/) {
+        const grant = new ctx.oidc.provider.Grant({
+          clientId: ctx.oidc.client!.clientId,
+          accountId: ctx.oidc.session!.accountId,
+        });
+
+      grant.addOIDCScope('openid email profile');
+      grant.addOIDCClaims(['first_name']);
+      grant.addResourceScope('urn:example:resource-indicator', 'api:read api:write');
+      await grant.save();
+      return grant;
+      }
+    }
+  },
+
   interactions: {
     // THIS IS WHERE WE REDIRECT TO PRIMARY AUTH SERVER
     // TODO: do we need to sanitize the parameter?
-    url: (ctx, interaction) => `http://localhost:8103/sign-in?interaction_uid=${interaction.uid}&returnTo=${interaction.returnTo}`,
+    url: (ctx, interaction) => `/interaction/${encodeURIComponent(interaction.uid)}`,
 
   }, 
+ 
+
   async findAccount(ctx, id) {
     return {
       accountId: id,
@@ -159,6 +195,44 @@ const configuration: Configuration  = {
 
 
 const oidc = new Provider(`http://localhost:${port}`, configuration);
+
+
+
+
+oidc.use(async (ctx, next) => {
+  console.log('oidc.use', ctx.path);
+  if (ctx.method === 'GET' && /^\/interaction\/[^/]+\/login$/.test(ctx.path)) {
+    console.log('oidc.use login', ctx.path);
+    ctx.body = 'OIDC Mock Server';
+    const uid = ctx.path.split('/')[2];
+
+
+    const grant = new oidc.Grant({
+      accountId: "lmao_id",
+      clientId: "client-id",
+    });
+
+    const grantId = await grant.save();
+
+
+    const result = {
+      login: {
+        accountId: "lmao_id",
+      },
+      consent: {
+        grantId,
+      },
+    };
+
+    return oidc.interactionFinished(ctx.req, ctx.res, result);
+  }
+  if (ctx.method === 'GET' && /^\/interaction\/[^/]+$/.test(ctx.path)) {
+    console.log('oidc.use interaction', ctx.path);
+    const uid = ctx.path.split('/')[2];
+    return ctx.redirect(`http://localhost:8103/handler/sign-in?after_auth_return_to=${encodeURIComponent(`http://localhost:8117/interaction/${encodeURIComponent(uid)}/login`)}`);
+  }
+  await next();
+});
 
 oidc.listen(port, () => {
   console.log(`oidc-provider listening on port ${port}, check http://localhost:${port}/.well-known/openid-configuration`);
