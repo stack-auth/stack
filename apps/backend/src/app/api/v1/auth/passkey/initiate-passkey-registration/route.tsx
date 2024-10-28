@@ -44,7 +44,7 @@ export const POST = createSmartRouteHandler({
       // Here we set the userId to the user's id, this will cause to have the browser always store only one passkey per user! (browser stores one passkey per userId/rpID pair)
       userID: isoUint8Array.fromUTF8String(user.id),
       userName: user.display_name || user.primary_email || "Stack Auth User",
-      challenge: getEnvVariable("ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING", "") ? isoUint8Array.fromUTF8String("MOCK") : undefined,
+      challenge: getEnvVariable("STACK_ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING", "") ? isoUint8Array.fromUTF8String("MOCK") : undefined,
       userDisplayName: user.display_name || user.primary_email || "Stack Auth User",
       // Force passkey (discoverable/resident)
       authenticatorSelection: {

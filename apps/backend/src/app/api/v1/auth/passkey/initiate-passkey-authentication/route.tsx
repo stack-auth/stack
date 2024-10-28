@@ -39,7 +39,7 @@ export const POST = createSmartRouteHandler({
     const options_json: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
       rpID: "THIS_VALUE_WILL_BE_REPLACED.example.com", // HACK: will be overridden in the frontend to be the actual domain, this is a temporary solution until we have a primary authentication domain
       userVerification: "preferred",
-      challenge: getEnvVariable("ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING", "") ? isoUint8Array.fromUTF8String("MOCK") : undefined,
+      challenge: getEnvVariable("STACK_ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING", "") ? isoUint8Array.fromUTF8String("MOCK") : undefined,
       allowCredentials: [],
       timeout: SIGN_IN_TIMEOUT_MS,
     });
