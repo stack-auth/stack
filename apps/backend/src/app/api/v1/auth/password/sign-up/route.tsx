@@ -87,7 +87,14 @@ export const POST = createSmartRouteHandler({
         user: createdUser,
       });
     } catch (error) {
-      captureError("Error sending verification code on sign up. Continued without sending verification code.", error);
+      if (error instanceof KnownErrors.RedirectUrlNotWhitelisted) {
+        throw error;
+      } else {
+        // we can ignore it because it's not critical, but we should log it
+        // a common error is that the developer's specified email service is down
+        // later, we should let the user know instead of logging this to Sentry
+        captureError("send-sign-up-verification-code", error);
+      }
     }
 
     if (createdUser.requires_totp_mfa) {
