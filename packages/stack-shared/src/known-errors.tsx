@@ -682,6 +682,17 @@ const PasswordAuthenticationNotEnabled = createKnownErrorConstructor(
   () => [] as const,
 );
 
+
+const PasskeyAuthenticationNotEnabled = createKnownErrorConstructor(
+  KnownError,
+  "PASSKEY_AUTHENTICATION_NOT_ENABLED",
+  () => [
+    400,
+    "Passkey authentication is not enabled for this project.",
+  ] as const,
+  () => [] as const,
+);
+
 const EmailPasswordMismatch = createKnownErrorConstructor(
   KnownError,
   "EMAIL_PASSWORD_MISMATCH",
@@ -839,6 +850,43 @@ const EmailIsNotPrimaryEmail = createKnownErrorConstructor(
   ] as const,
   (json: any) => [json.email, json.primary_email] as const,
 );
+
+
+const PasskeyRegistrationFailed = createKnownErrorConstructor(
+  KnownError,
+  "PASSKEY_REGISTRATION_FAILED",
+  (message: string) => [
+    400,
+    message,
+  ] as const,
+  (json: any) => [json.message] as const,
+);
+
+
+const PasskeyWebAuthnError = createKnownErrorConstructor(
+  KnownError,
+  "PASSKEY_WEBAUTHN_ERROR",
+  (message: string, code: string) => [
+    400,
+    message,
+    {
+      message,
+      code,
+    },
+  ] as const,
+  (json: any) => [json.message, json.code] as const,
+);
+
+const PasskeyAuthenticationFailed = createKnownErrorConstructor(
+  KnownError,
+  "PASSKEY_AUTHENTICATION_FAILED",
+  (message: string) => [
+    400,
+    message,
+  ] as const,
+  (json: any) => [json.message] as const,
+);
+
 
 const PermissionNotFound = createKnownErrorConstructor(
   KnownError,
@@ -1191,6 +1239,7 @@ export const KnownErrors = {
   ProjectNotFound,
   SignUpNotEnabled,
   PasswordAuthenticationNotEnabled,
+  PasskeyAuthenticationNotEnabled,
   EmailPasswordMismatch,
   RedirectUrlNotWhitelisted,
   PasswordRequirementsNotMet,
@@ -1206,6 +1255,9 @@ export const KnownErrors = {
   EmailAlreadyVerified,
   EmailNotAssociatedWithUser,
   EmailIsNotPrimaryEmail,
+  PasskeyRegistrationFailed,
+  PasskeyWebAuthnError,
+  PasskeyAuthenticationFailed,
   PermissionNotFound,
   ContainedPermissionNotFound,
   TeamNotFound,

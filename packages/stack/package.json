@@ -42,6 +42,7 @@
   ],
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
+    "@simplewebauthn/browser": "^11.0.0",
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@stackframe/stack-ui": "workspace:*",
