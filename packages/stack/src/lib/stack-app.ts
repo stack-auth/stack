@@ -803,6 +803,41 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const tokens = await this.currentSession.getTokens();
         return tokens;
       },
+      async registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>> {
+
+        const initiationResult = await app._interface.initiatePasskeyRegistration({}, session);
+
+        if (initiationResult.status !== "ok") {
+          return Result.error(new KnownErrors.PasskeyRegistrationFailed("Failed to get initiation options for passkey registration"));
+        }
+
+        const {options_json, code} = initiationResult.data;
+
+        // HACK: Override the rpID to be the actual domain
+        if (options_json.rp.id !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
+          throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${options_json.rp.id}`);
+        }
+        options_json.rp.id = window.location.hostname;
+
+        let attResp;
+        try {
+          attResp = await startRegistration({ optionsJSON: options_json });
+          debugger;
+        } catch (error: any) {
+          if (error instanceof WebAuthnError) {
+            return Result.error(new KnownErrors.PasskeyWebAuthnError(error.message, error.name));
+          } else {
+            // This should never happen
+            return Result.error(new KnownErrors.PasskeyRegistrationFailed("Failed to start passkey registration"));
+          }
+        }
+
+
+        const registrationResult = await app._interface.registerPasskey({ credential: attResp, code }, session);
+
+        await app._refreshUser(session);
+        return registrationResult;
+      },
       signOut() {
         return app._signOut(session);
       },
@@ -1382,42 +1417,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     } else {
       return Result.error(result.error);
     }
-  }
-
-  async registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>> {
-    const session = this._getSession();
-    const initiationResult = await this._interface.initiatePasskeyRegistration({}, session);
-
-    if (initiationResult.status !== "ok") {
-      return Result.error(new KnownErrors.PasskeyRegistrationFailed("Failed to get initiation options for passkey registration"));
-    }
-
-    const {options_json, code} = initiationResult.data;
-
-    // HACK: Override the rpID to be the actual domain
-    if (options_json.rp.id !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
-      throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${options_json.rp.id}`);
-    }
-    options_json.rp.id = window.location.hostname;
-
-    let attResp;
-    try {
-      attResp = await startRegistration({ optionsJSON: options_json });
-      debugger;
-    } catch (error: any) {
-      if (error instanceof WebAuthnError) {
-        return Result.error(new KnownErrors.PasskeyWebAuthnError(error.message, error.name));
-      } else {
-        // This should never happen
-        return Result.error(new KnownErrors.PasskeyRegistrationFailed("Failed to start passkey registration"));
-      }
-    }
-
-
-    const registrationResult = await this._interface.registerPasskey({ credential: attResp, code }, session);
-
-    await this._refreshUser(session);
-    return registrationResult;
   }
 
 
@@ -2527,6 +2526,7 @@ type Auth = {
    * ```
    */
   getAuthJson(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
+  registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>>,
 };
 
 /**
@@ -3161,7 +3161,6 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     getTeamInvitationDetails(code: string): Promise<Result<{ teamDisplayName: string }, KnownErrors["VerificationCodeError"]>>,
     verifyEmail(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     signInWithMagicLink(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"] | KnownErrors["InvalidTotpCode"]>>,
-    registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>>,
 
     redirectToOAuthCallback(): Promise<void>,
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,
