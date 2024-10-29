@@ -164,6 +164,9 @@ importers:
       nodemailer:
         specifier: ^6.9.10
         version: 6.9.13
+      oidc-provider:
+        specifier: ^8.5.1
+        version: 8.5.1
       openid-client:
         specifier: ^5.6.4
         version: 5.6.5
@@ -176,6 +179,9 @@ importers:
       posthog-node:
         specifier: ^4.1.0
         version: 4.1.0
+      quick-lru:
+        specifier: ^7.0.0
+        version: 7.0.0
       react:
         specifier: ^18.2
         version: 18.3.1
@@ -207,6 +213,9 @@ importers:
       '@types/nodemailer':
         specifier: ^6.4.14
         version: 6.4.15
+      '@types/oidc-provider':
+        specifier: ^8.5.1
+        version: 8.5.1
       '@types/react':
         specifier: ^18.2.66
         version: 18.3.3
@@ -11213,7 +11222,7 @@ snapshots:
     dependencies:
       '@mdx-js/mdx': 3.0.1
       source-map: 0.7.4
-      webpack: 5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5)
+      webpack: 5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.19.11)
     transitivePeerDependencies:
       - supports-color
 
@@ -13220,7 +13229,7 @@ snapshots:
       rollup: 2.78.0
       stacktrace-parser: 0.1.10
     optionalDependencies:
-      webpack: 5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5)
+      webpack: 5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.19.11)
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -13243,7 +13252,7 @@ snapshots:
       rollup: 2.78.0
       stacktrace-parser: 0.1.10
     optionalDependencies:
-      webpack: 5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5)
+      webpack: 5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.19.11)
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -13779,7 +13788,7 @@ snapshots:
     dependencies:
       '@types/node': 20.14.2
       tapable: 2.2.1
-      webpack: 5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5)
+      webpack: 5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.19.11)
     transitivePeerDependencies:
       - '@swc/core'
       - esbuild
@@ -19782,14 +19791,14 @@ snapshots:
 
   term-size@2.2.1: {}
 
-  terser-webpack-plugin@5.3.10(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5)(webpack@5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5)):
+  terser-webpack-plugin@5.3.10(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5)(webpack@5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.19.11)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.25
       jest-worker: 27.5.1
       schema-utils: 3.3.0
       serialize-javascript: 6.0.2
       terser: 5.31.1
-      webpack: 5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5)
+      webpack: 5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.19.11)
     optionalDependencies:
       '@swc/core': 1.3.101(@swc/helpers@0.5.13)
       esbuild: 0.21.5
@@ -20386,7 +20395,7 @@ snapshots:
 
   webpack-sources@3.2.3: {}
 
-  webpack@5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5):
+  webpack@5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.19.11):
     dependencies:
       '@types/eslint-scope': 3.7.7
       '@types/estree': 1.0.5
@@ -20409,7 +20418,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 3.3.0
       tapable: 2.2.1
-      terser-webpack-plugin: 5.3.10(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5)(webpack@5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5))
+      terser-webpack-plugin: 5.3.10(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.21.5)(webpack@5.92.0(@swc/core@1.3.101(@swc/helpers@0.5.13))(esbuild@0.19.11))
       watchpack: 2.4.1
       webpack-sources: 3.2.3
     transitivePeerDependencies:
