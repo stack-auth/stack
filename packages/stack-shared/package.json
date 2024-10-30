@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-shared",
-  "version": "2.6.13",
+  "version": "2.6.14",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -39,6 +39,7 @@
     }
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^11.0.0",
     "@stackframe/stack-sc": "workspace:*",
     "bcrypt": "^5.1.1",
     "elliptic": "^6.5.7",
@@ -48,6 +49,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@simplewebauthn/types": "^11.0.0",
     "@types/bcrypt": "^5.0.2",
     "@types/elliptic": "^6.4.18",
     "@types/react": "^18.2.66",

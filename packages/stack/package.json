@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack",
-  "version": "2.6.13",
+  "version": "2.6.14",
   "sideEffects": false,
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -42,6 +42,7 @@
   ],
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
+    "@simplewebauthn/browser": "^11.0.0",
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@stackframe/stack-ui": "workspace:*",

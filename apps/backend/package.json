@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-backend",
-  "version": "2.6.13",
+  "version": "2.6.14",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
@@ -44,6 +44,7 @@
     "@prisma/client": "^5.9.1",
     "@prisma/instrumentation": "^5.19.1",
     "@sentry/nextjs": "^7.105.0",
+    "@simplewebauthn/server": "^11.0.0",
     "@stackframe/stack-emails": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@vercel/analytics": "^1.2.2",
@@ -67,6 +68,7 @@
     "yup": "^1.4.0"
   },
   "devDependencies": {
+    "@simplewebauthn/types": "^11.0.0",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
     "@types/react": "^18.2.66",
