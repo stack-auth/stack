@@ -1958,10 +1958,23 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { nextCursor: string | null }> {
-    const crud = await this._serverUsersCache.getOrWait([options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.query], "write-only");
-    const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
-    result.nextCursor = crud.pagination?.next_cursor ?? null;
-    return result;
+    if (!options?.limit) {
+      const result: ServerUser[] = [];
+      let nextCursor: string | null = options?.cursor ?? null;
+      while (true) {
+        const crud = await this._serverUsersCache.getOrWait([nextCursor ?? undefined, 200, options?.orderBy, options?.desc, options?.query], "write-only");
+        result.push(...crud.items.map((j) => this._serverUserFromCrud(j)));
+        nextCursor = crud.pagination?.next_cursor ?? null;
+        if (nextCursor === null) break;
+      }
+      (result as any).nextCursor = null;
+      return result as any;
+    } else {
+      const crud = await this._serverUsersCache.getOrWait([options.cursor, options.limit, options.orderBy, options.desc, options.query], "write-only");
+      const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
+      result.nextCursor = crud.pagination?.next_cursor ?? null;
+      return result as any;
+    }
   }
 
   useUsers(): ServerUser[] {
