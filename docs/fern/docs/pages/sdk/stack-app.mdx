@@ -545,19 +545,54 @@ console.log(user); // null if not found
 
 ### `listUsers()`
 
-List all users.
+Lists users.
+
+If `limit` is not provided, it will return all users by making multiple requests to the server (this might be slow for a large number of users, so it is recommended to always use pagination).
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="cursor" type="string">
+        The cursor to start the result set from.
+      </ParamField>
+
+      <ParamField path="limit" type="number">
+        The maximum number of items to return. Max is 200. If not provided, it will return all users.
+      </ParamField>
+
+      <ParamField path="orderBy" type="'signedUpAt'">
+        The field to sort the results by. Currently only `signedUpAt` is supported.
+      </ParamField>
+
+      <ParamField path="desc" type="boolean" default="false">
+        Whether to sort the results in descending order.
+      </ParamField>
+
+      <ParamField path="query" type="string">
+        A query to filter the results by. This is a free-text search on the user's display name and emails.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
 
 **Returns:**
 
 <div className="indented">
-  `Promise<ServerUser[]>`: The list of users.
+  `Promise<ServerUser[] & { nextCursor: string | null }>`: The list of users. If `nextCursor` is not null, there is a next page.
 </div>
 
 **Example:**
 
 ```typescript
-const users = await stackServerApp.listUsers();
+const users = await stackServerApp.listUsers({ limit: 20 });
 console.log(users);
+
+if (users.nextCursor) {
+  const nextPageUsers = await stackServerApp.listUsers({ cursor: users.nextCursor, limit: 20 });
+  console.log(nextPageUsers);
+}
 ```
 
 

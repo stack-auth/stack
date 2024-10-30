@@ -1,6 +1,6 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { describe } from "vitest";
-import { it } from "../../../../helpers";
+import { createMailbox, it } from "../../../../helpers";
 import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 describe("without project access", () => {
@@ -715,7 +715,7 @@ describe("with server access", () => {
       NiceResponse {
         "status": 200,
         "body": {
-          "is_paginated": false,
+          "is_paginated": true,
           "items": [
             {
               "auth_with_email": true,
@@ -739,10 +739,38 @@ describe("with server access", () => {
               "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
             },
           ],
+          "pagination": { "next_cursor": null },
         },
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
+  });
+
+  it("list next cursor", async ({ expect }) => {
+    await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+    for (let i = 0; i < 5; i++) {
+      backendContext.set({ mailbox: createMailbox() });
+      await Auth.Otp.signIn();
+    }
+    const allResponse = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+    });
+
+    const response1 = await niceBackendFetch("/api/v1/users?limit=2", {
+      accessType: "server",
+    });
+    expect(response1.body.pagination.next_cursor).toBeDefined();
+
+    const response2 = await niceBackendFetch(`/api/v1/users?limit=3&cursor=${response1.body.pagination.next_cursor}`, {
+      accessType: "server",
+    });
+    expect(response2.body.pagination.next_cursor).toBeDefined();
+
+    // check if response 1 + response 2 = allResponse
+    expect(response1.body.items.length + response2.body.items.length).toEqual(allResponse.body.items.length);
+    const allUserIds = new Set(allResponse.body.items.map((user: any) => user.id));
+    const concatenatedUserIds = new Set([...response1.body.items.map((user: any) => user.id), ...response2.body.items.map((user: any) => user.id)]);
+    expect(concatenatedUserIds).toEqual(allUserIds);
   });
 
   it("should be able to read a user", async ({ expect }) => {
