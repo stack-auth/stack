@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-backend",
-  "version": "2.6.14",
+  "version": "2.6.15",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
