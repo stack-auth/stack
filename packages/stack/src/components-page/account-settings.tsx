@@ -371,7 +371,7 @@ function usePasskeySection() {
 
 
   const handleAddNewPasskey = async () => {
-    await stackApp.registerPasskey();
+    await user.registerPasskey();
   };
 
   return (
