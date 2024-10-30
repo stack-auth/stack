@@ -246,7 +246,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     user_id: userIdOrMeSchema.required(),
   }),
   querySchema: yupObject({
-    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "filter users by team" }}),
+    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Only return users who are members of the given team" }}),
     limit: yupNumber().integer().min(1).max(200).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return. Defaults to 100, max is 200" }}),
     cursor: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The cursor to start the result set from." }}),
     order_by: yupString().oneOf(['signed_up_at']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
