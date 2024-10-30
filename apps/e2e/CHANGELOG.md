@@ -1,5 +1,13 @@
 # @stackframe/e2e-tests
 
+## 2.6.15
+
+### Patch Changes
+
+- Passkeys
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.15
+
 ## 2.6.14
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @stackframe/example-partial-prerendering
 
+## 2.6.15
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.15
+
 ## 2.6.14
 
 ### Patch Changes

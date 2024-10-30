@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.6.15
+
+### Patch Changes
+
+- Passkeys
+  - @stackframe/stack-sc@2.6.15
+
 ## 2.6.14
 
 ### Patch Changes
