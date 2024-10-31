@@ -8,7 +8,6 @@ import { Alert, Button } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
-import { useEffect } from "react";
 
 function CreateDialog(props: {
   open?: boolean,

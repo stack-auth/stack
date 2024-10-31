@@ -559,7 +559,7 @@ If `limit` is not provided, it will return all users by making multiple requests
       </ParamField>
 
       <ParamField path="limit" type="number">
-        The maximum number of items to return. Max is 200. If not provided, it will return all users.
+        The maximum number of items to return. If not provided, it will return all users.
       </ParamField>
 
       <ParamField path="orderBy" type="'signedUpAt'">
@@ -595,6 +595,59 @@ if (users.nextCursor) {
 }
 ```
 
+### `useUsers()`
+
+Get the list of users. 
+
+If `limit` is not provided, it will return all users by making multiple requests to the server (this might be slow for a large number of users, so it is recommended to always use pagination).
+
+This is the same as `listUsers()` but it is a React hook.
+
+**Parameters:**
+
+<div className="indented">
+  <ParamField path="options" type="object">
+    <div className="indented">
+      <ParamField path="cursor" type="string">
+        The cursor to start the result set from.
+      </ParamField>
+
+      <ParamField path="limit" type="number">
+        The maximum number of items to return. If not provided, it will return all users.
+      </ParamField>
+
+      <ParamField path="orderBy" type="'signedUpAt'">
+        The field to sort the results by. Currently only `signedUpAt` is supported.
+      </ParamField>
+
+      <ParamField path="desc" type="boolean" default="false">
+        Whether to sort the results in descending order.
+      </ParamField>
+
+      <ParamField path="query" type="string">
+        A query to filter the results by. This is a free-text search on the user's display name and emails.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `ServerUser[] & { nextCursor: string | null }`: The list of users. If `nextCursor` is not null, there is a next page.
+</div>
+
+**Example:**
+
+```typescript
+const [cursor, setCursor] = useState<string | null>(null);
+const users = useUsers({ cursor: nextCursor, limit: 20 });
+
+return <div>
+  {users.map((user) => <div key={user.id}>{user.displayName}</div>)}
+  {users.nextCursor && <button onClick={() => setCursor(users.nextCursor)}>Next</button>}
+</div>
+```
 
 ### `createUser()`
 

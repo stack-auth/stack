@@ -11,10 +11,9 @@ import { userIdOrMeSchema, yupBoolean, yupNumber, yupObject, yupString } from "@
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
-import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { waitUntil } from '@vercel/functions';
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 
@@ -250,7 +249,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   }),
   querySchema: yupObject({
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Only return users who are members of the given team" }}),
-    limit: yupNumber().integer().min(1).max(200).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return. Defaults to 100, max is 200" }}),
+    limit: yupNumber().integer().min(1).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return. Defaults to 100" }}),
     cursor: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The cursor to start the result set from." }}),
     order_by: yupString().oneOf(['signed_up_at']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
     desc: yupBoolean().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Whether to sort the results in descending order. Defaults to false" }}),
@@ -295,7 +294,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       } : {},
     };
 
-    const limit = query.limit ?? 100;
     const db = await prismaClient.projectUser.findMany({
       where,
       include: userFullInclude,
@@ -305,7 +303,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         } as const)[query.order_by ?? 'signed_up_at']]: query.desc ? 'desc' : 'asc',
       },
       // +1 because we need to know if there is a next page
-      take: limit + 1,
+      take: query.limit ? query.limit + 1 : undefined,
       ...query.cursor ? {
         cursor: {
           projectId_projectUserId: {
@@ -319,11 +317,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     const lastActiveAtMillis = await getUsersLastActiveAtMillis(db.map(user => user.projectUserId), db.map(user => user.createdAt));
     return {
       // remove the last item because it's the next cursor
-      items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])).slice(0, limit),
+      items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])).slice(0, query.limit),
       is_paginated: true,
       pagination: {
         // if result is not full length, there is no next cursor
-        next_cursor: db.length >= limit + 1 ? db[db.length - 1].projectUserId : null,
+        next_cursor: query.limit && db.length >= query.limit + 1 ? db[db.length - 1].projectUserId : null,
       },
     };
   },
