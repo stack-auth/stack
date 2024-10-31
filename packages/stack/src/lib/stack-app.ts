@@ -769,7 +769,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       usedForAuth: crud.used_for_auth,
 
       async sendVerificationEmail() {
-        return await app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, constructRedirectUrl(app.urls.emailVerification), app._getSession());
+        await app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, constructRedirectUrl(app.urls.emailVerification), app._getSession());
       },
       async update(data: ContactChannelUpdateOptions) {
         await app._interface.updateClientContactChannel(crud.id, contactChannelUpdateOptionsToCrud(data), app._getSession());
@@ -1671,7 +1671,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return {
       ...this._clientContactChannelFromCrud(crud),
       async sendVerificationEmail() {
-        return await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, constructRedirectUrl(app.urls.emailVerification));
+        await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, constructRedirectUrl(app.urls.emailVerification));
       },
       async update(data: ServerContactChannelUpdateOptions) {
         await app._interface.updateServerContactChannel(userId, crud.id, serverContactChannelUpdateOptionsToCrud(data));
@@ -2392,7 +2392,7 @@ type ContactChannel = {
   isVerified: boolean,
   usedForAuth: boolean,
 
-  sendVerificationEmail(): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>>,
+  sendVerificationEmail(): Promise<void>,
   update(data: ContactChannelUpdateOptions): Promise<void>,
   delete(): Promise<void>,
 }
@@ -2426,7 +2426,9 @@ function contactChannelUpdateOptionsToCrud(options: ContactChannelUpdateOptions)
   };
 }
 
-type ServerContactChannel = ContactChannel;
+type ServerContactChannel = ContactChannel & {
+  update(data: ServerContactChannelUpdateOptions): Promise<void>,
+}
 type ServerContactChannelUpdateOptions = ContactChannelUpdateOptions & {
   isVerified?: boolean,
 }

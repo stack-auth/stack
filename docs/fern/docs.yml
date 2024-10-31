@@ -158,6 +158,8 @@ navigation:
             path: ./docs/pages/sdk/team-permission.mdx
           - page: Project
             path: ./docs/pages/sdk/project.mdx
+          - page: ContactChannel
+            path: ./docs/pages/sdk/contact-channel.mdx
           # - page: ConnectedAccount
           #   path: ./docs/pages/sdk/connected-account.mdx
       - section: Hooks
