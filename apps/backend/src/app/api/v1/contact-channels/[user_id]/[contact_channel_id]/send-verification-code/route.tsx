@@ -9,14 +9,14 @@ import { contactChannelVerificationCodeHandler } from "../../../verify/verificat
 
 export const POST = createSmartRouteHandler({
   metadata: {
-    summary: "Send email verification code",
-    description: "Send a code to the user's email address for verifying the email.",
-    tags: ["Emails"],
+    summary: "Send contact channel verification code",
+    description: "Send a code to the user's contact channel for verifying the contact channel.",
+    tags: ["Contact Channels"],
   },
   request: yupObject({
     params: yupObject({
-      user_id: userIdOrMeSchema.required(),
-      contact_channel_id: yupString().uuid().required(),
+      user_id: userIdOrMeSchema.required().meta({ openapiField: { description: "The user to send the verification code to.", exampleValue: 'me' } }),
+      contact_channel_id: yupString().uuid().required().meta({ openapiField: { description: "The contact channel to send the verification code to.", exampleValue: 'b3d396b8-c574-4c80-97b3-50031675ceb2' } }),
     }).required(),
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,

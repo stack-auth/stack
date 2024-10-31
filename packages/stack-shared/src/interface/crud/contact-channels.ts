@@ -52,19 +52,29 @@ export const contactChannelsCrud = createCrud({
   serverCreateSchema: contactChannelsCrudServerCreateSchema,
   docs: {
     clientRead: {
-      hidden: true,
+      summary: "Get a contact channel",
+      description: "",
+      tags: ["Contact Channels"],
     },
     clientCreate: {
-      hidden: true,
+      summary: "Create a contact channel",
+      description: "",
+      tags: ["Contact Channels"],
     },
     clientUpdate: {
-      hidden: true,
+      summary: "Update a contact channel",
+      description: "",
+      tags: ["Contact Channels"],
     },
     clientDelete: {
-      hidden: true,
+      summary: "Delete a contact channel",
+      description: "",
+      tags: ["Contact Channels"],
     },
     clientList: {
-      hidden: true,
+      summary: "List contact channels",
+      description: "",
+      tags: ["Contact Channels"],
     }
   }
 });

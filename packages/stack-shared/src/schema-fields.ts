@@ -57,7 +57,7 @@ export async function yupValidate<S extends yup.ISchema<any>>(
   }
 }
 
-const _idDescription = (identify: string) => `The unique identifier of this ${identify}`;
+const _idDescription = (identify: string) => `The unique identifier of the ${identify}`;
 const _displayNameDescription = (identify: string) => `Human-readable ${identify} display name. This is not a unique identifier.`;
 const _clientMetaDataDescription = (identify: string) => `Client metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client.`;
 const _clientReadOnlyMetaDataDescription = (identify: string) => `Client read-only, server-writable metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client. The client can read this data, but cannot modify it. This is useful for things like subscription status.`;
