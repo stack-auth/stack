@@ -534,7 +534,7 @@ This will update the user's password. It will return an error object (not throw 
 
 ```typescript
 const result = await user.updatePassword({
-  currentPassword: "oldPassword",
+  oldPassword: "currentPassword",
   newPassword: "newPassword",
 });
 if (result.status === "error" ) {
