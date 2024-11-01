@@ -1,5 +1,12 @@
 # @stackframe/docs
 
+## 2.6.16
+
+### Patch Changes
+
+- - list user pagination
+  - fixed visual glitches
+
 ## 2.6.15
 
 ## 2.6.14

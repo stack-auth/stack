@@ -1,5 +1,13 @@
 # @stackframe/stack-shared
 
+## 2.6.16
+
+### Patch Changes
+
+- - list user pagination
+  - fixed visual glitches
+  - @stackframe/stack-sc@2.6.16
+
 ## 2.6.15
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # @stackframe/stack-backend
 
+## 2.6.16
+
+### Patch Changes
+
+- - list user pagination
+  - fixed visual glitches
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.16
+  - @stackframe/stack-shared@2.6.16
+
 ## 2.6.15
 
 ### Patch Changes
