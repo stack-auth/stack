@@ -1,5 +1,50 @@
 # @stackframe/example-demo-app
 
+## 2.6.16
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.16
+  - @stackframe/stack-ui@2.6.16
+  - @stackframe/stack@2.6.16
+
+## 2.6.15
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.15
+  - @stackframe/stack@2.6.15
+  - @stackframe/stack-ui@2.6.15
+
+## 2.6.14
+
+### Patch Changes
+
+- @stackframe/stack@2.6.14
+- @stackframe/stack-shared@2.6.14
+- @stackframe/stack-ui@2.6.14
+
+## 2.6.13
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.13
+  - @stackframe/stack@2.6.13
+  - @stackframe/stack-ui@2.6.13
+
+## 2.6.12
+
+### Patch Changes
+
+- Updated account settings page
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.12
+  - @stackframe/stack-ui@2.6.12
+  - @stackframe/stack@2.6.12
+
 ## 2.6.11
 
 ### Patch Changes

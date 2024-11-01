@@ -64,6 +64,7 @@ To get notified first when we add new features, please subscribe to [our newslet
 | <h3>Multi-tenancy & teams</h3> Manage B2B customers with an organization structure that makes sense and scales to millions. | <img alt="Selected team switcher component" src=".github/assets/team-switcher.png" width="400px"> |
 | <h3>Role-based access control</h3> Define an arbitrary permission graph and assign it to users. Organizations can create org-specific roles. | <img alt="RBAC" src=".github/assets/permissions.png"  width="400px"> |
 | <h3>OAuth Connections</h3>Beyond login, Stack can also manage access tokens for third-party APIs, such as Outlook and Google Calendar. It handles refreshing tokens and controlling scope, making access tokens accessible via a single function call. | <img alt="OAuth tokens" src=".github/assets/connected-accounts.png"  width="250px"> |
+| <h3>Passkeys</h3> Support for passwordless authentication using passkeys, allowing users to sign in securely with biometrics or security keys across all their devices. | <img alt="OAuth tokens" src=".github/assets/passkeys.png"  width="400px"> |
 | <h3>Impersonation</h3> Impersonate users for debugging and support, logging into their account as if you were them. | <img alt="Webhooks" src=".github/assets/impersonate.png"  width="350px"> |
 | <h3>Webhooks</h3> Get notified when users use your product, built on Svix. | <img alt="Webhooks" src=".github/assets/stack-webhooks.png"  width="300px"> |
 | <h3>Automatic emails</h3> Send customizable emails on triggers such as sign-up, password reset, and email verification, editable with a WYSIWYG editor. | <img alt="Email templates" src=".github/assets/email-editor.png"  width="400px"> |
@@ -136,21 +137,21 @@ pnpm run prisma studio
 
 ### Development environment port mapping
 
-8101. Dashboard (equivalent to https://app.stack-auth.com)
-8102. Backend (equivalent to https://api.stack-auth.com)
-8103. Demo app (equivalent to https://demo.stack-auth.com)
-8104. Docs (equivalent to https://docs.stack-auth.com)
-8105. Inbucket (e-mails)
-8106. Prisma Studio
-8107. Jaeger UI/OpenTelemetry (for performance tracing)
-8108. `examples/docs-examples`
-8109. `examples/partial-prerendering`
-8110. `examples/cjs-test`
-8111. `examples/e-commerce`
-8112. `examples/middleware`
-8113. Svix server (for webhooks)
-8114. OAuth mock server
-8115. `examples/supabase`
+`8101`: Dashboard `apps/dashboard` (equivalent to https://app.stack-auth.com)  
+`8102`: Backend `apps/backend` (equivalent to https://api.stack-auth.com)  
+`8103`: Demo app `examples/demo` (equivalent to https://demo.stack-auth.com)  
+`8104`: Docs `docs` (equivalent to https://docs.stack-auth.com)  
+`8105`: Inbucket (e-mails)  
+`8106`: Prisma Studio  
+`8107`: Jaeger UI/OpenTelemetry (for performance tracing)  
+`8108`: `examples/docs-examples`  
+`8109`: `examples/partial-prerendering`  
+`8110`: `examples/cjs-test`  
+`8111`: `examples/e-commerce`  
+`8112`: `examples/middleware`  
+`8113`: Svix server (for webhooks)  
+`8114`: OAuth mock server  
+`8115`: `examples/supabase`  
 
 
 ### Database migrations

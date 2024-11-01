@@ -22,7 +22,7 @@ export default function TextSidebarPanel({ data, setData }: TextSidebarPanelProp
   };
 
   return (
-    <BaseSidebarPanel title="Text block" tooltip="You can use the markdown link syntax [text](url) to create a hyperlink.">
+    <BaseSidebarPanel title="Text block" tooltip="You can use the markdown link syntax [text](url) to create a hyperlink and use the **bold** to make text bold.">
       <TextInput
         label="Content"
         rows={5}

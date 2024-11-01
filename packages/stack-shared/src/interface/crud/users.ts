@@ -12,6 +12,7 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   primary_email: fieldSchema.primaryEmailSchema.nullable().optional(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.optional(),
   primary_email_auth_enabled: fieldSchema.primaryEmailAuthEnabledSchema.optional(),
+  passkey_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.optional(),
   password: fieldSchema.userPasswordMutationSchema.optional(),
   otp_auth_enabled: fieldSchema.userOtpAuthEnabledMutationSchema.optional(),
   totp_secret_base64: fieldSchema.userTotpSecretMutationSchema.optional(),
@@ -30,6 +31,7 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
   signed_up_at_millis: fieldSchema.signedUpAtMillisSchema.required(),
   has_password: fieldSchema.userHasPasswordSchema.required(),
   otp_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.required(),
+  passkey_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.required(),
   client_metadata: fieldSchema.userClientMetadataSchema,
   client_read_only_metadata: fieldSchema.userClientReadOnlyMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
@@ -39,7 +41,7 @@ export const usersCrudServerReadSchema = fieldSchema.yupObject({
     id: fieldSchema.yupString().required(),
     account_id: fieldSchema.yupString().required(),
     email: fieldSchema.yupString().nullable(),
-  }).required()).required().meta({ openapiField: { hidden: true, description: 'A list of OAuth providers connected to this account', exampleValue: [{ id: 'google', account_id: '12345', email: 'john.doe@gmail.com' }] } }),
+  }).required()).required().meta({ openapiField: { hidden: true } }),
 
   /**
    * @deprecated
@@ -56,7 +58,7 @@ export const usersCrudServerCreateSchema = usersCrudServerUpdateSchema.omit(['se
     id: fieldSchema.yupString().required(),
     account_id: fieldSchema.yupString().required(),
     email: fieldSchema.yupString().nullable().defined().default(null),
-  }).required()).optional(),
+  }).required()).optional().meta({ openapiField: { hidden: true } }),
 }).required());
 
 export const usersCrudServerDeleteSchema = fieldSchema.yupMixed();

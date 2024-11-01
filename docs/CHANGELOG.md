@@ -1,5 +1,28 @@
 # @stackframe/docs
 
+## 2.6.16
+
+### Patch Changes
+
+- - list user pagination
+  - fixed visual glitches
+
+## 2.6.15
+
+## 2.6.14
+
+## 2.6.13
+
+### Patch Changes
+
+- Updated docs
+
+## 2.6.12
+
+### Patch Changes
+
+- Updated account settings page
+
 ## 2.6.11
 
 ### Patch Changes

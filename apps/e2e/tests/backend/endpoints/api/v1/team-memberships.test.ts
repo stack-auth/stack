@@ -65,7 +65,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
-        "is_paginated": false,
+        "is_paginated": true,
         "items": [
           {
             "auth_with_email": true,
@@ -77,6 +77,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "last_active_at_millis": <stripped field 'last_active_at_millis'>,
             "oauth_providers": [],
             "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
             "primary_email": "<stripped UUID>@stack-generated.example.com",
             "primary_email_auth_enabled": true,
             "primary_email_verified": true,
@@ -97,6 +98,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "last_active_at_millis": <stripped field 'last_active_at_millis'>,
             "oauth_providers": [],
             "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
             "primary_email": "<stripped UUID>@stack-generated.example.com",
             "primary_email_auth_enabled": true,
             "primary_email_verified": true,
@@ -108,6 +110,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
           },
         ],
+        "pagination": { "next_cursor": null },
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -135,7 +138,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
-        "is_paginated": false,
+        "is_paginated": true,
         "items": [
           {
             "auth_with_email": true,
@@ -147,6 +150,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "last_active_at_millis": <stripped field 'last_active_at_millis'>,
             "oauth_providers": [],
             "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
             "primary_email": "<stripped UUID>@stack-generated.example.com",
             "primary_email_auth_enabled": true,
             "primary_email_verified": true,
@@ -158,6 +162,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
           },
         ],
+        "pagination": { "next_cursor": null },
       },
       "headers": Headers { <some fields may have been hidden> },
     }

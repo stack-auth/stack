@@ -8,6 +8,7 @@ import { StackAssertionError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
 import { ReadonlyJson } from '../utils/json';
 import { filterUndefined } from '../utils/objects';
+import { AuthenticationResponseJSON, PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON, RegistrationResponseJSON } from '../utils/passkey';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
 import { ContactChannelsCrud } from './crud/contact-channels';
@@ -569,13 +570,84 @@ export class StackClientInterface {
     }
   }
 
+  async initiatePasskeyRegistration(
+    options: {},
+    session: InternalSession
+  ): Promise<Result<{ options_json: PublicKeyCredentialCreationOptionsJSON, code: string }, KnownErrors[]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/passkey/initiate-passkey-registration",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(options),
+      },
+      session,
+      []
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    }
+
+    return Result.ok(await res.data.json());
+  }
+
+  async registerPasskey(
+    options: { credential: RegistrationResponseJSON, code: string },
+    session: InternalSession
+  ): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/passkey/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(options),
+      },
+      session,
+      [KnownErrors.PasskeyRegistrationFailed]
+    );
+    if (res.status === "error") {
+      return Result.error(res.error);
+    }
+    return Result.ok(undefined);
+  }
+
+  async initiatePasskeyAuthentication(
+    options: {
+    },
+    session: InternalSession
+  ): Promise<Result<{ options_json: PublicKeyCredentialRequestOptionsJSON, code: string }, KnownErrors[]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/passkey/initiate-passkey-authentication",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(options),
+      },
+      session,
+      []
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    }
+
+    return Result.ok(await res.data.json());
+  }
+
   async sendTeamInvitation(options: {
     email: string,
     teamId: string,
     callbackUrl: string,
     session: InternalSession | null,
-  }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>> {
-    const res = await this.sendClientRequestAndCatchKnownError(
+  }): Promise<void> {
+    await this.sendClientRequest(
       "/team-invitations/send-code",
       {
         method: "POST",
@@ -589,14 +661,7 @@ export class StackClientInterface {
         }),
       },
       options.session,
-      [KnownErrors.TeamPermissionRequired]
     );
-
-    if (res.status === "error") {
-      return Result.error(res.error);
-    } else {
-      return Result.ok(undefined);
-    }
   }
 
   async acceptTeamInvitation<T extends 'use' | 'details' | 'check'>(options: {
@@ -746,6 +811,31 @@ export class StackClientInterface {
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
       newUser: result.is_new_user,
+    });
+  }
+
+  async signInWithPasskey(body: { authentication_response: AuthenticationResponseJSON, code: string }): Promise<Result<{accessToken: string, refreshToken: string }, KnownErrors["PasskeyAuthenticationFailed"]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/passkey/sign-in",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body),
+      },
+      null,
+      [KnownErrors.PasskeyAuthenticationFailed]
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    }
+
+    const result = await res.data.json();
+    return Result.ok({
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     });
   }
 

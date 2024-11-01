@@ -3,20 +3,20 @@ import { prismaClient } from "@/prisma-client";
 import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, userIdOrMeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, clientOrHigherAuthTypeSchema, contactChannelIdSchema, emailVerificationCallbackUrlSchema, userIdOrMeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { contactChannelVerificationCodeHandler } from "../../../verify/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {
-    summary: "Send email verification code",
-    description: "Send a code to the user's email address for verifying the email.",
-    tags: ["Emails"],
+    summary: "Send contact channel verification code",
+    description: "Send a code to the user's contact channel for verifying the contact channel.",
+    tags: ["Contact Channels"],
   },
   request: yupObject({
     params: yupObject({
-      user_id: userIdOrMeSchema.required(),
-      contact_channel_id: yupString().required(),
+      user_id: userIdOrMeSchema.required().meta({ openapiField: { description: "The user to send the verification code to.", exampleValue: 'me' } }),
+      contact_channel_id: contactChannelIdSchema.required().meta({ openapiField: { description: "The contact channel to send the verification code to.", exampleValue: 'b3d396b8-c574-4c80-97b3-50031675ceb2' } }),
     }).required(),
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,

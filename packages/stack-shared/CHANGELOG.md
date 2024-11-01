@@ -1,5 +1,41 @@
 # @stackframe/stack-shared
 
+## 2.6.16
+
+### Patch Changes
+
+- - list user pagination
+  - fixed visual glitches
+  - @stackframe/stack-sc@2.6.16
+
+## 2.6.15
+
+### Patch Changes
+
+- Passkeys
+  - @stackframe/stack-sc@2.6.15
+
+## 2.6.14
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.6.14
+
+## 2.6.13
+
+### Patch Changes
+
+- Updated docs
+  - @stackframe/stack-sc@2.6.13
+
+## 2.6.12
+
+### Patch Changes
+
+- Updated account settings page
+- Updated dependencies
+  - @stackframe/stack-sc@2.6.12
+
 ## 2.6.11
 
 ### Patch Changes

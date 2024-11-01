@@ -7,7 +7,7 @@ import { BooleanTrue, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { userIdOrMeSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
@@ -28,6 +28,7 @@ export const userFullInclude = {
       passwordAuthMethod: true,
       otpAuthMethod: true,
       oauthAuthMethod: true,
+      passkeyAuthMethod: true,
     }
   },
   contactChannels: true,
@@ -75,6 +76,7 @@ export const userPrismaToCrud = (
   const primaryEmailContactChannel = prisma.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
   const passwordAuth = prisma.authMethods.find((m) => m.passwordAuthMethod);
   const otpAuth = prisma.authMethods.find((m) => m.otpAuthMethod);
+  const passkeyAuth = prisma.authMethods.find((m) => m.passkeyAuthMethod);
 
   return {
     id: prisma.projectUserId,
@@ -91,6 +93,7 @@ export const userPrismaToCrud = (
     otp_auth_enabled: !!otpAuth,
     auth_with_email: !!passwordAuth || !!otpAuth,
     requires_totp_mfa: prisma.requiresTotpMfa,
+    passkey_auth_enabled: !!passkeyAuth,
     oauth_providers: prisma.projectUserOAuthAccounts.map((a) => ({
       id: a.oauthProviderConfigId,
       account_id: a.providerAccountId,
@@ -241,11 +244,16 @@ export async function getUser(options: { projectId: string, userId: string }) {
 }
 
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
-  querySchema: yupObject({
-    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ] }})
-  }),
   paramsSchema: yupObject({
     user_id: userIdOrMeSchema.required(),
+  }),
+  querySchema: yupObject({
+    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Only return users who are members of the given team" }}),
+    limit: yupNumber().integer().min(1).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return" }}),
+    cursor: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The cursor to start the result set from." }}),
+    order_by: yupString().oneOf(['signed_up_at']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
+    desc: yupBoolean().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Whether to sort the results in descending order. Defaults to false" }}),
+    query: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "A search query to filter the results by. This is a free-text search that is applied to the user's display name and primary email." }}),
   }),
   onRead: async ({ auth, params }) => {
     const user = await getUser({ projectId: auth.project.id, userId: params.user_id });
@@ -255,25 +263,66 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     return user;
   },
   onList: async ({ auth, query }) => {
-    const db = await prismaClient.projectUser.findMany({
-      where: {
-        projectId: auth.project.id,
-        ...query.team_id ? {
-          teamMembers: {
-            some: {
-              teamId: query.team_id,
+    const where = {
+      projectId: auth.project.id,
+      ...query.team_id ? {
+        teamMembers: {
+          some: {
+            teamId: query.team_id,
+          },
+        },
+      } : {},
+      ...query.query ? {
+        OR: [
+          {
+            displayName: {
+              contains: query.query,
+              mode: 'insensitive',
             },
           },
-        } : {},
-      },
+          {
+            contactChannels: {
+              some: {
+                value: {
+                  contains: query.query,
+                  mode: 'insensitive',
+                },
+              },
+            },
+          },
+        ] as any,
+      } : {},
+    };
+
+    const db = await prismaClient.projectUser.findMany({
+      where,
       include: userFullInclude,
+      orderBy: {
+        [({
+          signed_up_at: 'createdAt',
+        } as const)[query.order_by ?? 'signed_up_at']]: query.desc ? 'desc' : 'asc',
+      },
+      // +1 because we need to know if there is a next page
+      take: query.limit ? query.limit + 1 : undefined,
+      ...query.cursor ? {
+        cursor: {
+          projectId_projectUserId: {
+            projectId: auth.project.id,
+            projectUserId: query.cursor,
+          },
+        },
+      } : {},
     });
 
     const lastActiveAtMillis = await getUsersLastActiveAtMillis(db.map(user => user.projectUserId), db.map(user => user.createdAt));
-
     return {
-      items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])),
-      is_paginated: false,
+      // remove the last item because it's the next cursor
+      items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])).slice(0, query.limit),
+      is_paginated: true,
+      pagination: {
+        // if result is not full length, there is no next cursor
+        next_cursor: query.limit && db.length >= query.limit + 1 ? db[db.length - 1].projectUserId : null,
+      },
     };
   },
   onCreate: async ({ auth, data }) => {
@@ -528,6 +577,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       const primaryEmailContactChannel = oldUser.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
       const otpAuth = oldUser.authMethods.find((m) => m.otpAuthMethod)?.otpAuthMethod;
       const passwordAuth = oldUser.authMethods.find((m) => m.passwordAuthMethod)?.passwordAuthMethod;
+      const passkeyAuth = oldUser.authMethods.find((m) => m.passkeyAuthMethod)?.passkeyAuthMethod;
 
       await checkAuthData(tx, {
         projectId: auth.project.id,
@@ -631,6 +681,29 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 projectId_id: {
                   projectId: auth.project.id,
                   id: otpAuth.authMethodId,
+                },
+              },
+            });
+          }
+        }
+      }
+
+
+      // Hacky passkey auth method crud, should be replaced by authHandler endpoints in the future
+      if (data.passkey_auth_enabled !== undefined) {
+        if (data.passkey_auth_enabled) {
+          throw new StatusError(StatusError.BadRequest, "Cannot manually enable passkey auth, it is enabled iff there is a passkey auth method");
+          // Case: passkey_auth_enabled is set to true. This should only happen after a user added a passkey and is a no-op since passkey_auth_enabled is true iff there is a passkey auth method.
+          // Here to update the ui for the settings page.
+          // The passkey auth method is created in the registerPasskey endpoint!
+        } else {
+          // Case: passkey_auth_enabled is set to false. This is how we delete the passkey auth method.
+          if (passkeyAuth) {
+            await tx.authMethod.delete({
+              where: {
+                projectId_id: {
+                  projectId: auth.project.id,
+                  id: passkeyAuth.authMethodId,
                 },
               },
             });
@@ -813,7 +886,7 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
       project: auth.project,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
       data,
-      allowedErrorTypes: [StatusError]
+      allowedErrorTypes: [StatusError],
     });
   },
   async onDelete({ auth }) {

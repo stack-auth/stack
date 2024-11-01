@@ -1,0 +1,33 @@
+---
+slug: sdk/team-profile
+---
+
+
+`TeamProfile` is the profile of a user in the context of a team. There are two types of `TeamProfile`
+
+1. `TeamProfile`
+    - This is used on the client side.
+    - It contains the user's profile information for the team.
+    - You can obtain it by calling `teamUser.teamProfile` on a `TeamUser` object.
+2. `ServerTeamProfile`
+    - This is used on the server side.
+    - Currently it contains the same information as `TeamProfile`, but in the future it might contain more information.
+    - You can obtain it by calling `serverTeamUser.teamProfile` on a `ServerTeamUser` object.
+
+
+## `TeamProfile`
+
+### Properties
+
+<div className="indented">
+  <ParamField path="displayName" type="string | null">
+    The display name of the user.
+  </ParamField>
+  <ParamField path="profileImageUrl" type="string | null">
+    The profile image URL of the user.
+  </ParamField>
+</div>
+
+## `ServerTeamProfile`
+
+Same as `TeamProfile`.

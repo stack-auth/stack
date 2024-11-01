@@ -117,7 +117,7 @@ const columns: ColumnDef<AdminTeamPermissionDefinition>[] =  [
       <div className="flex items-center gap-1">
         {row.original.id}
         {row.original.id.startsWith('$') ?
-          <SimpleTooltip tooltip="Built-in system permissions are prefixed with $. They cannot be edited or deleted, but you can contain it in other permissions." type='info'/>
+          <SimpleTooltip tooltip="Built-in system permissions are prefixed with $. They cannot be edited or deleted, but can be contained in other permissions." type='info'/>
           : null}
       </div>
     </TextCell>,
