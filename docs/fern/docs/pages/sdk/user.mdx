@@ -505,6 +505,50 @@ This is the same as `listPermissions` but it is a React hook.
 const permissions = user.usePermissions(team);
 ```
 
+### `listContactChannels()`
+
+List all the contact channels of the user.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<ContactChannel[]>`: The list of contact channels.
+</div>
+
+**Example:**
+```typescript
+const contactChannels = await user.listContactChannels();
+```
+
+### `useContactChannels()`
+
+List all the contact channels of the user.
+
+This is the same as `listContactChannels` but it is a React hook.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `ContactChannel[]`: The list of contact channels.
+</div>
+
+**Example:**
+```typescript
+const contactChannels = user.useContactChannels();
+```
+
 ### `updatePassword()`
 
 This will update the user's password. It will return an error object (not throw an error) if the passwords mismatch or if the new password does not meet the requirements. If successful, it will return undefined.
@@ -684,6 +728,52 @@ await serverUser.update({
     secret: "shh",
   },
 });
+```
+
+### `listContactChannels()`
+
+List all the contact channels of the user.
+
+This is similar to `CurrentUser.listContactChannels()` but it returns a list of `ServerContactChannel` objects instead of `ContactChannel` objects.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<ServerContactChannel[]>`: The list of contact channels.
+</div>
+
+**Example:**
+```typescript
+const contactChannels = await serverUser.listContactChannels();
+```
+
+### `useContactChannels()`
+
+List all the contact channels of the user.
+
+This is the same as `listContactChannels` but it is a React hook. This is also similar to `CurrentUser.useContactChannels()` but it returns a list of `ServerContactChannel` objects instead of `ContactChannel` objects.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `ServerContactChannel[]`: The list of contact channels.
+</div>
+
+**Example:**
+```typescript
+const contactChannels = serverUser.useContactChannels();
 ```
 
 ### `grantPermission()`
