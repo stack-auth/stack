@@ -79,6 +79,7 @@ COPY --from=builder --chown=node:node /app/apps/dashboard/public ./apps/dashboar
 
 # Add the entrypoint script
 COPY ./deploy/docker/all-in-one/entrypoint.sh .
+RUN chmod +x entrypoint.sh
 
 WORKDIR /app
 
@@ -91,5 +92,3 @@ USER node
 
 # Set entrypoint to run both backend and dashboard
 ENTRYPOINT ["./entrypoint.sh"]
-
-CMD ["node", "backend/server.js", "&", "node", "dashboard/server.js"]
