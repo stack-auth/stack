@@ -1,5 +1,4 @@
 import React, { Suspense } from 'react';
-import { PublicEnvScript } from '../lib/env';
 import { StackAdminApp, StackClientApp, StackServerApp, stackAppInternalsSymbol } from '../lib/stack-app';
 import { StackProviderClient, UserSetter } from './stack-provider-client';
 import { TranslationProvider } from './translation-provider';
@@ -16,17 +15,14 @@ export default function StackProvider({
   app: StackClientApp<true> | StackServerApp<true> | StackAdminApp<true>,
 }) {
   return (
-    <>
-      <PublicEnvScript />
-      <StackProviderClient appJson={app[stackAppInternalsSymbol].toClientJson()}>
-        <Suspense fallback={null}>
-          <UserFetcher app={app} />
-        </Suspense>
-        <TranslationProvider lang={lang}>
-          {children}
-        </TranslationProvider>
-      </StackProviderClient>
-    </>
+    <StackProviderClient appJson={app[stackAppInternalsSymbol].toClientJson()}>
+      <Suspense fallback={null}>
+        <UserFetcher app={app} />
+      </Suspense>
+      <TranslationProvider lang={lang}>
+        {children}
+      </TranslationProvider>
+    </StackProviderClient>
   );
 }
 

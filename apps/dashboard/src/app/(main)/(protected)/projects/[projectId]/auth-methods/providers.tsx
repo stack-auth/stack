@@ -6,7 +6,6 @@ import { AdminProject } from "@stackframe/stack";
 import { sharedProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { ActionDialog, Badge, InlineCode, Label, SimpleTooltip, Typography } from "@stackframe/stack-ui";
-import { env } from "next-runtime-env";
 import { useState } from "react";
 import * as yup from "yup";
 
@@ -108,7 +107,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
               <Label>Redirect URL for the OAuth provider settings
               </Label>
               <Typography type="footnote">
-                <InlineCode>{`${env("NEXT_PUBLIC_STACK_URL")}/api/v1/auth/oauth/callback/${props.id}`}</InlineCode>
+                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/auth/oauth/callback/${props.id}`}</InlineCode>
               </Typography>
             </div>}
 

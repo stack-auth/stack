@@ -2,7 +2,6 @@
 
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { env } from "next-runtime-env";
 import { Alert, Badge, Button, Checkbox, CopyButton, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -188,7 +187,7 @@ export default function PageClient(props: { endpointId: string }) {
     <SvixProvider
       token={svixTokenUpdated}
       appId={stackAdminApp.projectId}
-      options={{ serverUrl: env("NEXT_PUBLIC_STACK_SVIX_SERVER_URL") }}
+      options={{ serverUrl: process.env.NEXT_PUBLIC_STACK_SVIX_SERVER_URL }}
     >
       <PageInner endpointId={props.endpointId} />
     </SvixProvider>

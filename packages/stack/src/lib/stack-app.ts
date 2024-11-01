@@ -1,3 +1,4 @@
+import { WebAuthnError, startAuthentication, startRegistration } from "@simplewebauthn/browser";
 import { isReactServer } from "@stackframe/stack-sc";
 import { KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
@@ -34,7 +35,6 @@ import React, { useCallback, useMemo } from "react";
 import { constructRedirectUrl } from "../utils/url";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
 import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
-import { env } from "./env";
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
@@ -124,11 +124,11 @@ async function _redirectTo(url: URL | string, options?: { replace?: boolean }) {
 }
 
 function getDefaultProjectId() {
-  return env("NEXT_PUBLIC_STACK_PROJECT_ID") || throwErr(new Error("Welcome to Stack! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
+  return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
 }
 
 function getDefaultPublishableClientKey() {
-  return env("NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY") || throwErr(new Error("Welcome to Stack! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
+  return process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
 }
 
 function getDefaultSecretServerKey() {
@@ -140,7 +140,7 @@ function getDefaultSuperSecretAdminKey() {
 }
 
 function getDefaultBaseUrl() {
-  return env("NEXT_PUBLIC_STACK_URL") || defaultBaseUrl;
+  return process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
 }
 
 export type StackClientAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = {
@@ -701,6 +701,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         signUpEnabled: crud.config.sign_up_enabled,
         credentialEnabled: crud.config.credential_enabled,
         magicLinkEnabled: crud.config.magic_link_enabled,
+        passkeyEnabled: crud.config.passkey_enabled,
         clientTeamCreationEnabled: crud.config.client_team_creation_enabled,
         clientUserDeletionEnabled: crud.config.client_user_deletion_enabled,
         oauthProviders: crud.config.enabled_oauth_providers.map((p) => ({
@@ -735,7 +736,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       clientMetadata: crud.client_metadata,
       clientReadOnlyMetadata: crud.client_read_only_metadata,
       async inviteUser(options: { email: string }) {
-        return await app._interface.sendTeamInvitation({
+        await app._interface.sendTeamInvitation({
           teamId: crud.id,
           email: options.email,
           session: app._getSession(),
@@ -768,7 +769,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       usedForAuth: crud.used_for_auth,
 
       async sendVerificationEmail() {
-        return await app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, constructRedirectUrl(app.urls.emailVerification), app._getSession());
+        await app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, constructRedirectUrl(app.urls.emailVerification), app._getSession());
       },
       async update(data: ContactChannelUpdateOptions) {
         await app._interface.updateClientContactChannel(crud.id, contactChannelUpdateOptionsToCrud(data), app._getSession());
@@ -802,6 +803,41 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const tokens = await this.currentSession.getTokens();
         return tokens;
       },
+      async registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>> {
+
+        const initiationResult = await app._interface.initiatePasskeyRegistration({}, session);
+
+        if (initiationResult.status !== "ok") {
+          return Result.error(new KnownErrors.PasskeyRegistrationFailed("Failed to get initiation options for passkey registration"));
+        }
+
+        const {options_json, code} = initiationResult.data;
+
+        // HACK: Override the rpID to be the actual domain
+        if (options_json.rp.id !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
+          throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${options_json.rp.id}`);
+        }
+        options_json.rp.id = window.location.hostname;
+
+        let attResp;
+        try {
+          attResp = await startRegistration({ optionsJSON: options_json });
+          debugger;
+        } catch (error: any) {
+          if (error instanceof WebAuthnError) {
+            return Result.error(new KnownErrors.PasskeyWebAuthnError(error.message, error.name));
+          } else {
+            // This should never happen
+            return Result.error(new KnownErrors.PasskeyRegistrationFailed("Failed to start passkey registration"));
+          }
+        }
+
+
+        const registrationResult = await app._interface.registerPasskey({ credential: attResp, code }, session);
+
+        await app._refreshUser(session);
+        return registrationResult;
+      },
       signOut() {
         return app._signOut(session);
       },
@@ -825,6 +861,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       emailAuthEnabled: crud.auth_with_email,
       otpAuthEnabled: crud.otp_auth_enabled,
       oauthProviders: crud.oauth_providers,
+      passkeyAuthEnabled: crud.passkey_auth_enabled,
       selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team),
       isMultiFactorRequired: crud.requires_totp_mfa,
       toClientJson(): CurrentUserCrud['Client']['Read'] {
@@ -1342,6 +1379,47 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
+  async signInWithPasskey(): Promise<Result<undefined, KnownErrors["PasskeyAuthenticationFailed"] | KnownErrors["InvalidTotpCode"] | KnownErrors["PasskeyWebAuthnError"]>> {
+    this._ensurePersistentTokenStore();
+    let result;
+    try {
+      result = await this._catchMfaRequiredError(async () => {
+
+        const initiationResult = await this._interface.initiatePasskeyAuthentication({}, this._getSession());
+        if (initiationResult.status !== "ok") {
+          return Result.error(new KnownErrors.PasskeyAuthenticationFailed("Failed to get initiation options for passkey authentication"));
+        }
+
+        const {options_json, code} = initiationResult.data;
+
+        // HACK: Override the rpID to be the actual domain
+        if (options_json.rpId !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
+          throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${options_json.rpId}`);
+        }
+        options_json.rpId = window.location.hostname;
+
+        const authentication_response = await startAuthentication({ optionsJSON: options_json });
+        return await this._interface.signInWithPasskey({ authentication_response, code });
+      });
+    } catch (error) {
+      if (error instanceof WebAuthnError) {
+        return Result.error(new KnownErrors.PasskeyWebAuthnError(error.message, error.name));
+      } else {
+        // This should never happen
+        return Result.error(new KnownErrors.PasskeyAuthenticationFailed("Failed to sign in with passkey"));
+      }
+    }
+
+    if (result.status === 'ok') {
+      await this._signInToAccountWithTokens(result.data);
+      await this.redirectToAfterSignIn({ replace: true });
+      return Result.ok(undefined);
+    } else {
+      return Result.error(result.error);
+    }
+  }
+
+
   async callOAuthCallback() {
     this._ensurePersistentTokenStore();
     let result;
@@ -1506,8 +1584,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentServerUserCache = createCacheBySession(async (session) => {
     return await this._interface.getServerUserByToken(session);
   });
-  private readonly _serverUsersCache = createCache(async () => {
-    return await this._interface.listServerUsers();
+  private readonly _serverUsersCache = createCache<[
+    cursor?: string,
+    limit?: number,
+    orderBy?: 'signedUpAt',
+    desc?: boolean,
+    query?: string,
+  ], UsersCrud['Server']['List']>(async ([cursor, limit, orderBy, desc, query]) => {
+    return await this._interface.listServerUsers({ cursor, limit, orderBy, desc, query });
   });
   private readonly _serverUserCache = createCache<string[], UsersCrud['Server']['Read'] | null>(async ([userId]) => {
     const user = await this._interface.getServerUserById(userId);
@@ -1587,7 +1671,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return {
       ...this._clientContactChannelFromCrud(crud),
       async sendVerificationEmail() {
-        return await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, constructRedirectUrl(app.urls.emailVerification));
+        await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, constructRedirectUrl(app.urls.emailVerification));
       },
       async update(data: ServerContactChannelUpdateOptions) {
         await app._interface.updateServerContactChannel(userId, crud.id, serverContactChannelUpdateOptionsToCrud(data));
@@ -1846,7 +1930,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._serverTeamMemberProfilesCache.refresh([crud.id]);
       },
       async inviteUser(options: { email: string }) {
-        return await app._interface.sendTeamInvitation({
+        await app._interface.sendTeamInvitation({
           teamId: crud.id,
           email: options.email,
           session: null,
@@ -1952,16 +2036,18 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }, [crud]);
   }
 
-  async listUsers(): Promise<ServerUser[]> {
-    const crud = await this._serverUsersCache.getOrWait([], "write-only");
-    return crud.map((j) => this._serverUserFromCrud(j));
+  async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { nextCursor: string | null }> {
+    const crud = await this._serverUsersCache.getOrWait([options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.query], "write-only");
+    const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
+    result.nextCursor = crud.pagination?.next_cursor ?? null;
+    return result as any;
   }
 
-  useUsers(): ServerUser[] {
-    const crud = useAsyncCache(this._serverUsersCache, [], "useServerUsers()");
-    return useMemo(() => {
-      return crud.map((j) => this._serverUserFromCrud(j));
-    }, [crud]);
+  useUsers(options?: ServerListUsersOptions): ServerUser[] & { nextCursor: string | null } {
+    const crud = useAsyncCache(this._serverUsersCache, [options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.query], "useServerUsers()");
+    const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
+    result.nextCursor = crud.pagination?.next_cursor ?? null;
+    return result as any;
   }
 
   _serverPermissionFromCrud(crud: TeamPermissionsCrud['Server']['Read']): AdminTeamPermission {
@@ -2091,6 +2177,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         signUpEnabled: data.config.sign_up_enabled,
         credentialEnabled: data.config.credential_enabled,
         magicLinkEnabled: data.config.magic_link_enabled,
+        passkeyEnabled: data.config.passkey_enabled,
         legacyGlobalJwtSigning: data.config.legacy_global_jwt_signing,
         clientTeamCreationEnabled: data.config.client_team_creation_enabled,
         clientUserDeletionEnabled: data.config.client_user_deletion_enabled,
@@ -2305,7 +2392,7 @@ type ContactChannel = {
   isVerified: boolean,
   usedForAuth: boolean,
 
-  sendVerificationEmail(): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>>,
+  sendVerificationEmail(): Promise<void>,
   update(data: ContactChannelUpdateOptions): Promise<void>,
   delete(): Promise<void>,
 }
@@ -2339,7 +2426,9 @@ function contactChannelUpdateOptionsToCrud(options: ContactChannelUpdateOptions)
   };
 }
 
-type ServerContactChannel = ContactChannel;
+type ServerContactChannel = ContactChannel & {
+  update(data: ServerContactChannelUpdateOptions): Promise<void>,
+}
 type ServerContactChannelUpdateOptions = ContactChannelUpdateOptions & {
   isVerified?: boolean,
 }
@@ -2447,6 +2536,7 @@ type Auth = {
    * ```
    */
   getAuthJson(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
+  registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>>,
 };
 
 /**
@@ -2496,6 +2586,7 @@ type BaseUser = {
    */
   readonly hasPassword: boolean,
   readonly otpAuthEnabled: boolean,
+  readonly passkeyAuthEnabled: boolean,
 
   readonly isMultiFactorRequired: boolean,
 
@@ -2571,6 +2662,7 @@ type UserUpdateOptions = {
   totpMultiFactorSecret?: Uint8Array | null,
   profileImageUrl?: string | null,
   otpAuthEnabled?: boolean,
+  passkeyAuthEnabled?:boolean,
 }
 function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["Client"]["Update"] {
   return {
@@ -2580,6 +2672,7 @@ function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["C
     totp_secret_base64: options.totpMultiFactorSecret != null ? encodeBase64(options.totpMultiFactorSecret) : options.totpMultiFactorSecret,
     profile_image_url: options.profileImageUrl,
     otp_auth_enabled: options.otpAuthEnabled,
+    passkey_auth_enabled: options.passkeyAuthEnabled,
   };
 }
 
@@ -2740,6 +2833,7 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
       sign_up_enabled: options.config?.signUpEnabled,
       credential_enabled: options.config?.credentialEnabled,
       magic_link_enabled: options.config?.magicLinkEnabled,
+      passkey_enabled: options.config?.passkeyEnabled,
       allow_localhost: options.config?.allowLocalhost,
       create_team_on_sign_up: options.config?.createTeamOnSignUp,
       client_team_creation_enabled: options.config?.clientTeamCreationEnabled,
@@ -2767,6 +2861,7 @@ export type ProjectConfig = {
   readonly signUpEnabled: boolean,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
+  readonly passkeyEnabled: boolean,
   readonly clientTeamCreationEnabled: boolean,
   readonly clientUserDeletionEnabled: boolean,
   readonly oauthProviders: OAuthProviderConfig[],
@@ -2781,6 +2876,7 @@ export type AdminProjectConfig = {
   readonly signUpEnabled: boolean,
   readonly credentialEnabled: boolean,
   readonly magicLinkEnabled: boolean,
+  readonly passkeyEnabled: boolean,
   readonly clientTeamCreationEnabled: boolean,
   readonly clientUserDeletionEnabled: boolean,
   readonly legacyGlobalJwtSigning: boolean,
@@ -2836,6 +2932,7 @@ export type AdminProjectConfigUpdateOptions = {
   signUpEnabled?: boolean,
   credentialEnabled?: boolean,
   magicLinkEnabled?: boolean,
+  passkeyEnabled?: boolean,
   clientTeamCreationEnabled?: boolean,
   clientUserDeletionEnabled?: boolean,
   allowLocalhost?: boolean,
@@ -2924,7 +3021,7 @@ export type Team = {
   profileImageUrl: string | null,
   clientMetadata: any,
   clientReadOnlyMetadata: any,
-  inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
+  inviteUser(options: { email: string }): Promise<void>,
   listUsers(): Promise<TeamUser[]>,
   useUsers(): TeamUser[],
   update(update: TeamUpdateOptions): Promise<void>,
@@ -2970,9 +3067,17 @@ export type ServerTeam = {
   update(update: ServerTeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,
   addUser(userId: string): Promise<void>,
-  inviteUser(options: { email: string }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>>,
+  inviteUser(options: { email: string }): Promise<void>,
   removeUser(userId: string): Promise<void>,
 } & Team;
+
+export type ServerListUsersOptions = {
+  cursor?: string,
+  limit?: number,
+  orderBy?: 'signedUpAt',
+  desc?: boolean,
+  query?: string,
+};
 
 export type ServerTeamCreateOptions = TeamCreateOptions;
 function serverTeamCreateOptionsToCrud(options: ServerTeamCreateOptions): TeamsCrud["Server"]["Create"] {
@@ -3063,6 +3168,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signInWithOAuth(provider: string): Promise<void>,
     signInWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"]>>,
     signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>,
+    signInWithPasskey(): Promise<Result<undefined, KnownErrors["PasskeyAuthenticationFailed"]| KnownErrors["InvalidTotpCode"] | KnownErrors["PasskeyWebAuthnError"]>>,
     callOAuthCallback(): Promise<boolean>,
     sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>>,
     sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>,
@@ -3122,9 +3228,12 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentServerUser<ProjectId>>,
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>,
     getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>,
+
+    listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { nextCursor: string | null }>,
+    useUsers(options?: ServerListUsersOptions): ServerUser[] & { nextCursor: string | null },
   }
   & AsyncStoreProperty<"user", [id: string], ServerUser | null, false>
-  & AsyncStoreProperty<"users", [], ServerUser[], true>
+  & Omit<AsyncStoreProperty<"users", [], ServerUser[], true>, "listUsers" | "useUsers">
   & AsyncStoreProperty<"team", [id: string], ServerTeam | null, false>
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
   & StackClientApp<HasTokenStore, ProjectId>

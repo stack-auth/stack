@@ -3,7 +3,6 @@
 import { SmartFormDialog } from "@/components/form-dialog";
 import { SettingCard } from "@/components/settings";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { env } from "next-runtime-env";
 import { ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -193,7 +192,7 @@ export default function PageClient() {
       <SvixProvider
         token={svixTokenUpdated}
         appId={stackAdminApp.projectId}
-        options={{ serverUrl: env("NEXT_PUBLIC_STACK_SVIX_SERVER_URL") }}
+        options={{ serverUrl: process.env.NEXT_PUBLIC_STACK_SVIX_SERVER_URL }}
       >
         <Endpoints updateFn={() => setUpdateCounter(x => x + 1)} />
       </SvixProvider>
