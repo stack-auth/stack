@@ -43,18 +43,14 @@ COPY --from=pruner /app/out/full/ .
 # docs are currently required for the NextJS backend build, but won't exist in the final image
 COPY docs ./docs
 
-# Required for NextJS build. Should be overridden at runtime.
-# check=skip=SecretsUsedInArgOrEnv
-ENV STACK_SERVER_SECRET=secret
-
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV NEXT_CONFIG_OUTPUT=standalone
 
 # Build the backend NextJS app
-RUN pnpm turbo run build --filter=@stackframe/stack-backend...
+RUN pnpm turbo run docker-build --filter=@stackframe/stack-backend...
 
 # Build the self-hosting seed script
-RUN cd apps/backend && pnpm build:self-host-seed-script
+RUN cd apps/backend && pnpm self-host-seed-script
 
 # Final image
 FROM node:${NODE_VERSION}-slim

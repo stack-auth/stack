@@ -34,6 +34,29 @@
       ],
       "outputLogs": "new-only"
     },
+    "docker-build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env",
+        ".env.local",
+        ".env.development",
+        ".env.development.local",
+        ".env.production",
+        ".env.production.local"
+      ],
+      "dependsOn": [
+        "^docker-build"
+      ],
+      "outputs": [
+        ".next",
+        "dist/**",
+        "lib/**",
+        "*.js",
+        "*.d.ts",
+        "*.d.ts.map"
+      ],
+      "outputLogs": "new-only"
+    },
     "@stackframe/docs#build": {
       "dependsOn": [
         "@stackframe/stack-backend#build"

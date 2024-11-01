@@ -74,5 +74,5 @@
     "node": ">=20.0.0"
   },
   "dependencies": {},
-  "packageManager": "pnpm@9.12.1"
+  "packageManager": "pnpm@9.1.2"
 }

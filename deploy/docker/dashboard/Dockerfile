@@ -40,18 +40,12 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 # copy over the rest of the code for the build
 COPY --from=pruner /app/out/full/ .
 
-# The following values are required for the NextJS build, but they should all be overridden at runtime.
-ENV NEXT_PUBLIC_STACK_URL=http://localhost:8102
-ENV NEXT_PUBLIC_STACK_SVIX_SERVER_URL=http://localhost:8113
-ENV NEXT_PUBLIC_STACK_PROJECT_ID=internal
-ENV NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=this-publishable-client-key-is-for-local-development-only
-ENV STACK_SECRET_SERVER_KEY=this-secret-server-key-is-for-local-development-only
-
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
 ENV NEXT_CONFIG_OUTPUT=standalone
 
+
 # Build the dashboard NextJS app
-RUN pnpm turbo run build --filter=@stackframe/stack-dashboard...
+RUN pnpm turbo run docker-build --filter=@stackframe/stack-dashboard...
 
 
 # Final image

@@ -1,13 +1,12 @@
+import crypto from "crypto";
 import elliptic from "elliptic";
 import * as jose from "jose";
-import { encodeBase64, encodeBase64Url } from "./bytes";
-import { getEnvVariable } from "./env";
+import { JOSEError } from "jose/errors";
+import { encodeBase64Url } from "./bytes";
 import { globalVar } from "./globals";
 import { pick } from "./objects";
-import crypto from "crypto";
-import { JOSEError } from "jose/errors";
 
-const STACK_SERVER_SECRET = getEnvVariable("STACK_SERVER_SECRET");
+const STACK_SERVER_SECRET = process.env.STACK_SERVER_SECRET ?? "";
 try {
   jose.base64url.decode(STACK_SERVER_SECRET);
 } catch (e) {
