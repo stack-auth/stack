@@ -47,15 +47,15 @@ function Fallback(props: Props) {
     <MaybeFullPage fullPage={!!props.fullPage}>
       <div className='stack-scope flex flex-col items-stretch' style={{ maxWidth: '380px', flexBasis: '380px', padding: props.fullPage ? '1rem' : 0 }}>
         <div className="text-center mb-6 flex flex-col">
-          <Skeleton className='h-10 w-3/4 self-center' />
+          <Skeleton className='h-10 w-2/3 self-center' />
 
           <Skeleton className='h-3 w-16 mt-8' />
-          <Skeleton className='h-10 w-full mt-1' />
+          <Skeleton className='h-9 w-full mt-1' />
 
           <Skeleton className='h-3 w-24 mt-2' />
-          <Skeleton className='h-10 w-full mt-1' />
+          <Skeleton className='h-9 w-full mt-1' />
 
-          <Skeleton className='h-10 w-full mt-8' />
+          <Skeleton className='h-9 w-full mt-6' />
         </div>
       </div>
     </MaybeFullPage>
