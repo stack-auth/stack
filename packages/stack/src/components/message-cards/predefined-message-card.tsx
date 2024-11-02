@@ -63,7 +63,7 @@ export function PredefinedMessageCard({
     case 'emailVerified': {
       title = t("Email verified!");
       message = t("Your have successfully verified your email.");
-      if (user) {
+      if (!user) {
         primaryAction = () => stackApp.redirectToSignIn({ noRedirectBack: true });
         primaryButton = t("Sign in");
       } else {
