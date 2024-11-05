@@ -17,7 +17,7 @@ type ExtendedServerUserForTeam = ExtendedServerUser & {
 function teamMemberToolbarRender<TData>(table: Table<TData>) {
   return (
     <>
-      <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by email" />
+      <SearchToolbarItem table={table} placeholder="Search table" />
     </>
   );
 }
@@ -142,6 +142,7 @@ export function TeamMemberTable(props: { users: ServerUser[], team: ServerTeam }
         </div>}
       />,
       cell: ({ row }) => <BadgeCell size={120} badges={row.getValue("permissions")} />,
+      enableSorting: false,
     },
     {
       id: "actions",

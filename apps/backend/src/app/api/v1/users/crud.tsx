@@ -625,7 +625,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             },
             update: {
               value: data.primary_email,
-              usedForAuth: data.primary_email_auth_enabled ? BooleanTrue.TRUE : null,
+              usedForAuth: data.primary_email_auth_enabled === undefined ? undefined : (data.primary_email_auth_enabled ? BooleanTrue.TRUE : null),
             }
           });
         }

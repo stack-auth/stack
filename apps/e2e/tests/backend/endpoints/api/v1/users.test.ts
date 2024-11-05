@@ -1445,6 +1445,7 @@ describe("with server access", () => {
   });
 
   it("should be able to update primary email", async ({ expect }) => {
+    await Project.createAndSwitch({ config: { magic_link_enabled: true }});
     await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "server",
@@ -1468,7 +1469,7 @@ describe("with server access", () => {
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
           "primary_email": "new-primary-email@example.com",
-          "primary_email_auth_enabled": false,
+          "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
           "requires_totp_mfa": false,
@@ -1480,5 +1481,27 @@ describe("with server access", () => {
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
+  });
+
+  it("should be able to update primary email and sign-in with the new email", async ({ expect }) => {
+    await Project.createAndSwitch();
+    await Auth.Password.signUpWithEmail({ password: "password123" });
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        primary_email: "new-primary-email@example.com",
+      },
+    });
+    expect(response.body.primary_email).toEqual("new-primary-email@example.com");
+
+    backendContext.set({
+      mailbox: {
+        ...backendContext.value.mailbox,
+        emailAddress: "new-primary-email@example.com",
+      },
+    });
+    await Auth.Password.signInWithEmail({ password: "password123" });
+    expect(response.body.primary_email).toEqual("new-primary-email@example.com");
   });
 });
