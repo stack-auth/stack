@@ -1,5 +1,11 @@
 # @stackframe/stack-sc
 
+## 2.6.18
+
+### Patch Changes
+
+- fixed user update bug
+
 ## 2.6.17
 
 ### Patch Changes
