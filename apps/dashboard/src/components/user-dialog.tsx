@@ -24,6 +24,7 @@ export function UserDialog(props: {
     defaultValues = {
       displayName: props.user.displayName || undefined,
       primaryEmail: props.user.primaryEmail || undefined,
+      primaryEmailVerified: props.user.primaryEmailVerified,
       signedUpAt: props.user.signedUpAt,
       clientMetadata: props.user.clientMetadata == null ? "" : JSON.stringify(props.user.clientMetadata, null, 2),
       serverMetadata: props.user.serverMetadata == null ? "" : JSON.stringify(props.user.serverMetadata, null, 2),
