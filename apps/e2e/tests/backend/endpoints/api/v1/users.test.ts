@@ -1481,4 +1481,26 @@ describe("with server access", () => {
       }
     `);
   });
+
+  it("should be able to update primary email and sign-in with the new email", async ({ expect }) => {
+    await Project.createAndSwitch();
+    await Auth.Password.signUpWithEmail({ password: "password123" });
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        primary_email: "new-primary-email@example.com",
+      },
+    });
+    expect(response.body.primary_email).toEqual("new-primary-email@example.com");
+
+    backendContext.set({
+      mailbox: {
+        ...backendContext.value.mailbox,
+        emailAddress: "new-primary-email@example.com",
+      },
+    });
+    await Auth.Password.signInWithEmail({ password: "password123" });
+    expect(response.body.primary_email).toEqual("new-primary-email@example.com");
+  });
 });
