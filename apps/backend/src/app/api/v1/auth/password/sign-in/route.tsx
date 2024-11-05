@@ -49,6 +49,8 @@ export const POST = createSmartRouteHandler({
 
     const passwordAuthMethod = contactChannel?.projectUser.authMethods.find((m) => m.passwordAuthMethod)?.passwordAuthMethod;
 
+    console.log(passwordAuthMethod, contactChannel, '!!!!!!!!!!!!!');
+
     // we compare the password even if the authMethod doesn't exist to prevent timing attacks
     if (!await comparePassword(password, passwordAuthMethod?.passwordHash || "")) {
       throw new KnownErrors.EmailPasswordMismatch();

@@ -2,9 +2,8 @@
 import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
 import { ServerUser } from '@stackframe/stack';
 import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { allProviders } from '@stackframe/stack-shared/dist/utils/oauth';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableFacetedFilter, DataTableManual, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableManual, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
 import { ColumnDef, ColumnFiltersState, Row, SortingState, Table } from "@tanstack/react-table";
 import React, { useEffect, useState } from "react";
 import * as yup from "yup";
@@ -20,22 +19,6 @@ function userToolbarRender<TData>(table: Table<TData>) {
   return (
     <>
       <SearchToolbarItem table={table} placeholder="Search table" />
-      {/* <DataTableFacetedFilter
-        column={table.getColumn("authTypes")}
-        title="Auth Method"
-        options={['otp', 'password', ...allProviders].map((provider) => ({
-          value: provider,
-          label: provider,
-        }))}
-      />
-      <DataTableFacetedFilter
-        column={table.getColumn("emailVerified")}
-        title="Email Verified"
-        options={[
-          { value: "verified", label: "verified" },
-          { value: "unverified", label: "unverified" },
-        ]}
-      /> */}
     </>
   );
 }
