@@ -247,7 +247,7 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
 export function UserTable() {
   const stackAdminApp = useAdminApp();
   const [users, setUsers] = useState<ExtendedServerUser[]>([]);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([{id: 'signedUpAt', desc: true}]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [cursors, setCursors] = useState<Record<number, string>>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);

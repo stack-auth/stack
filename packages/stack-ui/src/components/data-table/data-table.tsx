@@ -98,6 +98,8 @@ type DataTableProps<TData, TValue> = {
   data: TData[],
   toolbarRender?: (table: TableType<TData>) => React.ReactNode,
   defaultVisibility?: VisibilityState,
+  defaultFilters?: ColumnFiltersState,
+  defaultSorting?: SortingState,
 }
 
 export function DataTable<TData, TValue>({
@@ -105,9 +107,11 @@ export function DataTable<TData, TValue>({
   data,
   toolbarRender,
   defaultVisibility,
+  defaultFilters,
+  defaultSorting,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>(defaultSorting || []);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(defaultFilters || []);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
