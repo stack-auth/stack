@@ -38,8 +38,8 @@ export function UserDialog(props: {
   }
 
   const formSchema = yup.object({
+    primaryEmail: yup.string().email("Primary Email must be a valid email address").required("Primary email is required"),
     displayName: yup.string().optional(),
-    primaryEmail: yup.string().email("Primary Email must be a valid email address").required(),
     signedUpAt: yup.date().required(),
     clientMetadata: jsonStringOrEmptySchema.default("null"),
     serverMetadata: jsonStringOrEmptySchema.default("null"),
@@ -74,23 +74,24 @@ export function UserDialog(props: {
     open={props.open}
     onOpenChange={props.onOpenChange}
     trigger={props.trigger}
-    title="Edit User"
+    title={props.type === 'edit' ? "Edit User" : "Create User"}
     formSchema={formSchema}
     defaultValues={defaultValues}
-    okButton={{ label: "Save" }}
+    okButton={{ label: props.type === 'edit' ? "Save" : "Create" }}
     render={(form) => (
       <>
         {props.type === 'edit' ? <Typography variant='secondary'>ID: {props.user.id}</Typography> : null}
-        <InputField control={form.control} label="Display Name" name="displayName" />
 
         <div className="flex gap-4 items-end">
           <div className="flex-1">
-            <InputField control={form.control} label="Primary Email" name="primaryEmail" required />
+            <InputField control={form.control} label="Primary email" name="primaryEmail" required />
           </div>
           <div className="mb-2">
             <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" />
           </div>
         </div>
+
+        <InputField control={form.control} label="Display name" name="displayName" />
 
         <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
 
