@@ -1445,6 +1445,7 @@ describe("with server access", () => {
   });
 
   it("should be able to update primary email", async ({ expect }) => {
+    await Project.createAndSwitch();
     await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "server",
