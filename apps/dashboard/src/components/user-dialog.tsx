@@ -1,10 +1,11 @@
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { ServerUser } from "@stackframe/stack";
 import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Typography } from "@stackframe/stack-ui";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Typography, useToast } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { FormDialog } from "./form-dialog";
 import { DateField, InputField, SwitchField, TextAreaField } from "./form-fields";
+import { KnownErrors } from "@stackframe/stack-shared";
 
 export function UserDialog(props: {
   open?: boolean,
@@ -16,6 +17,7 @@ export function UserDialog(props: {
   type: 'edit',
   user: ServerUser,
 })) {
+  const { toast } = useToast();
   const adminApp = useAdminApp();
   const project = adminApp.useProject();
 
@@ -59,14 +61,26 @@ export function UserDialog(props: {
   async function handleSubmit(values: yup.InferType<typeof formSchema>) {
     const userValues = {
       ...values,
+      primaryEmailAuthEnabled: true,
       clientMetadata: values.clientMetadata ? JSON.parse(values.clientMetadata) : undefined,
       serverMetadata: values.serverMetadata ? JSON.parse(values.serverMetadata) : undefined
     };
 
-    if (props.type === 'edit') {
-      await props.user.update(userValues);
-    } else {
-      await adminApp.createUser(userValues);
+    try {
+      if (props.type === 'edit') {
+        await props.user.update(userValues);
+      } else {
+        await adminApp.createUser(userValues);
+      }
+    } catch (error) {
+      if (error instanceof KnownErrors.UserEmailAlreadyExists) {
+        toast({
+          title: "Email already exists",
+          description: "Please choose a different email address",
+          variant: "destructive",
+        });
+        return 'prevent-close';
+      }
     }
   }
 
