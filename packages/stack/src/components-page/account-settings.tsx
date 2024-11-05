@@ -379,7 +379,7 @@ function usePasskeySection() {
       <Section title={t("Passkey")} description={hasPasskey ? t("Passkey registered") : t("Register a passkey")}>
         <div className='flex md:justify-end gap-2'>
           {!hasValidEmail && (
-            <Typography variant='secondary' type='label'>{t("To enable Passkey sign-in, please add a verified email and set it as your sign-in email.")}</Typography>
+            <Typography variant='secondary' type='label'>{t("To enable Passkey sign-in, please add a verified sign-in email.")}</Typography>
           )}
           {hasValidEmail && hasPasskey && isLastAuth && (
             <Typography variant='secondary' type='label'>{t("Passkey sign-in is enabled and cannot be disabled as it is currently the only sign-in method")}</Typography>
@@ -496,7 +496,7 @@ function useOtpSection() {
             </Button>
           )
         ) : (
-          <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified email and set it as your sign-in email.")}</Typography>
+          <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified sign-in email.")}</Typography>
         )}
       </div>
     </Section>
@@ -543,7 +543,7 @@ function usePasswordSection() {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  const hasValidEmail = contactChannels.filter(x => x.type === 'email' && x.isVerified && x.usedForAuth).length > 0;
+  const hasValidEmail = contactChannels.filter(x => x.type === 'email' && x.usedForAuth).length > 0;
 
   const onSubmit = async (data: yup.InferType<typeof passwordSchema>) => {
     setLoading(true);
@@ -581,7 +581,7 @@ function usePasswordSection() {
               {user.hasPassword ? t("Update password") : t("Set password")}
             </Button>
           ) : (
-            <Typography variant='secondary' type='label'>{t("To set a password, please add a verified email and set it as your sign-in email.")}</Typography>
+            <Typography variant='secondary' type='label'>{t("To set a password, please add a sign-in email.")}</Typography>
           )
         ) : (
           <form
