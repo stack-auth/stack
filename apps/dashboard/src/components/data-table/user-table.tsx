@@ -1,14 +1,11 @@
 'use client';
 import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
 import { ServerUser } from '@stackframe/stack';
-import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableManual, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
 import { ColumnDef, ColumnFiltersState, Row, SortingState, Table } from "@tanstack/react-table";
 import React, { useEffect, useState } from "react";
-import * as yup from "yup";
-import { FormDialog } from "../form-dialog";
-import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
+import { UserDialog } from '../user-dialog';
 
 export type ExtendedServerUser = ServerUser & {
   authTypes: string[],
@@ -21,65 +18,6 @@ function userToolbarRender<TData>(table: Table<TData>) {
       <SearchToolbarItem table={table} placeholder="Search table" />
     </>
   );
-}
-
-const userEditFormSchema = yup.object({
-  displayName: yup.string(),
-  primaryEmail: yup.string().email("Primary Email must be a valid email address"),
-  signedUpAt: yup.date().required(),
-  primaryEmailVerified: yup.boolean().required(),
-  clientMetadata: jsonStringOrEmptySchema.default("null"),
-  serverMetadata: jsonStringOrEmptySchema.default("null"),
-});
-
-function EditUserDialog(props: {
-  user: ServerUser,
-  open: boolean,
-  onOpenChange: (open: boolean) => void,
-}) {
-  const defaultValues = {
-    displayName: props.user.displayName || undefined,
-    primaryEmail: props.user.primaryEmail || undefined,
-    primaryEmailVerified: props.user.primaryEmailVerified,
-    signedUpAt: props.user.signedUpAt,
-    clientMetadata: props.user.clientMetadata == null ? "" : JSON.stringify(props.user.clientMetadata, null, 2),
-    serverMetadata: props.user.serverMetadata == null ? "" : JSON.stringify(props.user.serverMetadata, null, 2),
-  };
-
-  return <FormDialog
-    open={props.open}
-    onOpenChange={props.onOpenChange}
-    title="Edit User"
-    formSchema={userEditFormSchema}
-    defaultValues={defaultValues}
-    okButton={{ label: "Save" }}
-    render={(form) => (
-      <>
-        <Typography variant='secondary'>ID: {props.user.id}</Typography>
-        <InputField control={form.control} label="Display Name" name="displayName" />
-
-        <div className="flex gap-4 items-end">
-          <div className="flex-1">
-            <InputField control={form.control} label="Primary Email" name="primaryEmail" />
-          </div>
-          <div className="mb-2">
-            <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" />
-          </div>
-        </div>
-
-        <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
-
-        <TextAreaField rows={3} control={form.control} label="Client Metadata" name="clientMetadata" placeholder="null" monospace />
-        <TextAreaField rows={3} control={form.control} label="Server Metadata" name="serverMetadata" placeholder="null" monospace />
-      </>
-    )}
-    onSubmit={async (values) => { await props.user.update({
-      ...values,
-      clientMetadata: values.clientMetadata ? JSON.parse(values.clientMetadata) : undefined,
-      serverMetadata: values.serverMetadata ? JSON.parse(values.serverMetadata) : undefined
-    }); }}
-    cancelButton
-  />;
 }
 
 function DeleteUserDialog(props: {
@@ -130,7 +68,7 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
 
   return (
     <>
-      <EditUserDialog user={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
+      <UserDialog user={row.original} type="edit" open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
       <DeleteUserDialog user={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
       <ImpersonateUserDialog user={row.original} impersonateSnippet={impersonateSnippet} onClose={() => setImpersonateSnippet(null)} />
       <ActionCell

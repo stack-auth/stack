@@ -1469,7 +1469,7 @@ describe("with server access", () => {
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
           "primary_email": "new-primary-email@example.com",
-          "primary_email_auth_enabled": false,
+          "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
           "requires_totp_mfa": false,

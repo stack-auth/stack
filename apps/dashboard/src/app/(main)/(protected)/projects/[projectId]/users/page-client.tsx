@@ -8,56 +8,7 @@ import { Alert, Button } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
-
-function CreateDialog(props: {
-  open?: boolean,
-  onOpenChange?: (open: boolean) => void,
-  trigger?: React.ReactNode,
-}) {
-  const adminApp = useAdminApp();
-  const project = adminApp.useProject();
-  const formSchema = yup.object({
-    displayName: yup.string().optional(),
-    primaryEmail: yup.string().email().required(),
-    primaryEmailVerified: yup.boolean().optional().test({
-      name: 'otp-verified',
-      message: 'Primary email must be verified if OTP/magic link sign-in is enabled',
-      test: (value, context) => {
-        if (context.parent.otpAuthEnabled) {
-          return !!value;
-        }
-        return true;
-      },
-    }).optional(),
-    password: yup.string().optional(),
-    otpAuthEnabled: yup.boolean().optional(),
-    passwordEnabled: yup.boolean().optional(),
-  });
-
-  return <FormDialog
-    trigger={props.trigger}
-    title={"Create User"}
-    formSchema={formSchema}
-    okButton={{ label: "Create" }}
-    onSubmit={async (values) => {
-      await adminApp.createUser({
-        ...values,
-        primaryEmailAuthEnabled: true,
-      });
-    }}
-    cancelButton
-    render={(form) => (
-      <>
-        <InputField control={form.control} label="Display name" name="displayName" />
-        <InputField control={form.control} label="Primary email" name="primaryEmail" required />
-        <SwitchField control={form.control} label="Primary email verified" name="primaryEmailVerified" />
-        {project.config.magicLinkEnabled && <SwitchField control={form.control} label="OTP/magic link sign-in" name="otpAuthEnabled" />}
-        {project.config.credentialEnabled && <SwitchField control={form.control} label="Password sign-in" name="passwordEnabled" />}
-        {form.watch("passwordEnabled") ? <InputField control={form.control} label="Password" name="password" type="password" /> : null}
-      </>
-    )}
-  />;
-}
+import { UserDialog } from "@/components/user-dialog";
 
 
 export default function PageClient() {
@@ -67,7 +18,8 @@ export default function PageClient() {
   return (
     <PageLayout
       title="Users"
-      actions={<CreateDialog
+      actions={<UserDialog
+        type="create"
         trigger={<Button>Create User</Button>}
       />}
     >
