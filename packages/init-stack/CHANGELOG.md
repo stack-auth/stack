@@ -1,5 +1,11 @@
 # @stackframe/init-stack
 
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+
 ## 2.6.16
 
 ## 2.6.15

@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+
 ## 2.6.16
 
 ### Patch Changes

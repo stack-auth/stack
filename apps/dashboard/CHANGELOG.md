@@ -1,5 +1,16 @@
 # @stackframe/stack-dashboard
 
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.17
+  - @stackframe/stack-shared@2.6.17
+  - @stackframe/stack-ui@2.6.17
+  - @stackframe/stack@2.6.17
+
 ## 2.6.16
 
 ### Patch Changes
