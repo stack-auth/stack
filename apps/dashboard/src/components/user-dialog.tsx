@@ -29,6 +29,7 @@ export function UserDialog(props: {
       primaryEmailVerified: props.user.primaryEmailVerified,
       signedUpAt: props.user.signedUpAt,
       clientMetadata: props.user.clientMetadata == null ? "" : JSON.stringify(props.user.clientMetadata, null, 2),
+      clientReadOnlyMetadata: props.user.clientReadOnlyMetadata == null ? "" : JSON.stringify(props.user.clientReadOnlyMetadata, null, 2),
       serverMetadata: props.user.serverMetadata == null ? "" : JSON.stringify(props.user.serverMetadata, null, 2),
       passwordEnabled: props.user.hasPassword,
       otpAuthEnabled: props.user.otpAuthEnabled,
@@ -44,8 +45,8 @@ export function UserDialog(props: {
     displayName: yup.string().optional(),
     signedUpAt: yup.date().required(),
     clientMetadata: jsonStringOrEmptySchema.default("null"),
-    serverMetadata: jsonStringOrEmptySchema.default("null"),
     clientReadOnlyMetadata: jsonStringOrEmptySchema.default("null"),
+    serverMetadata: jsonStringOrEmptySchema.default("null"),
     primaryEmailVerified: yup.boolean().optional(),
     password: yup.string().optional(),
     otpAuthEnabled: yup.boolean().test({
