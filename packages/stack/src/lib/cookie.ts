@@ -65,7 +65,6 @@ export function setCookie(name: string, value: string, options: SetCookieOptions
     Cookies.set(name, value, {
       secure: window.location.protocol === "https:",
       expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
-      sameSite: 'lax',
     });
   } else {
     let isSecureCookie = !!rscCookies().get("stack-is-https");
@@ -76,7 +75,6 @@ export function setCookie(name: string, value: string, options: SetCookieOptions
     rscCookies().set(name, value, {
       secure: isSecureCookie,
       maxAge: options.maxAge,
-      sameSite: 'lax',
     });
   }
 }
