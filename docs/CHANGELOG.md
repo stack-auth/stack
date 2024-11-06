@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.6.19
+
+### Patch Changes
+
+- Bugfixes
+
 ## 2.6.18
 
 ### Patch Changes
