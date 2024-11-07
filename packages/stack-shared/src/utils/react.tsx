@@ -3,6 +3,19 @@ import { neverResolve } from "./promises";
 import { deindent } from "./strings";
 import { isBrowserLike } from "./env";
 
+export function forwardRefIfNeeded<T, P = {}>(render: React.ForwardRefRenderFunction<T, P>) {
+  // TODO: when we drop support for react 18, remove this
+  const version = React.version;
+  const major = parseInt(version.split(".")[0]);
+  console.log("React version", version, major);
+  if (major < 19) {
+    return React.forwardRef<T, P>(render);
+  } else {
+    // we want to use the old forwardRef return type for the function signature, so mark this as `never`
+    return ((props: P) => render(props, (props as any).ref)) as never;
+  }
+}
+
 export function getNodeText(node: React.ReactNode): string {
   if (["number", "string"].includes(typeof node)) {
     return `${node}`;

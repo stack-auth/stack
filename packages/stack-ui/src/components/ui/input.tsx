@@ -1,11 +1,12 @@
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 
 import { cn } from "../../lib/utils";
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
+const Input = forwardRefIfNeeded<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     return (
       <input
@@ -29,7 +30,7 @@ export interface DelayedInputProps extends InputProps {
   delay?: number,
 }
 
-export const DelayedInput = React.forwardRef<HTMLInputElement, DelayedInputProps>(
+export const DelayedInput = forwardRefIfNeeded<HTMLInputElement, DelayedInputProps>(
   ({ delay = 500, defaultValue, ...props }, ref) => {
     const [value, setValue] = React.useState(defaultValue ?? "");
 
