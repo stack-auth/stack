@@ -230,7 +230,7 @@ async function main() {
     handlerPath,
     `import { StackHandler } from "@stackframe/stack";\nimport { stackServerApp } from "../../../stack";\n\nexport default function Handler(props${
       handlerFileExtension.includes("ts") ? ": any" : ""
-    }) {\n${ind}return <StackHandler fullPage app={stackServerApp} {...props} />;\n}\n`
+    }) {\n${ind}return <StackHandler fullPage app={stackServerApp} routeProps={props} />;\n}\n`
   );
   await writeFileIfNotExists(
     stackAppPath,

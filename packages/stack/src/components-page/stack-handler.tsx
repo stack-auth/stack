@@ -33,23 +33,8 @@ type RouteProps = {
   searchParams: Promise<Record<string, string>> | Record<string, string>,
 };
 
-export default function StackHandler<HasTokenStore extends boolean>(props: {
-  app: StackServerApp<HasTokenStore>,
-  fullPage: boolean,
-  componentProps?: {
-    [K in keyof Components]?: Parameters<Components[K]>;
-  },
-  routeProps: RouteProps,
-}): Promise<React.ReactElement>;
-export default async function StackHandler<HasTokenStore extends boolean>(props: {
-  app: StackServerApp<HasTokenStore>,
-  fullPage: boolean,
-  componentProps?: {
-    [K in keyof Components]?: Parameters<Components[K]>;
-  },
-} & (
-  Partial<RouteProps>
-)): Promise<"Next.js 15 disallows spreading the props argument like `{...props}`, so you must now explicitly pass them in the `routeProps` argument: `routeProps={props}`">;
+const next15DeprecationWarning = "DEPRECATION WARNING: Next.js 15 disallows spreading the props argument of <StackHandler /> like `{...props}`, so you must now explicitly pass them in the `routeProps` argument: `routeProps={props}`";
+
 export default async function StackHandler<HasTokenStore extends boolean>(props: {
   app: StackServerApp<HasTokenStore>,
   fullPage: boolean,
@@ -62,6 +47,10 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     routeProps: RouteProps,
   }
 )): Promise<any> {
+  if (!("routeProps" in props)) {
+    console.warn(next15DeprecationWarning);
+  }
+
   const routeProps = "routeProps" in props ? props.routeProps : pick(props, ["params", "searchParams"] as any);
   const params = await routeProps.params;
   const searchParams = await routeProps.searchParams;
@@ -106,98 +95,109 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
 
   const path = params.stack.join('/');
 
-  switch (path) {
-    case availablePaths.signIn: {
-      redirectIfNotHandler('signIn');
-      return <SignIn
-        fullPage={props.fullPage}
-        automaticRedirect
-        {...filterUndefinedINU(props.componentProps?.SignIn)}
-      />;
-    }
-    case availablePaths.signUp: {
-      redirectIfNotHandler('signUp');
-      return <SignUp
-        fullPage={props.fullPage}
-        automaticRedirect
-        {...filterUndefinedINU(props.componentProps?.SignUp)}
-      />;
-    }
-    case availablePaths.emailVerification: {
-      redirectIfNotHandler('emailVerification');
-      return <EmailVerification
-        searchParams={searchParams}
-        fullPage={props.fullPage}
-        {...filterUndefinedINU(props.componentProps?.EmailVerification)}
-      />;
-    }
-    case availablePaths.passwordReset: {
-      redirectIfNotHandler('passwordReset');
-      return <PasswordReset
-        searchParams={searchParams || {}}
-        fullPage={props.fullPage}
-        {...filterUndefinedINU(props.componentProps?.PasswordReset)}
-      />;
-    }
-    case availablePaths.forgotPassword: {
-      redirectIfNotHandler('forgotPassword');
-      return <ForgotPassword
-        fullPage={props.fullPage}
-        {...filterUndefinedINU(props.componentProps?.ForgotPassword)}
-      />;
-    }
-    case availablePaths.signOut: {
-      redirectIfNotHandler('signOut');
-      return <SignOut
-        fullPage={props.fullPage}
-        {...filterUndefinedINU(props.componentProps?.SignOut)}
-      />;
-    }
-    case availablePaths.oauthCallback: {
-      redirectIfNotHandler('oauthCallback');
-      return <OAuthCallback
-        fullPage={props.fullPage}
-        {...filterUndefinedINU(props.componentProps?.OAuthCallback)}
-      />;
-    }
-    case availablePaths.magicLinkCallback: {
-      redirectIfNotHandler('magicLinkCallback');
-      return <MagicLinkCallback
-        searchParams={searchParams || {}}
-        fullPage={props.fullPage}
-        {...filterUndefinedINU(props.componentProps?.MagicLinkCallback)}
-      />;
-    }
-    case availablePaths.teamInvitation: {
-      redirectIfNotHandler('teamInvitation');
-      return <TeamInvitation
-        searchParams={searchParams || {}}
-        fullPage={props.fullPage}
-        {...filterUndefinedINU(props.componentProps?.TeamInvitation)}
-      />;
-    }
-    case availablePaths.accountSettings: {
-      return <AccountSettings
-        fullPage={props.fullPage}
-        {...filterUndefinedINU(props.componentProps?.AccountSettings)}
-      />;
-    }
-    case availablePaths.error: {
-      return <ErrorPage
-        searchParams={searchParams || {}}
-        fullPage={props.fullPage}
-        {...filterUndefinedINU(props.componentProps?.ErrorPage)}
-      />;
-    }
-    default: {
-      for (const [key, value] of Object.entries(availablePaths)) {
-        if (path === value.replaceAll('-', '')) {
-          redirect(`${props.app.urls.handler}/${value}`, RedirectType.replace);
-        }
+  const render = () => {
+    switch (path) {
+      case availablePaths.signIn: {
+        redirectIfNotHandler('signIn');
+        return <SignIn
+          fullPage={props.fullPage}
+          automaticRedirect
+          {...filterUndefinedINU(props.componentProps?.SignIn)}
+        />;
       }
-      return notFound();
+      case availablePaths.signUp: {
+        redirectIfNotHandler('signUp');
+        return <SignUp
+          fullPage={props.fullPage}
+          automaticRedirect
+          {...filterUndefinedINU(props.componentProps?.SignUp)}
+        />;
+      }
+      case availablePaths.emailVerification: {
+        redirectIfNotHandler('emailVerification');
+        return <EmailVerification
+          searchParams={searchParams}
+          fullPage={props.fullPage}
+          {...filterUndefinedINU(props.componentProps?.EmailVerification)}
+        />;
+      }
+      case availablePaths.passwordReset: {
+        redirectIfNotHandler('passwordReset');
+        return <PasswordReset
+          searchParams={searchParams || {}}
+          fullPage={props.fullPage}
+          {...filterUndefinedINU(props.componentProps?.PasswordReset)}
+        />;
+      }
+      case availablePaths.forgotPassword: {
+        redirectIfNotHandler('forgotPassword');
+        return <ForgotPassword
+          fullPage={props.fullPage}
+          {...filterUndefinedINU(props.componentProps?.ForgotPassword)}
+        />;
+      }
+      case availablePaths.signOut: {
+        redirectIfNotHandler('signOut');
+        return <SignOut
+          fullPage={props.fullPage}
+          {...filterUndefinedINU(props.componentProps?.SignOut)}
+        />;
+      }
+      case availablePaths.oauthCallback: {
+        redirectIfNotHandler('oauthCallback');
+        return <OAuthCallback
+          fullPage={props.fullPage}
+          {...filterUndefinedINU(props.componentProps?.OAuthCallback)}
+        />;
+      }
+      case availablePaths.magicLinkCallback: {
+        redirectIfNotHandler('magicLinkCallback');
+        return <MagicLinkCallback
+          searchParams={searchParams || {}}
+          fullPage={props.fullPage}
+          {...filterUndefinedINU(props.componentProps?.MagicLinkCallback)}
+        />;
+      }
+      case availablePaths.teamInvitation: {
+        redirectIfNotHandler('teamInvitation');
+        return <TeamInvitation
+          searchParams={searchParams || {}}
+          fullPage={props.fullPage}
+          {...filterUndefinedINU(props.componentProps?.TeamInvitation)}
+        />;
+      }
+      case availablePaths.accountSettings: {
+        return <AccountSettings
+          fullPage={props.fullPage}
+          {...filterUndefinedINU(props.componentProps?.AccountSettings)}
+        />;
+      }
+      case availablePaths.error: {
+        return <ErrorPage
+          searchParams={searchParams || {}}
+          fullPage={props.fullPage}
+          {...filterUndefinedINU(props.componentProps?.ErrorPage)}
+        />;
+      }
+      default: {
+        for (const [key, value] of Object.entries(availablePaths)) {
+          if (path === value.replaceAll('-', '')) {
+            redirect(`${props.app.urls.handler}/${value}`, RedirectType.replace);
+          }
+        }
+        return notFound();
+      }
     }
-  }
+  };
+
+  return <>
+    {process.env.NODE_ENV === "development" && !("routeProps" in props) && (
+      <span style={{ color: "red" }}>
+        {next15DeprecationWarning}. This warning will not be shown in production.
+      </span>
+    )}
+    {render()}
+  </>;
 }
 
 
