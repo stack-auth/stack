@@ -5,7 +5,6 @@ export const isReactServer = true;
 // Since we support both Next.js 14 and 15, we return a union of the two.
 // TODO: Remove this once we drop support for Next.js 14, and replace it with `export { cookies, headers } from 'next/headers';`
 // https://nextjs.org/blog/next-15#async-request-apis-breaking-change
-//import { cookies as nextCookies, headers as nextHeaders } from 'next/headers';
-//export const cookies = nextCookies as typeof nextCookies | ((...args: Parameters<typeof nextCookies>) => Promise<ReturnType<typeof nextCookies>>);
-//export const headers = nextHeaders as typeof nextHeaders | ((...args: Parameters<typeof nextHeaders>) => Promise<ReturnType<typeof nextHeaders>>);
-export { cookies, headers } from 'next/headers';
+import { cookies as nextCookies, headers as nextHeaders } from './next-static-analysis-workaround';
+export const cookies = nextCookies as typeof nextCookies | ((...args: Parameters<typeof nextCookies>) => Promise<ReturnType<typeof nextCookies>>);
+export const headers = nextHeaders as typeof nextHeaders | ((...args: Parameters<typeof nextHeaders>) => Promise<ReturnType<typeof nextHeaders>>);
