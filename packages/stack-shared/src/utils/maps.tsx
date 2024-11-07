@@ -20,7 +20,7 @@ export class WeakRefIfAvailable<T extends object> {
 /**
  * A WeakMap-like object that can be iterated over.
  *
- * Note that it relies on WeakRef, and always falls back to the regular Map behavior in browsers that don't support it.
+ * Note that it relies on WeakRef, and always falls back to the regular Map behavior (ie. no GC) in browsers that don't support it.
  */
 export class IterableWeakMap<K extends object, V> {
   private readonly _weakMap: WeakMap<K & WeakKey, { value: V, keyRef: WeakRefIfAvailable<K & WeakKey> }>;
@@ -78,7 +78,7 @@ export class IterableWeakMap<K extends object, V> {
  * A map that is a IterableWeakMap for object keys and a regular Map for primitive keys. Also provides iteration over both
  * object and primitive keys.
  *
- * Note that, just like IterableWeakMap, it doesn't support primitive keys.
+ * Note that, just like IterableWeakMap, older browsers without support for WeakRef will use a regular Map for object keys.
  */
 export class MaybeWeakMap<K, V> {
   private readonly _primitiveMap: Map<K, V>;
