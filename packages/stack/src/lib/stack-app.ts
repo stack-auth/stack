@@ -1953,8 +1953,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getUser(id: string): Promise<ServerUser | null>;
   async getUser(options?: string | GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | ServerUser | null> {
     if (typeof options === "string") {
-      const allUsers = await this.listUsers();
-      return allUsers.find((u) => u.id === options) ?? null;
+      return await this.getServerUserById(options);
     } else {
       // TODO this code is duplicated from the client app; fix that
       this._ensurePersistentTokenStore(options?.tokenStore);
@@ -1996,8 +1995,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   useUser(id: string): ServerUser | null;
   useUser(options?: GetUserOptions<HasTokenStore> | string): ProjectCurrentServerUser<ProjectId> | ServerUser | null {
     if (typeof options === "string") {
-      const users = this.useUsers();
-      return users.find((u) => u.id === options) ?? null;
+      return this.useUserById(options);
     } else {
       // TODO this code is duplicated from the client app; fix that
       this._ensurePersistentTokenStore(options?.tokenStore);
