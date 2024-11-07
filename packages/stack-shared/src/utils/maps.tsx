@@ -1,13 +1,93 @@
 import { Result } from "./results";
 
+export class WeakRefIfAvailable<T extends object> {
+  private readonly _ref: { deref: () => T | undefined };
+
+  constructor(value: T) {
+    if (typeof WeakRef === "undefined") {
+      this._ref = { deref: () => value };
+    } else {
+      this._ref = new WeakRef<T>(value);
+    }
+  }
+
+  deref(): T | undefined {
+    return this._ref.deref();
+  }
+}
+
+
+/**
+ * A WeakMap-like object that can be iterated over.
+ *
+ * Note that it relies on WeakRef, and always falls back to the regular Map behavior in browsers that don't support it.
+ */
+export class IterableWeakMap<K extends object, V> {
+  private readonly _weakMap: WeakMap<K & WeakKey, { value: V, keyRef: WeakRefIfAvailable<K & WeakKey> }>;
+  private readonly _keyRefs: Set<WeakRefIfAvailable<K & WeakKey>>;
+
+  constructor(entries?: readonly (readonly [K, V])[] | null) {
+    const mappedEntries = entries?.map((e) => [e[0], { value: e[1], keyRef: new WeakRefIfAvailable(e[0]) }] as const);
+    this._weakMap = new WeakMap(mappedEntries ?? []);
+    this._keyRefs = new Set(mappedEntries?.map((e) => e[1].keyRef) ?? []);
+  }
+
+  get(key: K): V | undefined {
+    return this._weakMap.get(key)?.value;
+  }
+
+  set(key: K, value: V): this {
+    const existing = this._weakMap.get(key);
+    const updated = { value, keyRef: existing?.keyRef ?? new WeakRefIfAvailable(key) };
+    this._weakMap.set(key, updated);
+    this._keyRefs.add(updated.keyRef);
+    return this;
+  }
+
+  delete(key: K): boolean {
+    const res = this._weakMap.get(key);
+    if (res) {
+      this._weakMap.delete(key);
+      this._keyRefs.delete(res.keyRef);
+      return true;
+    }
+    return false;
+  }
+
+  has(key: K): boolean {
+    return this._weakMap.has(key) && this._keyRefs.has(this._weakMap.get(key)!.keyRef);
+  }
+
+  *[Symbol.iterator](): IterableIterator<[K, V]> {
+    for (const keyRef of this._keyRefs) {
+      const key = keyRef.deref();
+      const existing = key ? this._weakMap.get(key) : undefined;
+      if (!key) {
+        // This can happen if the key was GCed. Remove it so the next iteration is faster.
+        this._keyRefs.delete(keyRef);
+      } else if (existing) {
+        yield [key, existing.value];
+      }
+    }
+  }
+
+  [Symbol.toStringTag] = "IterableWeakMap";
+}
+
+/**
+ * A map that is a IterableWeakMap for object keys and a regular Map for primitive keys. Also provides iteration over both
+ * object and primitive keys.
+ *
+ * Note that, just like IterableWeakMap, it doesn't support primitive keys.
+ */
 export class MaybeWeakMap<K, V> {
   private readonly _primitiveMap: Map<K, V>;
-  private readonly _weakMap: WeakMap<K & WeakKey, V>;
+  private readonly _weakMap: IterableWeakMap<K & WeakKey, V>;
 
   constructor(entries?: readonly (readonly [K, V])[] | null) {
     const entriesArray = [...entries ?? []];
     this._primitiveMap = new Map(entriesArray.filter((e) => !this._isAllowedInWeakMap(e[0])));
-    this._weakMap = new WeakMap(entriesArray.filter((e): e is [K & WeakKey, V] => this._isAllowedInWeakMap(e[0])));
+    this._weakMap = new IterableWeakMap(entriesArray.filter((e): e is [K & WeakKey, V] => this._isAllowedInWeakMap(e[0])));
   }
 
   private _isAllowedInWeakMap(key: K): key is K & WeakKey {
@@ -45,6 +125,11 @@ export class MaybeWeakMap<K, V> {
     } else {
       return this._primitiveMap.has(key);
     }
+  }
+
+  *[Symbol.iterator](): IterableIterator<[K, V]> {
+    yield* this._primitiveMap;
+    yield* this._weakMap;
   }
 
   [Symbol.toStringTag] = "MaybeWeakMap";
