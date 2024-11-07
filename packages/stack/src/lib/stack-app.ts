@@ -885,7 +885,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       otpAuthEnabled: crud.otp_auth_enabled,
       oauthProviders: crud.oauth_providers,
       passkeyAuthEnabled: crud.passkey_auth_enabled,
-      selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team),
       isMultiFactorRequired: crud.requires_totp_mfa,
       toClientJson(): CurrentUserCrud['Client']['Read'] {
         return crud;
@@ -1386,11 +1385,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async signInWithPasskey(): Promise<Result<undefined, KnownErrors["PasskeyAuthenticationFailed"] | KnownErrors["InvalidTotpCode"] | KnownErrors["PasskeyWebAuthnError"]>> {
     this._ensurePersistentTokenStore();
+    const session = await this._getSession();
     let result;
     try {
       result = await this._catchMfaRequiredError(async () => {
-
-        const initiationResult = await this._interface.initiatePasskeyAuthentication({}, this._getSession());
+        const initiationResult = await this._interface.initiatePasskeyAuthentication({}, session);
         if (initiationResult.status !== "ok") {
           return Result.error(new KnownErrors.PasskeyAuthenticationFailed("Failed to get initiation options for passkey authentication"));
         }

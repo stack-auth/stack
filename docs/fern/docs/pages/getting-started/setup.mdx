@@ -86,7 +86,7 @@ We recommend using our **setup wizard**, which will automatically detect your pr
       import { stackServerApp } from "@/stack";
 
       export default function Handler(props: any) {
-        return <StackHandler fullPage app={stackServerApp} {...props} />;
+        return <StackHandler fullPage app={stackServerApp} routeProps={props} />;
       }
       ```
 

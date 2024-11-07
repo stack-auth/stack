@@ -33,6 +33,23 @@ type RouteProps = {
   searchParams: Promise<Record<string, string>> | Record<string, string>,
 };
 
+export default function StackHandler<HasTokenStore extends boolean>(props: {
+  app: StackServerApp<HasTokenStore>,
+  fullPage: boolean,
+  componentProps?: {
+    [K in keyof Components]?: Parameters<Components[K]>;
+  },
+  routeProps: RouteProps,
+}): Promise<React.ReactElement>;
+export default async function StackHandler<HasTokenStore extends boolean>(props: {
+  app: StackServerApp<HasTokenStore>,
+  fullPage: boolean,
+  componentProps?: {
+    [K in keyof Components]?: Parameters<Components[K]>;
+  },
+} & (
+  Partial<RouteProps>
+)): Promise<"Next.js 15 disallows spreading the props argument like `{...props}`, so you must now explicitly pass them in the `routeProps` argument: `routeProps={props}`">;
 export default async function StackHandler<HasTokenStore extends boolean>(props: {
   app: StackServerApp<HasTokenStore>,
   fullPage: boolean,
@@ -44,7 +61,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
   | {
     routeProps: RouteProps,
   }
-)) {
+)): Promise<any> {
   const routeProps = "routeProps" in props ? props.routeProps : pick(props, ["params", "searchParams"] as any);
   const params = await routeProps.params;
   const searchParams = await routeProps.searchParams;
