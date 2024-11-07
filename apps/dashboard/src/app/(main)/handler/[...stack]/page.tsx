@@ -9,7 +9,7 @@ export default function Handler(props: any) {
   </>;
   return <StackHandler
     fullPage
-    {...props}
+    routeProps={props}
     app={stackServerApp}
     componentProps={{ SignIn: { extraInfo }, SignUp: { extraInfo } }}
   />;

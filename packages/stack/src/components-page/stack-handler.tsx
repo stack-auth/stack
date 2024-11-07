@@ -39,7 +39,7 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
   app: StackServerApp<HasTokenStore>,
   fullPage: boolean,
   componentProps?: {
-    [K in keyof Components]?: Parameters<Components[K]>;
+    [K in keyof Components]?: Parameters<Components[K]>[0];
   },
 } & (
   | Partial<RouteProps>
