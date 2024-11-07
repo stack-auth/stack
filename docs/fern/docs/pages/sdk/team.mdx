@@ -280,6 +280,41 @@ Add a user to the team directly without sending an invitation email.
 await team.addUser('user_id_123');
 ```
 
+### `inviteUser()`
+
+This is the same as the `inviteUser` method on the `Team` object, except that it requires a `callbackUrl` parameter.
+
+**Parameters**
+
+<div className="indented">
+  <ParamField path="options" type="object" required>
+    <div className="indented">
+      <ParamField path="email" type="string" required>
+        The email of the user to invite.
+      </ParamField>
+
+      <ParamField path="callbackUrl" type="string" required>
+        The callback URL to redirect to after the user signs up. This is normally in the format of `https://your-app-url.com/handler/team-invitation`.
+      </ParamField>
+    </div>
+  </ParamField>
+</div>
+
+**Returns**
+
+<div className="indented">
+  `Promise<void>`
+</div>
+
+**Example**
+
+```tsx
+await team.inviteUser({
+  email: 'user@example.com',
+  callbackUrl: 'https://your-app-url.com/handler/team-invitation',
+});
+```
+
 ### `removeUser()`
 
 Remove a user from the team.
