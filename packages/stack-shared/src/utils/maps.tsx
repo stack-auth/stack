@@ -144,6 +144,10 @@ type DependenciesMapInner<V> = (
   )
 );
 
+/**
+ * A map that stores values indexed by an array of keys. If the keys are objects and the environment supports WeakRefs,
+ * they are stored in a WeakMap.
+ */
 export class DependenciesMap<K extends any[], V> {
   private _inner: DependenciesMapInner<V> = { map: new MaybeWeakMap(), hasValue: false, value: undefined };
 
@@ -190,6 +194,15 @@ export class DependenciesMap<K extends any[], V> {
     }
   }
 
+  private *_iterateInner(dependencies: any[], inner: DependenciesMapInner<V>): IterableIterator<[K, V]> {
+    if (inner.hasValue) {
+      yield [dependencies as K, inner.value];
+    }
+    for (const [key, value] of inner.map) {
+      yield* this._iterateInner([...dependencies, key], value);
+    }
+  }
+
   get(dependencies: K): V | undefined {
     return Result.or(this._unwrapFromInner(dependencies, this._inner), undefined);
   }
@@ -209,6 +222,10 @@ export class DependenciesMap<K extends any[], V> {
 
   clear(): void {
     this._inner = { map: new MaybeWeakMap(), hasValue: false, value: undefined };
+  }
+
+  *[Symbol.iterator](): IterableIterator<[K, V]> {
+    yield* this._iterateInner([], this._inner);
   }
 
   [Symbol.toStringTag] = "DependenciesMap";
