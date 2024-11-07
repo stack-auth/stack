@@ -4,8 +4,10 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { resetPasswordVerificationCodeHandler } from "../reset/verification-code-handler";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { usersCrudHandlers } from "../../../users/crud";
+import { userPrismaToCrud, usersCrudHandlers } from "../../../users/crud";
 import { wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { prismaClient } from "@/prisma-client";
+import { getAuthContactChannel } from "@/lib/contact-channel";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -36,14 +38,16 @@ export const POST = createSmartRouteHandler({
     }
 
     // TODO filter in the query
-    const allUsers = await usersCrudHandlers.adminList({
-      project,
-    });
-    const users = allUsers.items.filter((user) => user.primary_email === email && user.auth_with_email);
-    if (users.length > 1) {
-      throw new StackAssertionError("Multiple users found with the same email and email auth enabled; this should never happen", { users });
-    }
-    if (users.length === 0) {
+    const contactChannel = await getAuthContactChannel(
+      prismaClient,
+      {
+        projectId: project.id,
+        type: "EMAIL",
+        value: email,
+      },
+    );
+
+    if (!contactChannel) {
       await wait(2000 + Math.random() * 1000);
       return {
         statusCode: 200,
@@ -53,8 +57,10 @@ export const POST = createSmartRouteHandler({
         },
       };
     }
-    const user = users[0];
-
+    const user = await usersCrudHandlers.adminRead({
+      project,
+      user_id: contactChannel.projectUserId,
+    });
     await resetPasswordVerificationCodeHandler.sendCode({
       project,
       callbackUrl,

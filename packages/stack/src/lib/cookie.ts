@@ -149,7 +149,6 @@ export function setCookieClient(name: string, value: string, options: SetCookieO
   ensureClient();
   Cookies.set(name, value, {
     expires: options.maxAge === undefined ? undefined : new Date(Date.now() + (options.maxAge) * 1000),
-    sameSite: "Strict"
   });
 }
 

@@ -59,9 +59,9 @@ function expectSnakeCase(obj: unknown, path: string): void {
   } else {
     for (const [key, value] of Object.entries(obj)) {
       if (key.match(/[a-z0-9][A-Z][a-z0-9]+/) && !key.includes("_") && !["newUser", "afterCallbackRedirectUrl"].includes(key)) {
-        throw new StackAssertionError(`Object has camelCase key (expected snake case): ${path}.${key}`);
+        throw new StackAssertionError(`Object has camelCase key (expected snake_case): ${path}.${key}`);
       }
-      if (key === "client_metadata" || key === "server_metadata") continue;
+      if (["client_metadata", "server_metadata", "options_json", "credential", "authentication_response"].includes(key)) continue;
       expectSnakeCase(value, `${path}.${key}`);
     }
   }
@@ -383,6 +383,113 @@ export namespace Auth {
       };
     }
   }
+
+  export namespace Passkey {
+
+
+    export async function register() {
+      const initiateRegistrationRes = await Auth.Passkey.initiateRegistration();
+
+      const response = await niceBackendFetch("/api/v1/auth/passkey/register", {
+        method: "POST",
+        accessType: "client",
+        body: {
+          "credential": {
+            "id": "BBYYB_DKzPZHm1o6ILGo6Sk_cBc",
+            "rawId": "BBYYB_DKzPZHm1o6ILGo6Sk_cBc",
+            "response": {
+              "attestationObject": "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViYSZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2NdAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAQWGAfwysz2R5taOiCxqOkpP3AXpQECAyYgASFYIO7JJihe93CDhZOPFp9pVefZyBvy62JMjSs47id1q0vpIlggNMjLAQG7ESYqRZsBQbX07WWIImEzYFDsJgBOSYiQZL8",
+              "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiVFU5RFN3Iiwib3JpZ2luIjoiaHR0cDovL2xvY2FsaG9zdDo4MTAzIiwiY3Jvc3NPcmlnaW4iOmZhbHNlfQ",
+              "transports": [
+                "hybrid",
+                "internal"
+              ],
+              "publicKeyAlgorithm": -7,
+              "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7skmKF73cIOFk48Wn2lV59nIG_LrYkyNKzjuJ3WrS-k0yMsBAbsRJipFmwFBtfTtZYgiYTNgUOwmAE5JiJBkvw",
+              "authenticatorData": "SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2NdAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAQWGAfwysz2R5taOiCxqOkpP3AXpQECAyYgASFYIO7JJihe93CDhZOPFp9pVefZyBvy62JMjSs47id1q0vpIlggNMjLAQG7ESYqRZsBQbX07WWIImEzYFDsJgBOSYiQZL8"
+            },
+            "type": "public-key",
+            "clientExtensionResults": {
+              "credProps": {
+                "rk": true
+              }
+            },
+            "authenticatorAttachment": "platform"
+          },
+          "code": initiateRegistrationRes.code,
+        },
+      });
+
+      expect(response).toMatchInlineSnapshot(`
+        NiceResponse {
+          "status": 200,
+          "body": { "user_handle": "BBYYB_DKzPZHm1o6ILGo6Sk_cBc" },
+          "headers": Headers { <some fields may have been hidden> },
+        }
+      `);
+    }
+
+    export async function initiateRegistration(): Promise<{ code: string }> {
+
+      const response = await niceBackendFetch("/api/v1/auth/passkey/initiate-passkey-registration", {
+        method: "POST",
+        accessType: "client",
+        body: {},
+      });
+      const original_code = response.body.code;
+      response.body.options_json.user.id = "<stripped encoded UUID>";
+      response.body.code = "<stripped code>";
+
+      expect(response).toMatchInlineSnapshot(`
+        NiceResponse {
+          "status": 200,
+          "body": {
+            "code": "<stripped code>",
+            "options_json": {
+              "attestation": "none",
+              "authenticatorSelection": {
+                "requireResidentKey": true,
+                "residentKey": "required",
+                "userVerification": "preferred",
+              },
+              "challenge": "TU9DSw",
+              "excludeCredentials": [],
+              "extensions": { "credProps": true },
+              "pubKeyCredParams": [
+                {
+                  "alg": -8,
+                  "type": "public-key",
+                },
+                {
+                  "alg": -7,
+                  "type": "public-key",
+                },
+                {
+                  "alg": -257,
+                  "type": "public-key",
+                },
+              ],
+              "rp": {
+                "id": "THIS_VALUE_WILL_BE_REPLACED.example.com",
+                "name": "New Project",
+              },
+              "timeout": 60000,
+              "user": {
+                "displayName": "<stripped UUID>@stack-generated.example.com",
+                "id": "<stripped encoded UUID>",
+                "name": "<stripped UUID>@stack-generated.example.com",
+              },
+            },
+          },
+          "headers": Headers { <some fields may have been hidden> },
+        }
+      `);
+      return {
+        code: original_code,
+      };
+    }
+  }
+
 
   export namespace OAuth {
     export async function getAuthorizeQuery() {

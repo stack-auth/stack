@@ -1,5 +1,43 @@
 # @stackframe/example-cjs-test
 
+## 2.6.19
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.6.19
+
+## 2.6.18
+
+### Patch Changes
+
+- fixed user update bug
+- Updated dependencies
+  - @stackframe/stack@2.6.18
+
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+- Updated dependencies
+  - @stackframe/stack@2.6.17
+
+## 2.6.16
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.16
+
+## 2.6.15
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.15
+
 ## 2.6.14
 
 ### Patch Changes

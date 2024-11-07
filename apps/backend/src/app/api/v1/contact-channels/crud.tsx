@@ -27,8 +27,8 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
     contact_channel_id: yupString().uuid().optional(),
   }),
   paramsSchema: yupObject({
-    user_id: userIdOrMeSchema.required(),
-    contact_channel_id: yupString().uuid().required(),
+    user_id: userIdOrMeSchema.required().meta({ openapiField: { description: "the user that the contact channel belongs to", exampleValue: 'me', onlyShowInOperations: ["Read", "Update", "Delete"] } }),
+    contact_channel_id: yupString().uuid().required().meta({ openapiField: { description: "the target contact channel", exampleValue: 'b3d396b8-c574-4c80-97b3-50031675ceb2', onlyShowInOperations: ["Read", "Update", "Delete"] } }),
   }),
   onRead: async ({ params, auth }) => {
     if (auth.type === 'client') {

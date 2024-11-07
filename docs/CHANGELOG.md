@@ -1,5 +1,32 @@
 # @stackframe/docs
 
+## 2.6.19
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.18
+
+### Patch Changes
+
+- fixed user update bug
+
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+
+## 2.6.16
+
+### Patch Changes
+
+- - list user pagination
+  - fixed visual glitches
+
+## 2.6.15
+
 ## 2.6.14
 
 ## 2.6.13

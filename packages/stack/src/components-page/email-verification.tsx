@@ -1,16 +1,13 @@
 'use client';
 
 import React from "react";
-import { StackClientApp, useStackApp } from "..";
+import { StackClientApp, useStackApp, useUser } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { useTranslation } from "../lib/translations";
-
-const cacheVerifyEmail = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
-  return await stackApp.verifyEmail(code);
-});
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 export function EmailVerification(props: {
   searchParams?: Record<string, string>,
@@ -18,6 +15,8 @@ export function EmailVerification(props: {
 }) {
   const { t } = useTranslation();
   const stackApp = useStackApp();
+  const user = useUser();
+  const [result, setResult] = React.useState<Awaited<ReturnType<typeof stackApp.verifyEmail>> | null>(null);
 
   const invalidJsx = (
     <MessageCard title={t("Invalid Verification Link")} fullPage={!!props.fullPage}>
@@ -35,19 +34,40 @@ export function EmailVerification(props: {
     return invalidJsx;
   }
 
-  const result = React.use(cacheVerifyEmail(stackApp, props.searchParams.code));
-
-  if (result.status === 'error') {
-    if (result.error instanceof KnownErrors.VerificationCodeNotFound) {
-      return invalidJsx;
-    } else if (result.error instanceof KnownErrors.VerificationCodeExpired) {
-      return expiredJsx;
-    } else if (result.error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
-      // everything fine, continue
-    } else {
-      throw result.error;
+  if (!result) {
+    return <MessageCard
+      title={t("Do you want to verify your email?")}
+      fullPage={!!props.fullPage}
+      primaryButtonText={t("Verify")}
+      primaryAction={async () => {
+        const result = await stackApp.verifyEmail(props.searchParams?.code || throwErr("No verification code provided"));
+        setResult(result);
+      }}
+      secondaryButtonText={t("Cancel")}
+      secondaryAction={async () => {
+        await stackApp.redirectToHome();
+      }}
+    />;
+  } else {
+    if (result.status === 'error') {
+      if (result.error instanceof KnownErrors.VerificationCodeNotFound) {
+        return invalidJsx;
+      } else if (result.error instanceof KnownErrors.VerificationCodeExpired) {
+        return expiredJsx;
+      } else if (result.error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
+        // everything fine, continue
+      } else {
+        throw result.error;
+      }
     }
-  }
 
-  return <PredefinedMessageCard type='emailVerified' fullPage={!!props.fullPage} />;
+    return <MessageCard
+      title={t("You email has been verified!")}
+      fullPage={!!props.fullPage}
+      primaryButtonText={t("Go to home")}
+      primaryAction={async () => {
+        await stackApp.redirectToHome();
+      }}
+    />;
+  }
 }

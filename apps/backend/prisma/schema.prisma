@@ -243,11 +243,20 @@ model ProjectUser {
   contactChannels               ContactChannel[]
   authMethods                   AuthMethod[]
   connectedAccounts             ConnectedAccount[]
+
+  // some backlinks for the unique constraints on some auth methods
   passwordAuthMethod            PasswordAuthMethod[]
+  passkeyAuthMethod             PasskeyAuthMethod[]
   otpAuthMethod                 OtpAuthMethod[]
   oauthAuthMethod               OAuthAuthMethod[]
 
   @@id([projectId, projectUserId])
+
+  // indices for sorting and filtering
+  @@index([projectId, displayName(sort: Asc)], name: "ProjectUser_displayName_asc")
+  @@index([projectId, displayName(sort: Desc)], name: "ProjectUser_displayName_desc")
+  @@index([projectId, createdAt(sort: Asc)], name: "ProjectUser_createdAt_asc")
+  @@index([projectId, createdAt(sort: Desc)], name: "ProjectUser_createdAt_desc")
 }
 
 // This should be renamed to "OAuthAccount" as it is not always bound to a user
@@ -362,6 +371,7 @@ model AuthMethodConfig {
   otpConfig           OtpAuthMethodConfig?
   oauthProviderConfig OAuthProviderConfig?
   passwordConfig      PasswordAuthMethodConfig?
+  passkeyConfig       PasskeyAuthMethodConfig?
 
   projectConfig ProjectConfig @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
   authMethods   AuthMethod[]
@@ -384,6 +394,18 @@ model OtpAuthMethodConfig {
 }
 
 model PasswordAuthMethodConfig {
+  projectConfigId    String @db.Uuid
+  authMethodConfigId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authMethodConfig AuthMethodConfig @relation(fields: [projectConfigId, authMethodConfigId], references: [projectConfigId, id], onDelete: Cascade)
+
+  @@id([projectConfigId, authMethodConfigId])
+}
+
+model PasskeyAuthMethodConfig {
   projectConfigId    String @db.Uuid
   authMethodConfigId String @db.Uuid
 
@@ -483,6 +505,7 @@ model AuthMethod {
   // exactly one of the xyzAuthMethods should be set
   otpAuthMethod      OtpAuthMethod?
   passwordAuthMethod PasswordAuthMethod?
+  passkeyAuthMethod  PasskeyAuthMethod?
   oauthAuthMethod    OAuthAuthMethod?
 
   project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -517,6 +540,30 @@ model PasswordAuthMethod {
   updatedAt DateTime @updatedAt
 
   passwordHash String
+
+  authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+
+  @@id([projectId, authMethodId])
+  // a user can only have one password auth method
+  @@unique([projectId, projectUserId])
+}
+
+model PasskeyAuthMethod {
+  projectId     String
+  authMethodId  String @db.Uuid
+  projectUserId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  credentialId String
+  publicKey String
+  userHandle String 
+  transports String[]
+  credentialDeviceType String
+  counter Int
+
 
   authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
@@ -668,6 +715,8 @@ enum VerificationCodeType {
   CONTACT_CHANNEL_VERIFICATION
   TEAM_INVITATION
   MFA_ATTEMPT
+  PASSKEY_REGISTRATION_CHALLENGE
+  PASSKEY_AUTHENTICATION_CHALLENGE
 }
 
 //#region API keys

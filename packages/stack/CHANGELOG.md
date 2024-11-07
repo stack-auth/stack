@@ -1,5 +1,56 @@
 # @stackframe/stack
 
+## 2.6.19
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.19
+  - @stackframe/stack-sc@2.6.19
+  - @stackframe/stack-ui@2.6.19
+
+## 2.6.18
+
+### Patch Changes
+
+- fixed user update bug
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.18
+  - @stackframe/stack-sc@2.6.18
+  - @stackframe/stack-ui@2.6.18
+
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.17
+  - @stackframe/stack-sc@2.6.17
+  - @stackframe/stack-ui@2.6.17
+
+## 2.6.16
+
+### Patch Changes
+
+- - list user pagination
+  - fixed visual glitches
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.16
+  - @stackframe/stack-ui@2.6.16
+  - @stackframe/stack-sc@2.6.16
+
+## 2.6.15
+
+### Patch Changes
+
+- Passkeys
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.15
+  - @stackframe/stack-ui@2.6.15
+  - @stackframe/stack-sc@2.6.15
+
 ## 2.6.14
 
 ### Patch Changes
