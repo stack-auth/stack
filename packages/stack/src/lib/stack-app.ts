@@ -1929,12 +1929,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         });
         await app._serverTeamMemberProfilesCache.refresh([crud.id]);
       },
-      async inviteUser(options: { email: string }) {
+      async inviteUser(options: { email: string, callbackUrl: string }) {
         await app._interface.sendTeamInvitation({
           teamId: crud.id,
           email: options.email,
           session: null,
-          callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
+          callbackUrl: options.callbackUrl
         });
       },
     };
@@ -3065,7 +3065,7 @@ export type ServerTeam = {
   update(update: ServerTeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,
   addUser(userId: string): Promise<void>,
-  inviteUser(options: { email: string }): Promise<void>,
+  inviteUser(options: { email: string, callbackUrl: string }): Promise<void>,
   removeUser(userId: string): Promise<void>,
 } & Team;
 
