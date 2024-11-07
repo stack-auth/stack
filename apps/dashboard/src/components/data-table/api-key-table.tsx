@@ -115,6 +115,6 @@ export function ApiKeyTable(props: { apiKeys: ApiKey[] }) {
     data={extendedApiKeys}
     columns={columns}
     toolbarRender={toolbarRender}
-    defaultFilters={[{ id: 'status', value: ['valid'] }]}
+    defaultColumnFilters={[{ id: 'status', value: ['valid'] }]}
   />;
 }
