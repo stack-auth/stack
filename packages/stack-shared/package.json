@@ -28,10 +28,15 @@
   },
   "peerDependencies": {
     "react": ">=18.2",
+    "@types/react": ">=18.2",
+    "next": ">=14.1.0",
     "yup": "^1.4.0"
   },
   "peerDependenciesMeta": {
     "react": {
+      "optional": true
+    },
+    "@types/react": {
       "optional": true
     },
     "yup": {
@@ -52,11 +57,8 @@
     "@simplewebauthn/types": "^11.0.0",
     "@types/bcrypt": "^5.0.2",
     "@types/elliptic": "^6.4.18",
-    "@types/react": "^18.2.66",
     "@types/semver": "^7.5.8",
     "@types/uuid": "^9.0.8",
-    "next": "^14.1.0",
-    "react": "^18.2.0",
     "rimraf": "^5.0.5"
   }
 }

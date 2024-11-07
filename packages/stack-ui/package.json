@@ -24,10 +24,14 @@
   },
   "peerDependencies": {
     "react": ">=18.2",
+    "@types/react": ">=18.2.12",
     "yup": "^1.4.0"
   },
   "peerDependenciesMeta": {
     "react": {
+      "optional": true
+    },
+    "@types/react": {
       "optional": true
     },
     "yup": {
@@ -79,7 +83,6 @@
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
-    "@types/react": "^18.3.12",
     "next": "^14.2.17",
     "react": "^18.3.1",
     "rimraf": "^5.0.10"
