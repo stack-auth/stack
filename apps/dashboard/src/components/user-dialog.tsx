@@ -27,7 +27,6 @@ export function UserDialog(props: {
       displayName: props.user.displayName || undefined,
       primaryEmail: props.user.primaryEmail || undefined,
       primaryEmailVerified: props.user.primaryEmailVerified,
-      signedUpAt: props.user.signedUpAt,
       clientMetadata: props.user.clientMetadata == null ? "" : JSON.stringify(props.user.clientMetadata, null, 2),
       clientReadOnlyMetadata: props.user.clientReadOnlyMetadata == null ? "" : JSON.stringify(props.user.clientReadOnlyMetadata, null, 2),
       serverMetadata: props.user.serverMetadata == null ? "" : JSON.stringify(props.user.serverMetadata, null, 2),
@@ -35,9 +34,7 @@ export function UserDialog(props: {
       otpAuthEnabled: props.user.otpAuthEnabled,
     };
   } else {
-    defaultValues = {
-      signedUpAt: new Date(),
-    };
+    defaultValues = {};
   }
 
   const formSchema = yup.object({
@@ -108,8 +105,6 @@ export function UserDialog(props: {
         </div>
 
         <InputField control={form.control} label="Display name" name="displayName" />
-
-        <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
 
         {project.config.magicLinkEnabled && <SwitchField control={form.control} label="OTP/magic link sign-in" name="otpAuthEnabled" />}
         {project.config.credentialEnabled && <SwitchField control={form.control} label="Password sign-in" name="passwordEnabled" />}
