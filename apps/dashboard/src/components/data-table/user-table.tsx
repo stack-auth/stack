@@ -2,9 +2,9 @@
 import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
 import { ServerUser } from '@stackframe/stack';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableManual, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableManualPagination, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
 import { ColumnDef, ColumnFiltersState, Row, SortingState, Table } from "@tanstack/react-table";
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { UserDialog } from '../user-dialog';
 
 export type ExtendedServerUser = ServerUser & {
@@ -184,64 +184,41 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
 
 export function UserTable() {
   const stackAdminApp = useAdminApp();
-  const [users, setUsers] = useState<ExtendedServerUser[]>([]);
-  const [sorting, setSorting] = React.useState<SortingState>([{id: 'signedUpAt', desc: true}]);
-  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
-  const [cursors, setCursors] = useState<Record<number, string>>({});
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = useState<any>();
-  const [refreshCounter, setRefreshCounter] = useState(0);
+  const [filters, setFilters] = useState<Parameters<typeof stackAdminApp.listUsers>[0]>({ limit: 10, orderBy: "signedUpAt", desc: true });
+  const users = extendUsers(stackAdminApp.useUsers(filters));
 
-  useEffect(() => {
-    let filters: any = {};
+  const onUpdate = async (options: {
+    cursor: string,
+    limit: number,
+    sorting: SortingState,
+    columnFilters: ColumnFiltersState,
+    globalFilters: any,
+  }) => {
+    let filters: Parameters<typeof stackAdminApp.listUsers>[0] = {
+      cursor: options.cursor,
+      limit: options.limit,
+      query: options.globalFilters,
+    };
 
     const orderMap = {
       signedUpAt: "signedUpAt",
     } as const;
-    if (sorting.length > 0 && sorting[0].id in orderMap) {
-      filters.orderBy = orderMap[sorting[0].id as keyof typeof orderMap];
-      filters.desc = sorting[0].desc;
+    if (options.sorting.length > 0 && options.sorting[0].id in orderMap) {
+      filters.orderBy = orderMap[options.sorting[0].id as keyof typeof orderMap];
+      filters.desc = options.sorting[0].desc;
     }
 
-    stackAdminApp.listUsers({
-      cursor: cursors[pagination.pageIndex],
-      limit: pagination.pageSize,
-      query: globalFilter,
-      ...filters,
-    }).then((users) => {
-      setUsers(extendUsers(users));
-      setCursors(c => users.nextCursor ? { ...c, [pagination.pageIndex + 1]: users.nextCursor } : c);
-    }).catch(console.error);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination, stackAdminApp, sorting, columnFilters, refreshCounter]);
+    setFilters(filters);
+    const users = await stackAdminApp.listUsers(filters);
+    return { nextCursor: users.nextCursor };
+  };
 
-  // Reset to first page when filters change
-  useEffect(() => {
-    setPagination(pagination => ({ ...pagination, pageIndex: 0 }));
-    setCursors({});
-  }, [columnFilters, sorting, pagination.pageSize]);
-
-  // Refresh the users when the global filter changes. Delay to prevent unnecessary re-renders.
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setRefreshCounter(x => x + 1);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [globalFilter]);
-
-  return <DataTableManual
+  return <DataTableManualPagination
     columns={columns}
     data={users}
     toolbarRender={userToolbarRender}
-    sorting={sorting}
-    setSorting={setSorting}
-    pagination={pagination}
-    setPagination={setPagination}
-    columnFilters={columnFilters}
-    setColumnFilters={setColumnFilters}
+    onUpdate={onUpdate}
     defaultVisibility={{ emailVerified: false }}
-    rowCount={pagination.pageSize * Object.keys(cursors).length + (cursors[pagination.pageIndex + 1] ? 1 : 0)}
-    globalFilter={globalFilter}
-    setGlobalFilter={setGlobalFilter}
+    defaultSorting={[{ id: 'signedUpAt', desc: true }]}
   />;
 }

@@ -314,8 +314,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     async (session, [providerId, scope, redirect]) => {
       return await this._getUserOAuthConnectionCacheFn({
         getUser: async () => await this._currentUserCache.getOrWait([session], "write-only"),
-        getOrWaitOAuthToken: async () => await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, providerId, scope || ""], "write-only"),
-        useOAuthToken: () => useAsyncCache(this._currentUserOAuthConnectionAccessTokensCache, [session, providerId, scope || ""], "useOAuthToken"),
+        getOrWaitOAuthToken: async () => await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, providerId, scope || ""] as const, "write-only"),
+        useOAuthToken: () => useAsyncCache(this._currentUserOAuthConnectionAccessTokensCache, [session, providerId, scope || ""] as const, "useOAuthToken"),
         providerId,
         scope,
         redirect,
@@ -905,7 +905,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     function useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
     function useConnectedAccount(id: ProviderType, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
       const scopeString = options?.scopes?.join(" ");
-      return useAsyncCache(app._currentUserOAuthConnectionCache, [session, id, scopeString || "", options?.or === 'redirect'], "user.useConnectedAccount()");
+      return useAsyncCache(app._currentUserOAuthConnectionCache, [session, id, scopeString || "", options?.or === 'redirect'] as const, "user.useConnectedAccount()");
     }
 
     return {
@@ -957,7 +957,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       usePermissions(scope: Team, options?: { recursive?: boolean }): TeamPermission[] {
         const recursive = options?.recursive ?? true;
-        const permissions = useAsyncCache(app._currentUserPermissionsCache, [session, scope.id, recursive], "user.usePermissions()");
+        const permissions = useAsyncCache(app._currentUserPermissionsCache, [session, scope.id, recursive] as const, "user.usePermissions()");
         return useMemo(() => permissions.map((crud) => app._clientTeamPermissionFromCrud(crud)), [permissions]);
       },
       usePermission(scope: Team, permissionId: string): TeamPermission | null {
@@ -996,7 +996,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return app._editableTeamProfileFromCrud(result, session);
       },
       useTeamProfile(team: Team) {
-        const result = useAsyncCache(app._currentUserTeamProfileCache, [session, team.id], "user.useTeamProfile()");
+        const result = useAsyncCache(app._currentUserTeamProfileCache, [session, team.id] as const, "user.useTeamProfile()");
         return app._editableTeamProfileFromCrud(result, session);
       },
       async delete() {
@@ -1008,7 +1008,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return result.map((crud) => app._clientContactChannelFromCrud(crud, session));
       },
       useContactChannels() {
-        const result = useAsyncCache(app._clientContactChannelsCache, [session], "user.useContactChannels()");
+        const result = useAsyncCache(app._clientContactChannelsCache, [session] as const, "user.useContactChannels()");
         return result.map((crud) => app._clientContactChannelFromCrud(crud, session));
       },
       async createContactChannel(data: ContactChannelCreateOptions) {
@@ -1629,8 +1629,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     async ([userId, providerId, scope, redirect]) => {
       return await this._getUserOAuthConnectionCacheFn({
         getUser: async () => await this._serverUserCache.getOrWait([userId], "write-only"),
-        getOrWaitOAuthToken: async () => await this._serverUserOAuthConnectionAccessTokensCache.getOrWait([userId, providerId, scope || ""], "write-only"),
-        useOAuthToken: () => useAsyncCache(this._serverUserOAuthConnectionAccessTokensCache, [userId, providerId, scope || ""], "user.useConnectedAccount()"),
+        getOrWaitOAuthToken: async () => await this._serverUserOAuthConnectionAccessTokensCache.getOrWait([userId, providerId, scope || ""] as const, "write-only"),
+        useOAuthToken: () => useAsyncCache(this._serverUserOAuthConnectionAccessTokensCache, [userId, providerId, scope || ""] as const, "user.useConnectedAccount()"),
         providerId,
         scope,
         redirect,
@@ -1742,7 +1742,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     function useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
     function useConnectedAccount(id: ProviderType, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
       const scopeString = options?.scopes?.join(" ");
-      return useAsyncCache(app._serverUserOAuthConnectionCache, [crud.id, id, scopeString || "", options?.or === 'redirect'], "user.useConnectedAccount()");
+      return useAsyncCache(app._serverUserOAuthConnectionCache, [crud.id, id, scopeString || "", options?.or === 'redirect'] as const, "user.useConnectedAccount()");
     }
 
     return {
@@ -1832,7 +1832,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       usePermissions(scope: Team, options?: { recursive?: boolean }): AdminTeamPermission[] {
         const recursive = options?.recursive ?? true;
-        const permissions = useAsyncCache(app._serverTeamUserPermissionsCache, [scope.id, crud.id, recursive], "user.usePermissions()");
+        const permissions = useAsyncCache(app._serverTeamUserPermissionsCache, [scope.id, crud.id, recursive] as const, "user.usePermissions()");
         return useMemo(() => permissions.map((crud) => app._serverPermissionFromCrud(crud)), [permissions]);
       },
       async getPermission(scope: Team, permissionId: string): Promise<AdminTeamPermission | null> {
@@ -1867,7 +1867,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return app._serverEditableTeamProfileFromCrud(result);
       },
       useTeamProfile(team: Team) {
-        const result = useAsyncCache(app._serverUserTeamProfileCache, [team.id, crud.id], "user.useTeamProfile()");
+        const result = useAsyncCache(app._serverUserTeamProfileCache, [team.id, crud.id] as const, "user.useTeamProfile()");
         return useMemo(() => app._serverEditableTeamProfileFromCrud(result), [result]);
       },
       async listContactChannels() {
@@ -1875,7 +1875,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return result.map((data) => app._serverContactChannelFromCrud(crud.id, data));
       },
       useContactChannels() {
-        const result = useAsyncCache(app._serverContactChannelsCache, [crud.id], "user.useContactChannels()");
+        const result = useAsyncCache(app._serverContactChannelsCache, [crud.id] as const, "user.useContactChannels()");
         return useMemo(() => result.map((data) => app._serverContactChannelFromCrud(crud.id, data)), [result]);
       },
       createContactChannel: async (data: ServerContactChannelCreateOptions) => {
@@ -1931,7 +1931,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return result.map(u => app._serverTeamUserFromCrud(u));
       },
       useUsers() {
-        const result = useAsyncCache(app._serverTeamMemberProfilesCache, [crud.id], "team.useUsers()");
+        const result = useAsyncCache(app._serverTeamMemberProfilesCache, [crud.id] as const, "team.useUsers()");
         return useMemo(() => result.map(u => app._serverTeamUserFromCrud(u)), [result]);
       },
       async addUser(userId) {
@@ -1972,8 +1972,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getUser(id: string): Promise<ServerUser | null>;
   async getUser(options?: string | GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | ServerUser | null> {
     if (typeof options === "string") {
-      const allUsers = await this.listUsers();
-      return allUsers.find((u) => u.id === options) ?? null;
+      return await this.getServerUserById(options);
     } else {
       // TODO this code is duplicated from the client app; fix that
       this._ensurePersistentTokenStore(options?.tokenStore);
@@ -2015,8 +2014,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   useUser(id: string): ServerUser | null;
   useUser(options?: GetUserOptions<HasTokenStore> | string): ProjectCurrentServerUser<ProjectId> | ServerUser | null {
     if (typeof options === "string") {
-      const users = this.useUsers();
-      return users.find((u) => u.id === options) ?? null;
+      return this.useUserById(options);
     } else {
       // TODO this code is duplicated from the client app; fix that
       this._ensurePersistentTokenStore(options?.tokenStore);
@@ -2063,7 +2061,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   useUsers(options?: ServerListUsersOptions): ServerUser[] & { nextCursor: string | null } {
-    const crud = useAsyncCache(this._serverUsersCache, [options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.query], "useServerUsers()");
+    const crud = useAsyncCache(this._serverUsersCache, [options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.query] as const, "useServerUsers()");
     const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
     result.nextCursor = crud.pagination?.next_cursor ?? null;
     return result as any;
@@ -2123,7 +2121,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected override async _refreshUsers() {
     await Promise.all([
       super._refreshUsers(),
-      this._serverUsersCache.refresh([]),
+      this._serverUsersCache.refreshWhere(() => true),
     ]);
   }
 }

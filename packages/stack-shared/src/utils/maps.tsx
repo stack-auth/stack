@@ -1,13 +1,93 @@
 import { Result } from "./results";
 
+export class WeakRefIfAvailable<T extends object> {
+  private readonly _ref: { deref: () => T | undefined };
+
+  constructor(value: T) {
+    if (typeof WeakRef === "undefined") {
+      this._ref = { deref: () => value };
+    } else {
+      this._ref = new WeakRef<T>(value);
+    }
+  }
+
+  deref(): T | undefined {
+    return this._ref.deref();
+  }
+}
+
+
+/**
+ * A WeakMap-like object that can be iterated over.
+ *
+ * Note that it relies on WeakRef, and always falls back to the regular Map behavior (ie. no GC) in browsers that don't support it.
+ */
+export class IterableWeakMap<K extends object, V> {
+  private readonly _weakMap: WeakMap<K & WeakKey, { value: V, keyRef: WeakRefIfAvailable<K & WeakKey> }>;
+  private readonly _keyRefs: Set<WeakRefIfAvailable<K & WeakKey>>;
+
+  constructor(entries?: readonly (readonly [K, V])[] | null) {
+    const mappedEntries = entries?.map((e) => [e[0], { value: e[1], keyRef: new WeakRefIfAvailable(e[0]) }] as const);
+    this._weakMap = new WeakMap(mappedEntries ?? []);
+    this._keyRefs = new Set(mappedEntries?.map((e) => e[1].keyRef) ?? []);
+  }
+
+  get(key: K): V | undefined {
+    return this._weakMap.get(key)?.value;
+  }
+
+  set(key: K, value: V): this {
+    const existing = this._weakMap.get(key);
+    const updated = { value, keyRef: existing?.keyRef ?? new WeakRefIfAvailable(key) };
+    this._weakMap.set(key, updated);
+    this._keyRefs.add(updated.keyRef);
+    return this;
+  }
+
+  delete(key: K): boolean {
+    const res = this._weakMap.get(key);
+    if (res) {
+      this._weakMap.delete(key);
+      this._keyRefs.delete(res.keyRef);
+      return true;
+    }
+    return false;
+  }
+
+  has(key: K): boolean {
+    return this._weakMap.has(key) && this._keyRefs.has(this._weakMap.get(key)!.keyRef);
+  }
+
+  *[Symbol.iterator](): IterableIterator<[K, V]> {
+    for (const keyRef of this._keyRefs) {
+      const key = keyRef.deref();
+      const existing = key ? this._weakMap.get(key) : undefined;
+      if (!key) {
+        // This can happen if the key was GCed. Remove it so the next iteration is faster.
+        this._keyRefs.delete(keyRef);
+      } else if (existing) {
+        yield [key, existing.value];
+      }
+    }
+  }
+
+  [Symbol.toStringTag] = "IterableWeakMap";
+}
+
+/**
+ * A map that is a IterableWeakMap for object keys and a regular Map for primitive keys. Also provides iteration over both
+ * object and primitive keys.
+ *
+ * Note that, just like IterableWeakMap, older browsers without support for WeakRef will use a regular Map for object keys.
+ */
 export class MaybeWeakMap<K, V> {
   private readonly _primitiveMap: Map<K, V>;
-  private readonly _weakMap: WeakMap<K & WeakKey, V>;
+  private readonly _weakMap: IterableWeakMap<K & WeakKey, V>;
 
   constructor(entries?: readonly (readonly [K, V])[] | null) {
     const entriesArray = [...entries ?? []];
     this._primitiveMap = new Map(entriesArray.filter((e) => !this._isAllowedInWeakMap(e[0])));
-    this._weakMap = new WeakMap(entriesArray.filter((e): e is [K & WeakKey, V] => this._isAllowedInWeakMap(e[0])));
+    this._weakMap = new IterableWeakMap(entriesArray.filter((e): e is [K & WeakKey, V] => this._isAllowedInWeakMap(e[0])));
   }
 
   private _isAllowedInWeakMap(key: K): key is K & WeakKey {
@@ -47,6 +127,11 @@ export class MaybeWeakMap<K, V> {
     }
   }
 
+  *[Symbol.iterator](): IterableIterator<[K, V]> {
+    yield* this._primitiveMap;
+    yield* this._weakMap;
+  }
+
   [Symbol.toStringTag] = "MaybeWeakMap";
 }
 
@@ -59,6 +144,10 @@ type DependenciesMapInner<V> = (
   )
 );
 
+/**
+ * A map that stores values indexed by an array of keys. If the keys are objects and the environment supports WeakRefs,
+ * they are stored in a WeakMap.
+ */
 export class DependenciesMap<K extends any[], V> {
   private _inner: DependenciesMapInner<V> = { map: new MaybeWeakMap(), hasValue: false, value: undefined };
 
@@ -105,6 +194,15 @@ export class DependenciesMap<K extends any[], V> {
     }
   }
 
+  private *_iterateInner(dependencies: any[], inner: DependenciesMapInner<V>): IterableIterator<[K, V]> {
+    if (inner.hasValue) {
+      yield [dependencies as K, inner.value];
+    }
+    for (const [key, value] of inner.map) {
+      yield* this._iterateInner([...dependencies, key], value);
+    }
+  }
+
   get(dependencies: K): V | undefined {
     return Result.or(this._unwrapFromInner(dependencies, this._inner), undefined);
   }
@@ -124,6 +222,10 @@ export class DependenciesMap<K extends any[], V> {
 
   clear(): void {
     this._inner = { map: new MaybeWeakMap(), hasValue: false, value: undefined };
+  }
+
+  *[Symbol.iterator](): IterableIterator<[K, V]> {
+    yield* this._iterateInner([], this._inner);
   }
 
   [Symbol.toStringTag] = "DependenciesMap";
