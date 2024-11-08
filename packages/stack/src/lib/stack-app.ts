@@ -753,12 +753,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       profileImageUrl: crud.profile_image_url,
       clientMetadata: crud.client_metadata,
       clientReadOnlyMetadata: crud.client_read_only_metadata,
-      async inviteUser(options: { email: string }) {
+      async inviteUser(options: { email: string, callbackUrl?: string }) {
+        if (!options.callbackUrl && typeof window === "undefined") {
+          throw new Error("Cannot invite user without a callback URL when calling the inviteUser function on the server.");
+        }
         await app._interface.sendTeamInvitation({
           teamId: crud.id,
           email: options.email,
           session,
-          callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
+          callbackUrl: options.callbackUrl ?? constructRedirectUrl(app.urls.teamInvitation),
         });
       },
       async listUsers() {
@@ -1959,12 +1962,16 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         });
         await app._serverTeamMemberProfilesCache.refresh([crud.id]);
       },
-      async inviteUser(options: { email: string }) {
+      async inviteUser(options: { email: string, callbackUrl?: string }) {
+        if (!options.callbackUrl && typeof window === "undefined") {
+          throw new Error("Cannot invite user without a callback URL when calling the inviteUser function on the server.");
+        }
+
         await app._interface.sendTeamInvitation({
           teamId: crud.id,
           email: options.email,
           session: null,
-          callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
+          callbackUrl: options.callbackUrl ?? constructRedirectUrl(app.urls.teamInvitation),
         });
       },
     };
@@ -3046,7 +3053,7 @@ export type Team = {
   profileImageUrl: string | null,
   clientMetadata: any,
   clientReadOnlyMetadata: any,
-  inviteUser(options: { email: string }): Promise<void>,
+  inviteUser(options: { email: string, callbackUrl?: string }): Promise<void>,
   listUsers(): Promise<TeamUser[]>,
   useUsers(): TeamUser[],
   update(update: TeamUpdateOptions): Promise<void>,
@@ -3092,7 +3099,7 @@ export type ServerTeam = {
   update(update: ServerTeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,
   addUser(userId: string): Promise<void>,
-  inviteUser(options: { email: string }): Promise<void>,
+  inviteUser(options: { email: string, callbackUrl?: string }): Promise<void>,
   removeUser(userId: string): Promise<void>,
 } & Team;
 

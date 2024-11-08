@@ -108,6 +108,14 @@ An invitation email containing a magic link will be sent to the specified user. 
       <ParamField path="email" type="string" required>
         The email of the user to invite.
       </ParamField>
+
+      <ParamField path="callbackUrl" type="string">
+        The URL where users will be redirected after accepting the team invitation.
+        
+        Required when calling `inviteUser()` in the server environment since the URL cannot be automatically determined.
+        
+        Example: `https://your-app-url.com/handler/team-invitation`
+      </ParamField>
     </div>
   </ParamField>
 </div>
