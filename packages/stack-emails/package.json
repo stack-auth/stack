@@ -66,6 +66,9 @@
   },
   "devDependencies": {
     "rimraf": "^5.0.5",
-    "@types/lodash": "^4.17.5"
+    "@types/lodash": "^4.17.5",
+    "react": "^18.2",
+    "react-dom": "^18.2",
+    "next": "^14.1.0"
   }
 }

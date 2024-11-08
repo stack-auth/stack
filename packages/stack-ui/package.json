@@ -86,6 +86,9 @@
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
-    "rimraf": "^5.0.10"
+    "rimraf": "^5.0.10",
+    "react": "^18.2",
+    "react-dom": "^18.2",
+    "next": "^14.1.0"
   }
 }
