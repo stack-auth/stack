@@ -1,7 +1,8 @@
 import { ReloadIcon } from "@radix-ui/react-icons";
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 
-export const Spinner = React.forwardRef<
+export const Spinner = forwardRefIfNeeded<
   HTMLSpanElement,
   React.ComponentPropsWithoutRef<'span'>
 >((props, ref) => {

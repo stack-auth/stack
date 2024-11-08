@@ -184,7 +184,8 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
 
 export function UserTable() {
   const stackAdminApp = useAdminApp();
-  const [users, setUsers] = useState<ExtendedServerUser[]>([]);
+  const [filters, setFilters] = useState<Parameters<typeof stackAdminApp.listUsers>[0]>({ limit: 10, orderBy: "signedUpAt", desc: true });
+  const users = extendUsers(stackAdminApp.useUsers(filters));
 
   const onUpdate = async (options: {
     cursor: string,
@@ -193,7 +194,11 @@ export function UserTable() {
     columnFilters: ColumnFiltersState,
     globalFilters: any,
   }) => {
-    let filters: any = {};
+    let filters: Parameters<typeof stackAdminApp.listUsers>[0] = {
+      cursor: options.cursor,
+      limit: options.limit,
+      query: options.globalFilters,
+    };
 
     const orderMap = {
       signedUpAt: "signedUpAt",
@@ -203,13 +208,8 @@ export function UserTable() {
       filters.desc = options.sorting[0].desc;
     }
 
-    const users = await stackAdminApp.listUsers({
-      cursor: options.cursor,
-      limit: options.limit,
-      query: options.globalFilters,
-      ...filters,
-    });
-    setUsers(extendUsers(users));
+    setFilters(filters);
+    const users = await stackAdminApp.listUsers(filters);
     return { nextCursor: users.nextCursor };
   };
 
