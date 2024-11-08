@@ -17,7 +17,7 @@ import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors"
 import { cn } from "../../lib/utils";
 import { SpanLabel } from "./label";
 
-const Form: React.FC<React.ComponentPropsWithoutRef<typeof FormProvider>> = FormProvider;
+const Form = FormProvider;
 
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
