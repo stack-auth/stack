@@ -1,7 +1,7 @@
 'use client';
 import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
 import { ServerUser } from '@stackframe/stack';
-import { AvatarCell, Button, DataTableColumnHeader, DataTableManualPagination, Input, TextCell } from "@stackframe/stack-ui";
+import { AvatarCell, Button, DataTableColumnHeader, DataTableManualPagination, Input, SearchToolbarItem, TextCell } from "@stackframe/stack-ui";
 import { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/react-table";
 import { useState } from "react";
 import { extendUsers } from './user-table';
@@ -56,13 +56,11 @@ export function TeamMemberSearchTable(props: {
     return { nextCursor: users.nextCursor };
   };
 
-  return <div className="flex flex-col gap-4">
-    <Input placeholder="Search" />
-    <DataTableManualPagination
-      showToolbar={false}
-      columns={columns}
-      data={users}
-      onUpdate={onUpdate}
-    />
-  </div>;
+  return <DataTableManualPagination
+    showDefaultToolbar={false}
+    columns={columns}
+    data={users}
+    onUpdate={onUpdate}
+    toolbarRender={table => <SearchToolbarItem table={table} placeholder="Search table" className="w-full" />}
+  />;
 }
