@@ -1,11 +1,12 @@
 "use client";
-import { useAdminApp } from '../../use-admin-app';
+import { TeamMemberSearchTable } from '@/components/data-table/team-member-search-table';
+import { TeamMemberTable } from '@/components/data-table/team-member-table';
+import { ServerTeam } from '@stackframe/stack';
+import { ActionDialog, Button, useToast } from '@stackframe/stack-ui';
 import { notFound } from 'next/navigation';
 import { PageLayout } from '../../page-layout';
-import { TeamMemberTable } from '@/components/data-table/team-member-table';
-import { ActionDialog, Button, TableBody, TableHead, TableRow, Table, TableHeader, useToast, TableCell } from '@stackframe/stack-ui';
-import { TeamMemberSearchTable } from '@/components/data-table/team-member-search-table';
-import { ServerTeam } from '@stackframe/stack';
+import { useAdminApp } from '../../use-admin-app';
+import { KnownErrors } from '@stackframe/stack-shared';
 
 
 export function AddUserDialog(props: {
@@ -14,11 +15,30 @@ export function AddUserDialog(props: {
   trigger?: React.ReactNode,
   team: ServerTeam,
 }) {
+  const { toast } = useToast();
+
   return <ActionDialog
     title="Add a user"
     trigger={props.trigger}
   >
-    <TeamMemberSearchTable team={props.team} />
+    <TeamMemberSearchTable
+      action={(user) => <div className='flex justify-end w-[60px]'><Button
+        variant="outline"
+        onClick={async () => {
+          try {
+            await props.team.addUser(user.id);
+            toast({ title: 'User added to team', variant: 'success' });
+          } catch (error) {
+            if (error instanceof KnownErrors.TeamMembershipAlreadyExists) {
+              toast({ title: 'User already a member of this team', variant: 'destructive' });
+            }
+          }
+        }}
+      >
+        Add
+      </Button>
+      </div>}
+    />
   </ActionDialog>;
 }
 

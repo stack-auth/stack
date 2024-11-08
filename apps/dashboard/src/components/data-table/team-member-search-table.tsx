@@ -1,12 +1,14 @@
 'use client';
-import { ServerTeam, ServerUser } from '@stackframe/stack';
-import { AvatarCell, Button, DataTable, DataTableColumnHeader, DataTableManualPagination, Input, TextCell } from "@stackframe/stack-ui";
-import { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/react-table";
-import { useEffect, useState } from "react";
-import { extendUsers } from './user-table';
 import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
+import { ServerUser } from '@stackframe/stack';
+import { AvatarCell, Button, DataTableColumnHeader, DataTableManualPagination, Input, TextCell } from "@stackframe/stack-ui";
+import { ColumnDef, ColumnFiltersState, SortingState } from "@tanstack/react-table";
+import { useState } from "react";
+import { extendUsers } from './user-table';
 
-export function TeamMemberSearchTable(props: { team: ServerTeam }) {
+export function TeamMemberSearchTable(props: {
+  action: (user: ServerUser) => React.ReactNode,
+}) {
   const stackAdminApp = useAdminApp();
   const [filters, setFilters] = useState<Parameters<typeof stackAdminApp.listUsers>[0]>({ limit: 10 });
   const users = extendUsers(stackAdminApp.useUsers(filters));
@@ -32,7 +34,7 @@ export function TeamMemberSearchTable(props: { team: ServerTeam }) {
     },
     {
       id: "actions",
-      cell: ({ row }) => <Button variant="outline">Add</Button>,
+      cell: ({ row }) => props.action(row.original),
     },
   ];
 
