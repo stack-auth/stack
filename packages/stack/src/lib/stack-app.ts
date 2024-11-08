@@ -1967,10 +1967,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           throw new Error("Cannot invite user without a callback URL from the server. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
         }
 
-        await app._interface.sendTeamInvitation({
+        await app._interface.sendServerTeamInvitation({
           teamId: crud.id,
           email: options.email,
-          session: null,
           callbackUrl: options.callbackUrl ?? constructRedirectUrl(app.urls.teamInvitation),
         });
       },

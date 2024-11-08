@@ -502,4 +502,26 @@ export class StackServerInterface extends StackClientInterface {
       null,
     );
   }
+
+  async sendServerTeamInvitation(options: {
+    email: string,
+    teamId: string,
+    callbackUrl: string,
+  }): Promise<void> {
+    await this.sendServerRequest(
+      "/team-invitations/send-code",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: options.email,
+          team_id: options.teamId,
+          callback_url: options.callbackUrl,
+        }),
+      },
+      null,
+    );
+  }
 }

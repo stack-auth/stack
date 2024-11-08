@@ -645,7 +645,7 @@ export class StackClientInterface {
     email: string,
     teamId: string,
     callbackUrl: string,
-    session: InternalSession | null,
+    session: InternalSession,
   }): Promise<void> {
     await this.sendClientRequest(
       "/team-invitations/send-code",
