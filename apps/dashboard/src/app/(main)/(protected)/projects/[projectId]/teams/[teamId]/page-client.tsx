@@ -15,6 +15,7 @@ export function AddUserDialog(props: {
   trigger?: React.ReactNode,
   team: ServerTeam,
 }) {
+  const teamUsers = props.team.useUsers();
   const { toast } = useToast();
 
   return <ActionDialog
@@ -22,8 +23,9 @@ export function AddUserDialog(props: {
     trigger={props.trigger}
   >
     <TeamMemberSearchTable
-      action={(user) => <div className='flex justify-end w-[60px]'><Button
+      action={(user) => <Button
         variant="outline"
+        disabled={teamUsers.find(u => u.id === user.id) !== undefined}
         onClick={async () => {
           try {
             await props.team.addUser(user.id);
@@ -35,9 +37,8 @@ export function AddUserDialog(props: {
           }
         }}
       >
-        Add
-      </Button>
-      </div>}
+        {teamUsers.find(u => u.id === user.id) ? 'Added' : 'Add'}
+      </Button>}
     />
   </ActionDialog>;
 }
