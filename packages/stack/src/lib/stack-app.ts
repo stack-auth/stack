@@ -34,7 +34,7 @@ import * as NextNavigationUnscrambled from "next/navigation"; // import the enti
 import React, { useCallback, useMemo } from "react";
 import { constructRedirectUrl } from "../utils/url";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
-import { CookieHelper, createBrowserCookieHelper, createCookieHelper, createNextCookieHelperHack, deleteCookieClient, getCookieClient, setOrDeleteCookie, setOrDeleteCookieClient } from "./cookie";
+import { CookieHelper, createBrowserCookieHelper, createCookieHelper, deleteCookieClient, getCookieClient, setOrDeleteCookie, setOrDeleteCookieClient } from "./cookie";
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
@@ -554,12 +554,23 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           });
           const store = new Store<TokenObject>(tokens);
           store.onChange((value) => {
-            try {
-              runAsynchronously(setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 }));
-              runAsynchronously(setOrDeleteCookie(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24 }));
-            } catch (e) {
-              // ignore
-            }
+            runAsynchronously(async () => {
+              // TODO HACK this is a bit of a hack; while the order happens to work in practice (because the only actual
+              // async operation is waiting for the `cookies()` to resolve which always happens at the same time during
+              // the same request), it's not guaranteed to be free of race conditions if there are many updates happening
+              // at the same time
+              //
+              // instead, we should create a per-request cookie helper outside of the store onChange and reuse that
+              //
+              // but that's kinda hard to do because Next.js doesn't expose a documented way to find out which request
+              // we're currently processing, and hence we can't find out which per-request cookie helper to use
+              //
+              // so hack it is
+              await Promise.all([
+                setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365, noOpIfServerComponent: true }),
+                setOrDeleteCookie(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24, noOpIfServerComponent: true }),
+              ]);
+            });
           });
           return store;
         }
@@ -612,8 +623,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected _useTokenStore(overrideTokenStoreInit?: TokenStoreInit): Store<TokenObject> {
-    // TODO next-release: don't use this hack, instead call createCookieHelper() (async)
-    const cookieHelper = isBrowserLike() ? createBrowserCookieHelper() : createNextCookieHelperHack();
+    suspendIfSsr();
+    const cookieHelper = createBrowserCookieHelper();
     const tokenStore = this._getOrCreateTokenStore(cookieHelper, overrideTokenStoreInit);
     return tokenStore;
   }

@@ -68,10 +68,15 @@
   "peerDependencies": {
     "next": ">=14.1",
     "react": ">=18.2",
-    "@types/react": ">=18.2"
+    "react-dom": ">=18.2",
+    "@types/react": ">=18.2",
+    "@types/react-dom": ">=18.2"
   },
   "peerDependenciesMeta": {
     "@types/react": {
+      "optional": true
+    },
+    "@types/react-dom": {
       "optional": true
     }
   },
@@ -90,6 +95,9 @@
     "postcss": "^8.4.38",
     "postcss-nested": "^6.0.1",
     "tailwindcss": "^3.4.4",
-    "tsup": "^8.0.2"
+    "tsup": "^8.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next": "^14.1.0"
   }
 }

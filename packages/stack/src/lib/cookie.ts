@@ -1,9 +1,11 @@
 import { cookies as rscCookies, headers as rscHeaders } from '@stackframe/stack-sc/force-react-server';
 import { isBrowserLike } from '@stackframe/stack-shared/dist/utils/env';
+import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import Cookies from "js-cookie";
 import { calculatePKCECodeChallenge, generateRandomCodeVerifier, generateRandomState } from "oauth4webapi";
 
-type SetCookieOptions = { maxAge?: number };
+type SetCookieOptions = { maxAge?: number, noOpIfServerComponent?: boolean };
+type DeleteCookieOptions = { noOpIfServerComponent?: boolean };
 
 function ensureClient() {
   if (!isBrowserLike()) {
@@ -14,8 +16,8 @@ function ensureClient() {
 export type CookieHelper = {
   get: (name: string) => string | null,
   set: (name: string, value: string, options: SetCookieOptions) => void,
-  setOrDelete: (name: string, value: string | null, options: SetCookieOptions) => void,
-  delete: (name: string) => void,
+  setOrDelete: (name: string, value: string | null, options: SetCookieOptions & DeleteCookieOptions) => void,
+  delete: (name: string, options: DeleteCookieOptions) => void,
 };
 
 export async function createCookieHelper(): Promise<CookieHelper> {
@@ -29,7 +31,6 @@ export async function createCookieHelper(): Promise<CookieHelper> {
   }
 }
 
-// TODO next-release: don't export this
 export function createBrowserCookieHelper(): CookieHelper {
   return {
     get: getCookieClient,
@@ -39,12 +40,16 @@ export function createBrowserCookieHelper(): CookieHelper {
   };
 }
 
-// TODO next-release: delete this
-export function createNextCookieHelperHack() {
-  return createNextCookieHelper(
-    rscCookies() as any,
-    rscHeaders() as any,
-  );
+function handleCookieError(e: unknown, options: DeleteCookieOptions | SetCookieOptions) {
+  if (e instanceof Error && e.message.includes("Cookies can only be modified in")) {
+    if (options.noOpIfServerComponent) {
+      // ignore
+    } else {
+      throw new StackAssertionError("Attempted to set cookie in server component. Pass { noOpIfServerComponent: true } in the options of Stack's cookie functions if this is intentional and you want to ignore this error. Read more: https://nextjs.org/docs/app/api-reference/functions/cookies#options");
+    }
+  } else {
+    throw e;
+  }
 }
 
 function createNextCookieHelper(
@@ -90,20 +95,28 @@ function createNextCookieHelper(
         isSecureCookie = true;
       }
 
-      rscCookiesAwaited.set(name, value, {
-        secure: isSecureCookie,
-        maxAge: options.maxAge,
-      });
+      try {
+        rscCookiesAwaited.set(name, value, {
+          secure: isSecureCookie,
+          maxAge: options.maxAge,
+        });
+      } catch (e) {
+        handleCookieError(e, options);
+      }
     },
-    setOrDelete(name: string, value: string | null, options: SetCookieOptions) {
+    setOrDelete(name: string, value: string | null, options: SetCookieOptions & DeleteCookieOptions = {}) {
       if (value === null) {
-        this.delete(name);
+        this.delete(name, options);
       } else {
         this.set(name, value, options);
       }
     },
-    delete(name: string) {
-      rscCookiesAwaited.delete(name);
+    delete(name: string, options: DeleteCookieOptions = {}) {
+      try {
+        rscCookiesAwaited.delete(name);
+      } catch (e) {
+        handleCookieError(e, options);
+      }
     },
   };
   return cookieHelper;
@@ -121,28 +134,28 @@ export async function getCookie(name: string): Promise<string | null> {
   return cookieHelper.get(name);
 }
 
-export function setOrDeleteCookieClient(name: string, value: string | null, options: SetCookieOptions = {}) {
+export function setOrDeleteCookieClient(name: string, value: string | null, options: SetCookieOptions & DeleteCookieOptions = {}) {
   ensureClient();
   if (value === null) {
-    deleteCookieClient(name);
+    deleteCookieClient(name, options);
   } else {
     setCookieClient(name, value, options);
   }
 }
 
-export async function setOrDeleteCookie(name: string, value: string | null, options: SetCookieOptions = {}) {
+export async function setOrDeleteCookie(name: string, value: string | null, options: SetCookieOptions & DeleteCookieOptions = {}) {
   const cookieHelper = await createCookieHelper();
   cookieHelper.setOrDelete(name, value, options);
 }
 
-export function deleteCookieClient(name: string) {
+export function deleteCookieClient(name: string, options: DeleteCookieOptions = {}) {
   ensureClient();
   Cookies.remove(name);
 }
 
-export async function deleteCookie(name: string) {
+export async function deleteCookie(name: string, options: DeleteCookieOptions = {}) {
   const cookieHelper = await createCookieHelper();
-  cookieHelper.delete(name);
+  cookieHelper.delete(name, options);
 }
 
 export function setCookieClient(name: string, value: string, options: SetCookieOptions = {}) {
