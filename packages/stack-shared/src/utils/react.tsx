@@ -1,7 +1,19 @@
-import React from "react";
+import React, { PropsWithoutRef } from "react";
 import { neverResolve } from "./promises";
 import { deindent } from "./strings";
 import { isBrowserLike } from "./env";
+
+export function forwardRefIfNeeded<T, P = {}>(render: React.ForwardRefRenderFunction<T, P>): React.FC<P & { ref?: React.Ref<T> }> {
+  // TODO: when we drop support for react 18, remove this
+
+  const version = React.version;
+  const major = parseInt(version.split(".")[0]);
+  if (major < 19) {
+    return React.forwardRef<T, P>(render as any) as any;
+  } else {
+    return ((props: P) => render(props, (props as any).ref)) as any;
+  }
+}
 
 export function getNodeText(node: React.ReactNode): string {
   if (["number", "string"].includes(typeof node)) {

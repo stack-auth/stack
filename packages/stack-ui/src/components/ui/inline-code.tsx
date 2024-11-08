@@ -2,12 +2,13 @@
 
 import { cn } from "../../lib/utils";
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import { hasClickableParent } from "@stackframe/stack-shared/dist/utils/dom";
 import { getNodeText } from "@stackframe/stack-shared/dist/utils/react";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { useToast } from "./use-toast";
 
-const InlineCode = React.forwardRef<
+const InlineCode = forwardRefIfNeeded<
   React.ElementRef<"code">,
   React.ComponentPropsWithoutRef<"code">
 >((props, ref) => {

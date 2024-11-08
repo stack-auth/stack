@@ -362,6 +362,24 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
+  async updateServerTeamMemberProfile(options: {
+    teamId: string,
+    userId: string,
+    profile: TeamMemberProfilesCrud['Server']['Update'],
+  }) {
+    await this.sendServerRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.profile),
+      },
+      null,
+    );
+  }
+
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {
     await this.sendServerRequest(
       `/team-permissions/${teamId}/${userId}/${permissionId}`,

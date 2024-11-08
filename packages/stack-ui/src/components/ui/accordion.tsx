@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 
@@ -8,7 +9,7 @@ import { cn } from "../../lib/utils";
 
 const Accordion = AccordionPrimitive.Root;
 
-const AccordionItem = React.forwardRef<
+const AccordionItem = forwardRefIfNeeded<
   React.ElementRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
 >(({ className, ...props }, ref) => (
@@ -20,7 +21,7 @@ const AccordionItem = React.forwardRef<
 ));
 AccordionItem.displayName = "AccordionItem";
 
-const AccordionTrigger = React.forwardRef<
+const AccordionTrigger = forwardRefIfNeeded<
   React.ElementRef<typeof AccordionPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
 >(({ className, children, disabled, ...props }, ref) => (
@@ -40,7 +41,7 @@ const AccordionTrigger = React.forwardRef<
 ));
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
 
-const AccordionContent = React.forwardRef<
+const AccordionContent = forwardRefIfNeeded<
   React.ElementRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
 >(({ className, children, ...props }, ref) => (

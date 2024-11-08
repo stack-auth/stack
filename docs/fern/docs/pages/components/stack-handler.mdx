@@ -9,8 +9,7 @@ For detailed usage instructions, please refer to the manual section of the [setu
 ## Props
 
 - `app`: `StackServerApp` - The Stack server application instance.
-- `params`: `{ stack?: string[] }` - The route parameters, where `stack` is an array of path segments.
-- `searchParams`: `Record<string, string>` - The URL search parameters.
+- `routeProps`: `NextRouteProps` - The Next.js route props, usually the first argument of the page component (see below)
 - `fullPage`: `boolean` - Whether to render the component in full-page mode.
 - `componentProps`: `{ [K in keyof Components]?: Partial<ComponentProps<Components[K]>> }` - Props to pass to the rendered components.
 
@@ -20,12 +19,11 @@ For detailed usage instructions, please refer to the manual section of the [setu
 import { StackHandler } from '@stackframe/stack';
 import { stackServerApp } from "@/stack";
 
-export default function Hanlder(props: { params: any, searchParams: any }) {
+export default function Handler(props: { params: any, searchParams: any }) {
   return (
     <StackHandler
       app={stackServerApp}
-      params={props.params}
-      searchParams={props.searchParams}
+      routeProps={props}
       fullPage={true}
       componentProps={{
         SignIn: { /* SignIn component props */ },

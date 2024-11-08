@@ -1,11 +1,12 @@
 "use client";
 
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import { cn } from "../../lib/utils";
 
-const TooltipProvider = React.forwardRef<
+const TooltipProvider = forwardRefIfNeeded<
   void,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Provider>
 >((props, ref) => (
@@ -20,7 +21,7 @@ const Tooltip = TooltipPrimitive.Root;
 
 const TooltipTrigger = TooltipPrimitive.Trigger;
 
-const TooltipContent = React.forwardRef<
+const TooltipContent = forwardRefIfNeeded<
   React.ElementRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
 >(({ className, sideOffset = 4, ...props }, ref) => (

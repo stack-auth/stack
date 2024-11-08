@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import * as SwitchPrimitives from "@radix-ui/react-switch";
 
 import { cn } from "../../lib/utils";
@@ -10,7 +11,7 @@ import { Spinner } from "./spinner";
 
 interface OriginalSwitchProps extends React.ComponentProps<typeof SwitchPrimitives.Root> {}
 
-const OriginalSwitch = React.forwardRef<
+const OriginalSwitch = forwardRefIfNeeded<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   OriginalSwitchProps
 >(({ className, ...props }, ref) => (
@@ -36,7 +37,7 @@ interface AsyncSwitchProps extends OriginalSwitchProps {
   loading?: boolean,
 }
 
-const Switch = React.forwardRef<
+const Switch = forwardRefIfNeeded<
   React.ElementRef<typeof SwitchPrimitives.Root>,
   AsyncSwitchProps
 >(({ loading: loadingProp, onClick, onCheckedChange, ...props }, ref) => {

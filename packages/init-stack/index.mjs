@@ -75,18 +75,19 @@ async function main() {
     );
   }
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-  if (!packageJson.dependencies || !packageJson.dependencies["next"]) {
+  const nextVersionInPackageJson = packageJson?.dependencies["next"] ?? packageJson?.devDependencies["next"];
+  if (!nextVersionInPackageJson) {
     throw new UserError(
       `The project at ${projectPath} does not appear to be a Next.js project, or does not have 'next' installed as a dependency. Only Next.js projects are currently supported.`
     );
   }
-  const nextPackageJsonVersion = packageJson.dependencies["next"];
   if (
-    !nextPackageJsonVersion.includes("14") &&
-    nextPackageJsonVersion !== "latest"
+    !nextVersionInPackageJson.includes("14") &&
+    !nextVersionInPackageJson.includes("15") &&
+    nextVersionInPackageJson !== "latest"
   ) {
     throw new UserError(
-      `The project at ${projectPath} is using an unsupported version of Next.js (found ${packageJson.dependencies["next"]}).\n\nOnly Next.js 14 projects are currently supported. See Next's upgrade guide: https://nextjs.org/docs/app/building-your-application/upgrading/version-14`
+      `The project at ${projectPath} is using an unsupported version of Next.js (found ${nextVersionInPackageJson}).\n\nOnly Next.js 14 & 15 projects are currently supported. See Next's upgrade guide: https://nextjs.org/docs/app/building-your-application/upgrading/version-14`
     );
   }
 
@@ -230,7 +231,7 @@ async function main() {
     handlerPath,
     `import { StackHandler } from "@stackframe/stack";\nimport { stackServerApp } from "../../../stack";\n\nexport default function Handler(props${
       handlerFileExtension.includes("ts") ? ": any" : ""
-    }) {\n${ind}return <StackHandler fullPage app={stackServerApp} {...props} />;\n}\n`
+    }) {\n${ind}return <StackHandler fullPage app={stackServerApp} routeProps={props} />;\n}\n`
   );
   await writeFileIfNotExists(
     stackAppPath,

@@ -1,4 +1,5 @@
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
@@ -43,7 +44,7 @@ export interface OriginalButtonProps
   asChild?: boolean,
 }
 
-const OriginalButton = React.forwardRef<HTMLButtonElement, OriginalButtonProps>(
+const OriginalButton = forwardRefIfNeeded<HTMLButtonElement, OriginalButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
@@ -62,7 +63,7 @@ interface ButtonProps extends OriginalButtonProps {
   loading?: boolean,
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+const Button = forwardRefIfNeeded<HTMLButtonElement, ButtonProps>(
   ({ onClick, loading: loadingProp, children, ...props }, ref) => {
     const [handleClick, isLoading] = useAsyncCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
       await onClick?.(e);
