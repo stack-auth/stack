@@ -31,12 +31,15 @@
   ],
   "peerDependencies": {
     "next": ">=14.1",
-    "react": ">=18.2"
+    "react": ">=18.2",
+    "@types/react": ">=18.3.12"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    }
   },
   "devDependencies": {
-    "@types/react": "^18.3.12",
-    "next": "^14.1.0",
-    "react": "^18.2.0",
     "rimraf": "^5.0.5"
   }
 }

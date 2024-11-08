@@ -9,6 +9,7 @@
   "cSpell.words": [
     "cjsx",
     "clsx",
+    "cmdk",
     "codegen",
     "Crudl",
     "ctsx",
@@ -64,7 +65,8 @@
     "webapi",
     "webauthn",
     "Whitespaces",
-    "wolfgunblood"
+    "wolfgunblood",
+    "zustand"
   ],
   "[typescript]": {
       "editor.codeActionsOnSave": {

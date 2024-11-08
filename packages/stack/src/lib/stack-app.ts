@@ -755,7 +755,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
       },
       useUsers() {
-        const result = useAsyncCache(app._teamMemberProfilesCache, [session, crud.id], "team.useUsers()");
+        const result = useAsyncCache(app._teamMemberProfilesCache, [session, crud.id] as const, "team.useUsers()");
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
       },
       async update(data: TeamUpdateOptions){

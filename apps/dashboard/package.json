@@ -63,7 +63,7 @@
     "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
-    "@types/react": "^18.2.66",
+    "@types/react": "^18.3.12",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.17",
     "glob": "^10.4.1",
