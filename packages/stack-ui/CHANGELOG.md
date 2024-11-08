@@ -1,5 +1,13 @@
 # @stackframe/stack-ui
 
+## 2.6.20
+
+### Patch Changes
+
+- Next.js 15 fixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.20
+
 ## 2.6.19
 
 ### Patch Changes
