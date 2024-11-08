@@ -34,10 +34,11 @@ export function TableView<TData, TValue>(props: {
   table: TableType<TData>,
   columns: ColumnDef<TData, TValue>[],
   toolbarRender?: (table: TableType<TData>) => React.ReactNode,
+  showToolbar?: boolean,
 }) {
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={props.table} toolbarRender={props.toolbarRender} />
+      {props.showToolbar && <DataTableToolbar table={props.table} toolbarRender={props.toolbarRender} />}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -100,6 +101,7 @@ type DataTableProps<TData, TValue> = {
   defaultVisibility?: VisibilityState,
   defaultColumnFilters?: ColumnFiltersState,
   defaultSorting?: SortingState,
+  showToolbar?: boolean,
 }
 
 export function DataTable<TData, TValue>({
@@ -109,6 +111,7 @@ export function DataTable<TData, TValue>({
   defaultVisibility,
   defaultColumnFilters,
   defaultSorting,
+  showToolbar = true,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>(defaultSorting || []);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(defaultColumnFilters || []);
@@ -133,6 +136,7 @@ export function DataTable<TData, TValue>({
     setPagination={setPagination}
     globalFilter={globalFilter}
     setGlobalFilter={setGlobalFilter}
+    showToolbar={showToolbar}
   />;
 }
 
@@ -154,6 +158,7 @@ export function DataTableManualPagination<TData, TValue>({
   defaultColumnFilters,
   defaultSorting,
   onUpdate,
+  showToolbar = true,
 }: DataTableManualPaginationProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>(defaultSorting || []);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
@@ -204,6 +209,7 @@ export function DataTableManualPagination<TData, TValue>({
     defaultColumnFilters={defaultColumnFilters}
     defaultSorting={defaultSorting}
     defaultVisibility={defaultVisibility}
+    showToolbar={showToolbar}
   />;
 }
 
@@ -237,6 +243,7 @@ function DataTableBase<TData, TValue>({
   setGlobalFilter,
   manualPagination = true,
   manualFiltering = true,
+  showToolbar = true,
 }: DataTableBaseProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(defaultVisibility || {});
@@ -272,5 +279,5 @@ function DataTableBase<TData, TValue>({
     rowCount,
   });
 
-  return <TableView table={table} columns={columns} toolbarRender={toolbarRender} />;
+  return <TableView table={table} columns={columns} toolbarRender={toolbarRender} showToolbar={showToolbar} />;
 }
