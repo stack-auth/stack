@@ -1,5 +1,11 @@
 # @stackframe/docs
 
+## 2.6.21
+
+### Patch Changes
+
+- Fixed inviteUser
+
 ## 2.6.20
 
 ### Patch Changes

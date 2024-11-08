@@ -1,5 +1,15 @@
 # @stackframe/docs-examples
 
+## 2.6.21
+
+### Patch Changes
+
+- Fixed inviteUser
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.21
+  - @stackframe/stack-ui@2.6.21
+  - @stackframe/stack@2.6.21
+
 ## 2.6.20
 
 ### Patch Changes
