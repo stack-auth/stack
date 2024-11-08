@@ -755,7 +755,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       clientReadOnlyMetadata: crud.client_read_only_metadata,
       async inviteUser(options: { email: string, callbackUrl?: string }) {
         if (!options.callbackUrl && typeof window === "undefined") {
-          throw new Error("Cannot invite user without a callback URL when calling the inviteUser function on the server.");
+          throw new Error("Cannot invite user without a callback URL from the server. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
         }
         await app._interface.sendTeamInvitation({
           teamId: crud.id,
@@ -1964,7 +1964,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async inviteUser(options: { email: string, callbackUrl?: string }) {
         if (!options.callbackUrl && typeof window === "undefined") {
-          throw new Error("Cannot invite user without a callback URL when calling the inviteUser function on the server.");
+          throw new Error("Cannot invite user without a callback URL from the server. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
         }
 
         await app._interface.sendTeamInvitation({
