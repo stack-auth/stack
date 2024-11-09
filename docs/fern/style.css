@@ -3,3 +3,17 @@
   padding-left: 1.5rem;
   border-left: 1px solid var(--border);
 }
+
+.stack-image-showcase {
+  display: flex;
+  justify-content: center;
+}
+
+
+.stack-white-image-showcase {
+  display: flex;
+  justify-content: center;
+  background-color: white;
+  border-radius: 12px;
+  padding: 16px;
+}
