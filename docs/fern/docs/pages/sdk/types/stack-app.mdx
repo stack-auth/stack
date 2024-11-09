@@ -1,8 +1,8 @@
 ---
-slug: sdk/stack-app
+slug: sdk/types/stack-app
 ---
 
-This is a detailed reference for the `StackApp` object. [Here](../concepts/stack-app.mdx) is a more high-level overview.
+This is a detailed reference for the `StackApp` object. [Here](../../concepts/stack-app.mdx) is a more high-level overview.
 
 ## Different types of `StackApp` objects
 
@@ -33,7 +33,7 @@ In most cases, we don't create a `StackClientApp` directly. Instead, we typicall
 1. Create a `StackServerApp` instance, pass it into the `StackProvider` component
 2. Use the `useStackApp()` hook to obtain a `StackClientApp` from it
 
-Check out the manual [setup guide](../getting-started/setup.mdx) for more details. For details on how to initialize a `StackServerApp`, refer to the [StackServerApp section](#stackserverapp) below.
+Check out the manual [setup guide](../../getting-started/setup.mdx) for more details. For details on how to initialize a `StackServerApp`, refer to the [StackServerApp section](#stackserverapp) below.
 
 ### Properties
 
@@ -403,7 +403,7 @@ Note that although the `useXYZ` hooks are available on `StackServerApp`, they ar
       </ParamField>
 
       <ParamField path="oauthScopesOnSignIn" type="object">
-        Extra OAuth scopes to request when signing in. It is an object of format `{ [provider: string]: string[] }`, where the key is the provider type (e.g. `"google"`, `"apple"`, etc.) and the value is an array of scopes to request. Checkout the [OAuth](../concepts/oauth.mdx) page for more details.
+        Extra OAuth scopes to request when signing in. It is an object of format `{ [provider: string]: string[] }`, where the key is the provider type (e.g. `"google"`, `"apple"`, etc.) and the value is an array of scopes to request. Checkout the [OAuth](../../concepts/oauth.mdx) page for more details.
       </ParamField>
 
       <ParamField path="baseUrl" type="string">

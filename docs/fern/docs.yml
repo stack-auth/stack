@@ -112,6 +112,9 @@ navigation:
             path: ./docs/pages/others/self-host.mdx
   - tab: components
     layout: 
+      - page: All Components
+        icon: fa-regular fa-globe
+        path: ./docs/pages/components/overview.mdx
       - section: Components
         contents:
           - page: <UserButton />
@@ -142,37 +145,40 @@ navigation:
             path: ./docs/pages/components/stack-theme.mdx
   - tab: sdk
     layout:
-      - section: Classes
+      - page: SDK Overview
+        icon: fa-regular fa-globe
+        path: ./docs/pages/sdk/overview.mdx
+      - section: Types
         contents:
           - page: User
-            path: ./docs/pages/sdk/user.mdx
+            path: ./docs/pages/sdk/types/user.mdx
           - page: StackApp
-            path: ./docs/pages/sdk/stack-app.mdx
+            path: ./docs/pages/sdk/types/stack-app.mdx
           - page: Team
-            path: ./docs/pages/sdk/team.mdx
+            path: ./docs/pages/sdk/types/team.mdx
           - page: TeamUser
-            path: ./docs/pages/sdk/team-user.mdx
+            path: ./docs/pages/sdk/types/team-user.mdx
           - page: TeamProfile
-            path: ./docs/pages/sdk/team-profile.mdx
+            path: ./docs/pages/sdk/types/team-profile.mdx
           - page: TeamPermission
-            path: ./docs/pages/sdk/team-permission.mdx
+            path: ./docs/pages/sdk/types/team-permission.mdx
           - page: Project
-            path: ./docs/pages/sdk/project.mdx
+            path: ./docs/pages/sdk/types/project.mdx
           - page: ContactChannel
-            path: ./docs/pages/sdk/contact-channel.mdx
+            path: ./docs/pages/sdk/types/contact-channel.mdx
           # - page: ConnectedAccount
-          #   path: ./docs/pages/sdk/connected-account.mdx
+          #   path: ./docs/pages/sdk/types/connected-account.mdx
       - section: Hooks
         contents:
           - page: useUser()
-            path: ./docs/pages/sdk/use-user.mdx
+            path: ./docs/pages/sdk/hooks/use-user.mdx
           - page: useStackApp()
-            path: ./docs/pages/sdk/use-stack-app.mdx
+            path: ./docs/pages/sdk/hooks/use-stack-app.mdx
   - tab: api
     layout: 
       - page: API Overview
         icon: fa-regular fa-globe
-        path: ./docs/pages/rest-api/auth.mdx
+        path: ./docs/pages/rest-api/overview.mdx
       - api: Client API
         slug: client
         api-name: client
