@@ -114,3 +114,11 @@ tr.stack-clickable-row:hover {
 tr.stack-clickable-row:active {
   background-color: rgba(var(--accent), 0.25);
 }
+
+.fa-icon[style*="square-t"] {
+  background-color: crimson !important;
+}
+
+.fa-icon[style*="square-h"] {
+  background-color: green !important;
+}
