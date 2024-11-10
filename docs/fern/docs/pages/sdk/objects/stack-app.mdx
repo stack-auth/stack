@@ -566,7 +566,7 @@ Since this functionality should only be available in environments you trust (ie.
 
 ```typescript
 type StackServerApp =
-  // Inherits all functionality from `StackClientApp`
+  // Inherits all functionality from StackClientApp
   & StackClientApp //$stack-link-to:#stackclientapp
   & {
     new(options): StackServerApp; //$stack-link-to:#constructor-1
@@ -722,6 +722,7 @@ Lists all users on the project.
 
 <div className="indented">
   <ParamField path="options" type="object">
+    An object containing multiple properties.
     <Accordion title={<span className="accordion-show-properties" />}>
       <ParamField path="cursor" type="string">
         The cursor to start the result set from.
@@ -805,6 +806,7 @@ Note that this function is meant for server-side code; on the client, use any of
 
 <div className="indented">
   <ParamField path="options" type="object">
+    An object containing multiple properties.
     <Accordion title={<span className="accordion-show-properties" />}>
       <ParamField path="primaryEmail" type="string">
         The primary email of the user to create.
@@ -1016,10 +1018,7 @@ const team = await stackServerApp.createTeam({
 });
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-</div></div><div className="stack-content">
-
-</div><div className="stack-full-size">
 
 
 
-</div></div>
+</div></div></div>
