@@ -122,3 +122,11 @@ tr.stack-clickable-row:active {
 .fa-icon[style*="square-h"] {
   background-color: green !important;
 }
+
+.fa-icon[style*="square-c"] {
+  background-color: blue !important;
+}
+
+.fa-icon[style*="square-u"] {
+  background-color: orange !important;
+}

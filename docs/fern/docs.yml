@@ -118,30 +118,42 @@ navigation:
       - section: Components
         contents:
           - page: <UserButton />
+            icon: fa-solid fa-square-c
             path: ./docs/pages/components/user-button.mdx
           - page: <SelectedTeamSwitcher />
+            icon: fa-solid fa-square-c
             path: ./docs/pages/components/selected-team-switcher.mdx
           - page: <AccountSettings />
+            icon: fa-solid fa-square-c
             path: ./docs/pages/components/account-settings.mdx
           - page: <SignIn />
+            icon: fa-solid fa-square-c
             path: ./docs/pages/components/sign-in.mdx
           - page: <SignUp />
+            icon: fa-solid fa-square-c
             path: ./docs/pages/components/sign-up.mdx
           - page: <CredentialSignIn />
+            icon: fa-solid fa-square-c
             path: ./docs/pages/components/credential-sign-in.mdx
           - page: <CredentialSignUp />
+            icon: fa-solid fa-square-c
             path: ./docs/pages/components/credential-sign-up.mdx
           - page: <OAuthButton />
+            icon: fa-solid fa-square-c
             path: ./docs/pages/components/oauth-button.mdx
           - page: <OAuthButtonGroup />
+            icon: fa-solid fa-square-c
             path: ./docs/pages/components/oauth-button-group.mdx
       - section: Utilities
         contents:
           - page: <StackHandler />
+            icon: fa-solid fa-square-u
             path: ./docs/pages/components/stack-handler.mdx
           - page: <StackProvider />
+            icon: fa-solid fa-square-u
             path: ./docs/pages/components/stack-provider.mdx
           - page: <StackTheme />
+            icon: fa-solid fa-square-u
             path: ./docs/pages/components/stack-theme.mdx
   - tab: sdk
     layout:
