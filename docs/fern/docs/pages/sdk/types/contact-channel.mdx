@@ -2,81 +2,189 @@
 slug: sdk/types/contact-channel
 ---
 
-`ContactChannel` represents a user's contact information, such as an email address. In the future, it will support additional contact types like phone numbers. Contact channels can optionally be used for authentication.
+<Markdown src="../../snippets/make-full-page.mdx" />
+<div className="stack-aside-container"><div className="stack-content">
 
-Stack provides two types of contact channels:
+`ContactChannel` represents a user's contact information, such as an email address or phone number. Some auth methods, like OTP/magic link or password, use contact channels for authentication.
 
-1. `ContactChannel`
-    - Used on the client side
-    - Contains basic information like the contact value (e.g. email address) and type
-    - You can obtain it by calling `user.listContactChannels()` or `user.useContactChannels()`
-2. `ServerContactChannel`
-    - Used on the server side
-    - Extends `ContactChannel` with additional properties:
-      - Verification status
-      - Whether it's the user's primary contact channel
-    - You can obtain it by calling `serverUser.listContactChannels()` or `serverUser.useContactChannels()`
+On this page:
 
-## `ContactChannel`
+- [`ContactChannel`](#contactchannel)
+- [`ServerContactChannel`](#servercontactchannel)
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
 
-### Properties
+# `ContactChannel`
+</div><div className="stack-content">
 
-<div className="indented">
-  <ParamField path="id" type="string">
-    The id of the contact channel.
-  </ParamField>
-  <ParamField path="value" type="string">
-    The value of the contact channel. If type is `"email"`, this is an email address.
-  </ParamField>
-  <ParamField path="type" type="'email'">
-    The type of the contact channel. Currently always `"email"`.
-  </ParamField>
-  <ParamField path="isPrimary" type="boolean">
-    Whether the contact channel is the user's primary contact channel. If an email is set to primary, it will be the value on the `user.primaryEmail` field.
-  </ParamField>
-  <ParamField path="isVerified" type="boolean">
-    Whether the contact channel is verified.
-  </ParamField>
-  <ParamField path="usedForAuth" type="boolean">
-    Whether the contact channel is used for authentication. If set to `true`, the user can use this contact channel together with OTP or password to sign in.
-  </ParamField>
-</div>
+Basic information about a contact channel, as seen by a user themselves.
 
-### `sendVerificationEmail()`
+Usually obtained by calling `user.[list|use]ContactChannels()`.
+
+### Table of Contents
+
+```typescript
+type ContactChannel = {
+  id: string;  //$stack-link-to:#contactchannelid
+  value: string;  //$stack-link-to:#contactchannelvalue
+  type: 'email';  //$stack-link-to:#contactchanneltype
+  isPrimary: boolean;  //$stack-link-to:#contactchannelisprimary
+  isVerified: boolean;  //$stack-link-to:#contactchannelisverified
+  usedForAuth: boolean;  //$stack-link-to:#contactchannelusedforauth
+
+  sendVerificationEmail(): Promise<void>;  //$stack-link-to:#contactchannelsendverificationemail
+  update(options): Promise<void>;  //$stack-link-to:#contactchannelupdateoptions
+  delete(): Promise<void>;  //$stack-link-to:#contactchanneldelete
+};
+```
+
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `contactChannel.id`
+</div><div className="stack-content">
+
+The id of the contact channel as a `string`.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const id: string;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `contactChannel.value`
+</div><div className="stack-content">
+
+The value of the contact channel. If type is `"email"`, this is an email address.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const value: string;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `contactChannel.type`
+</div><div className="stack-content">
+
+The type of the contact channel. Currently always `"email"`.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const type: 'email';
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `contactChannel.isPrimary`
+</div><div className="stack-content">
+
+Indicates whether the contact channel is the user's primary contact channel. If an email is set to primary, it will be the value on the `user.primaryEmail` field.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const isPrimary: boolean;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `contactChannel.isVerified`
+</div><div className="stack-content">
+
+Indicates whether the contact channel is verified.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const isVerified: boolean;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `contactChannel.usedForAuth`
+</div><div className="stack-content">
+
+Indicates whether the contact channel is used for authentication. If set to `true`, the user can use this contact channel with OTP or password to sign in.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const usedForAuth: boolean;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `contactChannel.sendVerificationEmail()`
+</div><div className="stack-content">
 
 Sends a verification email to this contact channel. Once the user clicks the verification link in the email, the contact channel will be marked as verified.
 
-This method will throw an error if the contact channel has already been verified.
-
-**Parameters:**
+### Parameters
 
 <div className="indented">
-  None
+  None.
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<void>`
 </div>
 
-**Example:**
+</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 
 ```typescript
+declare function sendVerificationEmail(): Promise<void>;
+```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Sending verification email
 await contactChannel.sendVerificationEmail();
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+</div></div><div className="stack-content">
 
-### `update()`
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
 
-Update the contact channel.
+## `contactChannel.update(options)`
+</div><div className="stack-content">
 
-After updating the value, the contact channel will be marked as unverified.
+Updates the contact channel. After updating the value, the contact channel will be marked as unverified.
 
-**Parameters:**
+### Parameters
 
 <div className="indented">
-  <ParamField path="options" type="object">
-    <div className="indented">
+  <ParamField path="options" type="object" required>
+    An object containing properties for updating.
+    <Accordion title={<span className="accordion-show-properties" />}>
       <ParamField path="value" type="string">
         The new value of the contact channel.
       </ParamField>
@@ -84,62 +192,118 @@ After updating the value, the contact channel will be marked as unverified.
         The new type of the contact channel. Currently always `"email"`.
       </ParamField>
       <ParamField path="usedForAuth" type="boolean">
-        Whether the contact channel is used for authentication.
+        Indicates whether the contact channel is used for authentication.
       </ParamField>
-    </div>
+      <ParamField path="isPrimary" type="boolean">
+        Indicates whether the contact channel is the user's primary contact channel.
+      </ParamField>
+    </Accordion>
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<void>`
 </div>
 
-**Example:**
+</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 
 ```typescript
-await contactChannel.update({ value: "new-email@example.com", usedForAuth: true });
+declare function update(options: {
+  value?: string;
+  type?: 'email';
+  usedForAuth?: boolean;
+  isPrimary?: boolean;
+}): Promise<void>;
 ```
 
-### `delete()`
+### Examples
 
-Delete the contact channel.
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Updating contact channel
+await contactChannel.update({
+  value: "new-email@example.com",
+  usedForAuth: true,
+});
+```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+</div></div><div className="stack-content">
 
-**Parameters:**
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `contactChannel.delete()`
+</div><div className="stack-content">
+
+Deletes the contact channel.
+
+### Parameters
 
 <div className="indented">
-  No parameters
+  None.
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<void>`
 </div>
 
-**Example:**
+</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 
 ```typescript
+declare function delete(): Promise<void>;
+```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Deleting contact channel
 await contactChannel.delete();
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+</div></div><div className="stack-content">
 
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/big-divider.mdx" />
 
-## `ServerContactChannel`
+# `ServerContactChannel`
+</div><div className="stack-content">
 
-It extends `ContactChannel` with additional methods listed below.
+Like `ContactChannel`, but includes additional methods and properties that require the `SECRET_SERVER_KEY`.
 
-### `update()`
+Usually obtained by calling `serverUser.[list|use]ContactChannels()`.
 
-Update the contact channel.
+### Table of Contents
 
-This is similar to `ContactChannel.update()`, but it also allows you to set the `isVerified` property.
+```typescript
+type ServerContactChannel =
+  // Inherits all properties from ContactChannel
+  & ContactChannel  //$stack-link-to:#contactchannel
+  & {
+    update(options): Promise<void>;  //$stack-link-to:#servercontactchannelupdateoptions
+  };
+```
 
-**Parameters:**
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `serverContactChannel.update(options)`
+</div><div className="stack-content">
+
+Updates the contact channel.
+
+This method is similar to the one on `ContactChannel`, but also allows setting the `isVerified` property.
+
+### Parameters
 
 <div className="indented">
-  <ParamField path="options" type="object">
-    <div className="indented">
+  <ParamField path="options" type="object" required>
+    An object containing properties for updating.
+    <Accordion title={<span className="accordion-show-properties" />}>
       <ParamField path="value" type="string">
         The new value of the contact channel.
       </ParamField>
@@ -147,24 +311,46 @@ This is similar to `ContactChannel.update()`, but it also allows you to set the 
         The new type of the contact channel. Currently always `"email"`.
       </ParamField>
       <ParamField path="usedForAuth" type="boolean">
-        Whether the contact channel is used for authentication.
+        Indicates whether the contact channel is used for authentication.
       </ParamField>
       <ParamField path="isVerified" type="boolean">
-        Whether the contact channel is verified.
+        Indicates whether the contact channel is verified.
       </ParamField>
-    </div>
+      <ParamField path="isPrimary" type="boolean">
+        Indicates whether the contact channel is the user's primary contact channel.
+      </ParamField>
+    </Accordion>
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<void>`
 </div>
 
-
-**Example:**
+</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 
 ```typescript
-await serverContactChannel.update({ value: "new-email@example.com", usedForAuth: true, isVerified: true });
+declare function update(options: {
+  value?: string;
+  type?: 'email';
+  usedForAuth?: boolean;
+  isVerified?: boolean;
+  isPrimary?: boolean;
+}): Promise<void>;
 ```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Updating server contact channel
+await serverContactChannel.update({
+  value: "new-email@example.com",
+  usedForAuth: true,
+  isVerified: true,
+});
+```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+</div></div></div>

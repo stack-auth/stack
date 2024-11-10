@@ -342,7 +342,7 @@ users.forEach(user => {
 
 Like [`Team`](#team), but with [server permissions](../../concepts/stack-app.mdx#client-vs-server). Has full read and write access to everything.
 
-Calling `serverUser.getTeam(...)` and `serverUser.listTeams()` will return `ServerTeam` objects if the user is a [`ServerUser`](../objects/user.mdx#serveruser). Alternatively, you can call `stackServerApp.getTeam('team_id_123')` or `stackServerApp.listTeams()` to query all teams of the project.
+Calling `serverUser.getTeam(...)` and `serverUser.listTeams()` will return `ServerTeam` objects if the user is a [`ServerUser`](../types/user.mdx#serveruser). Alternatively, you can call `stackServerApp.getTeam('team_id_123')` or `stackServerApp.listTeams()` to query all teams of the project.
 
 `ServerTeam` extends the `Team` object, providing additional functions and properties as detailed below. It's important to note that while the `Team` object's functions may require specific user permissions, the corresponding functions in `ServerTeam` can be executed without these permission checks. This allows for more flexible and unrestricted team management on the server side.
 
