@@ -114,6 +114,10 @@ tr.stack-clickable-row:active {
   background-color: rgba(var(--accent), 0.25);
 }
 
+tr.stack-clickable-row-missing {
+  background-color: red !important;
+}
+
 .fa-icon[style*="square-t"] {
   background-color: crimson !important;
 }

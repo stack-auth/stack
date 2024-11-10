@@ -34,8 +34,8 @@ type Team = {
 
   update(data): Promise<void>;  //$stack-link-to:#teamupdatedata
   inviteUser(options): Promise<void>;  //$stack-link-to:#teaminviteuseroptions
-  listUsers(): Promise<TeamUser[]>;  //$stack-link-to:#teamuser
-  useUsers(): TeamUser[];  //$stack-link-to:#teamuser
+  listUsers(): Promise<TeamUser[]>;  //$stack-link-to:#teamlistusers
+   ⤷ useUsers(): TeamUser[];  //$stack-link-to:#teamuseusers
 };
 ```
 
@@ -357,7 +357,7 @@ type ServerTeam =
     serverMetadata: Json;  //$stack-link-to:#serverteamservermetadata
 
     listUsers(): Promise<ServerTeamUser[]>;  //$stack-link-to:#serverteamlistusers
-    useUsers(): ServerTeamUser[];  //$stack-link-to:#serverteamuseusers
+     ⤷ useUsers(): ServerTeamUser[];  //$stack-link-to:#serverteamuseusers
     addUser(userId): Promise<void>;  //$stack-link-to:#serverteamadduseruserid
     removeUser(userId): Promise<void>;  //$stack-link-to:#serverteamremoveuseruserid
     delete(): Promise<void>;  //$stack-link-to:#serverteamdelete
@@ -444,42 +444,12 @@ users.forEach(user => {
 ## `serverTeam.useUsers()`
 </div><div className="stack-content">
 
-Gets a list of users in the team.
+<Markdown src="../../snippets/use-on-server-callout.mdx" />
 
-This is similar to the `useUsers` method on the `Team` object, but it returns `ServerTeamUser` objects instead of `TeamUser` objects and does not require any permissions. This is the same as `listUsers` but it is a React hook.
-
-### Parameters
-
-<div className="indented">
-  None.
-</div>
-
-### Returns
-
-<div className="indented">
-  `ServerTeamUser[]`
-</div>
-
-</div><div className="stack-aside"><div className="stack-sticky">
-### Signature
-
-```typescript
-declare function useUsers(): ServerTeamUser[];
-```
-
-### Examples
-
-<div className="small-codeblock-tabs"><CodeBlocks>
-```typescript Listing server team members in React component
-const users = team.useUsers();
-users.forEach(user => {
-  console.log(user.id, user.teamProfile.displayName);
-});
-```
-<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-</div></div><div className="stack-content">
+Functionally equivalent to [`listUsers()`](#stackteamlistusers), but as a React hook.
 
 </div><div className="stack-full-size">
+
 <Markdown src="../../snippets/divider.mdx" />
 
 

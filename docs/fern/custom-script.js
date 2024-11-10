@@ -12,6 +12,11 @@ function replaceStackLinkTo() {
         const href = codeSpan.textContent.trim().slice(17);
         const tr = codeSpan.closest(`tr`);
         tr.classList.add(`stack-clickable-row`);
+        if (href.startsWith("#") && window.location.href.includes("localhost")) {
+          if (!document.getElementById(href.slice(1))) {
+            tr.classList.add(`stack-clickable-row-missing`);
+          }
+        }
         tr.addEventListener(`click`, () => {
           window.location.href = href;
         });

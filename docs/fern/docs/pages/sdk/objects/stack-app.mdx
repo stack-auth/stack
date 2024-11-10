@@ -579,8 +579,8 @@ type StackServerApp =
 
     getTeam(id): Promise<ServerTeam | null>; //$stack-link-to:#stackserverappgetteamid
      ⤷ useTeam(id): ServerTeam; //$stack-link-to:#stackserverappuseteamid
-    listTeams([options]): Promise<ServerTeam[]>; //$stack-link-to:#stackserverapplistteamsoptions
-     ⤷ useTeams([options]): ServerTeam[]; //$stack-link-to:#stackserverappuseteamsoptions
+    listTeams(): Promise<ServerTeam[]>; //$stack-link-to:#stackserverapplistteams
+     ⤷ useTeams(): ServerTeam[]; //$stack-link-to:#stackserverappuseteams
     createTeam([options]): Promise<ServerTeam>; //$stack-link-to:#stackserverappcreateteamoptions
   }
 ```
@@ -918,6 +918,18 @@ console.log(team); // null if not found
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
 </div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
+
+## `stackServerApp.useTeam(id)`
+
+</div><div className="stack-content">
+
+<Markdown src="../../snippets/use-on-server-callout.mdx" />
+
+Functionally equivalent to [`getTeam(id)`](#stackserverappgetteamid), but as a React hook.
 
 </div><div className="stack-full-size">
 
