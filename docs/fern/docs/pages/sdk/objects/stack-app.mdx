@@ -1,89 +1,176 @@
 ---
-slug: sdk/types/stack-app
+slug: sdk/objects/stack-app
 ---
 
-This is a detailed reference for the `StackApp` object. [Here](../../concepts/stack-app.mdx) is a more high-level overview.
+<Markdown src="../../snippets/make-full-page.mdx" />
+<div className="stack-aside-container"><div className="stack-content">
 
-## Different types of `StackApp` objects
+This is a detailed reference for the `StackApp` object. If you're looking for a more high-level overview, please read the [respective page in the Concepts section](../../concepts/stack-app.mdx).
 
-Stack offers two types of app objects: `StackClientApp` and `StackServerApp`.
+On this page:
+- [StackClientApp](#stackclientapp)
+- [StackServerApp](#stackserverapp)
 
-1. `StackClientApp`:
-   - Designed for client-side applications
-   - Provides functionality like `signInWithOAuth`, `useUser`, `useProject`, etc.
-   - Obtain it by calling `useStackApp()` in a Client Component
-
-2. `StackServerApp`:
-   - extends `StackClientApp`
-   - Has additional capabilities like being able to listing all the users in the project
-   - Access it by importing the object from the file where you created it (`import { stackServerApp } from '@/stack'`)
-   - While `StackServerApp` includes `useXYZ` hooks, they are generally not usable in server-side code due to its non-reactive nature. These hooks are primarily designed for client-side use where reactivity is supported.
-
-Choose the appropriate type based on your application's needs and environment.
+{/* SECTION END */} </div><div className="stack-full-size">
+<Markdown src="../../snippets/big-divider.mdx" />
 
 
-## `StackClientApp`
+# `StackClientApp`
+{/* SECTION START */} </div><div className="stack-content">
 
-You can get a `StackClientApp` instance by calling `useStackApp()` in a Client Component.
+A [`StackApp`](../../concepts/stack-app.mdx) with client-level permissions. It contains most of the useful methods and hooks for your client-side code.
 
-### Initialization
+Most commonly you get an instance of `StackClientApp` by calling [`useStackApp()`](../hooks/use-stack-app.mdx) in a Client Component.
 
-In most cases, we don't create a `StackClientApp` directly. Instead, we typically:
 
-1. Create a `StackServerApp` instance, pass it into the `StackProvider` component
-2. Use the `useStackApp()` hook to obtain a `StackClientApp` from it
 
-Check out the manual [setup guide](../../getting-started/setup.mdx) for more details. For details on how to initialize a `StackServerApp`, refer to the [StackServerApp section](#stackserverapp) below.
+### Table of Contents
+```typescript
+type StackClientApp = {
+  new(options): StackClientApp;  //$stack-link-to:#constructor
+  getUser(options): Promise<User>;  //$stack-link-to:#stackclientappgetuseroptions
+  useUser(options): User;  //$stack-link-to:#stackclientappuseuseroptions
+  getProject(): Promise<Project>;  //$stack-link-to:#stackclientappgetproject
+  useProject(): Project;  //$stack-link-to:#stackclientappuseproject
+  signInWithOAuth(provider): void;  //$stack-link-to:#stackclientappsigninwithoauthprovider
+  signInWithCredential(options): Promise<...>;  //$stack-link-to:#stackclientappsigninwithcredentialoptions
+  signUpWithCredential(options): Promise<...>;  //$stack-link-to:#stackclientappsignupwithcredentialoptions
+  sendForgotPasswordEmail(email): Promise<...>;  //$stack-link-to:#stackclientappsendforgotpasswordemailemail
+  sendMagicLinkEmail(email): Promise<...>;  //$stack-link-to:#stackclientappsendmagiclinkemailemail
+};
+```
+
+{/* SECTION END */} </div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+
+## Constructor
+{/* SECTION START */} </div><div className="stack-content">
+
+Creates a new `StackClientApp` instance.
+
+Because each app creates a new connection to Stack Auth's backend, you should re-use existing instances wherever possible.
+
+<Callout>
+This object is not usually constructed directly. More commonly, you would construct a [`StackServerApp`](#stackserverapp) instead, pass it into a [`<StackProvider />`](../../components/stack-provider.mdx), and then use `useStackApp()` hook to obtain a `StackClientApp`.
+
+The [setup wizard](../../getting-started/setup.mdx) does these steps for you, so you don't need to worry about it unless you are manually setting up Stack Auth.
+
+If you're building a client-only app and don't have a [`SECRET_SERVER_KEY`](../../rest-api/overview#should-i-use-client-or-server-access-type), you can construct a `StackClientApp` directly.
+</Callout>
 
 ### Properties
 
 <div className="indented">
-  <ParamField path="projectId" type="string">
-  The ID of the project that the app is associated with.
-  </ParamField>
+  <ParamField path="options" type="object" required>
+    An object containing multiple properties.
+    <Accordion title={<span className="accordion-show-properties" />}>
+      <ParamField path="tokenStore" type="union" required>
+        Where to store the user's session tokens. In most cases, this is `"nextjs-cookie"`, which will store the tokens in cookies using Next.js.
 
-  <ParamField path="urls" type="object">
-    The URLs that Stack uses to route and redirect.
+        <Accordion title={<span className="accordion-show-possible-values" />}>
+          <ParamField path={`"nextjs-cookie"`}>
+            Persists the session tokens in `window.cookie` in browser environments, or Next.js cookies in server environments. This is the most common choice.
+          </ParamField>
+          <ParamField path={`"cookie"`}>
+            Persists the session tokens in `window.cookie` in browser environments. Will not read or write cookies on the server.
+          </ParamField>
+          <ParamField path={`{ accessToken: string, refreshToken: string }`}>
+            Reads the initial value for the session tokens from the provided object. It expects the same format as the object returned by [`currentUser.getAuthJson()`](../types/user.mdx#getauthjson).
 
-    <div className="indented">
-      <ParamField path="home" type="string">
-      The URL of the home page.
+            Does not persist changes to the tokens.
+          </ParamField>
+          <ParamField path={<a href="https://developer.mozilla.org/en-US/docs/Web/API/Request">Request</a>}>
+            Reads the initial value for the session tokens from headers of the request object. For more information, see the documentation for [`currentUser.getAuthHeaders()`](../types/user.mdx#getauthheaders).
+
+            Does not persist changes to the tokens.
+          </ParamField>
+        </Accordion>
       </ParamField>
-      <ParamField path="signIn" type="string">
-      The URL of the sign-in page.
+      <ParamField path="baseUrl" type="string">
+        The base URL for Stack Auth's API. Only override this if you are self-hosting Stack Auth. Defaults to `https://api.stack-auth.com`, unless overridden by the `NEXT_PUBLIC_STACK_URL` environment variable.
       </ParamField>
-      <ParamField path="afterSignIn" type="string">
-      The URL that the user will be redirected to after successful signing in.
+      <ParamField path="projectId" type="string">
+        The ID of the project that the app is associated with, as found on Stack Auth's dashboard. Defaults to the value of the `NEXT_PUBLIC_STACK_PROJECT_ID` environment variable.
       </ParamField>
-      <ParamField path="signUp" type="string">
-      The URL of the sign-up page.
+      <ParamField path="publishableClientKey" type="string">
+        The publishable client key of the app, as found on Stack Auth's dashboard. Defaults to the value of the `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` environment variable.
       </ParamField>
-      <ParamField path="afterSignUp" type="string">
-      The URL that the user will be redirected to after successful signing up.
+      <ParamField path="urls" type="object">
+        The URLs that Stack uses to route and redirect.
+
+        <Accordion title={<span className="accordion-show-properties" />}>
+          <ParamField path="home" type="string">
+            The URL of the home page.
+          </ParamField>
+          <ParamField path="signIn" type="string">
+            The URL of the sign-in page.
+          </ParamField>
+          <ParamField path="afterSignIn" type="string">
+            The URL that the user will be redirected to after successful signing in.
+          </ParamField>
+          <ParamField path="signUp" type="string">
+            The URL of the sign-up page.
+          </ParamField>
+          <ParamField path="afterSignUp" type="string">
+            The URL that the user will be redirected to after successful signing up.
+          </ParamField>
+          <ParamField path="afterSignOut" type="string">
+            The URL that the user will be redirected to after successful signing out.
+          </ParamField>
+          <ParamField path="emailVerification" type="string">
+            The URL of the email verification page.
+          </ParamField>
+          <ParamField path="passwordReset" type="string">
+            The URL of the password reset page.
+          </ParamField>
+          <ParamField path="forgotPassword" type="string">
+            The URL of the forgot password page.
+          </ParamField>
+          <ParamField path="accountSettings" type="string">
+            The URL of the account settings page.
+          </ParamField>
+          <ParamField path="handler" type="string">
+            The URL of the handler root. 
+          </ParamField>
+        </Accordion>
       </ParamField>
-      <ParamField path="afterSignOut" type="string">
-      The URL that the user will be redirected to after successful signing out.
+      <ParamField path="noAutomaticPrefetch" type="boolean">
+        By default, the Stack app will automatically prefetch some data from Stack's server when this app is first constructed. Those network requests may be unnecessary if the app is never used or disposed of immediately. By setting this option to `true`, you can disable the prefetching behavior.
       </ParamField>
-      <ParamField path="emailVerification" type="string">
-      The URL of the email verification page.
-      </ParamField>
-      <ParamField path="passwordReset" type="string">
-      The URL of the password reset page.
-      </ParamField>
-      <ParamField path="forgotPassword" type="string">
-      The URL of the forgot password page.
-      </ParamField>
-      <ParamField path="accountSettings" type="string">
-      The URL of the account settings page.
-      </ParamField>
-      <ParamField path="handler" type="string">
-      The URL of the handler root. 
-      </ParamField>
-    </div>
+    </Accordion>
   </ParamField>
 </div>
 
-### `getUser()`
+
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Example
+<div className="small-codeblock-tabs"><CodeBlocks>
+  ```typescript Creating a new app
+  const stackClientApp = new StackClientApp({
+    tokenStore: "nextjs-cookie",
+    baseUrl: "https://api.stack-auth.com",
+    projectId: "123",
+    publishableClientKey: "123",
+    urls: {
+      home: "/",
+    },
+  });
+  ```
+
+  ```typescript Retrieving an app with useStackApp
+  function myReactComponent() {
+    const stackClientApp = useStackApp();
+  }
+  ```
+</CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
+
+## `stackClientApp.getUser(options)`
 
 Get the current user.
 
@@ -118,7 +205,7 @@ const user = await stackClientApp.getUser();
 console.log(user); // null if not signed in
 ```
 
-### `useUser()`
+## `stackClientApp.useUser(options)`
 
 Get the current user.
 
@@ -155,7 +242,53 @@ const user = useUser();
 console.log(user); // null if not signed in
 ```
 
-### `signInWithOAuth()`
+## `stackClientApp.getProject()`
+
+Get the current project.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Promise<Project>`: The current project.
+</div>
+
+**Example:**
+
+```typescript
+const project = await stackClientApp.getProject();
+```
+
+## `stackClientApp.useProject()`
+
+Get the current project.
+
+This is the same as `getProject()` but it is a React hook. The `useProject` hook imported from the package is an alias for this function.
+
+**Parameters:**
+
+<div className="indented">
+  No parameters.
+</div>
+
+**Returns:**
+
+<div className="indented">
+  `Project`: The current project.
+</div>
+
+**Example:**
+
+```typescript
+const project = useProject();
+```
+
+## `stackClientApp.signInWithOAuth(provider)`
 
 Initiates the OAuth sign-in process with the specified provider. This method:
 
@@ -185,7 +318,7 @@ Initiates the OAuth sign-in process with the specified provider. This method:
 await stackClientApp.signInWithOAuth("google");
 ```
 
-### `signInWithCredential()`
+## `stackClientApp.signInWithCredential(options)`
  
 Sign in using email and password credentials. The behavior is as follows:
 
@@ -235,7 +368,7 @@ if (result.status === "error") {
 }
 ```
 
-### `signUpWithCredential()`
+## `stackClientApp.signUpWithCredential(options)`
 
 Sign up using email and password credentials. The behavior is as follows:
 
@@ -285,7 +418,7 @@ if (result.status === "error") {
 }
 ```
 
-### `sendForgotPasswordEmail()`
+## `stackClientApp.sendForgotPasswordEmail(email)`
 
 Send a forgot password email to an email address.
 
@@ -315,7 +448,7 @@ if (result.status === "success") {
 }
 ```
 
-### `sendMagicLinkEmail()`
+## `stackClientApp.sendMagicLinkEmail(email)`
 
 Send a magic link/OTP sign-in email to an email address.
 
@@ -339,59 +472,17 @@ Send a magic link/OTP sign-in email to an email address.
 const result = await stackClientApp.sendMagicLinkEmail("test@example.com");
 ```
 
-### `getProject()`
 
-Get the current project.
+<Markdown src="../../snippets/big-divider.mdx" />
 
-**Parameters:**
 
-<div className="indented">
-  No parameters.
-</div>
-
-**Returns:**
-
-<div className="indented">
-  `Promise<Project>`: The current project.
-</div>
-
-**Example:**
-
-```typescript
-const project = await stackClientApp.getProject();
-```
-
-### `useProject()`
-
-Get the current project.
-
-This is the same as `getProject()` but it is a React hook. The `useProject` hook imported from the package is an alias for this function.
-
-**Parameters:**
-
-<div className="indented">
-  No parameters.
-</div>
-
-**Returns:**
-
-<div className="indented">
-  `Project`: The current project.
-</div>
-
-**Example:**
-
-```typescript
-const project = useProject();
-```
-
-## `StackServerApp`
+# `StackServerApp`
 
 `StackServerApp` extends `StackClientApp`, so it has all the same capabilities, plus some extra ones listed below. 
 
 Note that although the `useXYZ` hooks are available on `StackServerApp`, they are generally not usable in server-side code due to its non-reactive nature. These hooks are primarily designed for client-side use where reactivity is supported.
 
-### Initialization
+## Initialization
 
 **Parameters:**
 
@@ -479,11 +570,11 @@ const stackServerApp = new StackServerApp({
 });
 ```
 
-### Properties
+## Properties
 
 Same as `StackClientApp`.
 
-### `getUser()`
+## `getUser()`
 
 Get a user. There are two overloads:
 
@@ -543,7 +634,7 @@ const user = await stackServerApp.getUser("user_id_123");
 console.log(user); // null if not found
 ```
 
-### `listUsers()`
+## `listUsers()`
 
 Lists users.
 
@@ -595,7 +686,7 @@ if (users.nextCursor) {
 }
 ```
 
-### `useUsers()`
+## `useUsers()`
 
 Get the list of users. 
 
@@ -649,7 +740,7 @@ return <div>
 </div>
 ```
 
-### `createUser()`
+## `createUser()`
 
 Create a new user.
 
@@ -713,7 +804,7 @@ const user = await stackServerApp.createUser({
 });
 ```
 
-### `getTeam()`
+## `getTeam()`
 
 Get a team by ID.
 
@@ -738,7 +829,7 @@ const team = await stackServerApp.getTeam("team_id_123");
 console.log(team); // null if not found
 ```
 
-### `listTeams()`
+## `listTeams()`
 
 List all teams.
 
@@ -755,7 +846,7 @@ const teams = await stackServerApp.listTeams();
 console.log(teams);
 ```
 
-### `createTeam()`
+## `createTeam()`
 
 create a team without a user.
 
@@ -792,3 +883,4 @@ const team = await stackServerApp.createTeam({
 ```
 
 
+</div></div>

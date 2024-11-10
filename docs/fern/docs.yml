@@ -148,32 +148,34 @@ navigation:
       - page: SDK Overview
         icon: fa-regular fa-globe
         path: ./docs/pages/sdk/overview.mdx
+      - section: Objects
+        contents:
+          - page: StackApp
+            path: ./docs/pages/sdk/objects/stack-app.mdx
       - section: Types
         contents:
-          - page: User
-            path: ./docs/pages/sdk/types/user.mdx
-          - page: StackApp
-            path: ./docs/pages/sdk/types/stack-app.mdx
-          - page: Team
-            path: ./docs/pages/sdk/types/team.mdx
-          - page: TeamUser
-            path: ./docs/pages/sdk/types/team-user.mdx
-          - page: TeamProfile
-            path: ./docs/pages/sdk/types/team-profile.mdx
-          - page: TeamPermission
-            path: ./docs/pages/sdk/types/team-permission.mdx
-          - page: Project
-            path: ./docs/pages/sdk/types/project.mdx
           - page: ContactChannel
             path: ./docs/pages/sdk/types/contact-channel.mdx
+          - page: Project
+            path: ./docs/pages/sdk/types/project.mdx
+          - page: Team
+            path: ./docs/pages/sdk/types/team.mdx
+          - page: TeamPermission
+            path: ./docs/pages/sdk/types/team-permission.mdx
+          - page: TeamProfile
+            path: ./docs/pages/sdk/types/team-profile.mdx
+          - page: TeamUser
+            path: ./docs/pages/sdk/types/team-user.mdx
+          - page: User
+            path: ./docs/pages/sdk/types/user.mdx
           # - page: ConnectedAccount
           #   path: ./docs/pages/sdk/types/connected-account.mdx
       - section: Hooks
         contents:
-          - page: useUser()
-            path: ./docs/pages/sdk/hooks/use-user.mdx
           - page: useStackApp()
             path: ./docs/pages/sdk/hooks/use-stack-app.mdx
+          - page: useUser()
+            path: ./docs/pages/sdk/hooks/use-user.mdx
   - tab: api
     layout: 
       - page: API Overview

@@ -1,10 +1,10 @@
 ---
-slug: components/overview
+slug: components
 ---
 
 Stack Auth provides a set of components for Next.js applications.
 
-To get started with Stack Auth in your Next.js application, follow the [setup guide](/docs/getting-started/setup).
+To get started with Stack Auth in your Next.js application, follow the [setup guide](/docs/getting-started/setup). To see the hooks and objects in the Next.js SDK, see the [SDK reference](../sdk).
 
 <div className="components-cards">
   <style>{`
@@ -24,13 +24,14 @@ To get started with Stack Auth in your Next.js application, follow the [setup gu
       pointer-events: none;
       touch-action: none;
       user-select: none;
+      -webkit-user-select: none;
       height: 200px;
       display: flex;
       justify-content: center;
       align-items: center;
     }
     .components-cards .components-card-content > .img-wrapper img {
-      max-height: 200px;
+      object-fit: contain;
       border-radius: 12px;
       box-shadow: 1px 1px 5px 0px rgba(0, 0, 0, 0.1);
     }
@@ -46,7 +47,7 @@ To get started with Stack Auth in your Next.js application, follow the [setup gu
     >
       <div className="components-card-content">
         <div className="img-wrapper">
-          <img src="../imgs/sign-in.png" alt="SignIn" />
+          <img src="../imgs/sign-in.png" alt="SignIn" height={200} />
         </div>
         &lt;SignIn /&gt;
       </div>
@@ -56,7 +57,7 @@ To get started with Stack Auth in your Next.js application, follow the [setup gu
     >
       <div className="components-card-content">
         <div className="img-wrapper">
-          <img src="../imgs/sign-up.png" alt="SignUp" />
+          <img src="../imgs/sign-up.png" alt="SignUp" height={200} />
         </div>
         &lt;SignUp /&gt;
       </div>
@@ -66,7 +67,7 @@ To get started with Stack Auth in your Next.js application, follow the [setup gu
     >
       <div className="components-card-content">
         <div className="img-wrapper">
-          <img src="../imgs/credential-sign-in.png" alt="CredentialSignIn" />
+          <img src="../imgs/credential-sign-in.png" alt="CredentialSignIn" height={170} />
         </div>
         &lt;CredentialSignIn /&gt;
       </div>
@@ -76,7 +77,7 @@ To get started with Stack Auth in your Next.js application, follow the [setup gu
     >
       <div className="components-card-content">
         <div className="img-wrapper">
-          <img src="../imgs/credential-sign-up.png" alt="CredentialSignUp" />
+          <img src="../imgs/credential-sign-up.png" alt="CredentialSignUp" height={200} />
         </div>
         &lt;CredentialSignUp /&gt;
       </div>
@@ -86,7 +87,7 @@ To get started with Stack Auth in your Next.js application, follow the [setup gu
     >
       <div className="components-card-content">
         <div className="img-wrapper">
-          <img src="../imgs/oauth-button.png" alt="OAuthButton" />
+          <img src="../imgs/oauth-button.png" alt="OAuthButton" height={50} />
         </div>
         &lt;OAuthButton /&gt;
       </div>
@@ -96,7 +97,7 @@ To get started with Stack Auth in your Next.js application, follow the [setup gu
     >
       <div className="components-card-content">
         <div className="img-wrapper">
-          <img src="../imgs/oauth-button-group.png" alt="OAuthButtonGroup" />
+          <img src="../imgs/oauth-button-group.png" alt="OAuthButtonGroup" height={200} />
         </div>
         &lt;OAuthButtonGroup /&gt;
       </div>
@@ -112,7 +113,7 @@ To get started with Stack Auth in your Next.js application, follow the [setup gu
     >
       <div className="components-card-content">
         <div className="img-wrapper">
-          <img src="../imgs/user-button.png" alt="UserButton" />
+          <img src="../imgs/user-button.png" alt="UserButton" height={200} />
         </div>
         &lt;UserButton /&gt;
       </div>
@@ -120,7 +121,7 @@ To get started with Stack Auth in your Next.js application, follow the [setup gu
     <Card href="/components/account-settings">
       <div className="components-card-content">
         <div className="img-wrapper">
-          <img src="../imgs/account-settings.png" alt="AccountSettings" />
+          <img src="../imgs/account-settings.png" alt="AccountSettings" height={100} />
         </div>
         &lt;AccountSettings /&gt;
       </div>
@@ -134,7 +135,7 @@ To get started with Stack Auth in your Next.js application, follow the [setup gu
     <Card href="/components/selected-team-switcher">
       <div className="components-card-content">
         <div className="img-wrapper">
-          <img src="../imgs/selected-team-switcher.png" alt="SelectedTeamSwitcher" />
+          <img src="../imgs/selected-team-switcher.png" alt="SelectedTeamSwitcher" height={200} />
         </div>
         &lt;SelectedTeamSwitcher /&gt;
       </div>
