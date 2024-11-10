@@ -21,19 +21,30 @@ function replaceStackLinkTo() {
   }
 }
 
-function keepReplacingStackLinkTo() {
+function replaceEmptyTabs() {
+  const tabs = document.querySelectorAll(`.small-codeblock-tabs button:not(.stack-replaced-empty-tab)`);
+  for (const tab of tabs) {
+    tab.classList.add(`stack-replaced-empty-tab`);
+    if (tab.textContent.trim() === "<<empty>>") {
+      tab.remove();
+    }
+  }
+}
+
+function runRenderActions() {
   try {
     replaceStackLinkTo();
-    requestAnimationFrame(keepReplacingStackLinkTo);
+    replaceEmptyTabs();
+    requestAnimationFrame(runRenderActions);
   } catch (e) {
     console.error(e);
-    alert(`Error during custom script while replacing stack-link-to. This message will only be shown on localhost.\n\n${e} ${e.message} ${e.stack}`);
+    alert(`Error during custom script while running render actions. This message will only be shown on localhost.\n\n${e} ${e.message} ${e.stack}`);
   }
 }
 
 async function main() {
   initPostHog();
-  keepReplacingStackLinkTo();
+  runRenderActions();
 }
 
 main().catch((e) => {

@@ -28,13 +28,15 @@ Most commonly you get an instance of `StackClientApp` by calling [`useStackApp()
 ```typescript
 type StackClientApp = {
   new(options): StackClientApp;  //$stack-link-to:#constructor
-  getUser(options): Promise<User>;  //$stack-link-to:#stackclientappgetuseroptions
-  useUser(options): User;  //$stack-link-to:#stackclientappuseuseroptions
+
+  getUser([options]): Promise<User>;  //$stack-link-to:#stackclientappgetuseroptions
+   ⤷ useUser([options]): User;  //$stack-link-to:#stackclientappuseuseroptions
   getProject(): Promise<Project>;  //$stack-link-to:#stackclientappgetproject
-  useProject(): Project;  //$stack-link-to:#stackclientappuseproject
+   ⤷ useProject(): Project;  //$stack-link-to:#stackclientappuseproject
+
   signInWithOAuth(provider): void;  //$stack-link-to:#stackclientappsigninwithoauthprovider
-  signInWithCredential(options): Promise<...>;  //$stack-link-to:#stackclientappsigninwithcredentialoptions
-  signUpWithCredential(options): Promise<...>;  //$stack-link-to:#stackclientappsignupwithcredentialoptions
+  signInWithCredential([options]): Promise<...>;  //$stack-link-to:#stackclientappsigninwithcredentialoptions
+  signUpWithCredential([options]): Promise<...>;  //$stack-link-to:#stackclientappsignupwithcredentialoptions
   sendForgotPasswordEmail(email): Promise<...>;  //$stack-link-to:#stackclientappsendforgotpasswordemailemail
   sendMagicLinkEmail(email): Promise<...>;  //$stack-link-to:#stackclientappsendmagiclinkemailemail
 };
@@ -62,89 +64,33 @@ If you're building a client-only app and don't have a [`SECRET_SERVER_KEY`](../.
 ### Properties
 
 <div className="indented">
-  <ParamField path="options" type="object" required>
+  <ParamField path="options" type="object">
     An object containing multiple properties.
     <Accordion title={<span className="accordion-show-properties" />}>
-      <ParamField path="tokenStore" type="union" required>
-        Where to store the user's session tokens. In most cases, this is `"nextjs-cookie"`, which will store the tokens in cookies using Next.js.
-
-        <Accordion title={<span className="accordion-show-possible-values" />}>
-          <ParamField path={`"nextjs-cookie"`}>
-            Persists the session tokens in `window.cookie` in browser environments, or Next.js cookies in server environments. This is the most common choice.
-          </ParamField>
-          <ParamField path={`"cookie"`}>
-            Persists the session tokens in `window.cookie` in browser environments. Will not read or write cookies on the server.
-          </ParamField>
-          <ParamField path={`{ accessToken: string, refreshToken: string }`}>
-            Reads the initial value for the session tokens from the provided object. It expects the same format as the object returned by [`currentUser.getAuthJson()`](../types/user.mdx#getauthjson).
-
-            Does not persist changes to the tokens.
-          </ParamField>
-          <ParamField path={<a href="https://developer.mozilla.org/en-US/docs/Web/API/Request">Request</a>}>
-            Reads the initial value for the session tokens from headers of the request object. For more information, see the documentation for [`currentUser.getAuthHeaders()`](../types/user.mdx#getauthheaders).
-
-            Does not persist changes to the tokens.
-          </ParamField>
-        </Accordion>
-      </ParamField>
-      <ParamField path="baseUrl" type="string">
-        The base URL for Stack Auth's API. Only override this if you are self-hosting Stack Auth. Defaults to `https://api.stack-auth.com`, unless overridden by the `NEXT_PUBLIC_STACK_URL` environment variable.
-      </ParamField>
-      <ParamField path="projectId" type="string">
-        The ID of the project that the app is associated with, as found on Stack Auth's dashboard. Defaults to the value of the `NEXT_PUBLIC_STACK_PROJECT_ID` environment variable.
-      </ParamField>
-      <ParamField path="publishableClientKey" type="string">
-        The publishable client key of the app, as found on Stack Auth's dashboard. Defaults to the value of the `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` environment variable.
-      </ParamField>
-      <ParamField path="urls" type="object">
-        The URLs that Stack uses to route and redirect.
-
-        <Accordion title={<span className="accordion-show-properties" />}>
-          <ParamField path="home" type="string">
-            The URL of the home page.
-          </ParamField>
-          <ParamField path="signIn" type="string">
-            The URL of the sign-in page.
-          </ParamField>
-          <ParamField path="afterSignIn" type="string">
-            The URL that the user will be redirected to after successful signing in.
-          </ParamField>
-          <ParamField path="signUp" type="string">
-            The URL of the sign-up page.
-          </ParamField>
-          <ParamField path="afterSignUp" type="string">
-            The URL that the user will be redirected to after successful signing up.
-          </ParamField>
-          <ParamField path="afterSignOut" type="string">
-            The URL that the user will be redirected to after successful signing out.
-          </ParamField>
-          <ParamField path="emailVerification" type="string">
-            The URL of the email verification page.
-          </ParamField>
-          <ParamField path="passwordReset" type="string">
-            The URL of the password reset page.
-          </ParamField>
-          <ParamField path="forgotPassword" type="string">
-            The URL of the forgot password page.
-          </ParamField>
-          <ParamField path="accountSettings" type="string">
-            The URL of the account settings page.
-          </ParamField>
-          <ParamField path="handler" type="string">
-            The URL of the handler root. 
-          </ParamField>
-        </Accordion>
-      </ParamField>
-      <ParamField path="noAutomaticPrefetch" type="boolean">
-        By default, the Stack app will automatically prefetch some data from Stack's server when this app is first constructed. Those network requests may be unnecessary if the app is never used or disposed of immediately. By setting this option to `true`, you can disable the prefetching behavior.
-      </ParamField>
+      <Markdown src="../../snippets/stack-app-constructor-options-before-ssk.mdx" />
+      <Markdown src="../../snippets/stack-app-constructor-options-after-ssk.mdx" />
     </Accordion>
   </ParamField>
 </div>
 
 
 {/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
-### Example
+### Signature
+
+```typescript
+declare new(options: {
+  tokenStore: "nextjs-cookie" | "cookie" | { accessToken: string, refreshToken: string } | Request;
+  baseUrl?: string;
+  projectId?: string;
+  publishableClientKey?: string;
+  urls: {
+    ...
+  };
+  noAutomaticPrefetch?: boolean;
+}): StackClientApp;
+```
+
+### Examples
 <div className="small-codeblock-tabs"><CodeBlocks>
   ```typescript Creating a new app
   const stackClientApp = new StackClientApp({
@@ -159,136 +105,195 @@ If you're building a client-only app and don't have a [`SECRET_SERVER_KEY`](../.
   ```
 
   ```typescript Retrieving an app with useStackApp
-  function myReactComponent() {
+  "use client";
+
+  function MyReactComponent() {
     const stackClientApp = useStackApp();
   }
   ```
-</CodeBlocks></div>
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
 {/* ASIDE END */}</div></div><div className="stack-content">
 
 {/* SECTION END */} </div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
-## `stackClientApp.getUser(options)`
+## `stackClientApp.getUser([options])`
+{/* SECTION START */} </div><div className="stack-content">
 
-Get the current user.
+Gets the current user.
 
-**Parameters:**
+### Parameters
 
 <div className="indented">
   <ParamField path="options" type="object">
-    <div className="indented">
-      <ParamField path="or" type="string" required>
-        What to do if the user is not signed in. Can be:
-        - `"redirect"`: Redirects the user to the `signIn` URL.
-        - `"throw"`: Throws an error.
-      </ParamField>
-    </div>
+    An object containing multiple properties.
+    <Accordion title={<span className="accordion-show-properties" />}>
+      <Markdown src="../../snippets/get-user-or-parameter.mdx" />
+    </Accordion>
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
-- If `or` is not provided, returns `Promise<CurrentUser | null>`.
-- If `or` is `"redirect"` or `"throw"`, always returns `Promise<CurrentUser>`.
+  <code>{"Promise<"}[CurrentUser](../types/user.mdx#currentuser){" | null>"}</code>: The current user, or `null` if not signed in. If `or` is `"redirect"` or `"throw"`, never returns `null`.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
+declare function getUser(
+  options: {
+    or?: "return-null" | "redirect" | "throw"
+  }
+): Promise<CurrentUser | null>;
+```
+
+### Examples
+<div className="small-codeblock-tabs"><CodeBlocks>
+  ```typescript Getting the current user
+const userOrNull = await stackClientApp.getUser();
+console.log(userOrNull); // null if not signed in
+
 const user = await stackClientApp.getUser({ or: "redirect" });
-console.log(user); // always defined
+console.log(user); // always defined; redirects to sign-in page if not signed in
+  ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
 
-const user = await stackClientApp.getUser();
-console.log(user); // null if not signed in
-```
+{/* SECTION END */} </div><div className="stack-full-size">
 
-## `stackClientApp.useUser(options)`
+<Markdown src="../../snippets/divider.mdx" />
 
-Get the current user.
+## `stackClientApp.useUser([options])`
+{/* SECTION START */} </div><div className="stack-content">
 
-This is the same as `getUser()` but it is a React hook. The `useUser` hook imported from the package is an alias for this function.
+Functionally equivalent to [`getUser()`](#stackclientappgetuseroptions), but as a React hook.
 
-**Parameters:**
+Equivalent to the [`useUser()`](../hooks/use-user.mdx) standalone hook (which is an alias for `useStackApp().useUser()`).
+
+### Parameters
 
 <div className="indented">
   <ParamField path="options" type="object">
-    <div className="indented">
-      <ParamField path="or" type="string" required>
-        What to do if the user is not signed in. Can be:
-        - `"redirect"`: Redirects the user to the `signIn` URL.
-        - `"throw"`: Throws an error.
-      </ParamField>
-    </div>
+    An object containing multiple properties.
+    <Accordion title={<span className="accordion-show-properties" />}>
+      <Markdown src="../../snippets/get-user-or-parameter.mdx" />
+    </Accordion>
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
-- If `or` is not provided, returns `CurrentUser | null`.
-- If `or` is `"redirect"` or `"throw"`, always returns `CurrentUser`.
+  <code>[CurrentUser](../types/user.mdx#currentuser){" | null"}</code>: The current user, or `null` if not signed in. If `or` is `"redirect"` or `"throw"`, never returns `null`.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
-const user = useUser({ or: "redirect" });
-console.log(user); // always defined
-
-const user = useUser();
-console.log(user); // null if not signed in
+declare function useUser(
+  options: {
+    or?: "return-null" | "redirect" | "throw"
+  }
+): CurrentUser | null;
 ```
+
+### Examples
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Getting the current user
+"use client";
+
+function MyReactComponent() {
+  const user = useUser();
+  console.log(user); // null if not signed in
+
+  const user = useUser({ or: "redirect" });
+  console.log(user); // always defined; redirects to sign-in page if not signed in
+}
+```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.getProject()`
+{/* SECTION START */} </div><div className="stack-content">
 
-Get the current project.
+Gets the current project.
 
-**Parameters:**
+### Parameters
 
 <div className="indented">
   No parameters.
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<Project>`: The current project.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
-const project = await stackClientApp.getProject();
+declare function getProject(): Promise<Project>;
 ```
 
+### Examples
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Getting the current project
+const project = await stackClientApp.getProject();
+```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
+
 ## `stackClientApp.useProject()`
+{/* SECTION START */} </div><div className="stack-content">
 
-Get the current project.
+Functionally equivalent to [`getProject()`](#stackclientappgetproject), but as a React hook.
 
-This is the same as `getProject()` but it is a React hook. The `useProject` hook imported from the package is an alias for this function.
-
-**Parameters:**
+### Parameters
 
 <div className="indented">
   No parameters.
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Project`: The current project.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
-const project = useProject();
+declare function useProject(): Project;
 ```
 
+### Examples
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Getting the current project in a React component
+function MyReactComponent() {
+  const project = useProject();
+}
+```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
+
 ## `stackClientApp.signInWithOAuth(provider)`
+{/* SECTION START */} </div><div className="stack-content">
 
 Initiates the OAuth sign-in process with the specified provider. This method:
 
@@ -298,7 +303,7 @@ Initiates the OAuth sign-in process with the specified provider. This method:
    - If an `after_auth_return_to` query parameter was provided when calling this function, it uses that URL.
    - Otherwise, it uses the `afterSignIn` URL configured in the app settings.
 
-**Parameters:**
+### Parameters
 
 <div className="indented">
   <ParamField path="provider" type="string" required>
@@ -306,20 +311,33 @@ Initiates the OAuth sign-in process with the specified provider. This method:
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
-  `Promise<void>`: A promise that resolves when the redirect is complete.
+  `Promise<void>`.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
-await stackClientApp.signInWithOAuth("google");
+declare function signInWithOAuth(provider: string): Promise<void>;
 ```
 
-## `stackClientApp.signInWithCredential(options)`
- 
+### Examples
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Signing in with Google
+await stackClientApp.signInWithOAuth("google");
+```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" /> 
+
+## `stackClientApp.signInWithCredential([options])`
+{/* SECTION START */} </div><div className="stack-content">
+
 Sign in using email and password credentials. The behavior is as follows:
 
 1. If sign-in is successful:
@@ -331,11 +349,12 @@ Sign in using email and password credentials. The behavior is as follows:
    - No redirection occurs.
    - Returns a `Result` object containing error information.
 
-**Parameters:**
+### Parameters
 
 <div className="indented">
   <ParamField path="options" type="object">
-    <div className="indented">
+    An object containing multiple properties.
+    <Accordion title={<span className="accordion-show-properties" />}>
       <ParamField path="email" type="string" required>
         The email of the user to sign in with.
       </ParamField>
@@ -345,19 +364,30 @@ Sign in using email and password credentials. The behavior is as follows:
       <ParamField path="noRedirect" type="boolean">
         Whether to not redirect the user after sign-in. Defaults to `false`.
       </ParamField>
-    </div>
+    </Accordion>
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"]>>`: A promise that resolves to a `Result` object.
 </div>
 
-**Example:**
 
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
+declare function signInWithCredential(options: {
+  email: string;
+  password: string;
+  noRedirect?: boolean;
+}): Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"]>>;
+```
+
+### Examples
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Signing in with email and password
 const result = await stackClientApp.signInWithCredential({
   email: "test@example.com",
   password: "password",
@@ -367,8 +397,15 @@ if (result.status === "error") {
   console.error("Sign in failed", result.error.message);
 }
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
 
-## `stackClientApp.signUpWithCredential(options)`
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
+
+## `stackClientApp.signUpWithCredential([options])`
+{/* SECTION START */} </div><div className="stack-content">
 
 Sign up using email and password credentials. The behavior is as follows:
 
@@ -381,11 +418,12 @@ Sign up using email and password credentials. The behavior is as follows:
    - No redirection occurs.
    - Returns a `Result` object containing error information.
 
-**Parameters:**
+### Parameters
 
 <div className="indented">
   <ParamField path="options" type="object">
-    <div className="indented">
+    An object containing multiple properties.
+    <Accordion title={<span className="accordion-show-properties" />}>
       <ParamField path="email" type="string" required>
         The email of the user to sign up with.
       </ParamField>
@@ -395,19 +433,30 @@ Sign up using email and password credentials. The behavior is as follows:
       <ParamField path="noRedirect" type="boolean">
         Whether to not redirect the user after sign-up. Defaults to `false`.
       </ParamField>
-    </div>
+    </Accordion>
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
-`Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>`: A promise that resolves to a `Result` object.
+  `Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>`: A promise that resolves to a `Result` object.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
+declare function signUpWithCredential(options: {
+  email: string;
+  password: string;
+  noRedirect?: boolean;
+}): Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>;
+```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Signing up with email and password
 const result = await stackClientApp.signUpWithCredential({
   email: "test@example.com",
   password: "password",
@@ -417,12 +466,19 @@ if (result.status === "error") {
   console.error("Sign up failed", result.error.message);
 }
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.sendForgotPasswordEmail(email)`
+{/* SECTION START */} </div><div className="stack-content">
 
 Send a forgot password email to an email address.
 
-**Parameters:**
+### Parameters
 
 <div className="indented">
   <ParamField path="email" type="string" required>
@@ -430,15 +486,21 @@ Send a forgot password email to an email address.
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<Result<undefined, KnownErrors["UserNotFound"]>>`: A promise that resolves to a `Result` object.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
+declare function sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>>;
+```
+
+### Examples
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Sending a forgot password email
 const result = await stackClientApp.sendForgotPasswordEmail("test@example.com");
 
 if (result.status === "success") {
@@ -447,12 +509,19 @@ if (result.status === "success") {
   console.error("Failed to send forgot password email", result.error.message);
 }
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.sendMagicLinkEmail(email)`
+{/* SECTION START */} </div><div className="stack-content">
 
 Send a magic link/OTP sign-in email to an email address.
 
-**Parameters:**
+### Parameters
 
 <div className="indented">
   <ParamField path="email" type="string" required>
@@ -460,191 +529,200 @@ Send a magic link/OTP sign-in email to an email address.
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>`: A promise that resolves to a `Result` object.
 </div>
 
-**Example:**
-
-```typescript
-const result = await stackClientApp.sendMagicLinkEmail("test@example.com");
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
+```typescript 
+declare function sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>;
 ```
 
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Sending a magic link email
+const result = await stackClientApp.sendMagicLinkEmail("test@example.com");
+```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
+
+{/* SECTION END */} </div><div className="stack-full-size">
 
 <Markdown src="../../snippets/big-divider.mdx" />
 
 
 # `StackServerApp`
+{/* SECTION START */} </div><div className="stack-content">
 
-`StackServerApp` extends `StackClientApp`, so it has all the same capabilities, plus some extra ones listed below. 
+Like `StackClientApp`, but with [server permissions](../../concepts/stack-app.mdx#client-vs-server). Has full read and write access to all users.
 
-Note that although the `useXYZ` hooks are available on `StackServerApp`, they are generally not usable in server-side code due to its non-reactive nature. These hooks are primarily designed for client-side use where reactivity is supported.
+Since this functionality should only be available in environments you trust (ie. your own server), it requires a [`SECRET_SERVER_KEY`](../../rest-api/overview.mdx). In some cases, you may want to use a `StackServerApp` on the client; an example for this is an internal dashboard that only your own employees have access to. We generally recommend against doing this unless you are aware of and protected against the (potentially severe) security implications of exposing `SECRET_SERVER_KEY` on the client.
 
-## Initialization
+### Table of Contents
 
-**Parameters:**
+```typescript
+type StackServerApp =
+  // Inherits all functionality from `StackClientApp`
+  & StackClientApp //$stack-link-to:#stackclientapp
+  & {
+    new(options): StackServerApp; //$stack-link-to:#constructor-1
+
+    getUser([id][, options]): Promise<ServerUser | null>; //$stack-link-to:#stackserverappgetuserid-options
+     ⤷ useUser([id][, options]): ServerUser; //$stack-link-to:#stackserverappuseuserid-options
+    listUsers([options]): Promise<ServerUser[]>; //$stack-link-to:#stackserverapplistusersoptions
+     ⤷ useUsers([options]): ServerUser[]; //$stack-link-to:#stackserverappuseusersoptions
+    createUser([options]): Promise<ServerUser>; //$stack-link-to:#stackserverappcreateuseroptions
+
+    getTeam(id): Promise<ServerTeam | null>; //$stack-link-to:#stackserverappgetteamid
+     ⤷ useTeam(id): ServerTeam; //$stack-link-to:#stackserverappuseteamid
+    listTeams([options]): Promise<ServerTeam[]>; //$stack-link-to:#stackserverapplistteamsoptions
+     ⤷ useTeams([options]): ServerTeam[]; //$stack-link-to:#stackserverappuseteamsoptions
+    createTeam([options]): Promise<ServerTeam>; //$stack-link-to:#stackserverappcreateteamoptions
+  }
+```
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
+
+## Constructor
+{/* SECTION START */} </div><div className="stack-content">
+
+### Parameters
 
 <div className="indented">
   <ParamField path="options" type="object">
-    <div className="indented">
-      <ParamField path="tokenStore" type="string" required>
-        Where to store the auth tokens. Currently only `"nextjs-cookie"` is supported.
-      </ParamField>
-
-      <ParamField path="oauthScopesOnSignIn" type="object">
-        Extra OAuth scopes to request when signing in. It is an object of format `{ [provider: string]: string[] }`, where the key is the provider type (e.g. `"google"`, `"apple"`, etc.) and the value is an array of scopes to request. Checkout the [OAuth](../../concepts/oauth.mdx) page for more details.
-      </ParamField>
-
-      <ParamField path="baseUrl" type="string">
-        The base URL of the Stack server. By default it is read from the `NEXT_PUBLIC_STACK_URL` environment variable if it exists, or use `https://api.stack-auth.com` if it doesn't.
-      </ParamField>
-
-      <ParamField path="projectId" type="string">
-        The ID of the project to use. By default it is read from the `NEXT_PUBLIC_STACK_PROJECT_ID` environment variable.
-      </ParamField>
-
-      <ParamField path="publishableClientKey" type="string">
-        The publishable client key to use. By default it is read from the `NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY` environment variable.
-      </ParamField>
-
+    An object containing multiple properties.
+    <Accordion title={<span className="accordion-show-properties" />}>
+      <Markdown src="../../snippets/stack-app-constructor-options-before-ssk.mdx" />
       <ParamField path="secretServerKey" type="string">
-        The secret server key to use. By default it is read from the `STACK_SECRET_SERVER_KEY` environment variable.
+        The secret server key of the app, as found on Stack Auth's dashboard. Defaults to the value of the `SECRET_SERVER_KEY` environment variable.
       </ParamField>
-
-      <ParamField path="urls" type="object">
-        Modify the URLs that Stack uses to route and redirect.
-        <div className="indented">
-          <ParamField path="home" type="string" default="'/'" >
-            The URL of the home page.
-          </ParamField>
-          <ParamField path="signIn" type="string" default="urls.handler + '/sign-in'">
-            The URL of the sign-in page.
-          </ParamField>
-          <ParamField path="afterSignIn" type="string" default="urls.home">
-            The URL that the user will be redirected to after successful signing in.
-          </ParamField>
-          <ParamField path="signUp" type="string" default="urls.handler + '/sign-up'">
-            The URL of the sign-up page.
-          </ParamField>
-          <ParamField path="afterSignUp" type="string" default="urls.home">
-            The URL that the user will be redirected to after successful signing up.
-          </ParamField>
-          <ParamField path="afterSignOut" type="string" default="urls.home">
-            The URL that the user will be redirected to after successful signing out.
-          </ParamField>
-          <ParamField path="emailVerification" type="string" default="urls.handler + '/email-verification'">
-            The URL of the email verification page.
-          </ParamField>
-          <ParamField path="passwordReset" type="string" default="urls.handler + '/password-reset'">
-            The URL of the password reset page.
-          </ParamField>
-          <ParamField path="forgotPassword" type="string" default="urls.handler + '/forgot-password'">
-            The URL of the forgot password page.
-          </ParamField>
-          <ParamField path="accountSettings" type="string" default="urls.handler + '/account-settings'">
-            The URL of the account settings page.
-          </ParamField>
-          <ParamField path="handler" type="string" default="'/handler'">
-            The URL of the handler root. When changing this, you should also change the location of the `StackHandler` component and the domain handler path on the dashboard. Currently putting the handler at the root `/` is not supported.
-          </ParamField>
-        </div>
-      </ParamField>
-    </div>
-
+      <Markdown src="../../snippets/stack-app-constructor-options-after-ssk.mdx" />
+    </Accordion>
   </ParamField>
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
+declare new(options: {
+  tokenStore: "nextjs-cookie" | "cookie" | { accessToken: string, refreshToken: string } | Request;
+  baseUrl?: string;
+  projectId?: string;
+  publishableClientKey?: string;
+  secretServerKey?: string;
+  urls: {
+    ...
+  };
+  noAutomaticPrefetch?: boolean;
+}): StackServerApp;
+
+```
+
+### Examples
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Create a StackServerApp with a custom sign-in page
 const stackServerApp = new StackServerApp({
   tokenStore: "nextjs-cookie",
-  oauthScopesOnSignIn: {
-    google: ["extra-scope"],
-  },
   urls: {
     signIn: '/my-custom-sign-in-page',
   },
 });
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
 
-## Properties
+{/* SECTION END */} </div><div className="stack-full-size">
 
-Same as `StackClientApp`.
+<Markdown src="../../snippets/divider.mdx" />
 
-## `getUser()`
+## `stackServerApp.getUser([id], [options])`
+{/* SECTION START */} </div><div className="stack-content">
 
-Get a user. There are two overloads:
+Similar to `StackClientApp.getUser()`, but:
 
-**Overload 1 (get current server user):**
+- Returns a [`ServerUser`](../types/user.mdx#serveruser), which is more powerful
+- Has an additional overload that takes an `id` parameter instead of `options`, returning the user with the given ID instead of the current user.
 
-**Parameters:**
+### Parameters
 
 <div className="indented">
+  <ParamField path="id" type="string">
+    The ID of the user to get.
+  </ParamField>
   <ParamField path="options" type="object">
-    <div className="indented">
-      <ParamField path="or" type="string" required>
-        What to do if the user is not signed in. Can be:
-        - `"redirect"`: Redirects the user to the `signIn` URL.
-        - `"throw"`: Throws an error.
-      </ParamField>
-    </div>
+    An object containing multiple properties.
+    <Accordion title={<span className="accordion-show-properties" />}>
+      <Markdown src="../../snippets/get-user-or-parameter.mdx" />
+    </Accordion>
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
-- If `or` is not provided, returns `Promise<ServerUser | null>`.
-- If `or` is `"redirect"` or `"throw"`, always returns `Promise<ServerUser>`.
+  <code>{"Promise<"}[ServerUser](../types/user.mdx#serveruser){" | null>"}</code>: The user, or null if not found. If `id` is not provided, returns a [`CurrentServerUser`](../types/user.mdx#currentserveruser).
+  
+  If `id` is not provided and `or` is `"redirect"` or `"throw"`, never returns `null`.
 </div>
 
-**Example:**
 
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
-const user = await stackServerApp.getUser({ or: "redirect" });
-console.log(user); // always defined
+// This function has two overloads:
+declare function getUser(id: string): Promise<ServerUser | null>;
+declare function getUser(
+  options: {
+    or?: "return-null" | "redirect" | "throw"
+  }
+): Promise<CurrentServerUser | null>;
+```
 
+### Examples
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Get the current user on the server
 const user = await stackServerApp.getUser();
-console.log(user); // null if not signed in
+console.log(user); // CurrentServerUser
 ```
 
-**Overload 2 (get user by ID):**
-
-**Parameters:**
-
-<div className="indented">
-<ParamField path="id" type="string" required>
-The ID of the user to get.
-</ParamField>
-</div>
-
-**Returns:**
-
-<div className="indented">
-  `Promise<ServerUser | null>`: The user, or null if not found.
-</div>
-
-**Example:**
-
-```typescript
-const user = await stackServerApp.getUser("user_id_123");
-console.log(user); // null if not found
+```typescript Get a user by ID
+const user = await stackServerApp.getUser("12345678-1234-1234-1234-123456789abc");
+console.log(user); // ServerUser
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
 
-## `listUsers()`
+{/* SECTION END */} </div><div className="stack-full-size">
 
-Lists users.
+<Markdown src="../../snippets/divider.mdx" />
 
-If `limit` is not provided, it will return all users by making multiple requests to the server (this might be slow for a large number of users, so it is recommended to always use pagination).
+## `stackServerApp.useUser([id][, options])`
+{/* SECTION START */} </div><div className="stack-content">
 
-**Parameters:**
+<Markdown src="../../snippets/use-on-server-callout.mdx" />
+
+Functionally equivalent to [`getUser()`](#stackserverappgetuserid-options), but as a React hook.
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
+
+## `stackServerApp.listUsers([options])`
+{/* SECTION START */} </div><div className="stack-content">
+
+Lists all users on the project.
+
+### Parameters
 
 <div className="indented">
   <ParamField path="options" type="object">
-    <div className="indented">
+    <Accordion title={<span className="accordion-show-properties" />}>
       <ParamField path="cursor" type="string">
         The cursor to start the result set from.
       </ParamField>
@@ -654,7 +732,7 @@ If `limit` is not provided, it will return all users by making multiple requests
       </ParamField>
 
       <ParamField path="orderBy" type="'signedUpAt'">
-        The field to sort the results by. Currently only `signedUpAt` is supported.
+        The field to sort the results by. Currently, only `signedUpAt` is supported.
       </ParamField>
 
       <ParamField path="desc" type="boolean" default="false">
@@ -664,19 +742,32 @@ If `limit` is not provided, it will return all users by making multiple requests
       <ParamField path="query" type="string">
         A query to filter the results by. This is a free-text search on the user's display name and emails.
       </ParamField>
-    </div>
+    </Accordion>
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
-  `Promise<ServerUser[] & { nextCursor: string | null }>`: The list of users. If `nextCursor` is not null, there is a next page.
+  <code>{"Promise<"}[ServerUser](../types/user.mdx#serveruser){"[]>"}</code>: The list of users. The array has an additional `nextCursor` property, which is the cursor to the next page of users if `limit` is provided.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
+declare function listUsers(options: {
+  cursor?: string;
+  limit?: number;
+  orderBy?: "signedUpAt";
+  desc?: boolean;
+  query?: string;
+}): Promise<ServerUser[] & { nextCursor: string | null }>;
+```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript List all users
 const users = await stackServerApp.listUsers({ limit: 20 });
 console.log(users);
 
@@ -685,72 +776,42 @@ if (users.nextCursor) {
   console.log(nextPageUsers);
 }
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
 
-## `useUsers()`
+{/* SECTION END */} </div><div className="stack-full-size">
 
-Get the list of users. 
+<Markdown src="../../snippets/divider.mdx" />
 
-If `limit` is not provided, it will return all users by making multiple requests to the server (this might be slow for a large number of users, so it is recommended to always use pagination).
+## `stackServerApp.useUsers([options])`
+{/* SECTION START */} </div><div className="stack-content">
 
-This is the same as `listUsers()` but it is a React hook.
+<Markdown src="../../snippets/use-on-server-callout.mdx" />
 
-**Parameters:**
+Functionally equivalent to [`listUsers()`](#stackserverapplistusersoptions), but as a React hook.
 
-<div className="indented">
-  <ParamField path="options" type="object">
-    <div className="indented">
-      <ParamField path="cursor" type="string">
-        The cursor to start the result set from.
-      </ParamField>
+{/* SECTION END */} </div><div className="stack-full-size">
 
-      <ParamField path="limit" type="number">
-        The maximum number of items to return. If not provided, it will return all users.
-      </ParamField>
+<Markdown src="../../snippets/divider.mdx" /> 
 
-      <ParamField path="orderBy" type="'signedUpAt'">
-        The field to sort the results by. Currently only `signedUpAt` is supported.
-      </ParamField>
+## `stackServerApp.createUser([options])`
+{/* SECTION START */} </div><div className="stack-content">
 
-      <ParamField path="desc" type="boolean" default="false">
-        Whether to sort the results in descending order.
-      </ParamField>
+Creates a new user from the server.
 
-      <ParamField path="query" type="string">
-        A query to filter the results by. This is a free-text search on the user's display name and emails.
-      </ParamField>
-    </div>
-  </ParamField>
-</div>
+Note that this function is meant for server-side code; on the client, use any of the `signInWithXyz` or `signUpWithXyz` functions instead.
 
-**Returns:**
-
-<div className="indented">
-  `ServerUser[] & { nextCursor: string | null }`: The list of users. If `nextCursor` is not null, there is a next page.
-</div>
-
-**Example:**
-
-```typescript
-const [cursor, setCursor] = useState<string | null>(null);
-const users = useUsers({ cursor: nextCursor, limit: 20 });
-
-return <div>
-  {users.map((user) => <div key={user.id}>{user.displayName}</div>)}
-  {users.nextCursor && <button onClick={() => setCursor(users.nextCursor)}>Next</button>}
-</div>
-```
-
-## `createUser()`
-
-Create a new user.
-
-**Parameters:**
+### Parameters
 
 <div className="indented">
   <ParamField path="options" type="object">
-    <div className="indented">
+    <Accordion title={<span className="accordion-show-properties" />}>
       <ParamField path="primaryEmail" type="string">
         The primary email of the user to create.
+      </ParamField>
+
+      <ParamField path="primaryEmailVerified" type="boolean">
+        Whether the primary email is verified. Defaults to `false`.
       </ParamField>
 
       <ParamField path="primaryEmailAuthEnabled" type="boolean">
@@ -771,31 +832,41 @@ Create a new user.
       <ParamField path="displayName" type="string">
         The display name of the user to create.
       </ParamField>
-
-      <ParamField path="primaryEmailVerified" type="boolean" default="false">
-        Whether the primary email is verified.
-      </ParamField>
-    </div>
+    </Accordion>
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<ServerUser>`: The created user.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
-// Create a user with password authentication
+declare function createUser(options: {
+  primaryEmail?: string;
+  primaryEmailVerified?: boolean;
+  primaryEmailAuthEnabled?: boolean;
+  password?: string;
+  otpAuthEnabled?: boolean;
+  displayName?: string;
+}): Promise<ServerUser>;
+```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Create a user with password auth
 const user = await stackServerApp.createUser({
   primaryEmail: "test@example.com",
   primaryEmailAuthEnabled: true,
   password: "password123",
 });
+```
 
-// Create a user with OTP authentication
+```typescript Create a user with magic link auth
 const user = await stackServerApp.createUser({
   primaryEmail: "test@example.com",
   primaryEmailVerified: true,
@@ -803,12 +874,20 @@ const user = await stackServerApp.createUser({
   otpAuthEnabled: true,
 });
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
 
-## `getTeam()`
+{/* SECTION END */} </div><div className="stack-full-size">
 
-Get a team by ID.
+<Markdown src="../../snippets/divider.mdx" />
 
-**Parameters:**
+
+## `stackServerApp.getTeam(id)`
+{/* SECTION START */} </div><div className="stack-content">
+
+Get a team by its ID.
+
+### Parameters
 
 <div className="indented">
   <ParamField path="id" type="string" required>
@@ -816,71 +895,131 @@ Get a team by ID.
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<ServerTeam | null>`: The team, or null if not found.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
+declare function getTeam(id: string): Promise<ServerTeam | null>;
+```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Get a team by ID
 const team = await stackServerApp.getTeam("team_id_123");
 console.log(team); // null if not found
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
 
-## `listTeams()`
+{/* SECTION END */} </div><div className="stack-full-size">
 
-List all teams.
+<Markdown src="../../snippets/divider.mdx" />
 
-**Returns:**
+## `stackServerApp.listTeams()`
+{/* SECTION START */} </div><div className="stack-content">
+Lists all teams on the current project.
+
+### Parameters
 
 <div className="indented">
-  `Promise<ServerTeam[]>`: The list of teams.
+  None.
 </div>
 
-**Example:**
+### Returns
 
+<div className="indented">
+  `Promise<ServerTeam[]>`: All teams on the current project.
+</div>
+
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
+declare function listTeams(): Promise<ServerTeam[]>;
+```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript List all teams
 const teams = await stackServerApp.listTeams();
 console.log(teams);
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
 
-## `createTeam()`
+{/* SECTION END */} </div><div className="stack-full-size">
 
-create a team without a user.
+<Markdown src="../../snippets/divider.mdx" />
 
-This is similar to `user.createTeam()`, except it does not add the user to the team.
+## `stackServerApp.useTeams()`
 
-**Parameters:**
+{/* SECTION START */} </div><div className="stack-content">
+
+<Markdown src="../../snippets/use-on-server-callout.mdx" />
+
+Functionally equivalent to [`listTeams()`](#stackserverapplistteams), but as a React hook.
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
+<Markdown src="../../snippets/divider.mdx" />
+
+## `stackServerApp.createTeam([options])`
+{/* SECTION START */} </div><div className="stack-content">
+
+Creates a team.
+
+This is different from `user.createTeam()` because it does not add a user to the team. The newly created team will not have a creator.
+
+### Parameters
 
 <div className="indented">
   <ParamField path="data" type="object" required>
-    <div className="indented">
+    <Accordion title={<span className="accordion-show-properties" />}>
       <ParamField path="displayName" type="string">
         The display name for the team.
       </ParamField>
       <ParamField path="profileImageUrl" type="string | null">
         The URL of the team's profile image (base64 image allowed, crop and compress before passing it in), or null to remove.
       </ParamField>
-    </div>
+    </Accordion>
   </ParamField>
 </div>
 
-**Returns:**
+### Returns
 
 <div className="indented">
   `Promise<ServerTeam>`: The created team.
 </div>
 
-**Example:**
-
+{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
 ```typescript
+declare function createTeam(data: {
+  displayName: string;
+  profileImageUrl?: string | null;
+}): Promise<ServerTeam>;
+```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Create a team
 const team = await stackServerApp.createTeam({
   displayName: "New Team",
   profileImageUrl: "https://example.com/profile.jpg",
 });
 ```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+{/* ASIDE END */}</div></div><div className="stack-content">
+
+{/* SECTION END */} </div><div className="stack-full-size">
+
 
 
 </div></div>
