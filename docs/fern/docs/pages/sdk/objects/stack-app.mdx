@@ -11,12 +11,12 @@ On this page:
 - [StackClientApp](#stackclientapp)
 - [StackServerApp](#stackserverapp)
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 <Markdown src="../../snippets/big-divider.mdx" />
 
 
 # `StackClientApp`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 A [`StackApp`](../../concepts/stack-app.mdx) with client-level permissions. It contains most of the useful methods and hooks for your client-side code.
 
@@ -42,12 +42,12 @@ type StackClientApp = {
 };
 ```
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 <Markdown src="../../snippets/divider.mdx" />
 
 
 ## Constructor
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Creates a new `StackClientApp` instance.
 
@@ -74,7 +74,7 @@ If you're building a client-only app and don't have a [`SECRET_SERVER_KEY`](../.
 </div>
 
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 
 ```typescript
@@ -112,14 +112,14 @@ declare new(options: {
   }
   ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.getUser([options])`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Gets the current user.
 
@@ -140,7 +140,7 @@ Gets the current user.
   <code>{"Promise<"}[CurrentUser](../types/user.mdx#currentuser){" | null>"}</code>: The current user, or `null` if not signed in. If `or` is `"redirect"` or `"throw"`, never returns `null`.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function getUser(
@@ -160,14 +160,14 @@ const user = await stackClientApp.getUser({ or: "redirect" });
 console.log(user); // always defined; redirects to sign-in page if not signed in
   ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.useUser([options])`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Functionally equivalent to [`getUser()`](#stackclientappgetuseroptions), but as a React hook.
 
@@ -190,7 +190,7 @@ Equivalent to the [`useUser()`](../hooks/use-user.mdx) standalone hook (which is
   <code>[CurrentUser](../types/user.mdx#currentuser){" | null"}</code>: The current user, or `null` if not signed in. If `or` is `"redirect"` or `"throw"`, never returns `null`.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function useUser(
@@ -214,14 +214,14 @@ function MyReactComponent() {
 }
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.getProject()`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Gets the current project.
 
@@ -237,7 +237,7 @@ Gets the current project.
   `Promise<Project>`: The current project.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function getProject(): Promise<Project>;
@@ -249,14 +249,14 @@ declare function getProject(): Promise<Project>;
 const project = await stackClientApp.getProject();
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.useProject()`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Functionally equivalent to [`getProject()`](#stackclientappgetproject), but as a React hook.
 
@@ -272,7 +272,7 @@ Functionally equivalent to [`getProject()`](#stackclientappgetproject), but as a
   `Project`: The current project.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function useProject(): Project;
@@ -286,14 +286,14 @@ function MyReactComponent() {
 }
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.signInWithOAuth(provider)`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Initiates the OAuth sign-in process with the specified provider. This method:
 
@@ -317,7 +317,7 @@ Initiates the OAuth sign-in process with the specified provider. This method:
   `Promise<void>`.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function signInWithOAuth(provider: string): Promise<void>;
@@ -329,14 +329,14 @@ declare function signInWithOAuth(provider: string): Promise<void>;
 await stackClientApp.signInWithOAuth("google");
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" /> 
 
 ## `stackClientApp.signInWithCredential([options])`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Sign in using email and password credentials. The behavior is as follows:
 
@@ -375,7 +375,7 @@ Sign in using email and password credentials. The behavior is as follows:
 </div>
 
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function signInWithCredential(options: {
@@ -398,14 +398,14 @@ if (result.status === "error") {
 }
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.signUpWithCredential([options])`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Sign up using email and password credentials. The behavior is as follows:
 
@@ -443,7 +443,7 @@ Sign up using email and password credentials. The behavior is as follows:
   `Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>`: A promise that resolves to a `Result` object.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function signUpWithCredential(options: {
@@ -467,14 +467,14 @@ if (result.status === "error") {
 }
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.sendForgotPasswordEmail(email)`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Send a forgot password email to an email address.
 
@@ -492,7 +492,7 @@ Send a forgot password email to an email address.
   `Promise<Result<undefined, KnownErrors["UserNotFound"]>>`: A promise that resolves to a `Result` object.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>>;
@@ -510,14 +510,14 @@ if (result.status === "success") {
 }
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackClientApp.sendMagicLinkEmail(email)`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Send a magic link/OTP sign-in email to an email address.
 
@@ -535,7 +535,7 @@ Send a magic link/OTP sign-in email to an email address.
   `Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>`: A promise that resolves to a `Result` object.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript 
 declare function sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>;
@@ -548,15 +548,15 @@ declare function sendMagicLinkEmail(email: string): Promise<Result<{ nonce: stri
 const result = await stackClientApp.sendMagicLinkEmail("test@example.com");
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/big-divider.mdx" />
 
 
 # `StackServerApp`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Like `StackClientApp`, but with [server permissions](../../concepts/stack-app.mdx#client-vs-server). Has full read and write access to all users.
 
@@ -585,12 +585,12 @@ type StackServerApp =
   }
 ```
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## Constructor
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 ### Parameters
 
@@ -607,7 +607,7 @@ type StackServerApp =
   </ParamField>
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare new(options: {
@@ -635,14 +635,14 @@ const stackServerApp = new StackServerApp({
 });
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackServerApp.getUser([id], [options])`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Similar to `StackClientApp.getUser()`, but:
 
@@ -672,7 +672,7 @@ Similar to `StackClientApp.getUser()`, but:
 </div>
 
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 // This function has two overloads:
@@ -696,25 +696,25 @@ const user = await stackServerApp.getUser("12345678-1234-1234-1234-123456789abc"
 console.log(user); // ServerUser
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackServerApp.useUser([id][, options])`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 <Markdown src="../../snippets/use-on-server-callout.mdx" />
 
 Functionally equivalent to [`getUser()`](#stackserverappgetuserid-options), but as a React hook.
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackServerApp.listUsers([options])`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Lists all users on the project.
 
@@ -752,7 +752,7 @@ Lists all users on the project.
   <code>{"Promise<"}[ServerUser](../types/user.mdx#serveruser){"[]>"}</code>: The list of users. The array has an additional `nextCursor` property, which is the cursor to the next page of users if `limit` is provided.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function listUsers(options: {
@@ -777,25 +777,25 @@ if (users.nextCursor) {
 }
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackServerApp.useUsers([options])`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 <Markdown src="../../snippets/use-on-server-callout.mdx" />
 
 Functionally equivalent to [`listUsers()`](#stackserverapplistusersoptions), but as a React hook.
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" /> 
 
 ## `stackServerApp.createUser([options])`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Creates a new user from the server.
 
@@ -842,7 +842,7 @@ Note that this function is meant for server-side code; on the client, use any of
   `Promise<ServerUser>`: The created user.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function createUser(options: {
@@ -875,15 +875,15 @@ const user = await stackServerApp.createUser({
 });
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 
 ## `stackServerApp.getTeam(id)`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Get a team by its ID.
 
@@ -901,7 +901,7 @@ Get a team by its ID.
   `Promise<ServerTeam | null>`: The team, or null if not found.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function getTeam(id: string): Promise<ServerTeam | null>;
@@ -915,14 +915,14 @@ const team = await stackServerApp.getTeam("team_id_123");
 console.log(team); // null if not found
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackServerApp.listTeams()`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 Lists all teams on the current project.
 
 ### Parameters
@@ -937,7 +937,7 @@ Lists all teams on the current project.
   `Promise<ServerTeam[]>`: All teams on the current project.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function listTeams(): Promise<ServerTeam[]>;
@@ -951,26 +951,26 @@ const teams = await stackServerApp.listTeams();
 console.log(teams);
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackServerApp.useTeams()`
 
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 <Markdown src="../../snippets/use-on-server-callout.mdx" />
 
 Functionally equivalent to [`listTeams()`](#stackserverapplistteams), but as a React hook.
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 <Markdown src="../../snippets/divider.mdx" />
 
 ## `stackServerApp.createTeam([options])`
-{/* SECTION START */} </div><div className="stack-content">
+</div><div className="stack-content">
 
 Creates a team.
 
@@ -997,7 +997,7 @@ This is different from `user.createTeam()` because it does not add a user to the
   `Promise<ServerTeam>`: The created team.
 </div>
 
-{/* ASIDE START */}</div><div className="stack-aside"><div className="stack-sticky">
+</div><div className="stack-aside"><div className="stack-sticky">
 ### Signature
 ```typescript
 declare function createTeam(data: {
@@ -1016,9 +1016,9 @@ const team = await stackServerApp.createTeam({
 });
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
-{/* ASIDE END */}</div></div><div className="stack-content">
+</div></div><div className="stack-content">
 
-{/* SECTION END */} </div><div className="stack-full-size">
+</div><div className="stack-full-size">
 
 
 
