@@ -119,19 +119,19 @@ tr.stack-clickable-row-missing {
 }
 
 .fa-icon[style*="square-t"] {
-  background-color: blueviolet !important;
+  background-color: #763fa6 !important;
 }
 
 .fa-icon[style*="square-h"] {
-  background-color: green !important;
+  background-color: #3fa641 !important;
 }
 
 .fa-icon[style*="square-code"] {
-  background-color: blue !important;
+  background-color: #4448c2 !important;
 }
 
 .fa-icon[style*="square-u"] {
-  background-color: orange !important;
+  background-color: #eb7f38 !important;
 }
 
 .stack-dim-text {
