@@ -201,7 +201,7 @@ function EditEmailServerDialog(props: {
           name="type"
           control={form.control}
           options={[
-            { label: "Shared (noreply@stack-auth.com)", value: 'shared' },
+            { label: "Shared (noreply@stackframe.co)", value: 'shared' },
             { label: "Custom SMTP server (your own email address)", value: 'standard' },
           ]}
         />
