@@ -45,6 +45,8 @@ export function VersionAlerter({ severeOnly }: { severeOnly: boolean }) {
         if (cancelled) return;
         setVersionCheckResult(data.upToDate ? null : data);
       } catch (e) {
+        // wait a little bit because the error may have been caused by a page reload
+        await wait(2000);
         if (cancelled) return;
         console.error("Error checking version", e);
         setVersionCheckResult({ severe: true, error: `Error checking version, please make sure you're connected to the internet. See the console for more details. \n${e}` });

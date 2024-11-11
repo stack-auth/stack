@@ -1,5 +1,28 @@
 # @stackframe/e2e-tests
 
+## 2.6.22
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.22
+
+## 2.6.21
+
+### Patch Changes
+
+- Fixed inviteUser
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.21
+
+## 2.6.20
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.20
+
 ## 2.6.19
 
 ### Patch Changes

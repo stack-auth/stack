@@ -1,12 +1,13 @@
 "use client";
 
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import { DashIcon } from "@radix-ui/react-icons";
 import { OTPInput, OTPInputContext } from "input-otp";
 
 import { cn } from "../../lib/utils";
 
-const InputOTP = React.forwardRef<
+const InputOTP: React.FC<React.ComponentPropsWithoutRef<typeof OTPInput>> = forwardRefIfNeeded<
   React.ElementRef<typeof OTPInput>,
   React.ComponentPropsWithoutRef<typeof OTPInput>
 >(({ className, containerClassName, ...props }, ref) => (
@@ -22,7 +23,7 @@ const InputOTP = React.forwardRef<
 ));
 InputOTP.displayName = "InputOTP";
 
-const InputOTPGroup = React.forwardRef<
+const InputOTPGroup = forwardRefIfNeeded<
   React.ElementRef<"div">,
   React.ComponentPropsWithoutRef<"div">
 >(({ className, ...props }, ref) => (
@@ -30,7 +31,7 @@ const InputOTPGroup = React.forwardRef<
 ));
 InputOTPGroup.displayName = "InputOTPGroup";
 
-const InputOTPSlot = React.forwardRef<
+const InputOTPSlot = forwardRefIfNeeded<
   React.ElementRef<"div">,
   React.ComponentPropsWithoutRef<"div"> & { index: number, size?: 'default' | 'lg' }
 >(({ index, className, size = 'default', ...props }, ref) => {
@@ -59,7 +60,7 @@ const InputOTPSlot = React.forwardRef<
 });
 InputOTPSlot.displayName = "InputOTPSlot";
 
-const InputOTPSeparator = React.forwardRef<
+const InputOTPSeparator = forwardRefIfNeeded<
   React.ElementRef<"div">,
   React.ComponentPropsWithoutRef<"div">
 >(({ ...props }, ref) => (

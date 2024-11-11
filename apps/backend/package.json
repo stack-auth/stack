@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-backend",
-  "version": "2.6.19",
+  "version": "2.6.22",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
@@ -60,6 +60,7 @@
     "pg": "^8.11.3",
     "posthog-node": "^4.1.0",
     "react": "^18.2",
+    "react-dom": "^18.2",
     "semver": "^7.6.3",
     "server-only": "^0.0.1",
     "sharp": "^0.32.6",
@@ -71,7 +72,7 @@
     "@simplewebauthn/types": "^11.0.0",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
-    "@types/react": "^18.2.66",
+    "@types/react": "^18.3.12",
     "@types/semver": "^7.5.8",
     "concurrently": "^8.2.2",
     "glob": "^10.4.1",

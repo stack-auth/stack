@@ -34,7 +34,7 @@ import * as NextNavigationUnscrambled from "next/navigation"; // import the enti
 import React, { useCallback, useMemo } from "react";
 import { constructRedirectUrl } from "../utils/url";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
-import { deleteCookie, getCookie, setOrDeleteCookie } from "./cookie";
+import { CookieHelper, createBrowserCookieHelper, createCookieHelper, deleteCookieClient, getCookieClient, setOrDeleteCookie, setOrDeleteCookieClient } from "./cookie";
 
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
@@ -470,7 +470,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _memoryTokenStore = createEmptyTokenStore();
   protected _requestTokenStores = new WeakMap<RequestLike, Store<TokenObject>>();
-  protected _storedCookieTokenStore: Store<TokenObject> | null = null;
+  protected _storedBrowserCookieTokenStore: Store<TokenObject> | null = null;
   protected get _refreshTokenCookieName() {
     return `stack-refresh-${this.projectId}`;
   }
@@ -490,39 +490,39 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     // the access token on page reload.
     return `stack-access`;
   }
-  protected _getCookieTokenStore(): Store<TokenObject> {
+  protected _getBrowserCookieTokenStore(): Store<TokenObject> {
     if (!isBrowserLike()) {
       throw new Error("Cannot use cookie token store on the server!");
     }
 
-    if (this._storedCookieTokenStore === null) {
+    if (this._storedBrowserCookieTokenStore === null) {
       const getCurrentValue = (old: TokenObject | null) => {
         const tokens = this._getTokensFromCookies({
-          refreshTokenCookie: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
-          accessTokenCookie: getCookie(this._accessTokenCookieName),
+          refreshTokenCookie: getCookieClient(this._refreshTokenCookieName) ?? getCookieClient('stack-refresh'),  // keep old cookie name for backwards-compatibility
+          accessTokenCookie: getCookieClient(this._accessTokenCookieName),
         });
         return {
           refreshToken: tokens.refreshToken,
           accessToken: tokens.accessToken ?? (old?.refreshToken === tokens.refreshToken ? old.accessToken : null),
         };
       };
-      this._storedCookieTokenStore = new Store<TokenObject>(getCurrentValue(null));
+      this._storedBrowserCookieTokenStore = new Store<TokenObject>(getCurrentValue(null));
       let hasSucceededInWriting = true;
 
       setInterval(() => {
         if (hasSucceededInWriting) {
-          const oldValue = this._storedCookieTokenStore!.get();
+          const oldValue = this._storedBrowserCookieTokenStore!.get();
           const currentValue = getCurrentValue(oldValue);
           if (!deepPlainEquals(currentValue, oldValue)) {
-            this._storedCookieTokenStore!.set(currentValue);
+            this._storedBrowserCookieTokenStore!.set(currentValue);
           }
         }
       }, 100);
-      this._storedCookieTokenStore.onChange((value) => {
+      this._storedBrowserCookieTokenStore.onChange((value) => {
         try {
-          setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-          setOrDeleteCookie(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24 });
-          deleteCookie('stack-refresh');  // delete cookie name from previous versions (for backwards-compatibility)
+          setOrDeleteCookieClient(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
+          setOrDeleteCookieClient(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24 });
+          deleteCookieClient('stack-refresh');  // delete cookie name from previous versions (for backwards-compatibility)
           hasSucceededInWriting = true;
         } catch (e) {
           if (!isBrowserLike()) {
@@ -535,31 +535,42 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       });
     }
 
-    return this._storedCookieTokenStore;
+    return this._storedBrowserCookieTokenStore;
   };
-  protected _getOrCreateTokenStore(overrideTokenStoreInit?: TokenStoreInit): Store<TokenObject> {
+  protected _getOrCreateTokenStore(cookieHelper: CookieHelper, overrideTokenStoreInit?: TokenStoreInit): Store<TokenObject> {
     const tokenStoreInit = overrideTokenStoreInit === undefined ? this._tokenStoreInit : overrideTokenStoreInit;
 
     switch (tokenStoreInit) {
       case "cookie": {
-        return this._getCookieTokenStore();
+        return this._getBrowserCookieTokenStore();
       }
       case "nextjs-cookie": {
         if (isBrowserLike()) {
-          return this._getCookieTokenStore();
+          return this._getBrowserCookieTokenStore();
         } else {
           const tokens = this._getTokensFromCookies({
-            refreshTokenCookie: getCookie(this._refreshTokenCookieName) ?? getCookie('stack-refresh'),  // keep old cookie name for backwards-compatibility
-            accessTokenCookie: getCookie(this._accessTokenCookieName),
+            refreshTokenCookie: cookieHelper.get(this._refreshTokenCookieName) ?? cookieHelper.get('stack-refresh'),  // keep old cookie name for backwards-compatibility
+            accessTokenCookie: cookieHelper.get(this._accessTokenCookieName),
           });
           const store = new Store<TokenObject>(tokens);
           store.onChange((value) => {
-            try {
-              setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365 });
-              setOrDeleteCookie(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24 });
-            } catch (e) {
-              // ignore
-            }
+            runAsynchronously(async () => {
+              // TODO HACK this is a bit of a hack; while the order happens to work in practice (because the only actual
+              // async operation is waiting for the `cookies()` to resolve which always happens at the same time during
+              // the same request), it's not guaranteed to be free of race conditions if there are many updates happening
+              // at the same time
+              //
+              // instead, we should create a per-request cookie helper outside of the store onChange and reuse that
+              //
+              // but that's kinda hard to do because Next.js doesn't expose a documented way to find out which request
+              // we're currently processing, and hence we can't find out which per-request cookie helper to use
+              //
+              // so hack it is
+              await Promise.all([
+                setOrDeleteCookie(this._refreshTokenCookieName, value.refreshToken, { maxAge: 60 * 60 * 24 * 365, noOpIfServerComponent: true }),
+                setOrDeleteCookie(this._accessTokenCookieName, value.accessToken ? JSON.stringify([value.refreshToken, value.accessToken]) : null, { maxAge: 60 * 60 * 24, noOpIfServerComponent: true }),
+              ]);
+            });
           });
           return store;
         }
@@ -584,7 +595,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
             } catch (e) {
               throw new Error(`Invalid x-stack-auth header: ${stackAuthHeader}`, { cause: e });
             }
-            return this._getOrCreateTokenStore({
+            return this._getOrCreateTokenStore(cookieHelper, {
               accessToken: parsed.accessToken ?? null,
               refreshToken: parsed.refreshToken ?? null,
             });
@@ -609,6 +620,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         throw new Error(`Invalid token store ${tokenStoreInit}`);
       }
     }
+  }
+
+  protected _useTokenStore(overrideTokenStoreInit?: TokenStoreInit): Store<TokenObject> {
+    suspendIfSsr();
+    const cookieHelper = createBrowserCookieHelper();
+    const tokenStore = this._getOrCreateTokenStore(cookieHelper, overrideTokenStoreInit);
+    return tokenStore;
   }
 
   /**
@@ -649,12 +667,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     sessionsBySessionKey.set(sessionKey, session);
     return session;
   }
-  protected _getSession(overrideTokenStoreInit?: TokenStoreInit): InternalSession {
-    const tokenStore = this._getOrCreateTokenStore(overrideTokenStoreInit);
+  protected async _getSession(overrideTokenStoreInit?: TokenStoreInit): Promise<InternalSession> {
+    const tokenStore = this._getOrCreateTokenStore(await createCookieHelper(), overrideTokenStoreInit);
     return this._getSessionFromTokenStore(tokenStore);
   }
   protected _useSession(overrideTokenStoreInit?: TokenStoreInit): InternalSession {
-    const tokenStore = this._getOrCreateTokenStore(overrideTokenStoreInit);
+    const tokenStore = this._useTokenStore(overrideTokenStoreInit);
     const subscribe = useCallback((cb: () => void) => {
       const { unsubscribe } = tokenStore.onChange(() => {
         cb();
@@ -669,7 +687,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (!("accessToken" in tokens) || !("refreshToken" in tokens)) {
       throw new StackAssertionError("Invalid tokens object; can't sign in with this", { tokens });
     }
-    const tokenStore = this._getOrCreateTokenStore();
+    const tokenStore = this._getOrCreateTokenStore(await createCookieHelper());
     tokenStore.set(tokens);
   }
 
@@ -727,7 +745,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _clientTeamFromCrud(crud: TeamsCrud['Client']['Read']): Team {
+  protected _clientTeamFromCrud(crud: TeamsCrud['Client']['Read'], session: InternalSession): Team {
     const app = this;
     return {
       id: crud.id,
@@ -735,30 +753,33 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       profileImageUrl: crud.profile_image_url,
       clientMetadata: crud.client_metadata,
       clientReadOnlyMetadata: crud.client_read_only_metadata,
-      async inviteUser(options: { email: string }) {
+      async inviteUser(options: { email: string, callbackUrl?: string }) {
+        if (!options.callbackUrl && typeof window === "undefined") {
+          throw new Error("Cannot invite user without a callback URL from the server. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
+        }
         await app._interface.sendTeamInvitation({
           teamId: crud.id,
           email: options.email,
-          session: app._getSession(),
-          callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
+          session,
+          callbackUrl: options.callbackUrl ?? constructRedirectUrl(app.urls.teamInvitation),
         });
       },
       async listUsers() {
-        const result = await app._teamMemberProfilesCache.getOrWait([app._getSession(), crud.id], "write-only");
+        const result = await app._teamMemberProfilesCache.getOrWait([session, crud.id], "write-only");
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
       },
       useUsers() {
-        const result = useAsyncCache(app._teamMemberProfilesCache, [app._getSession(), crud.id] as const, "team.useUsers()");
+        const result = useAsyncCache(app._teamMemberProfilesCache, [session, crud.id] as const, "team.useUsers()");
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
       },
       async update(data: TeamUpdateOptions){
-        await app._interface.updateTeam({ data: teamUpdateOptionsToCrud(data), teamId: crud.id }, app._getSession());
-        await app._currentUserTeamsCache.refresh([app._getSession()]);
+        await app._interface.updateTeam({ data: teamUpdateOptionsToCrud(data), teamId: crud.id }, session);
+        await app._currentUserTeamsCache.refresh([session]);
       }
     };
   }
 
-  protected _clientContactChannelFromCrud(crud: ContactChannelsCrud['Client']['Read']): ContactChannel {
+  protected _clientContactChannelFromCrud(crud: ContactChannelsCrud['Client']['Read'], session: InternalSession): ContactChannel {
     const app = this;
     return {
       id: crud.id,
@@ -769,15 +790,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       usedForAuth: crud.used_for_auth,
 
       async sendVerificationEmail() {
-        await app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, constructRedirectUrl(app.urls.emailVerification), app._getSession());
+        await app._interface.sendCurrentUserContactChannelVerificationEmail(crud.id, constructRedirectUrl(app.urls.emailVerification), session);
       },
       async update(data: ContactChannelUpdateOptions) {
-        await app._interface.updateClientContactChannel(crud.id, contactChannelUpdateOptionsToCrud(data), app._getSession());
-        await app._clientContactChannelsCache.refresh([app._getSession()]);
+        await app._interface.updateClientContactChannel(crud.id, contactChannelUpdateOptionsToCrud(data), session);
+        await app._clientContactChannelsCache.refresh([session]);
       },
       async delete() {
-        await app._interface.deleteClientContactChannel(crud.id, app._getSession());
-        await app._clientContactChannelsCache.refresh([app._getSession()]);
+        await app._interface.deleteClientContactChannel(crud.id, session);
+        await app._clientContactChannelsCache.refresh([session]);
       },
     };
   }
@@ -844,10 +865,26 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _createBaseUser(crud: CurrentUserCrud['Client']['Read']): BaseUser {
-    if (!crud) {
-      throw new StackAssertionError("User not found");
-    }
+  protected _editableTeamProfileFromCrud(crud: TeamMemberProfilesCrud['Client']['Read'], session: InternalSession): EditableTeamMemberProfile {
+    const app = this;
+    return {
+      displayName: crud.display_name,
+      profileImageUrl: crud.profile_image_url,
+      async update(update: { displayName?: string, profileImageUrl?: string }) {
+        await app._interface.updateTeamMemberProfile({
+          teamId: crud.team_id,
+          userId: crud.user_id,
+          profile: {
+            display_name: update.displayName,
+            profile_image_url: update.profileImageUrl,
+          },
+        }, session);
+        await app._currentUserTeamProfileCache.refresh([session, crud.team_id]);
+      }
+    };
+  }
+
+  protected _createBaseUser(crud: NonNullable<CurrentUserCrud['Client']['Read']> | UsersCrud['Server']['Read']): BaseUser {
     return {
       id: crud.id,
       displayName: crud.display_name,
@@ -862,7 +899,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       otpAuthEnabled: crud.otp_auth_enabled,
       oauthProviders: crud.oauth_providers,
       passkeyAuthEnabled: crud.passkey_auth_enabled,
-      selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team),
       isMultiFactorRequired: crud.requires_totp_mfa,
       toClientJson(): CurrentUserCrud['Client']['Read'] {
         return crud;
@@ -870,26 +906,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _editableTeamProfileFromCrud(crud: TeamMemberProfilesCrud['Client']['Read']): EditableTeamMemberProfile {
-    const app = this;
-    return {
-      displayName: crud.display_name,
-      profileImageUrl: crud.profile_image_url,
-      async update(update: { displayName?: string, profileImageUrl?: string }) {
-        await app._interface.updateTeamMemberProfile({
-          teamId: crud.team_id,
-          userId: crud.user_id,
-          profile: {
-            display_name: update.displayName,
-            profile_image_url: update.profileImageUrl,
-          },
-        }, app._getSession());
-        await app._currentUserTeamProfileCache.refresh([app._getSession(), crud.team_id]);
-      }
-    };
-  }
-
-  protected _createUserExtra(crud: CurrentUserCrud['Client']['Read'], session: InternalSession): UserExtra {
+  protected _createUserExtraFromCurrent(crud: NonNullable<CurrentUserCrud['Client']['Read']>, session: InternalSession): UserExtra {
     const app = this;
     async function getConnectedAccount(id: ProviderType, options?: { scopes?: string[] }): Promise<OAuthConnection | null>;
     async function getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
@@ -929,11 +946,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async listTeams() {
         const teams = await app._currentUserTeamsCache.getOrWait([session], "write-only");
-        return teams.map((crud) => app._clientTeamFromCrud(crud));
+        return teams.map((crud) => app._clientTeamFromCrud(crud, session));
       },
       useTeams() {
         const teams = useAsyncCache(app._currentUserTeamsCache, [session], "user.useTeams()");
-        return useMemo(() => teams.map((crud) => app._clientTeamFromCrud(crud)), [teams]);
+        return useMemo(() => teams.map((crud) => app._clientTeamFromCrud(crud, session)), [teams]);
       },
       async createTeam(data: TeamCreateOptions) {
         const crud = await app._interface.createClientTeam({
@@ -941,7 +958,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           creator_user_id: 'me',
         }, session);
         await app._currentUserTeamsCache.refresh([session]);
-        return app._clientTeamFromCrud(crud);
+        return app._clientTeamFromCrud(crud, session);
       },
       async leaveTeam(team: Team) {
         await app._interface.leaveTeam(team.id, session);
@@ -972,7 +989,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await app._updateClientUser(update, session);
       },
       async sendVerificationEmail() {
-        if (!crud?.primary_email) {
+        if (!crud.primary_email) {
           throw new StackAssertionError("User does not have a primary email");
         }
         return await app._sendVerificationEmail(crud.primary_email, session);
@@ -987,13 +1004,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._currentUserCache.refresh([session]);
         return result;
       },
+      selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team, session),
       async getTeamProfile(team: Team) {
         const result = await app._currentUserTeamProfileCache.getOrWait([session, team.id], "write-only");
-        return app._editableTeamProfileFromCrud(result);
+        return app._editableTeamProfileFromCrud(result, session);
       },
       useTeamProfile(team: Team) {
         const result = useAsyncCache(app._currentUserTeamProfileCache, [session, team.id] as const, "user.useTeamProfile()");
-        return app._editableTeamProfileFromCrud(result);
+        return app._editableTeamProfileFromCrud(result, session);
       },
       async delete() {
         await app._interface.deleteCurrentUser(session);
@@ -1001,16 +1019,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async listContactChannels() {
         const result = await app._clientContactChannelsCache.getOrWait([session], "write-only");
-        return result.map((crud) => app._clientContactChannelFromCrud(crud));
+        return result.map((crud) => app._clientContactChannelFromCrud(crud, session));
       },
       useContactChannels() {
         const result = useAsyncCache(app._clientContactChannelsCache, [session] as const, "user.useContactChannels()");
-        return result.map((crud) => app._clientContactChannelFromCrud(crud));
+        return result.map((crud) => app._clientContactChannelFromCrud(crud, session));
       },
       async createContactChannel(data: ContactChannelCreateOptions) {
         const crud = await app._interface.createClientContactChannel(contactChannelCreateOptionsToCrud('me', data), session);
         await app._clientContactChannelsCache.refresh([session]);
-        return app._clientContactChannelFromCrud(crud);
+        return app._clientContactChannelFromCrud(crud, session);
       },
     };
   }
@@ -1031,11 +1049,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
-  protected _currentUserFromCrud(crud: CurrentUserCrud['Client']['Read'], session: InternalSession): ProjectCurrentUser<ProjectId> {
+  protected _currentUserFromCrud(crud: NonNullable<CurrentUserCrud['Client']['Read']>, session: InternalSession): ProjectCurrentUser<ProjectId> {
     const currentUser = {
       ...this._createBaseUser(crud),
       ...this._createAuth(session),
-      ...this._createUserExtra(crud, session),
+      ...this._createUserExtraFromCurrent(crud, session),
       ...this._isInternalProject() ? this._createInternalUserExtra(session) : {},
     } satisfies CurrentUser;
 
@@ -1150,7 +1168,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.acceptTeamInvitation({
       type: 'check',
       code,
-      session: this._getSession(),
+      session: await this._getSession(),
     });
   }
 
@@ -1158,7 +1176,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const result = await this._interface.acceptTeamInvitation({
       type: 'use',
       code,
-      session: this._getSession(),
+      session: await this._getSession(),
     });
 
     if (result.status === 'ok') {
@@ -1172,7 +1190,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const result = await this._interface.acceptTeamInvitation({
       type: 'details',
       code,
-      session: this._getSession(),
+      session: await this._getSession(),
     });
 
     if (result.status === 'ok') {
@@ -1184,8 +1202,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async verifyEmail(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
     const result = await this._interface.verifyEmail(code);
-    await this._currentUserCache.refresh([this._getSession()]);
-    await this._clientContactChannelsCache.refresh([this._getSession()]);
+    await this._currentUserCache.refresh([await this._getSession()]);
+    await this._clientContactChannelsCache.refresh([await this._getSession()]);
     return result;
   }
 
@@ -1194,7 +1212,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentUser<ProjectId> | null>;
   async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentUser<ProjectId> | null> {
     this._ensurePersistentTokenStore(options?.tokenStore);
-    const session = this._getSession(options?.tokenStore);
+    const session = await this._getSession(options?.tokenStore);
     const crud = await this._currentUserCache.getOrWait([session], "write-only");
 
     if (crud === null) {
@@ -1291,7 +1309,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return await callback();
     } catch (e) {
       if (e instanceof KnownErrors.MultiFactorAuthenticationRequired) {
-        return Result.ok(await this._experimentalMfa(e, this._getSession()));
+        return Result.ok(await this._experimentalMfa(e, await this._getSession()));
       }
       throw e;
     }
@@ -1303,7 +1321,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     noRedirect?: boolean,
   }): Promise<Result<undefined, KnownErrors["EmailPasswordMismatch"] | KnownErrors["InvalidTotpCode"]>> {
     this._ensurePersistentTokenStore();
-    const session = this._getSession();
+    const session = await this._getSession();
     let result;
     try {
       result = await this._catchMfaRequiredError(async () => {
@@ -1333,7 +1351,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     noRedirect?: boolean,
   }): Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors['PasswordRequirementsNotMet']>> {
     this._ensurePersistentTokenStore();
-    const session = this._getSession();
+    const session = await this._getSession();
     const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
     const result = await this._interface.signUpWithCredential(
       options.email,
@@ -1381,11 +1399,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   async signInWithPasskey(): Promise<Result<undefined, KnownErrors["PasskeyAuthenticationFailed"] | KnownErrors["InvalidTotpCode"] | KnownErrors["PasskeyWebAuthnError"]>> {
     this._ensurePersistentTokenStore();
+    const session = await this._getSession();
     let result;
     try {
       result = await this._catchMfaRequiredError(async () => {
-
-        const initiationResult = await this._interface.initiatePasskeyAuthentication({}, this._getSession());
+        const initiationResult = await this._interface.initiatePasskeyAuthentication({}, session);
         if (initiationResult.status !== "ok") {
           return Result.error(new KnownErrors.PasskeyAuthenticationFailed("Failed to get initiation options for passkey authentication"));
         }
@@ -1570,7 +1588,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         };
       },
       setCurrentUser: (userJsonPromise: Promise<CurrentUserCrud['Client']['Read'] | null>) => {
-        runAsynchronously(this._currentUserCache.forceSetCachedValueAsync([this._getSession()], userJsonPromise));
+        runAsynchronously(async () => {
+          await this._currentUserCache.forceSetCachedValueAsync([await this._getSession()], userJsonPromise);
+        });
       },
     };
   };
@@ -1656,11 +1676,18 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected _serverEditableTeamProfileFromCrud(crud: TeamMemberProfilesCrud['Client']['Read']): EditableTeamMemberProfile {
     const app = this;
-    const clientProfile = this._editableTeamProfileFromCrud(crud);
     return {
-      ...clientProfile,
+      displayName: crud.display_name,
+      profileImageUrl: crud.profile_image_url,
       async update(update: { displayName?: string, profileImageUrl?: string }) {
-        await clientProfile.update(update);
+        await app._interface.updateServerTeamMemberProfile({
+          teamId: crud.team_id,
+          userId: crud.user_id,
+          profile: {
+            display_name: update.displayName,
+            profile_image_url: update.profileImageUrl,
+          },
+        });
         await app._serverUserTeamProfileCache.refresh([crud.team_id, crud.user_id]);
       }
     };
@@ -1669,7 +1696,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _serverContactChannelFromCrud(userId: string, crud: ContactChannelsCrud['Server']['Read']): ServerContactChannel {
     const app = this;
     return {
-      ...this._clientContactChannelFromCrud(crud),
+      id: crud.id,
+      value: crud.value,
+      type: crud.type,
+      isVerified: crud.is_verified,
+      isPrimary: crud.is_primary,
+      usedForAuth: crud.used_for_auth,
       async sendVerificationEmail() {
         await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, constructRedirectUrl(app.urls.emailVerification));
       },
@@ -1776,6 +1808,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       getConnectedAccount,
       useConnectedAccount,
+      selectedTeam: crud.selected_team ? app._serverTeamFromCrud(crud.selected_team) : null,
       async getTeam(teamId: string) {
         const teams = await this.listTeams();
         return teams.find((t) => t.id === teamId) ?? null;
@@ -1929,12 +1962,15 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         });
         await app._serverTeamMemberProfilesCache.refresh([crud.id]);
       },
-      async inviteUser(options: { email: string }) {
-        await app._interface.sendTeamInvitation({
+      async inviteUser(options: { email: string, callbackUrl?: string }) {
+        if (!options.callbackUrl && typeof window === "undefined") {
+          throw new Error("Cannot invite user without a callback URL from the server. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
+        }
+
+        await app._interface.sendServerTeamInvitation({
           teamId: crud.id,
           email: options.email,
-          session: null,
-          callbackUrl: constructRedirectUrl(app.urls.teamInvitation),
+          callbackUrl: options.callbackUrl ?? constructRedirectUrl(app.urls.teamInvitation),
         });
       },
     };
@@ -1957,7 +1993,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     } else {
       // TODO this code is duplicated from the client app; fix that
       this._ensurePersistentTokenStore(options?.tokenStore);
-      const session = this._getSession(options?.tokenStore);
+      const session = await this._getSession(options?.tokenStore);
       const crud = await this._currentServerUserCache.getOrWait([session], "write-only");
 
       if (crud === null) {
@@ -2001,7 +2037,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._ensurePersistentTokenStore(options?.tokenStore);
 
       const router = NextNavigation.useRouter();
-      const session = this._getSession(options?.tokenStore);
+      const session = this._useSession(options?.tokenStore);
       const crud = useAsyncCache(this._currentServerUserCache, [session], "useUser()");
 
       if (crud === null) {
@@ -2587,11 +2623,6 @@ type BaseUser = {
   readonly passkeyAuthEnabled: boolean,
 
   readonly isMultiFactorRequired: boolean,
-
-  /**
-   * A shorthand method to update multiple fields of the user at once.
-   */
-  readonly selectedTeam: Team | null,
   toClientJson(): CurrentUserCrud["Client"]["Read"],
 
   /**
@@ -2629,6 +2660,8 @@ type UserExtra = {
   useConnectedAccount(id: ProviderType, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): OAuthConnection | null,
 
   hasPermission(scope: Team, permissionId: string): Promise<boolean>,
+
+  readonly selectedTeam: Team | null,
   setSelectedTeam(team: Team | null): Promise<void>,
   createTeam(data: TeamCreateOptions): Promise<Team>,
   leaveTeam(team: Team): Promise<void>,
@@ -3019,7 +3052,7 @@ export type Team = {
   profileImageUrl: string | null,
   clientMetadata: any,
   clientReadOnlyMetadata: any,
-  inviteUser(options: { email: string }): Promise<void>,
+  inviteUser(options: { email: string, callbackUrl?: string }): Promise<void>,
   listUsers(): Promise<TeamUser[]>,
   useUsers(): TeamUser[],
   update(update: TeamUpdateOptions): Promise<void>,
@@ -3065,7 +3098,7 @@ export type ServerTeam = {
   update(update: ServerTeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,
   addUser(userId: string): Promise<void>,
-  inviteUser(options: { email: string }): Promise<void>,
+  inviteUser(options: { email: string, callbackUrl?: string }): Promise<void>,
   removeUser(userId: string): Promise<void>,
 } & Team;
 

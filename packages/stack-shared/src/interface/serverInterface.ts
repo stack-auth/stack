@@ -362,6 +362,24 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
+  async updateServerTeamMemberProfile(options: {
+    teamId: string,
+    userId: string,
+    profile: TeamMemberProfilesCrud['Server']['Update'],
+  }) {
+    await this.sendServerRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.profile),
+      },
+      null,
+    );
+  }
+
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {
     await this.sendServerRequest(
       `/team-permissions/${teamId}/${userId}/${permissionId}`,
@@ -480,6 +498,28 @@ export class StackServerInterface extends StackClientInterface {
           "content-type": "application/json",
         },
         body: JSON.stringify({ callback_url: callbackUrl }),
+      },
+      null,
+    );
+  }
+
+  async sendServerTeamInvitation(options: {
+    email: string,
+    teamId: string,
+    callbackUrl: string,
+  }): Promise<void> {
+    await this.sendServerRequest(
+      "/team-invitations/send-code",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: options.email,
+          team_id: options.teamId,
+          callback_url: options.callbackUrl,
+        }),
       },
       null,
     );

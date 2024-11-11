@@ -9,6 +9,7 @@
   "cSpell.words": [
     "cjsx",
     "clsx",
+    "cmdk",
     "codegen",
     "Crudl",
     "ctsx",
@@ -20,6 +21,7 @@
     "INBUCKET",
     "Jwks",
     "JWTs",
+    "katex",
     "lucide",
     "Luma",
     "midfix",
@@ -39,11 +41,13 @@
     "pageleave",
     "pageview",
     "pkcco",
+    "PKCE",
     "posthog",
     "Proxied",
     "psql",
     "qrcode",
     "quetzallabs",
+    "rehype",
     "reqs",
     "RPID",
     "simplewebauthn",
@@ -51,6 +55,7 @@
     "supabase",
     "Svix",
     "tailwindcss",
+    "tanstack",
     "totp",
     "tsup",
     "typecheck",
@@ -60,7 +65,8 @@
     "webapi",
     "webauthn",
     "Whitespaces",
-    "wolfgunblood"
+    "wolfgunblood",
+    "zustand"
   ],
   "[typescript]": {
       "editor.codeActionsOnSave": {

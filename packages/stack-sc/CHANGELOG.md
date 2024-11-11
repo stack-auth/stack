@@ -1,5 +1,23 @@
 # @stackframe/stack-sc
 
+## 2.6.22
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.21
+
+### Patch Changes
+
+- Fixed inviteUser
+
+## 2.6.20
+
+### Patch Changes
+
+- Next.js 15 fixes
+
 ## 2.6.19
 
 ### Patch Changes

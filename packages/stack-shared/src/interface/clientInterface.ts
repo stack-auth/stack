@@ -244,7 +244,7 @@ export class StackClientInterface {
     let adminTokenObj = adminSession ? await adminSession.getPotentiallyExpiredTokens() : null;
 
     // all requests should be dynamic to prevent Next.js caching
-    cookies?.();
+    await cookies?.();
 
     const url = this.getApiUrl() + path;
     const params: RequestInit = {
@@ -645,7 +645,7 @@ export class StackClientInterface {
     email: string,
     teamId: string,
     callbackUrl: string,
-    session: InternalSession | null,
+    session: InternalSession,
   }): Promise<void> {
     await this.sendClientRequest(
       "/team-invitations/send-code",
