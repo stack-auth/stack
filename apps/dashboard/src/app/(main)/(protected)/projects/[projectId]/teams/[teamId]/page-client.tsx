@@ -2,11 +2,10 @@
 import { TeamMemberSearchTable } from '@/components/data-table/team-member-search-table';
 import { TeamMemberTable } from '@/components/data-table/team-member-table';
 import { ServerTeam } from '@stackframe/stack';
-import { ActionDialog, Button, useToast } from '@stackframe/stack-ui';
+import { ActionDialog, Button } from '@stackframe/stack-ui';
 import { notFound } from 'next/navigation';
 import { PageLayout } from '../../page-layout';
 import { useAdminApp } from '../../use-admin-app';
-import { KnownErrors } from '@stackframe/stack-shared';
 
 
 export function AddUserDialog(props: {
@@ -16,29 +15,24 @@ export function AddUserDialog(props: {
   team: ServerTeam,
 }) {
   const teamUsers = props.team.useUsers();
-  const { toast } = useToast();
 
   return <ActionDialog
     title="Add a user"
     trigger={props.trigger}
   >
     <TeamMemberSearchTable
-      action={(user) => <Button
-        variant="outline"
-        disabled={teamUsers.find(u => u.id === user.id) !== undefined}
-        onClick={async () => {
-          try {
-            await props.team.addUser(user.id);
-            toast({ title: 'User added to team', variant: 'success' });
-          } catch (error) {
-            if (error instanceof KnownErrors.TeamMembershipAlreadyExists) {
-              toast({ title: 'User already a member of this team', variant: 'destructive' });
-            }
-          }
-        }}
-      >
-        {teamUsers.find(u => u.id === user.id) ? 'Added' : 'Add'}
-      </Button>}
+      action={(user) =>
+        <div className="w-[100px] flex justify-center">
+          <Button
+            variant="outline"
+            disabled={teamUsers.find(u => u.id === user.id) !== undefined}
+            onClick={async () => {
+              await props.team.addUser(user.id);
+            }}
+          >
+            {teamUsers.find(u => u.id === user.id) ? 'Added' : 'Add'}
+          </Button>
+        </div>}
     />
   </ActionDialog>;
 }
