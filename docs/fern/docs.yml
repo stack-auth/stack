@@ -92,11 +92,9 @@ navigation:
             path: ./docs/pages/customization/internationalization.mdx
           # - page: Customize Emails
           #   icon: fa-regular fa-envelope
-          - page: Custom Layouts and Pages
-            icon: fa-regular fa-table-layout
-            path: ./docs/pages/customization/custom-pages.mdx
           - section: Custom Page Examples
             icon: fa-regular fa-files
+            path: ./docs/pages/customization/custom-pages.mdx
             contents:
               - page: Sign In
                 path: ./docs/pages/customization/page-examples/sign-in.mdx
