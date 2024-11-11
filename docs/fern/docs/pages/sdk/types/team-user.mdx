@@ -2,45 +2,104 @@
 slug: sdk/types/team-user
 ---
 
+<Markdown src="../../snippets/make-full-page.mdx" />
+<div className="stack-aside-container"><div className="stack-content">
 
-`TeamUser` is represents a user in the context of a team. There are two types of `TeamUser`
+On this page:
+- [TeamUser](#teamuser)
+- [ServerTeamUser](#serverteamuser)
 
-1. `TeamUser`
-    - This is used on the client side.
-    - It contains minimal information about the user, only the user's ID.
-    - It contains a `teamProfile` object, which is the user's profile for the team.
-    - You can obtain it by calling `team.useUsers()` or `team.listUsers()` on a `Team` object.
-
-2. `ServerTeamUser`
-    - This is used on the server side.
-    - Currently it only contains the user's ID, but in the future it will extend `ServerUser`.
-    - You can obtain it by calling `serverTeam.listUsers()` on a `ServerTeam` object.
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/big-divider.mdx" />
 
 
-## `TeamUser`
+# `TeamUser`
+</div><div className="stack-content">
 
-### Properties
+The `TeamUser` object is used on the client side to represent a user in the context of a team, providing minimal information about the user, including their ID and team-specific profile.
 
-<div className="indented">
-  <ParamField path="id" type="string">
-    The ID of the user.
-  </ParamField>
+It is usually obtained by calling `team.useUsers()` or `team.listUsers()` on a [`Team` object](../types/team.mdx#team).
 
-  <ParamField path="teamProfile" type="TeamMemberProfile">
-    The team profile of the user.
-  </ParamField>
-</div>
+### Table of Contents
 
-## `ServerTeamUser`
+```typescript
+type TeamUser = {
+  id: string;  //$stack-link-to:#teamuserid
+  teamProfile: TeamProfile;  //$stack-link-to:#teamuserteamprofile
+};
+```
 
-### Properties
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
 
-<div className="indented">
-  <ParamField path="id" type="string">
-    The ID of the user.
-  </ParamField>
 
-  <ParamField path="teamProfile" type="ServerTeamMemberProfile">
-    The team profile of the user.
-  </ParamField>
-</div>
+## `teamUser.id`
+</div><div className="stack-content">
+
+The ID of the user.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const id: string;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+
+## `teamUser.teamProfile`
+</div><div className="stack-content">
+
+The team profile of the user as a `TeamProfile` object.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const teamProfile: TeamProfile;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/big-divider.mdx" />
+
+
+# `ServerTeamUser`
+</div><div className="stack-content">
+
+The `ServerTeamUser` object is used on the server side to represent a user within a team. Besides the team profile, it also includes all the functionality of a [`ServerUser`](../types/user.mdx#serveruser).
+
+It is usually obtained by calling `serverTeam.listUsers()` on a [`ServerTeam` object](../types/team.mdx#serverteam).
+
+### Table of Contents
+
+```typescript
+type ServerTeamUser =
+  // Inherits all functionality from TeamUser
+  & TeamUser //$stack-link-to:#teamuser
+  // Inherits all functionality from ServerUser
+  & ServerUser //$stack-link-to:./user#serveruser
+  & {
+    teamProfile: ServerTeamProfile;  //$stack-link-to:#serverteamuserteamprofile
+  };
+```
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+
+## `serverTeamUser.teamProfile`
+</div><div className="stack-content">
+
+The team profile of the user as a `ServerTeamProfile` object.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const teamProfile: ServerTeamProfile;
+```
+</div></div></div>

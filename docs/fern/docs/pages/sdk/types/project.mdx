@@ -2,44 +2,97 @@
 slug: sdk/types/project
 ---
 
-The `Project` object contains the information and configuration of a project like the name, description, enabled auth methods, etc.
+<Markdown src="../../snippets/make-full-page.mdx" />
+<div className="stack-aside-container"><div className="stack-content">
 
-You can obtain a `Project` object by calling `stackApp.getProject()` or `useProject()`.
+The `Project` object contains the information and configuration of a project, such as the name, description, and enabled authentication methods.
 
-## `Project`
+Each [Stack app](../../concepts/stack-app.mdx) corresponds to a project. You can obtain its `Project` object by calling [`stackApp.getProject()`](../objects/stack-app.mdx#stackappgetproject).
 
-### Properties
 
-<div className="indented">
-  <ParamField path="id" type="string">
-    The id of the project.
+### Table of Contents
+
+```typescript
+type Project = {
+  id: string;  //$stack-link-to:#projectid
+  displayName: string;  //$stack-link-to:#projectdisplayname
+  config: { ... };  //$stack-link-to:#projectconfig
+};
+```
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `project.id`
+</div><div className="stack-content">
+
+The unique ID of the project as a `string`.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const id: string;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `project.displayName`
+</div><div className="stack-content">
+
+The display name of the project as a `string`.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const displayName: string;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `project.config`
+</div><div className="stack-content">
+
+The configuration settings for the project.
+
+<Accordion title={<span className="accordion-show-properties" />}>
+  <ParamField path="signUpEnabled" type="boolean">
+    Indicates if sign-up is enabled for the project.
   </ParamField>
 
-  <ParamField path="displayName" type="string">
-    The display name of the project.
+  <ParamField path="credentialEnabled" type="boolean">
+    Specifies if credential-based authentication is enabled for the project.
   </ParamField>
 
-  <ParamField path="config" type="object">
-    <div className="indented">
-      <ParamField path="signUpEnabled" type="boolean">
-        Whether sign up is enabled for the project.
-      </ParamField>
-
-      <ParamField path="credentialEnabled" type="boolean">
-        Whether credential auth is enabled for the project.
-      </ParamField>
-
-      <ParamField path="magicLinkEnabled" type="boolean">
-        Whether magic link auth is enabled for the project.
-      </ParamField>
-
-      <ParamField path="clientTeamCreationEnabled" type="boolean">
-        Whether client-side team creation is enabled for the project.
-      </ParamField>
-
-      <ParamField path="clientUserDeletionEnabled" type="boolean">
-        Whether client-side user deletion is enabled for the project.
-      </ParamField>
-    </div>
+  <ParamField path="magicLinkEnabled" type="boolean">
+    States whether magic link authentication is enabled for the project.
   </ParamField>
-</div>
+
+  <ParamField path="clientTeamCreationEnabled" type="boolean">
+    Determines if client-side team creation is permitted within the project.
+  </ParamField>
+
+  <ParamField path="clientUserDeletionEnabled" type="boolean">
+    Indicates if client-side user deletion is enabled for the project.
+  </ParamField>
+</Accordion>
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const config: {
+  signUpEnabled: boolean;
+  credentialEnabled: boolean;
+  magicLinkEnabled: boolean;
+  clientTeamCreationEnabled: boolean;
+  clientUserDeletionEnabled: boolean;
+};
+```
+
+</div></div></div>

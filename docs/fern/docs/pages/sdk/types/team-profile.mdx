@@ -2,32 +2,78 @@
 slug: sdk/types/team-profile
 ---
 
+<Markdown src="../../snippets/make-full-page.mdx" />
+<div className="stack-aside-container"><div className="stack-content">
 
-`TeamProfile` is the profile of a user in the context of a team. There are two types of `TeamProfile`
+This is a detailed reference for the `TeamProfile` and `ServerTeamProfile` objects.
 
-1. `TeamProfile`
-    - This is used on the client side.
-    - It contains the user's profile information for the team.
-    - You can obtain it by calling `teamUser.teamProfile` on a `TeamUser` object.
-2. `ServerTeamProfile`
-    - This is used on the server side.
-    - Currently it contains the same information as `TeamProfile`, but in the future it might contain more information.
-    - You can obtain it by calling `serverTeamUser.teamProfile` on a `ServerTeamUser` object.
+On this page:
+- [TeamProfile](#teamprofile)
+- [ServerTeamProfile](#serverteamprofile)
 
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/big-divider.mdx" />
 
-## `TeamProfile`
+# `TeamProfile`
+</div><div className="stack-content">
 
-### Properties
+The `TeamProfile` object represents the profile of a user within the context of a team. It includes the user's profile information specific to the team and can be accessed through the `teamUser.teamProfile` property on a `TeamUser` object.
 
-<div className="indented">
-  <ParamField path="displayName" type="string | null">
-    The display name of the user.
-  </ParamField>
-  <ParamField path="profileImageUrl" type="string | null">
-    The profile image URL of the user.
-  </ParamField>
-</div>
+### Table of Contents
 
-## `ServerTeamProfile`
+```typescript
+type TeamProfile = {
+  displayName: string | null;  //$stack-link-to:#teamprofiledisplayname
+  profileImageUrl: string | null;  //$stack-link-to:#teamprofileprofileimageurl
+};
+```
 
-Same as `TeamProfile`.
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `teamProfile.displayName`
+</div><div className="stack-content">
+
+The display name of the user within the team context as a `string` or `null` if no display name is set.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const displayName: string | null;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+## `teamProfile.profileImageUrl`
+</div><div className="stack-content">
+
+The profile image URL of the user within the team context as a `string`, or `null` if no profile image is set.
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Type Definition
+
+```typescript
+declare const profileImageUrl: string | null;
+```
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/big-divider.mdx" />
+
+# `ServerTeamProfile`
+</div><div className="stack-content">
+
+The `ServerTeamProfile` object is currently the same as `TeamProfile`.
+
+### Table of Contents
+
+```typescript
+type ServerTeamProfile =
+  // Inherits all functionality from TeamProfile
+  & TeamProfile; //$stack-link-to:#teamprofile
+```
+
+</div></div>

@@ -202,15 +202,51 @@ declare function useUser(
 
 ### Examples
 <div className="small-codeblock-tabs"><CodeBlocks>
-```typescript Getting the current user
+```jsx Displaying the current user's username
+"use client";
+
+function MyReactComponent() {
+  // useUser(...) is an alias for useStackApp().useUser(...)
+  const user = useUser();
+  return user ? <div>Hello, {user.name}</div>
+              : <div>Not signed in</div>;
+}
+```
+
+```tsx Redirecting vs. not redirecting
 "use client";
 
 function MyReactComponent() {
   const user = useUser();
   console.log(user); // null if not signed in
 
-  const user = useUser({ or: "redirect" });
-  console.log(user); // always defined; redirects to sign-in page if not signed in
+  const user = useUser({ or: "redirect" });  // redirects to sign-in page if necessary
+  console.log(user); // always defined
+
+  const user = useUser({ or: "throw" });  // throws an error if not signed in
+  console.log(user); // always defined
+```
+
+```tsx Protecting a page client-side
+"use client";
+
+function MyProtectedComponent() {
+  // Note: This component is protected on the client-side.
+  // It does not protect against malicious users, since
+  // they can just comment out the `useUser` call in their
+  // browser's developer console.
+  //
+  // The purpose of client-side protection is to redirect
+  // unauthenticated users to the sign-in page, not to
+  // hide secret information from them.
+  //
+  // For more information on protecting pages and how to
+  // protect a page server-side or in the middleware, see
+  // the Stack Auth documentation:
+  // https://docs.stack-auth.com/getting-started/users#protecting-a-page
+
+  useUser({ or: "redirect" });
+  return <div>You can only see this if you are authenticated</div>;
 }
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>

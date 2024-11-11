@@ -3,7 +3,7 @@ title: useUser
 slug: /sdk/hooks/use-user
 ---
 
-This standalone React hook is an alias for `useStackApp().useUser()`. It is simply a convenience that's faster to type because it's so common; it does not have any additional functionality.
+This standalone React hook is an alias for `useStackApp().useUser()`. It only exists as a convenience; it does not have any additional functionality.
 
 For more information, please refer to the [documentation for `stackClientApp.useUser()`](../objects/stack-app.mdx#stackclientappuseuseroptions).
 
@@ -14,34 +14,11 @@ For more information, please refer to the [documentation for `stackClientApp.use
 
 ## Example
 
-```tsx
-import { useUser } from '@stackframe/stack';
-
-function UserProfile() {
-  const { user, loading } = useUser();
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!user) {
-    return <div>User not found</div>;
-  }
-
-  return (
-    <div>
-      <h1>{user.name}</h1>
-      <p>Email: {user.email}</p>
-    </div>
-  );
-}
-```
-
 ```jsx
 import { useUser } from "@stackframe/stack";
 
 function MyComponent() {
-  const user = useUser({ or: "redirect" }); // user is garanteed to be non-null
+  const user = useUser({ or: "redirect" }); // user is guaranteed to be non-null
   return <div>Hello, {user.name}</div>;
 }
 ```
