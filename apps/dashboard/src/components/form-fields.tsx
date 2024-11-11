@@ -61,6 +61,7 @@ export function InputField<F extends FieldValues>(props: {
   required?: boolean,
   type?: string,
   disabled?: boolean,
+  prefixItem?: React.ReactNode,
 }) {
   return (
     <FormField
@@ -78,6 +79,7 @@ export function InputField<F extends FieldValues>(props: {
                 className="max-w-lg"
                 disabled={props.disabled}
                 type={props.type}
+                prefixItem={props.prefixItem}
               />
             </FormControl>
             <FormMessage />

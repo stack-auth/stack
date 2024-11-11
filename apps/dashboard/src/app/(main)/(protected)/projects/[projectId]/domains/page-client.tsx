@@ -1,9 +1,10 @@
 "use client";
-import { SmartFormDialog } from "@/components/form-dialog";
+import { FormDialog } from "@/components/form-dialog";
+import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { AdminDomainConfig, AdminProject } from "@stackframe/stack";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import React from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -28,48 +29,29 @@ function EditDialog(props: {
   }
 )) {
   const domainFormSchema = yup.object({
-    makeSureAlert: yup.mixed().meta({
-      stackFormFieldRender: () => (
-        <Alert>
-          Make sure this is a trusted domain or a URL that you control.
-        </Alert>
-      ),
-    }),
     domain: urlSchema
-      .matches(/^https:\/\//, "Origin must start with https://")
-      .url("Domain must be a valid URL")
+      .url("Invalid URL")
+      .transform((value) => 'https://' + value)
       .notOneOf(
         props.domains
           .filter((_, i) => (props.type === 'update' && i !== props.editIndex) || props.type === 'create')
           .map(({ domain }) => domain),
         "Domain already exists"
       )
-      .required()
-      .label("Origin (starts with https://)")
-      .meta({
-        stackFormFieldPlaceholder: "https://example.com",
-      }).default(props.type === 'update' ? props.defaultDomain : ""),
+      .required(),
     handlerPath: yup.string()
       .matches(/^\//, "Handler path must start with /")
-      .required()
-      .label("Handler path (default: /handler)")
-      .default(props.type === 'update' ? props.defaultHandlerPath : "/handler"),
-    description: yup.mixed().meta({
-      stackFormFieldRender: () => (
-        <>
-          <Typography variant="secondary" type="footnote">
-            Note that sub-domains are not automatically added. Create two domains like www.example.com and example.com if you want to allow both.
-          </Typography>
-          <Typography variant="secondary" type="footnote">
-            {"You don't need to change the handler path unless you updated the path to the StackHandler."}
-          </Typography>
-        </>
-      ),
-    }),
+      .required(),
+    addWww: yup.boolean(),
   });
 
-  return <SmartFormDialog
+  return <FormDialog
     open={props.open}
+    defaultValues={{
+      addWww: props.type === 'create',
+      domain: props.type === 'update' ? props.defaultDomain : undefined,
+      handlerPath: props.type === 'update' ? props.defaultHandlerPath : "/handler",
+    }}
     onOpenChange={props.onOpenChange}
     trigger={props.trigger}
     title={(props.type === 'create' ? "Create" : "Update") + " domain and handler"}
@@ -79,10 +61,17 @@ function EditDialog(props: {
       if (props.type === 'create') {
         await props.project.update({
           config: {
-            domains: [...props.domains, {
-              domain: values.domain,
-              handlerPath: values.handlerPath,
-            }],
+            domains: [
+              ...props.domains,
+              {
+                domain: values.domain,
+                handlerPath: values.handlerPath,
+              },
+              ...(values.addWww ? [{
+                domain: 'https://www.' + values.domain.slice(8),
+                handlerPath: values.handlerPath,
+              }] : []),
+            ],
           },
         });
       } else {
@@ -101,6 +90,47 @@ function EditDialog(props: {
         });
       }
     }}
+    render={(form) => (
+      <>
+        <Alert>
+          Please ensure you own or have control over this domain. Note that each subdomain (e.g. blog.example.com, app.example.com) is treated as a distinct domain.
+        </Alert>
+        <InputField
+          label="Domain"
+          name="domain"
+          control={form.control}
+          prefixItem='https://'
+          placeholder='example.com'
+        />
+
+        {props.type === 'create' &&
+          urlSchema.url().required().isValidSync('https://' + form.watch('domain')) &&
+          !((form.watch('domain') as any)?.startsWith('www.')) && (
+          <SwitchField
+            label={`Also add www.${form.watch('domain') as any ?? ''} to the trusted domains`}
+            name="addWww"
+            control={form.control}
+          />
+        )}
+
+        <Accordion type="single" collapsible className="w-full">
+          <AccordionItem value="item-1">
+            <AccordionTrigger>Advanced</AccordionTrigger>
+            <AccordionContent>
+              <InputField
+                label="Handler path"
+                name="handlerPath"
+                control={form.control}
+                placeholder='/handler'
+              />
+              <Typography variant="secondary" type="footnote">
+                only modify this if you changed the default handler path in your app
+              </Typography>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </>
+    )}
   />;
 }
 
@@ -200,7 +230,6 @@ export default function PageClient() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[200px]">Domain</TableHead>
-                  <TableHead className="w-[100px]">Handler</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -208,7 +237,6 @@ export default function PageClient() {
                 {domains.map(({ domain, handlerPath }, i) => (
                   <TableRow key={domain}>
                     <TableCell>{domain}</TableCell>
-                    <TableCell>{handlerPath}</TableCell>
                     <TableCell className="flex justify-end gap-4">
                       <ActionMenu
                         domains={domains}
