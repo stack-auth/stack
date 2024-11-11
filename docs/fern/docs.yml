@@ -112,67 +112,97 @@ navigation:
             path: ./docs/pages/others/self-host.mdx
   - tab: components
     layout: 
+      - page: All Components
+        icon: fa-regular fa-globe
+        path: ./docs/pages/components/overview.mdx
       - section: Components
         contents:
           - page: <UserButton />
+            icon: fa-solid fa-square-code
             path: ./docs/pages/components/user-button.mdx
           - page: <SelectedTeamSwitcher />
+            icon: fa-solid fa-square-code
             path: ./docs/pages/components/selected-team-switcher.mdx
           - page: <AccountSettings />
+            icon: fa-solid fa-square-code
             path: ./docs/pages/components/account-settings.mdx
           - page: <SignIn />
+            icon: fa-solid fa-square-code
             path: ./docs/pages/components/sign-in.mdx
           - page: <SignUp />
+            icon: fa-solid fa-square-code
             path: ./docs/pages/components/sign-up.mdx
           - page: <CredentialSignIn />
+            icon: fa-solid fa-square-code
             path: ./docs/pages/components/credential-sign-in.mdx
           - page: <CredentialSignUp />
+            icon: fa-solid fa-square-code
             path: ./docs/pages/components/credential-sign-up.mdx
           - page: <OAuthButton />
+            icon: fa-solid fa-square-code
             path: ./docs/pages/components/oauth-button.mdx
           - page: <OAuthButtonGroup />
+            icon: fa-solid fa-square-code
             path: ./docs/pages/components/oauth-button-group.mdx
       - section: Utilities
         contents:
           - page: <StackHandler />
+            icon: fa-solid fa-square-u
             path: ./docs/pages/components/stack-handler.mdx
           - page: <StackProvider />
+            icon: fa-solid fa-square-u
             path: ./docs/pages/components/stack-provider.mdx
           - page: <StackTheme />
+            icon: fa-solid fa-square-u
             path: ./docs/pages/components/stack-theme.mdx
   - tab: sdk
     layout:
-      - section: Classes
+      - page: SDK Overview
+        icon: fa-regular fa-globe
+        path: ./docs/pages/sdk/overview.mdx
+      - section: Objects
         contents:
-          - page: User
-            path: ./docs/pages/sdk/user.mdx
           - page: StackApp
-            path: ./docs/pages/sdk/stack-app.mdx
-          - page: Team
-            path: ./docs/pages/sdk/team.mdx
-          - page: TeamUser
-            path: ./docs/pages/sdk/team-user.mdx
-          - page: TeamProfile
-            path: ./docs/pages/sdk/team-profile.mdx
-          - page: TeamPermission
-            path: ./docs/pages/sdk/team-permission.mdx
-          - page: Project
-            path: ./docs/pages/sdk/project.mdx
+            icon: fa-duotone fa-square-t
+            path: ./docs/pages/sdk/objects/stack-app.mdx
+      - section: Types
+        contents:
           - page: ContactChannel
-            path: ./docs/pages/sdk/contact-channel.mdx
+            icon: fa-duotone fa-square-t
+            path: ./docs/pages/sdk/types/contact-channel.mdx
+          - page: Project
+            icon: fa-duotone fa-square-t
+            path: ./docs/pages/sdk/types/project.mdx
+          - page: Team
+            icon: fa-duotone fa-square-t
+            path: ./docs/pages/sdk/types/team.mdx
+          - page: TeamPermission
+            icon: fa-duotone fa-square-t
+            path: ./docs/pages/sdk/types/team-permission.mdx
+          - page: TeamProfile
+            icon: fa-duotone fa-square-t
+            path: ./docs/pages/sdk/types/team-profile.mdx
+          - page: TeamUser
+            icon: fa-duotone fa-square-t
+            path: ./docs/pages/sdk/types/team-user.mdx
+          - page: User
+            icon: fa-duotone fa-square-t
+            path: ./docs/pages/sdk/types/user.mdx
           # - page: ConnectedAccount
-          #   path: ./docs/pages/sdk/connected-account.mdx
+          #   path: ./docs/pages/sdk/types/connected-account.mdx
       - section: Hooks
         contents:
-          - page: useUser()
-            path: ./docs/pages/sdk/use-user.mdx
           - page: useStackApp()
-            path: ./docs/pages/sdk/use-stack-app.mdx
+            icon: fa-duotone fa-square-h
+            path: ./docs/pages/sdk/hooks/use-stack-app.mdx
+          - page: useUser()
+            icon: fa-duotone fa-square-h
+            path: ./docs/pages/sdk/hooks/use-user.mdx
   - tab: api
     layout: 
       - page: API Overview
         icon: fa-regular fa-globe
-        path: ./docs/pages/rest-api/auth.mdx
+        path: ./docs/pages/rest-api/overview.mdx
       - api: Client API
         slug: client
         api-name: client
