@@ -49,7 +49,7 @@ function EditDialog(props: {
     open={props.open}
     defaultValues={{
       addWww: props.type === 'create',
-      domain: props.type === 'update' ? props.defaultDomain : undefined,
+      domain: props.type === 'update' ? props.defaultDomain.replace(/^https:\/\//, "") : undefined,
       handlerPath: props.type === 'update' ? props.defaultHandlerPath : "/handler",
     }}
     onOpenChange={props.onOpenChange}
@@ -93,7 +93,7 @@ function EditDialog(props: {
     render={(form) => (
       <>
         <Alert>
-          Please ensure you own or have control over this domain. Note that each subdomain (e.g. blog.example.com, app.example.com) is treated as a distinct domain.
+          Please ensure you own or have control over this domain. Also note that each subdomain (e.g. blog.example.com, app.example.com) is treated as a distinct domain.
         </Alert>
         <InputField
           label="Domain"
