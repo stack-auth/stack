@@ -69,7 +69,7 @@ function convertColorsToCSS(theme: Theme) {
   .stack-scope {
   ${colorsToCSSVars(colors.light)}
   }
-  [data-stack-theme="dark"] .stack-scope {
+  html:has(head > [data-stack-theme="dark"]) .stack-scope {
   ${colorsToCSSVars(colors.dark)}
   }`;
 }
@@ -95,7 +95,6 @@ export function StackTheme({
     <>
       <BrowserScript nonce={nonce} />
       <style
-        suppressHydrationWarning
         nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: globalCSS + "\n" + convertColorsToCSS(themeValue),

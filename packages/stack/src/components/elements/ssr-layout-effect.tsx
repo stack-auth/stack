@@ -11,7 +11,6 @@ export function SsrScript(props: { script: string, nonce?: string }) {
 
   return (
     <script
-      suppressHydrationWarning
       nonce={props.nonce}
       dangerouslySetInnerHTML={{ __html: props.script }}
     />

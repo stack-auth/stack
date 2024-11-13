@@ -75,7 +75,7 @@ async function main() {
     );
   }
   const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-  const nextVersionInPackageJson = packageJson?.dependencies["next"] ?? packageJson?.devDependencies["next"];
+  const nextVersionInPackageJson = packageJson?.dependencies?.["next"] ?? packageJson?.devDependencies?.["next"];
   if (!nextVersionInPackageJson) {
     throw new UserError(
       `The project at ${projectPath} does not appear to be a Next.js project, or does not have 'next' installed as a dependency. Only Next.js projects are currently supported.`
@@ -195,6 +195,8 @@ async function main() {
     );
   }
 
+  const stackPackageName = process.env.STACK_PACKAGE_NAME_OVERRIDE || "@stackframe/stack";
+
   const isReady = await inquirer.prompt([
     {
       type: "confirm",
@@ -209,7 +211,7 @@ async function main() {
 
   console.log();
   console.log(`${ansis.bold}Installing dependencies...${ansis.clear}`);
-  await shellNicelyFormatted(`${installCommand} @stackframe/stack`, {
+  await shellNicelyFormatted(`${installCommand} ${stackPackageName}`, {
     shell: true,
     cwd: projectPath,
   });
@@ -294,7 +296,9 @@ main()
       "For more information, please visit https://docs.stack-auth.com/getting-started/setup"
     );
     console.log();
-    await open("https://app.stack-auth.com/wizard-congrats");
+    if (!process.env.STACK_DISABLE_INTERACTIVE) {
+      await open("https://app.stack-auth.com/wizard-congrats");
+    }
   })
   .catch((err) => {
     if (!(err instanceof UserError)) {
