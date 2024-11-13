@@ -8,6 +8,7 @@ import * as yup from "yup";
 import { SmartFormDialog } from "../form-dialog";
 import { PermissionListField } from "../permission-field";
 import { ExtendedServerUser, extendUsers, getCommonUserColumns } from "./user-table";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 
 type ExtendedServerUserForTeam = ExtendedServerUser & {
@@ -174,12 +175,12 @@ export function TeamMemberTable(props: { users: ServerUser[], team: ServerTeam }
       return await Promise.all(promises);
     }
 
-    load().then((data) => {
+    runAsynchronously(load().then((data) => {
       setUserPermissions(new Map(
         props.users.map((user, index) => [user.id, data[index].permissions.map(p => p.id)])
       ));
       setUsers(data.map(d => d.user));
-    }).catch(console.error);
+    }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.users, props.team, updateCounter]);
 
