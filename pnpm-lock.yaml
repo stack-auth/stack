@@ -752,10 +752,10 @@ importers:
         specifier: workspace:*
         version: link:../stack-ui
       '@types/react':
-        specifier: '>=18.2'
+        specifier: '>=18.2 || >=19.0.0-rc.0'
         version: 18.3.12
       '@types/react-dom':
-        specifier: '>=18.2'
+        specifier: '>=18.2 || >=19.0.0-rc.0'
         version: 18.2.18
       browser-image-compression:
         specifier: ^2.0.2
@@ -882,10 +882,10 @@ importers:
         specifier: workspace:*
         version: link:../stack-ui
       '@types/react':
-        specifier: '>=18.2.66'
+        specifier: '>=18.2.66 || >=19.0.0-rc.0'
         version: 18.3.12
       '@types/react-dom':
-        specifier: '>=18.2.66'
+        specifier: '>=18.2.66 || >=19.0.0-rc.0'
         version: 18.3.1
       clsx:
         specifier: ^2.1.1
@@ -937,10 +937,10 @@ importers:
   packages/stack-sc:
     dependencies:
       '@types/react':
-        specifier: '>=18.3.12'
+        specifier: '>=18.3.12 || >=19.0.0-rc.0'
         version: 18.3.12
       '@types/react-dom':
-        specifier: '>=18.3.1'
+        specifier: '>=18.3.1 || >=19.0.0-rc.0'
         version: 18.3.1
     devDependencies:
       next:
@@ -965,10 +965,10 @@ importers:
         specifier: workspace:*
         version: link:../stack-sc
       '@types/react':
-        specifier: '>=18.2'
+        specifier: '>=18.2 || >=19.0.0-rc.0'
         version: 18.3.12
       '@types/react-dom':
-        specifier: '>=18.2'
+        specifier: '>=18.2 || >=19.0.0-rc.0'
         version: 18.2.18
       bcrypt:
         specifier: ^5.1.1
@@ -1116,10 +1116,10 @@ importers:
         specifier: ^8.20.5
         version: 8.20.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@types/react':
-        specifier: '>=18.2.12'
+        specifier: '>=18.2.12 || >=19.0.0-rc.0'
         version: 18.3.12
       '@types/react-dom':
-        specifier: '>=18.2.12'
+        specifier: '>=18.2.12 || >=19.0.0-rc.0'
         version: 18.2.18
       class-variance-authority:
         specifier: ^0.7.0
