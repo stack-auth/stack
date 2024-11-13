@@ -708,7 +708,7 @@ const RedirectUrlNotWhitelisted = createKnownErrorConstructor(
   "REDIRECT_URL_NOT_WHITELISTED",
   () => [
     400,
-    "Redirect URL not whitelisted.",
+    "Redirect URL not whitelisted. Did you forget to add this domain to the trusted domains list on the Stack Auth dashboard?",
   ] as const,
   () => [] as const,
 );
