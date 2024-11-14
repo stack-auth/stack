@@ -4,8 +4,8 @@ import { ServerUser } from '@stackframe/stack';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableManualPagination, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
 import { ColumnDef, ColumnFiltersState, Row, SortingState, Table } from "@tanstack/react-table";
+import { useRouter } from 'next/navigation';
 import { useState } from "react";
-import { UserDialog } from '../user-dialog';
 
 export type ExtendedServerUser = ServerUser & {
   authTypes: string[],
@@ -61,14 +61,13 @@ function ImpersonateUserDialog(props: {
 }
 
 function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [impersonateSnippet, setImpersonateSnippet] = useState<string | null>(null);
   const app = useAdminApp();
+  const router = useRouter();
 
   return (
     <>
-      <UserDialog user={row.original} type="edit" open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
       <DeleteUserDialog user={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
       <ImpersonateUserDialog user={row.original} impersonateSnippet={impersonateSnippet} onClose={() => setImpersonateSnippet(null)} />
       <ActionCell
@@ -89,7 +88,7 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
           '-',
           {
             item: "Edit",
-            onClick: () => setIsEditModalOpen(true),
+            onClick: () => { router.push(`/projects/${app.projectId}/users/${row.original.id}`); },
           },
           ...row.original.isMultiFactorRequired ? [{
             item: "Remove 2FA",

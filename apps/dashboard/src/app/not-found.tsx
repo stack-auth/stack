@@ -8,9 +8,6 @@ export default function NotFound() {
     title="Oh no! 404"
     description="Page not found."
     redirectUrl="/"
-    secondaryDescription={<>
-      Did you mean to <Link href="/handler/sign-in" className="underline">log in</Link>?
-    </>}
     redirectText="Go to home"
   />;
 }
