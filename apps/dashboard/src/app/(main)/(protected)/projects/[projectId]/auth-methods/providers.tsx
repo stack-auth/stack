@@ -21,6 +21,7 @@ function toTitle(id: string) {
     google: "Google",
     facebook: "Facebook",
     microsoft: "Microsoft",
+    eartho: "Eartho",
     spotify: "Spotify",
     discord: "Discord",
     gitlab: "GitLab",

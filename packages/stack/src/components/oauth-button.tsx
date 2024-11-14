@@ -148,6 +148,24 @@ function XIcon({ iconSize } : { iconSize: number} ) {
   );
 }
 
+function EarthoIcon({ iconSize }: { iconSize: number }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height={iconSize} 
+      width={iconSize}
+      fill="none"
+      viewBox="0 0 512 512"
+    >
+      <rect width="512" height="512" fill="#000" rx="32"></rect>
+      <path
+        fill="#fff"
+        d="M158.284 401V110.091h196.023v50.71H219.79v69.318h124.432v50.711H219.79v69.46h135.085V401z"
+      ></path>
+    </svg>
+  );
+}
+
 const changeColor = (c: Color, value: number) => {
   if (c.isLight()) {
     value = -value;
@@ -275,6 +293,16 @@ export function OAuthButton({
         textColor: "#fff",
         name: "X",
         icon: <XIcon iconSize={iconSize} />,
+      };
+      break;
+    }
+    case 'eartho': {
+      style = {
+        backgroundColor: "#fff",
+        textColor: "#000",
+        border: '1px solid #ddd',
+        name: "Eartho",
+        icon: <EarthoIcon iconSize={iconSize} />,
       };
       break;
     }

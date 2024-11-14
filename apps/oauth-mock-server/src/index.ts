@@ -7,6 +7,7 @@ const mockedProviders = [
   "facebook",
   "google",
   "microsoft",
+  "eartho",
   "spotify",
   "discord",
   "gitlab",
@@ -14,7 +15,7 @@ const mockedProviders = [
   "x",
 ];
 
-const configuration: Configuration  = {
+const configuration: Configuration = {
   clients: mockedProviders.map((providerId) => ({
     client_id: providerId,
     client_secret: 'MOCK-SERVER-SECRET',
