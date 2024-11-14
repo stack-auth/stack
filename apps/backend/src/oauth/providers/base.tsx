@@ -139,6 +139,7 @@ export abstract class OAuthBaseProvider {
         code_verifier: this.noPKCE ? undefined : options.codeVerifier,
         state: options.state,
       },
+      { exchangeBody: this.authorizationExtraParams }
     ] as const;
 
     try {
