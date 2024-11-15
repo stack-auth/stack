@@ -44,20 +44,20 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
 } & (
   | Partial<RouteProps>
   | {
-    routeProps: RouteProps,
+    routeProps: RouteProps | unknown,
   }
 )): Promise<any> {
   if (!("routeProps" in props)) {
     console.warn(next15DeprecationWarning);
   }
 
-  const routeProps = "routeProps" in props ? props.routeProps : pick(props, ["params", "searchParams"] as any);
+  const routeProps = "routeProps" in props ? props.routeProps as RouteProps : pick(props, ["params", "searchParams"] as any);
   const params = await routeProps.params;
   const searchParams = await routeProps.searchParams;
   if (!params?.stack) {
     return (
       <MessageCard title="Invalid Stack Handler Setup" fullPage={props.fullPage}>
-        <p>Can't use {"<StackHandler />"} at this location. Make sure that the file is in a folder called [...stack].</p>
+        <p>Can't use {"<StackHandler />"} at this location. Make sure that the file is in a folder called [...stack] and you are passing the routeProps prop.</p>
       </MessageCard>
     );
   }
