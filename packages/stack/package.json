@@ -18,7 +18,7 @@
   "homepage": "https://stack-auth.com",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "build": "rimraf dist && pnpm run css && tsup-node",
+    "build": "rimraf dist && pnpm run codegen && tsup-node",
     "codegen": "pnpm run css && pnpm run quetzal",
     "codegen:watch": "concurrently -n \"css,quetzal\" -k \"pnpm run css:watch\" \"pnpm run quetzal:watch\"",
     "clean": "rimraf dist && rimraf node_modules",
