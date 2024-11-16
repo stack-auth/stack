@@ -68,13 +68,9 @@
     "wolfgunblood",
     "zustand"
   ],
-  "[typescript]": {
-      "editor.codeActionsOnSave": {
-          "source.organizeImports": "explicit"
-      }
-  },
   "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit"
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
   },
   "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|",
   "editor.formatOnSave": false,
