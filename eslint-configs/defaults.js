@@ -98,6 +98,14 @@ module.exports = {
               'Directly importing "use" from react will cause next.js middlewares to break on compile time. do import React from "react" and use React.use instead.',
           },
         ],
+        patterns: [
+          {
+            group: ["@vercel/functions"],
+            importNames: ["waitUntil"],
+            message:
+              'Use runAsynchronouslyAndWaitUntil instead.',
+          },
+        ],
       },
     ],
   },
