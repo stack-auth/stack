@@ -35,10 +35,18 @@ export function TableView<TData, TValue>(props: {
   columns: ColumnDef<TData, TValue>[],
   toolbarRender?: (table: TableType<TData>) => React.ReactNode,
   showDefaultToolbar?: boolean,
+  defaultColumnFilters: ColumnFiltersState,
+  defaultSorting: SortingState,
 }) {
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={props.table} toolbarRender={props.toolbarRender} showDefaultToolbar={props.showDefaultToolbar} />
+      <DataTableToolbar
+        table={props.table}
+        toolbarRender={props.toolbarRender}
+        showDefaultToolbar={props.showDefaultToolbar}
+        defaultColumnFilters={props.defaultColumnFilters}
+        defaultSorting={props.defaultSorting}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -99,8 +107,8 @@ type DataTableProps<TData, TValue> = {
   data: TData[],
   toolbarRender?: (table: TableType<TData>) => React.ReactNode,
   defaultVisibility?: VisibilityState,
-  defaultColumnFilters?: ColumnFiltersState,
-  defaultSorting?: SortingState,
+  defaultColumnFilters: ColumnFiltersState,
+  defaultSorting: SortingState,
   showDefaultToolbar?: boolean,
 }
 
@@ -113,8 +121,8 @@ export function DataTable<TData, TValue>({
   defaultSorting,
   showDefaultToolbar = true,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>(defaultSorting || []);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(defaultColumnFilters || []);
+  const [sorting, setSorting] = React.useState<SortingState>(defaultSorting);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(defaultColumnFilters);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -128,8 +136,10 @@ export function DataTable<TData, TValue>({
     defaultVisibility={defaultVisibility}
     sorting={sorting}
     setSorting={setSorting}
+    defaultSorting={defaultSorting}
     columnFilters={columnFilters}
     setColumnFilters={setColumnFilters}
+    defaultColumnFilters={defaultColumnFilters}
     manualPagination={false}
     manualFiltering={false}
     pagination={pagination}
@@ -160,10 +170,10 @@ export function DataTableManualPagination<TData, TValue>({
   onUpdate,
   showDefaultToolbar = true,
 }: DataTableManualPaginationProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>(defaultSorting || []);
+  const [sorting, setSorting] = React.useState<SortingState>(defaultSorting);
   const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
   const [cursors, setCursors] = React.useState<Record<number, string>>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(defaultColumnFilters || []);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(defaultColumnFilters);
   const [globalFilter, setGlobalFilter] = React.useState<any>();
   const [refreshCounter, setRefreshCounter] = React.useState(0);
 
@@ -234,6 +244,8 @@ function DataTableBase<TData, TValue>({
   defaultVisibility,
   sorting,
   setSorting,
+  defaultColumnFilters,
+  defaultSorting,
   pagination,
   setPagination,
   rowCount,
@@ -279,5 +291,12 @@ function DataTableBase<TData, TValue>({
     rowCount,
   });
 
-  return <TableView table={table} columns={columns} toolbarRender={toolbarRender} showDefaultToolbar={showDefaultToolbar} />;
+  return <TableView
+    table={table}
+    columns={columns}
+    toolbarRender={toolbarRender}
+    showDefaultToolbar={showDefaultToolbar}
+    defaultColumnFilters={defaultColumnFilters}
+    defaultSorting={defaultSorting}
+  />;
 }
