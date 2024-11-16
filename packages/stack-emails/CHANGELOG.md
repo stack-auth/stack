@@ -1,5 +1,86 @@
 # @stackframe/stack-emails
 
+## 2.6.23
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.23
+  - @stackframe/stack-ui@2.6.23
+
+## 2.6.22
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.22
+  - @stackframe/stack-ui@2.6.22
+
+## 2.6.21
+
+### Patch Changes
+
+- Fixed inviteUser
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.21
+  - @stackframe/stack-ui@2.6.21
+
+## 2.6.20
+
+### Patch Changes
+
+- Next.js 15 fixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.20
+  - @stackframe/stack-ui@2.6.20
+
+## 2.6.19
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.19
+  - @stackframe/stack-ui@2.6.19
+
+## 2.6.18
+
+### Patch Changes
+
+- fixed user update bug
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.18
+  - @stackframe/stack-ui@2.6.18
+
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.17
+  - @stackframe/stack-ui@2.6.17
+
+## 2.6.16
+
+### Patch Changes
+
+- - list user pagination
+  - fixed visual glitches
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.16
+  - @stackframe/stack-ui@2.6.16
+
+## 2.6.15
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.15
+  - @stackframe/stack-ui@2.6.15
+
 ## 2.6.14
 
 ### Patch Changes

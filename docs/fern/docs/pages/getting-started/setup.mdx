@@ -20,7 +20,7 @@ We recommend using our **setup wizard**, which will automatically detect your pr
       ```
 
       ### Update API keys
-      Then, you must create an account on [our dashboard](https://app.stack-auth.com/projects), create a new project with an API key, and copy its environment variables into the `.env.local` file of your Next.js project:
+      Then, create an account on [the Stack Auth dashboard](https://app.stack-auth.com/projects), create a new project with an API key, and copy its environment variables into the `.env.local` file of your Next.js project:
 
       ```sh title=".env.local"
       NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
@@ -75,7 +75,7 @@ We recommend using our **setup wizard**, which will automatically detect your pr
     
       This will read the environment variables automatically and create a server app that you can later use to access Stack from your Next.js server.
       
-      Check out the [`StackServerApp` documentation](../sdk/stack-app.mdx) to learn more about its other options.
+      Check out the [`StackServerApp` documentation](../sdk/objects/stack-app.mdx) to learn more about its other options.
 
       ### Create Stack handler 
       
@@ -85,8 +85,8 @@ We recommend using our **setup wizard**, which will automatically detect your pr
       import { StackHandler } from "@stackframe/stack";
       import { stackServerApp } from "@/stack";
 
-      export default function Handler(props: any) {
-        return <StackHandler fullPage app={stackServerApp} {...props} />;
+      export default function Handler(props: unknown) {
+        return <StackHandler fullPage app={stackServerApp} routeProps={props} />;
       }
       ```
 

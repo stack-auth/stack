@@ -1,15 +1,11 @@
 'use client';
 import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
 import { ServerUser } from '@stackframe/stack';
-import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { allProviders } from '@stackframe/stack-shared/dist/utils/oauth';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
-import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTable, DataTableColumnHeader, DataTableFacetedFilter, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography, arrayFilterFn, standardFilterFn } from "@stackframe/stack-ui";
-import { ColumnDef, Row, Table } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
-import * as yup from "yup";
-import { FormDialog } from "../form-dialog";
-import { DateField, InputField, SwitchField, TextAreaField } from "../form-fields";
+import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableManualPagination, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
+import { ColumnDef, ColumnFiltersState, Row, SortingState, Table } from "@tanstack/react-table";
+import { useState } from "react";
+import { UserDialog } from '../user-dialog';
 
 export type ExtendedServerUser = ServerUser & {
   authTypes: string[],
@@ -20,83 +16,8 @@ function userToolbarRender<TData>(table: Table<TData>) {
   return (
     <>
       <SearchToolbarItem table={table} placeholder="Search table" />
-      <DataTableFacetedFilter
-        column={table.getColumn("authTypes")}
-        title="Auth Method"
-        options={['email', 'password', ...allProviders].map((provider) => ({
-          value: provider,
-          label: provider,
-        }))}
-      />
-      <DataTableFacetedFilter
-        column={table.getColumn("emailVerified")}
-        title="Email Verified"
-        options={[
-          { value: "verified", label: "verified" },
-          { value: "unverified", label: "unverified" },
-        ]}
-      />
     </>
   );
-}
-
-const userEditFormSchema = yup.object({
-  displayName: yup.string(),
-  primaryEmail: yup.string().email("Primary Email must be a valid email address"),
-  signedUpAt: yup.date().required(),
-  primaryEmailVerified: yup.boolean().required(),
-  clientMetadata: jsonStringOrEmptySchema.default("null"),
-  serverMetadata: jsonStringOrEmptySchema.default("null"),
-});
-
-function EditUserDialog(props: {
-  user: ServerUser,
-  open: boolean,
-  onOpenChange: (open: boolean) => void,
-}) {
-  const defaultValues = {
-    displayName: props.user.displayName || undefined,
-    primaryEmail: props.user.primaryEmail || undefined,
-    primaryEmailVerified: props.user.primaryEmailVerified,
-    signedUpAt: props.user.signedUpAt,
-    clientMetadata: props.user.clientMetadata == null ? "" : JSON.stringify(props.user.clientMetadata, null, 2),
-    serverMetadata: props.user.serverMetadata == null ? "" : JSON.stringify(props.user.serverMetadata, null, 2),
-  };
-
-  return <FormDialog
-    open={props.open}
-    onOpenChange={props.onOpenChange}
-    title="Edit User"
-    formSchema={userEditFormSchema}
-    defaultValues={defaultValues}
-    okButton={{ label: "Save" }}
-    render={(form) => (
-      <>
-        <Typography variant='secondary'>ID: {props.user.id}</Typography>
-        <InputField control={form.control} label="Display Name" name="displayName" />
-
-        <div className="flex gap-4 items-end">
-          <div className="flex-1">
-            <InputField control={form.control} label="Primary Email" name="primaryEmail" />
-          </div>
-          <div className="mb-2">
-            <SwitchField control={form.control} label="Verified" name="primaryEmailVerified" />
-          </div>
-        </div>
-
-        <DateField control={form.control} label="Signed Up At" name="signedUpAt" />
-
-        <TextAreaField rows={3} control={form.control} label="Client Metadata" name="clientMetadata" placeholder="null" monospace />
-        <TextAreaField rows={3} control={form.control} label="Server Metadata" name="serverMetadata" placeholder="null" monospace />
-      </>
-    )}
-    onSubmit={async (values) => { await props.user.update({
-      ...values,
-      clientMetadata: values.clientMetadata ? JSON.parse(values.clientMetadata) : undefined,
-      serverMetadata: values.serverMetadata ? JSON.parse(values.serverMetadata) : undefined
-    }); }}
-    cancelButton
-  />;
 }
 
 function DeleteUserDialog(props: {
@@ -147,7 +68,7 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
 
   return (
     <>
-      <EditUserDialog user={row.original} open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
+      <UserDialog user={row.original} type="edit" open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
       <DeleteUserDialog user={row.original} open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen} />
       <ImpersonateUserDialog user={row.original} impersonateSnippet={impersonateSnippet} onClose={() => setImpersonateSnippet(null)} />
       <ActionCell
@@ -198,13 +119,13 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     accessorKey: "id",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="ID" />,
     cell: ({ row }) => <TextCell size={60}>{row.original.id}</TextCell>,
-    enableGlobalFilter: true,
+    enableSorting: false,
   },
   {
     accessorKey: "displayName",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Display Name" />,
     cell: ({ row }) =>  <TextCell size={120}><span className={row.original.displayName === null ? 'text-slate-400' : ''}>{row.original.displayName ?? '–'}</span></TextCell>,
-    enableGlobalFilter: true,
+    enableSorting: false,
   },
   {
     accessorKey: "primaryEmail",
@@ -214,19 +135,19 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
       icon={row.original.emailVerified === "unverified" && <SimpleTooltip tooltip='Email not verified' type='warning'/>}>
       {row.original.primaryEmail}
     </TextCell>,
-    enableGlobalFilter: true,
+    enableSorting: false,
   },
   {
     accessorKey: "lastActiveAt",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Last Active" />,
     cell: ({ row }) => <DateCell date={row.original.lastActiveAt} />,
+    enableSorting: false,
   },
   {
     accessorKey: "emailVerified",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Email Verified" />,
     cell: ({ row }) => <TextCell>{row.original.emailVerified === 'verified' ? '✓' : '✗'}</TextCell>,
-    filterFn: standardFilterFn,
-    enableGlobalFilter: false,
+    enableSorting: false,
   },
 ] satisfies ColumnDef<T>[];
 
@@ -236,7 +157,7 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
     accessorKey: "authTypes",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Auth Method" />,
     cell: ({ row }) => <BadgeCell badges={row.original.authTypes} />,
-    filterFn: arrayFilterFn,
+    enableSorting: false,
   },
   {
     accessorKey: "signedUpAt",
@@ -253,7 +174,7 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   return users.map((user) => ({
     ...user,
     authTypes: [
-      ...user.emailAuthEnabled ? ["email"] : [],
+      ...user.otpAuthEnabled ? ["otp"] : [],
       ...user.hasPassword ? ["password"] : [],
       ...user.oauthProviders.map(p => p.id),
     ],
@@ -261,12 +182,43 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
   } satisfies ExtendedServerUser)).sort((a, b) => a.signedUpAt > b.signedUpAt ? -1 : 1);
 }
 
-export function UserTable(props: { users: ServerUser[] }) {
-  const extendedUsers: ExtendedServerUser[] = useMemo(() => extendUsers(props.users), [props.users]);
-  return <DataTable
-    data={extendedUsers}
+export function UserTable() {
+  const stackAdminApp = useAdminApp();
+  const [filters, setFilters] = useState<Parameters<typeof stackAdminApp.listUsers>[0]>({ limit: 10, orderBy: "signedUpAt", desc: true });
+  const users = extendUsers(stackAdminApp.useUsers(filters));
+
+  const onUpdate = async (options: {
+    cursor: string,
+    limit: number,
+    sorting: SortingState,
+    columnFilters: ColumnFiltersState,
+    globalFilters: any,
+  }) => {
+    let filters: Parameters<typeof stackAdminApp.listUsers>[0] = {
+      cursor: options.cursor,
+      limit: options.limit,
+      query: options.globalFilters,
+    };
+
+    const orderMap = {
+      signedUpAt: "signedUpAt",
+    } as const;
+    if (options.sorting.length > 0 && options.sorting[0].id in orderMap) {
+      filters.orderBy = orderMap[options.sorting[0].id as keyof typeof orderMap];
+      filters.desc = options.sorting[0].desc;
+    }
+
+    setFilters(filters);
+    const users = await stackAdminApp.listUsers(filters);
+    return { nextCursor: users.nextCursor };
+  };
+
+  return <DataTableManualPagination
     columns={columns}
+    data={users}
     toolbarRender={userToolbarRender}
+    onUpdate={onUpdate}
     defaultVisibility={{ emailVerified: false }}
+    defaultSorting={[{ id: 'signedUpAt', desc: true }]}
   />;
 }

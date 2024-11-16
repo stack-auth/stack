@@ -97,6 +97,12 @@ export function MagicLinkSignIn() {
       } else {
         setNonce(result.data.nonce);
       }
+    } catch (e) {
+      if (e instanceof KnownErrors.SignUpNotEnabled) {
+        setError('email', { type: 'manual', message: t('New account registration is not allowed') });
+      } else {
+        throw e;
+      }
     } finally {
       setLoading(false);
     }

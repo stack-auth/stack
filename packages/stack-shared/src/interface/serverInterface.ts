@@ -169,10 +169,28 @@ export class StackServerInterface extends StackClientInterface {
     return result.items;
   }
 
-  async listServerUsers(): Promise<UsersCrud['Server']['Read'][]> {
-    const response = await this.sendServerRequest("/users", {}, null);
-    const result = await response.json() as UsersCrud['Server']['List'];
-    return result.items;
+  async listServerUsers(options: {
+    cursor?: string,
+    limit?: number,
+    orderBy?: 'signedUpAt',
+    desc?: boolean,
+    query?: string,
+  }): Promise<UsersCrud['Server']['List']> {
+    const searchParams = new URLSearchParams(filterUndefined({
+      cursor: options.cursor,
+      limit: options.limit?.toString(),
+      desc: options.desc?.toString(),
+      ...options.orderBy ? {
+        order_by: {
+          signedUpAt: "signed_up_at",
+        }[options.orderBy],
+      } : {},
+      ...options.query ? {
+        query: options.query,
+      } : {},
+    }));
+    const response = await this.sendServerRequest("/users?" + searchParams.toString(), {}, null);
+    return await response.json();
   }
 
   async listServerTeams(options?: {
@@ -344,6 +362,24 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
+  async updateServerTeamMemberProfile(options: {
+    teamId: string,
+    userId: string,
+    profile: TeamMemberProfilesCrud['Server']['Update'],
+  }) {
+    await this.sendServerRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.profile),
+      },
+      null,
+    );
+  }
+
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {
     await this.sendServerRequest(
       `/team-permissions/${teamId}/${userId}/${permissionId}`,
@@ -453,8 +489,8 @@ export class StackServerInterface extends StackClientInterface {
     userId: string,
     contactChannelId: string,
     callbackUrl: string,
-  ): Promise<Result<undefined, KnownErrors["EmailAlreadyVerified"]>> {
-    const responseOrError = await this.sendServerRequestAndCatchKnownError(
+  ): Promise<void> {
+    await this.sendServerRequest(
       `/contact-channels/${userId}/${contactChannelId}/send-verification-code`,
       {
         method: "POST",
@@ -464,12 +500,28 @@ export class StackServerInterface extends StackClientInterface {
         body: JSON.stringify({ callback_url: callbackUrl }),
       },
       null,
-      [KnownErrors.EmailAlreadyVerified],
     );
+  }
 
-    if (responseOrError.status === "error") {
-      return Result.error(responseOrError.error);
-    }
-    return Result.ok(undefined);
+  async sendServerTeamInvitation(options: {
+    email: string,
+    teamId: string,
+    callbackUrl: string,
+  }): Promise<void> {
+    await this.sendServerRequest(
+      "/team-invitations/send-code",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: options.email,
+          team_id: options.teamId,
+          callback_url: options.callbackUrl,
+        }),
+      },
+      null,
+    );
   }
 }

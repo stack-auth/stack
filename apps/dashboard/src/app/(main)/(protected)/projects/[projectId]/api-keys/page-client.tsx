@@ -105,6 +105,7 @@ function ShowKeyDialog(props: {
       title="API Key"
       okButton={{ label: "Close" }}
       onClose={props.onClose}
+      preventClose
       confirmText="I understand that I will not be able to view this key again."
     >
       <div className="flex flex-col gap-4">

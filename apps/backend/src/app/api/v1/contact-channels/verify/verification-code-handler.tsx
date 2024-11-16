@@ -10,12 +10,12 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
     post: {
       summary: "Verify an email",
       description: "Verify an email address of a user",
-      tags: ["Emails"],
+      tags: ["Contact Channels"],
     },
     check: {
       summary: "Check email verification code",
       description: "Check if an email verification code is valid without using it",
-      tags: ["Emails"],
+      tags: ["Contact Channels"],
     },
   },
   type: VerificationCodeType.CONTACT_CHANNEL_VERIFICATION,

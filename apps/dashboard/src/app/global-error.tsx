@@ -26,7 +26,7 @@ export default function GlobalError({ error }: any) {
 
   return (
     <html>
-      <body suppressHydrationWarning>
+      <body>
         {isProdLike ? (
           <Spinner />
         ) : (

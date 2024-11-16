@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-sc",
-  "version": "2.6.14",
+  "version": "2.6.23",
   "exports": {
     "./force-react-server": {
       "types": "./dist/index.react-server.d.ts",
@@ -30,13 +30,24 @@
     "LICENSE"
   ],
   "peerDependencies": {
-    "next": ">=14.1",
-    "react": ">=18.2"
+    "next": ">=14.1 || >=15.0.0-rc.0",
+    "react": ">=18.2 || >=19.0.0-rc.0",
+    "react-dom": ">=18.2 || >=19.0.0-rc.0",
+    "@types/react": ">=18.3.12 || >=19.0.0-rc.0",
+    "@types/react-dom": ">=18.3.1 || >=19.0.0-rc.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    },
+    "@types/react-dom": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "rimraf": "^5.0.5",
-    "@types/react": "^18.2.66",
-    "next": "^14.1.0",
-    "react": "^18.2.0"
+    "react": "^18.2",
+    "react-dom": "^18.2",
+    "next": "^14.1.0"
   }
 }

@@ -25,6 +25,7 @@ export type ActionDialogProps = {
   }>,
   confirmText?: string,
   children?: React.ReactNode,
+  preventClose?: boolean,
 };
 
 export function ActionDialog(props: ActionDialogProps) {
@@ -56,7 +57,10 @@ export function ActionDialog(props: ActionDialogProps) {
         {props.trigger}
       </DialogTrigger>}
 
-      <DialogContent>
+      <DialogContent
+        onInteractOutside={props.preventClose ? (e) => e.preventDefault() : undefined}
+        className={props.preventClose ? "[&>button]:hidden" : ""}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <TitleIcon className="h-4 w-4 mr-2"/>

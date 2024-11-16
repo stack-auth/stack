@@ -9,11 +9,10 @@ export function PredefinedMessageCard({
   type,
   fullPage=false,
 }: {
-  type: 'signedIn' | 'signedOut' | 'emailSent' | 'passwordReset' | 'emailVerified' | 'unknownError' | 'signUpDisabled',
+  type: 'signedIn' | 'signedOut' | 'emailSent' | 'passwordReset' | 'unknownError' | 'signUpDisabled',
   fullPage?: boolean,
 }) {
   const stackApp = useStackApp();
-  const user = useUser();
   const { t } = useTranslation();
 
   let title: string;
@@ -58,18 +57,6 @@ export function PredefinedMessageCard({
       message = t("Your password has been reset. You can now sign in with your new password.");
       primaryAction = () => stackApp.redirectToSignIn({ noRedirectBack: true });
       primaryButton = t("Sign in");
-      break;
-    }
-    case 'emailVerified': {
-      title = t("Email verified!");
-      message = t("Your have successfully verified your email.");
-      if (user) {
-        primaryAction = () => stackApp.redirectToSignIn({ noRedirectBack: true });
-        primaryButton = t("Sign in");
-      } else {
-        primaryAction = () => stackApp.redirectToHome();
-        primaryButton = t("Go to home");
-      }
       break;
     }
     case 'unknownError': {

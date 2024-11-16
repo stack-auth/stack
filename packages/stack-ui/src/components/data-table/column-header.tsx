@@ -41,7 +41,7 @@ export function DataTableColumnHeader<TData, TValue>({
             ) : null}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
+        <DropdownMenuContent align="start" className="stack-scope">
           {column.getCanSort() && (
             <>
               <Item icon={ArrowUp} onClick={() => column.toggleSorting(false)}>Asc</Item>

@@ -57,7 +57,7 @@ export async function yupValidate<S extends yup.ISchema<any>>(
   }
 }
 
-const _idDescription = (identify: string) => `The unique identifier of this ${identify}`;
+const _idDescription = (identify: string) => `The unique identifier of the ${identify}`;
 const _displayNameDescription = (identify: string) => `Human-readable ${identify} display name. This is not a unique identifier.`;
 const _clientMetaDataDescription = (identify: string) => `Client metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client.`;
 const _clientReadOnlyMetaDataDescription = (identify: string) => `Client read-only, server-writable metadata. Used as a data store, accessible from the client side. Do not store information that should not be exposed to the client. The client can read this data, but cannot modify it. This is useful for things like subscription status.`;
@@ -328,6 +328,17 @@ export const teamCreatorUserIdSchema = userIdOrMeSchema.meta({ openapiField: { d
 // Team member profiles
 export const teamMemberDisplayNameSchema = yupString().meta({ openapiField: { description: _displayNameDescription('team member') + ' Note that this is separate from the display_name of the user.', exampleValue: 'John Doe' } });
 export const teamMemberProfileImageUrlSchema = urlSchema.max(1000000).meta({ openapiField: { description: _profileImageUrlDescription('team member'), exampleValue: 'https://example.com/image.jpg' } });
+
+// Contact channels
+export const contactChannelIdSchema = yupString().uuid().meta({ openapiField: { description: _idDescription('contact channel'), exampleValue: 'b3d396b8-c574-4c80-97b3-50031675ceb2' } });
+export const contactChannelTypeSchema = yupString().oneOf(['email']).meta({ openapiField: { description: `The type of the contact channel. Currently only "email" is supported.`, exampleValue: 'email' } });
+export const contactChannelValueSchema = yupString().when('type', {
+  is: 'email',
+  then: (schema) => schema.email(),
+}).meta({ openapiField: { description: 'The value of the contact channel. For email, this should be a valid email address.', exampleValue: 'johndoe@example.com' } });
+export const contactChannelUsedForAuthSchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel is used for authentication. If this is set to `true`, the user will be able to sign in with the contact channel with password or OTP.', exampleValue: true } });
+export const contactChannelIsVerifiedSchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel has been verified. If this is set to `true`, the contact channel has been verified to belong to the user.', exampleValue: true } });
+export const contactChannelIsPrimarySchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel is the primary contact channel. If this is set to `true`, it will be used for authentication and notifications by default.', exampleValue: true } });
 
 // Utils
 export function yupRequiredWhen<S extends yup.AnyObject>(
