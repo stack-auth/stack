@@ -1,6 +1,7 @@
 'use client';
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { ServerTeam, ServerUser } from '@stackframe/stack';
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { ActionCell, ActionDialog, BadgeCell, DataTable, DataTableColumnHeader, SearchToolbarItem, SimpleTooltip } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
@@ -8,7 +9,6 @@ import * as yup from "yup";
 import { SmartFormDialog } from "../form-dialog";
 import { PermissionListField } from "../permission-field";
 import { ExtendedServerUser, extendUsers, getCommonUserColumns } from "./user-table";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 
 
 type ExtendedServerUserForTeam = ExtendedServerUser & {
@@ -189,5 +189,7 @@ export function TeamMemberTable(props: { users: ServerUser[], team: ServerTeam }
     columns={teamMemberColumns}
     toolbarRender={teamMemberToolbarRender}
     defaultVisibility={{ emailVerified: false }}
+    defaultColumnFilters={[]}
+    defaultSorting={[]}
   />;
 }

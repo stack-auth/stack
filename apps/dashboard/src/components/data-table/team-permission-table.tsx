@@ -145,5 +145,11 @@ const columns: ColumnDef<AdminTeamPermissionDefinition>[] =  [
 ];
 
 export function TeamPermissionTable(props: { permissions: AdminTeamPermissionDefinition[] }) {
-  return <DataTable data={props.permissions} columns={columns} toolbarRender={toolbarRender} />;
+  return <DataTable
+    data={props.permissions}
+    columns={columns}
+    toolbarRender={toolbarRender}
+    defaultColumnFilters={[]}
+    defaultSorting={[]}
+  />;
 }
