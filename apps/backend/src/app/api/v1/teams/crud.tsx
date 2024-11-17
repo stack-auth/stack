@@ -9,8 +9,8 @@ import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
-import { waitUntil } from "@vercel/functions";
 import { addUserToTeam } from "../team-memberships/crud";
+import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 
 
 export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
@@ -93,7 +93,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
     const result = teamPrismaToCrud(db);
 
-    waitUntil(sendTeamCreatedWebhook({
+    runAsynchronouslyAndWaitUntil(sendTeamCreatedWebhook({
       projectId: auth.project.id,
       data: result,
     }));
@@ -166,7 +166,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
     const result = teamPrismaToCrud(db);
 
-    waitUntil(sendTeamUpdatedWebhook({
+    runAsynchronouslyAndWaitUntil(sendTeamUpdatedWebhook({
       projectId: auth.project.id,
       data: result,
     }));
@@ -197,7 +197,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
       });
     });
 
-    waitUntil(sendTeamDeletedWebhook({
+    runAsynchronouslyAndWaitUntil(sendTeamDeletedWebhook({
       projectId: auth.project.id,
       data: {
         id: params.team_id,

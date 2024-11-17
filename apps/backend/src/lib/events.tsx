@@ -7,6 +7,8 @@ import { prismaClient } from "@/prisma-client";
 import withPostHog from "@/analytics";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { getEndUserInfo, getExactEndUserIp, getSpoofableEndUserIp } from "./end-users";
+import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 
 type EventType = {
   id: string,
@@ -78,6 +80,9 @@ type DataOf<T extends EventType> =
   & yup.InferType<T["dataSchema"]>
   & DataOfMany<T["inherits"]>;
 
+/**
+ * Do not wrap this function in waitUntil or runAsynchronously as it may use dynamic APIs
+ */
 export async function logEvent<T extends EventType[]>(
   eventTypes: T,
   data: DataOfMany<T>,
@@ -101,7 +106,7 @@ export async function logEvent<T extends EventType[]>(
   }
 
 
-  // select all events in the inheritance chain
+  // traverse and list all events in the inheritance chain
   const allEventTypes = new Set<EventType>();
   const addEventType = (eventType: EventType) => {
     if (allEventTypes.has(eventType)) {
@@ -127,36 +132,56 @@ export async function logEvent<T extends EventType[]>(
   }
 
 
-  // log event in DB
-  await prismaClient.event.create({
-    data: {
-      systemEventTypeIds: [...allEventTypes].map(eventType => eventType.id),
-      data: data as any,
-      isWide,
-      eventStartedAt: timeRange.start,
-      eventEndedAt: timeRange.end,
-    },
-  });
+  // get end user information
+  const endUserInfo = await getEndUserInfo();  // this is a dynamic API, can't run it asynchronously
+  const endUserInfoInner = endUserInfo?.maybeSpoofed ? endUserInfo.spoofedInfo : endUserInfo?.exactInfo;
 
-  // log event in PostHog
-  await withPostHog(async posthog => {
-    const distinctId = typeof data === "object" && data && "userId" in data ? (data.userId as string) : `backend-anon-${generateUuid()}`;
-    for (const eventType of allEventTypes) {
-      const postHogEventName = `stack_${eventType.id.replace(/^\$/, "system_").replace(/-/g, "_")}`;
-      posthog.capture({
-        event: postHogEventName,
-        distinctId,
-        groups: filterUndefined({
-          projectId: typeof data === "object" && data && "projectId" in data ? (typeof data.projectId === "string" ? data.projectId : throwErr("Project ID is not a string for some reason?", { data })) : undefined,
-        }),
-        timestamp: timeRange.end,
-        properties: {
-          data,
-          is_wide: isWide,
-          event_started_at: timeRange.start,
-          event_ended_at: timeRange.end,
-        },
-      });
-    }
-  });
+
+  // rest is no more dynamic APIs so we can run it asynchronously
+  runAsynchronouslyAndWaitUntil((async () => {
+    // log event in DB
+    await prismaClient.event.create({
+      data: {
+        systemEventTypeIds: [...allEventTypes].map(eventType => eventType.id),
+        data: data as any,
+        isEndUserIpInfoGuessTrusted: !endUserInfo?.maybeSpoofed,
+        endUserIpInfoGuess: endUserInfoInner ? {
+          create: {
+            ip: endUserInfoInner.ip,
+            countryCode: endUserInfoInner.countryCode,
+            regionCode: endUserInfoInner.regionCode,
+            cityName: endUserInfoInner.cityName,
+            tzIdentifier: endUserInfoInner.tzIdentifier,
+            latitude: endUserInfoInner.latitude,
+            longitude: endUserInfoInner.longitude,
+          },
+        } : undefined,
+        isWide,
+        eventStartedAt: timeRange.start,
+        eventEndedAt: timeRange.end,
+      },
+    });
+
+    // log event in PostHog
+    await withPostHog(async posthog => {
+      const distinctId = typeof data === "object" && data && "userId" in data ? (data.userId as string) : `backend-anon-${generateUuid()}`;
+      for (const eventType of allEventTypes) {
+        const postHogEventName = `stack_${eventType.id.replace(/^\$/, "system_").replace(/-/g, "_")}`;
+        posthog.capture({
+          event: postHogEventName,
+          distinctId,
+          groups: filterUndefined({
+            projectId: typeof data === "object" && data && "projectId" in data ? (typeof data.projectId === "string" ? data.projectId : throwErr("Project ID is not a string for some reason?", { data })) : undefined,
+          }),
+          timestamp: timeRange.end,
+          properties: {
+            data,
+            is_wide: isWide,
+            event_started_at: timeRange.start,
+            event_ended_at: timeRange.end,
+          },
+        });
+      }
+    });
+  })());
 }

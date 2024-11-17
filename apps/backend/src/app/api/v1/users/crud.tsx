@@ -14,8 +14,8 @@ import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-sh
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
-import { waitUntil } from '@vercel/functions';
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
+import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 
 export const userFullInclude = {
   projectUserOAuthAccounts: {
@@ -513,7 +513,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       });
     }
 
-    waitUntil(sendUserCreatedWebhook({
+    runAsynchronouslyAndWaitUntil(sendUserCreatedWebhook({
       projectId: auth.project.id,
       data: result,
     }));
@@ -811,7 +811,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     });
 
 
-    waitUntil(sendUserUpdatedWebhook({
+    runAsynchronouslyAndWaitUntil(sendUserUpdatedWebhook({
       projectId: auth.project.id,
       data: result,
     }));
@@ -849,7 +849,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       return { teams };
     });
 
-    waitUntil(Promise.all(teams.map(t => sendTeamMembershipDeletedWebhook({
+    runAsynchronouslyAndWaitUntil(Promise.all(teams.map(t => sendTeamMembershipDeletedWebhook({
       projectId: auth.project.id,
       data: {
         team_id: t.teamId,
@@ -857,7 +857,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       },
     }))));
 
-    waitUntil(sendUserDeletedWebhook({
+    runAsynchronouslyAndWaitUntil(sendUserDeletedWebhook({
       projectId: auth.project.id,
       data: {
         id: params.user_id,
