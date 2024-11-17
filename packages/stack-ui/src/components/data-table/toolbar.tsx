@@ -25,7 +25,6 @@ export function DataTableToolbar<TData>({
 }: DataTableToolbarProps<TData>) {
   const isFiltered = !deepPlainEquals(table.getState().columnFilters, defaultColumnFilters);
   const isSorted = !deepPlainEquals(table.getState().sorting, defaultSorting);
-  console.log({ columnFilters: table.getState().columnFilters, sorting: table.getState().sorting, defaultSorting });
 
   return (
     <div className="flex items-center justify-between">
