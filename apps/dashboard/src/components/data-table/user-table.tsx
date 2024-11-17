@@ -132,8 +132,8 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Primary Email" />,
     cell: ({ row }) => <TextCell
       size={180}
-      icon={row.original.emailVerified === "unverified" && <SimpleTooltip tooltip='Email not verified' type='warning'/>}>
-      {row.original.primaryEmail}
+      icon={row.original.primaryEmail && row.original.emailVerified === "unverified" && <SimpleTooltip tooltip='Email not verified' type='warning'/>}>
+      {row.original.primaryEmail ?? '–'}
     </TextCell>,
     enableSorting: false,
   },
@@ -219,6 +219,7 @@ export function UserTable() {
     toolbarRender={userToolbarRender}
     onUpdate={onUpdate}
     defaultVisibility={{ emailVerified: false }}
+    defaultColumnFilters={[]}
     defaultSorting={[{ id: 'signedUpAt', desc: true }]}
   />;
 }
