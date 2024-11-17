@@ -219,6 +219,7 @@ export function UserTable() {
     toolbarRender={userToolbarRender}
     onUpdate={onUpdate}
     defaultVisibility={{ emailVerified: false }}
+    defaultColumnFilters={[]}
     defaultSorting={[{ id: 'signedUpAt', desc: true }]}
   />;
 }
