@@ -62,5 +62,7 @@ export function TeamMemberSearchTable(props: {
     data={users}
     onUpdate={onUpdate}
     toolbarRender={table => <SearchToolbarItem table={table} placeholder="Search table" className="w-full" />}
+    defaultColumnFilters={[]}
+    defaultSorting={[]}
   />;
 }
