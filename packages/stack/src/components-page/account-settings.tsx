@@ -595,7 +595,7 @@ function usePasswordSection() {
                 <Input
                   id="old-password"
                   type="password"
-                  autocomplete="current-password"
+                  autoComplete="current-password"
                   {...register("oldPassword")}
                 />
                 <FormWarningText text={errors.oldPassword?.message?.toString()} />
@@ -605,7 +605,7 @@ function usePasswordSection() {
             <Label htmlFor="new-password" className="mt-4 mb-1">{t("New password")}</Label>
             <PasswordInput
               id="new-password"
-              autocomplete="new-password"
+              autoComplete="new-password"
               {...registerPassword}
               onChange={(e) => {
                 clearErrors('newPassword');
@@ -618,7 +618,7 @@ function usePasswordSection() {
             <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat new password")}</Label>
             <PasswordInput
               id="repeat-password"
-              autocomplete="new-password"
+              autoComplete="new-password"
               {...registerPasswordRepeat}
               onChange={(e) => {
                 clearErrors('newPassword');

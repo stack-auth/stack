@@ -68,7 +68,7 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
       <Label htmlFor="password" className="mt-4 mb-1">{t('Password')}</Label>
       <PasswordInput
         id="password"
-        autocomplete="new-password"
+        autoComplete="new-password"
         {...registerPassword}
         onChange={(e) => {
           clearErrors('password');

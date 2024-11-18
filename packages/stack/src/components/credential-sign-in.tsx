@@ -59,7 +59,7 @@ export function CredentialSignIn() {
       <Label htmlFor="password" className="mt-4 mb-1">{t('Password')}</Label>
       <PasswordInput
         id="password"
-        autocomplete="current-password"
+        autoComplete="current-password"
         {...register('password')}
       />
       <FormWarningText text={errors.password?.message?.toString()} />

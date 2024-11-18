@@ -93,7 +93,7 @@ export default function PasswordResetForm(props: {
           <Label htmlFor="password" className="mb-1">{t("New Password")}</Label>
           <PasswordInput
             id="password"
-            autocomplete="new-password"
+            autoComplete="new-password"
             {...register('password')}
             onChange={() => {
               clearErrors('password');
@@ -105,7 +105,7 @@ export default function PasswordResetForm(props: {
           <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat New Password")}</Label>
           <PasswordInput
             id="repeat-password"
-            autocomplete="new-password"
+            autoComplete="new-password"
             {...register('passwordRepeat')}
             onChange={() => {
               clearErrors('password');
