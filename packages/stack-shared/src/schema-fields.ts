@@ -6,6 +6,19 @@ import { allProviders } from "./utils/oauth";
 import { deepPlainClone, omit } from "./utils/objects";
 import { isUuid } from "./utils/uuids";
 
+declare module "yup" {
+  interface StringSchema<TType, TContext, TDefault, TFlags> {
+    nonEmpty(message?: string): StringSchema<TType, TContext, TDefault, TFlags>,
+  }
+}
+// eslint-disable-next-line no-restricted-syntax
+yup.addMethod(yup.string, "nonEmpty", function (message?: string) {
+  return this.test("non-empty", message ?? "String must not be empty", (value) => {
+    return value !== "";
+  });
+});
+
+
 export async function yupValidate<S extends yup.ISchema<any>>(
   schema: S,
   obj: unknown,
@@ -73,32 +86,39 @@ declare const StackAdaptSentinel: unique symbol;
 export type StackAdaptSentinel = typeof StackAdaptSentinel;
 
 // Built-in replacements
-/* eslint-disable no-restricted-syntax */
 export function yupString<A extends string, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.string<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.string(...args);
 }
 export function yupNumber<A extends number, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.number<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.number(...args);
 }
 export function yupBoolean<A extends boolean, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.boolean<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.boolean(...args);
 }
 /**
  * @deprecated, use number of milliseconds since epoch instead
  */
 export function yupDate<A extends Date, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.date<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.date(...args);
 }
 export function yupMixed<A extends {}>(...args: Parameters<typeof yup.mixed<A>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.mixed(...args);
 }
 export function yupArray<A extends yup.Maybe<yup.AnyObject> = yup.AnyObject, B = any>(...args: Parameters<typeof yup.array<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.array(...args);
 }
 export function yupTuple<T extends [unknown, ...unknown[]]>(...args: Parameters<typeof yup.tuple<T>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.tuple<T>(...args);
 }
 export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.ObjectShape>(...args: Parameters<typeof yup.object<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   const object = yup.object(...args).test(
     'no-unknown-object-properties',
     ({ path }) => `${path} contains unknown properties`,
@@ -124,8 +144,10 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
   // we don't want to update the type of `object` to have a default flag
   return object.default(undefined) as any as typeof object;
 }
-/* eslint-enable no-restricted-syntax */
 
+/**
+ * Note that the .defined() on unions is implicit.
+ */
 export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.ISchema<yup.InferType<T[number]>> {
   if (args.length === 0) throw new Error('yupUnion must have at least one schema');
 
@@ -136,7 +158,7 @@ export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.ISchema<
     if (desc.type !== firstDesc.type) throw new StackAssertionError(`yupUnion must have schemas of the same type (got: ${firstDesc.type} and ${desc.type})`, { first, schema, firstDesc, desc });
   }
 
-  return yupMixed().required().test('is-one-of', 'Invalid value', async (value, context) => {
+  return yupMixed().defined().test('is-one-of', 'Invalid value', async (value, context) => {
     const errors = [];
     for (const schema of args) {
       try {
@@ -264,9 +286,9 @@ export const userClientMetadataSchema = jsonSchema.meta({ openapiField: { descri
 export const userClientReadOnlyMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientReadOnlyMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userOAuthProviderSchema = yupObject({
-  id: yupString().required(),
-  type: yupString().oneOf(allProviders).required(),
-  provider_user_id: yupString().required(),
+  id: yupString().defined(),
+  type: yupString().oneOf(allProviders).defined(),
+  provider_user_id: yupString().defined(),
 });
 export const userLastActiveAtMillisSchema = yupNumber().nullable().meta({ openapiField: { description: _lastActiveAtMillisDescription, exampleValue: 1630000000000 } });
 export const userPasskeyAuthEnabledSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has passkeys enabled', exampleValue: false } });
@@ -283,10 +305,10 @@ export const emailVerificationCallbackUrlSchema = urlSchema.meta({ openapiField:
 export const accessTokenResponseSchema = yupString().meta({ openapiField: { description: 'Short-lived access token that can be used to authenticate the user', exampleValue: 'eyJhmMiJB2TO...diI4QT' } });
 export const refreshTokenResponseSchema = yupString().meta({ openapiField: { description: 'Long-lived refresh token that can be used to obtain a new access token', exampleValue: 'i8ns3aq2...14y' } });
 export const signInResponseSchema = yupObject({
-  refresh_token: refreshTokenResponseSchema.required(),
-  access_token: accessTokenResponseSchema.required(),
-  is_new_user: yupBoolean().meta({ openapiField: { description: 'Whether the user is a new user', exampleValue: true } }).required(),
-  user_id: userIdSchema.required(),
+  refresh_token: refreshTokenResponseSchema.defined(),
+  access_token: accessTokenResponseSchema.defined(),
+  is_new_user: yupBoolean().meta({ openapiField: { description: 'Whether the user is a new user', exampleValue: true } }).defined(),
+  user_id: userIdSchema.defined(),
 });
 
 // Permissions
@@ -311,7 +333,7 @@ export const customTeamPermissionDefinitionIdSchema = yupString()
   .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" are allowed')
   .meta({ openapiField: { description: 'The permission ID used to uniquely identify a permission. Can only contain lowercase letters, numbers, ":", and "_" characters', exampleValue: 'read_secret_info' } });
 export const teamPermissionDescriptionSchema = yupString().meta({ openapiField: { description: 'A human-readable description of the permission', exampleValue: 'Read secret information' } });
-export const containedPermissionIdsSchema = yupArray(teamPermissionDefinitionIdSchema.required()).meta({ openapiField: { description: 'The IDs of the permissions that are contained in this permission', exampleValue: ['read_public_info'] } });
+export const containedPermissionIdsSchema = yupArray(teamPermissionDefinitionIdSchema.defined()).meta({ openapiField: { description: 'The IDs of the permissions that are contained in this permission', exampleValue: ['read_public_info'] } });
 
 // Teams
 export const teamIdSchema = yupString().uuid().meta({ openapiField: { description: _idDescription('team'), exampleValue: 'ad962777-8244-496a-b6a2-e0c6a449c79e' } });
@@ -341,14 +363,14 @@ export const contactChannelIsVerifiedSchema = yupBoolean().meta({ openapiField: 
 export const contactChannelIsPrimarySchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel is the primary contact channel. If this is set to `true`, it will be used for authentication and notifications by default.', exampleValue: true } });
 
 // Utils
-export function yupRequiredWhen<S extends yup.AnyObject>(
+export function yupDefinedWhen<S extends yup.AnyObject>(
   schema: S,
   triggerName: string,
   isValue: any
 ): S {
   return schema.when(triggerName, {
     is: isValue,
-    then: (schema: S) => schema.required(),
+    then: (schema: S) => schema.defined(),
     otherwise: (schema: S) => schema.optional()
   });
 }

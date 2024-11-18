@@ -77,7 +77,13 @@ module.exports = {
       },
       {
         selector:
-          "MemberExpression:has(Identifier[name='yup']):has(Identifier[name='string'], Identifier[name='number'], Identifier[name='boolean'], Identifier[name='array'], Identifier[name='object'], Identifier[name='date'], Identifier[name='mixed'])",
+          "CallExpression > MemberExpression > Identifier[name='required']",
+        message:
+          `Use .defined(), .nonNullable(), or .nonEmpty() instead of .required(), as the latter has inconsistent/unexpected behavior on strings.`,
+      },
+      {
+        selector:
+          "MemberExpression:has(Identifier[name='yup']):has(Identifier[name='string'], Identifier[name='number'], Identifier[name='boolean'], Identifier[name='array'], Identifier[name='object'], Identifier[name='tuple'], Identifier[name='date'], Identifier[name='mixed'])",
         message: "Use yupXyz() from schema-fields.tsx instead of yup.xyz().",
       },
     ],

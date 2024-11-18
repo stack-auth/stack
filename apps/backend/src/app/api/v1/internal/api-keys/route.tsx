@@ -15,15 +15,15 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema.required(),
-    }).required(),
-    body: apiKeysCreateInputSchema.required(),
-    method: yupString().oneOf(["POST"]).required(),
+      project: adaptSchema.defined(),
+    }).defined(),
+    body: apiKeysCreateInputSchema.defined(),
+    method: yupString().oneOf(["POST"]).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
-    body: apiKeysCreateOutputSchema.required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: apiKeysCreateOutputSchema.defined(),
   }),
   handler: async ({ auth, body }) => {
     const set = await prismaClient.apiKeySet.create({

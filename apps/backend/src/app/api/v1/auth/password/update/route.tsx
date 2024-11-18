@@ -16,19 +16,19 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
-      user: adaptSchema.required(),
-    }).required(),
+      user: adaptSchema.defined(),
+    }).defined(),
     body: yupObject({
-      old_password: yupString().required(),
-      new_password: yupString().required(),
-    }).required(),
+      old_password: yupString().defined(),
+      new_password: yupString().defined(),
+    }).defined(),
     headers: yupObject({
       "x-stack-refresh-token": yupTuple([yupString().optional()]).optional(),
-    }).required(),
+    }).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async handler({ auth: { project, user }, body: { old_password, new_password }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
     if (!project.config.credential_enabled) {

@@ -16,16 +16,16 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
-      user: adaptSchema.required(),
-    }).required(),
+      user: adaptSchema.defined(),
+    }).defined(),
     body: yupObject({
-      password: yupString().required(),
-    }).required(),
-    headers: yupObject({}).required(),
+      password: yupString().defined(),
+    }).defined(),
+    headers: yupObject({}).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async handler({ auth: { project, user }, body: { password } }) {
     if (!project.config.credential_enabled) {

@@ -309,6 +309,40 @@ it("updates a team on the client", async ({ expect }) => {
   `);
 });
 
+it("can set a team's display name to the empty string", async ({ expect }) => {
+  const { userId } = await Auth.Otp.signIn();
+  const { teamId } = await Team.create();
+
+  // grant permission to update a team
+  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  // Has permission to update a team
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      display_name: "",
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
+        "display_name": "",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
 it("updates team client metadata on the client", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
   const { teamId } = await Team.create();

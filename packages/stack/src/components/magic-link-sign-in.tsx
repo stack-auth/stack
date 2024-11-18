@@ -79,7 +79,7 @@ export function MagicLinkSignIn() {
   const [nonce, setNonce] = useState<string | null>(null);
 
   const schema = yupObject({
-    email: yupString().email(t('Please enter a valid email')).required(t('Please enter your email'))
+    email: yupString().email(t('Please enter a valid email')).defined().nonEmpty(t('Please enter your email'))
   });
 
   const { register, handleSubmit, setError, formState: { errors } } = useForm({

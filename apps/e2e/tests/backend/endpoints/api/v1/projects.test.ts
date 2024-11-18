@@ -559,8 +559,8 @@ it("updates the project email configuration with invalid parameters", async ({ e
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.sender_email is a required field" },
-          "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.sender_email is a required field",
+          "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host must be defined\\n  - body.config.email_config.port must be defined\\n  - body.config.email_config.username must be defined\\n  - body.config.email_config.password must be defined\\n  - body.config.email_config.sender_name must be defined\\n  - body.config.email_config.sender_email must be defined" },
+          "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host must be defined\\n  - body.config.email_config.port must be defined\\n  - body.config.email_config.username must be defined\\n  - body.config.email_config.password must be defined\\n  - body.config.email_config.sender_name must be defined\\n  - body.config.email_config.sender_email must be defined",
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",

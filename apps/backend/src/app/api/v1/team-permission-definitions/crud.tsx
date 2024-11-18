@@ -7,7 +7,7 @@ import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 export const teamPermissionDefinitionsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamPermissionDefinitionsCrud, {
   paramsSchema: yupObject({
-    permission_id: teamPermissionDefinitionIdSchema.required(),
+    permission_id: teamPermissionDefinitionIdSchema.defined(),
   }),
   async onCreate({ auth, data }) {
     return await prismaClient.$transaction(async (tx) => {

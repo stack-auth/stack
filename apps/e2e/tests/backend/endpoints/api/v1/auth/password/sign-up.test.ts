@@ -145,12 +145,12 @@ it("cannot use empty password to sign up", async ({ expect }) => {
     NiceResponse {
       "status": 400,
       "body": {
-        "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on POST /api/v1/auth/password/sign-up:\\n  - body.password is a required field" },
-        "error": "Request validation failed on POST /api/v1/auth/password/sign-up:\\n  - body.password is a required field",
+        "code": "PASSWORD_TOO_SHORT",
+        "details": { "min_length": 8 },
+        "error": "Password too short. Minimum length is 8.",
       },
       "headers": Headers {
-        "x-stack-known-error": "SCHEMA_ERROR",
+        "x-stack-known-error": "PASSWORD_TOO_SHORT",
         <some fields may have been hidden>,
       },
     }

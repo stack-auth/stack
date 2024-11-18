@@ -29,7 +29,7 @@ const LegacyApiEventType = {
 const ProjectEventType = {
   id: "$project",
   dataSchema: yupObject({
-    projectId: yupString().required(),
+    projectId: yupString().defined(),
   }),
   inherits: [],
 } as const satisfies SystemEventTypeBase;
@@ -43,7 +43,7 @@ const ProjectActivityEventType = {
 const UserActivityEventType = {
   id: "$user-activity",
   dataSchema: yupObject({
-    userId: yupString().uuid().required(),
+    userId: yupString().uuid().defined(),
   }),
   inherits: [ProjectActivityEventType],
 } as const satisfies SystemEventTypeBase;
@@ -51,10 +51,10 @@ const UserActivityEventType = {
 const ApiRequestEventType = {
   id: "$api-request",
   dataSchema: yupObject({
-    method: yupString().oneOf(HTTP_METHODS).required(),
-    url: urlSchema.required(),
+    method: yupString().oneOf(HTTP_METHODS).defined(),
+    url: urlSchema.defined(),
     body: yupMixed().nullable().optional(),
-    headers: yupObject().required(),
+    headers: yupObject().defined(),
   }),
   inherits: [
     ProjectEventType,

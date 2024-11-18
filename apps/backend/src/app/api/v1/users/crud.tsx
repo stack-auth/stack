@@ -245,7 +245,7 @@ export async function getUser(options: { projectId: string, userId: string }) {
 
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
   paramsSchema: yupObject({
-    user_id: userIdOrMeSchema.required(),
+    user_id: userIdOrMeSchema.defined(),
   }),
   querySchema: yupObject({
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Only return users who are members of the given team" }}),

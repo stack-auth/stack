@@ -24,7 +24,7 @@ export default function PasswordResetForm(props: {
   const { t } = useTranslation();
 
   const schema = yupObject({
-    password: yupString().required(t("Please enter your password")).test({
+    password: yupString().defined().nonEmpty(t("Please enter your password")).test({
       name: 'is-valid-password',
       test: (value, ctx) => {
         const error = getPasswordError(value);
@@ -35,7 +35,7 @@ export default function PasswordResetForm(props: {
         }
       }
     }),
-    passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], t("Passwords do not match")).required(t("Please repeat your password"))
+    passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], t("Passwords do not match")).defined().nonEmpty(t("Please repeat your password"))
   });
 
   const { register, handleSubmit, formState: { errors }, clearErrors } = useForm({

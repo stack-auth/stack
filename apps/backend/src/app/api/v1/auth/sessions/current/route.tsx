@@ -15,14 +15,14 @@ export const DELETE = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
-    }).required(),
+    }).defined(),
     headers: yupObject({
-      "x-stack-refresh-token": yupTuple([yupString().required()]).required(),
+      "x-stack-refresh-token": yupTuple([yupString().defined()]).defined(),
     }),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async handler({ auth: { project }, headers: { "x-stack-refresh-token": refreshTokenHeaders } }) {
     if (!refreshTokenHeaders[0]) {

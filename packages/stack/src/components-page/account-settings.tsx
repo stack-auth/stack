@@ -193,7 +193,8 @@ function EmailsSection() {
     email: yupString()
       .email(t('Please enter a valid email address'))
       .notOneOf(contactChannels.map(x => x.value), t('Email already exists'))
-      .required(t('Email is required')),
+      .defined()
+      .nonEmpty(t('Email is required')),
   });
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
@@ -523,8 +524,8 @@ function usePasswordSection() {
   const [loading, setLoading] = useState(false);
 
   const passwordSchema = yupObject({
-    oldPassword: user.hasPassword ? yupString().required(t('Please enter your old password')) : yupString(),
-    newPassword: yupString().required(t('Please enter your password')).test({
+    oldPassword: user.hasPassword ? yupString().defined().nonEmpty(t('Please enter your old password')) : yupString(),
+    newPassword: yupString().defined().nonEmpty(t('Please enter your password')).test({
       name: 'is-valid-password',
       test: (value, ctx) => {
         const error = getPasswordError(value);
@@ -535,7 +536,7 @@ function usePasswordSection() {
         }
       }
     }),
-    newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
+    newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], t('Passwords do not match')).defined().nonEmpty(t('Please repeat your password'))
   });
 
   const { register, handleSubmit, setError, formState: { errors }, clearErrors, reset } = useForm({
@@ -907,7 +908,7 @@ function useMemberInvitationSection(props: { team: Team }) {
   const { t } = useTranslation();
 
   const invitationSchema = yupObject({
-    email: yupString().email().required(t('Please enter an email address')),
+    email: yupString().email().defined().nonEmpty(t('Please enter an email address')),
   });
 
   const user = useUser({ or: 'redirect' });
@@ -1012,7 +1013,7 @@ export function TeamCreation() {
   const { t } = useTranslation();
 
   const teamCreationSchema = yupObject({
-    displayName: yupString().required(t("Please enter a team name")),
+    displayName: yupString().defined().nonEmpty(t("Please enter a team name")),
   });
 
   const { register, handleSubmit, formState: { errors } } = useForm({

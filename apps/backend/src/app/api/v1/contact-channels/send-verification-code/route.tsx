@@ -11,17 +11,17 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema.required(),
-      user: adaptSchema.required(),
-    }).required(),
+      project: adaptSchema.defined(),
+      user: adaptSchema.defined(),
+    }).defined(),
     body: yupObject({
-      email: signInEmailSchema.required(),
-      callback_url: emailVerificationCallbackUrlSchema.required(),
-    }).required(),
+      email: signInEmailSchema.defined(),
+      callback_url: emailVerificationCallbackUrlSchema.defined(),
+    }).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async handler({ auth: { project, user }, body: { email, callback_url: callbackUrl } }) {
     if (user.primary_email !== email) {

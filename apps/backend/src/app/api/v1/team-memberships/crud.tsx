@@ -53,8 +53,8 @@ export async function addUserToTeam(tx: PrismaTransaction, options: {
 
 export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamMembershipsCrud, {
   paramsSchema: yupObject({
-    team_id: yupString().uuid().required(),
-    user_id: userIdOrMeSchema.required(),
+    team_id: yupString().uuid().defined(),
+    user_id: userIdOrMeSchema.defined(),
   }),
   onCreate: async ({ auth, params }) => {
     await prismaClient.$transaction(async (tx) => {

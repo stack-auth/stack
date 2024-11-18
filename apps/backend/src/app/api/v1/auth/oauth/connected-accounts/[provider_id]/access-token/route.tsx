@@ -10,15 +10,15 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     body: yupObject({
       scope: yupString().optional(),
-    }).required(),
+    }).defined(),
     params: yupObject({
-      provider_id: yupString().required(),
-    }).required(),
+      provider_id: yupString().defined(),
+    }).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().required(),
-    bodyType: yupString().oneOf(["json"]).required(),
-    body: yupMixed().required(),
+    statusCode: yupNumber().defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: yupMixed().defined(),
   }),
   handler: async ({ params, body }, fullReq) => {
     const response = await fetch(

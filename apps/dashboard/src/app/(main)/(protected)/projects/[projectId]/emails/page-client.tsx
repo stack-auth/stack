@@ -122,10 +122,10 @@ function SubjectPreview(props: { subject: string, type: EmailTemplateType }) {
   return subject;
 }
 
-function requiredWhenShared<S extends yup.AnyObject>(schema: S, message: string): S {
+function definedWhenShared<S extends yup.AnyObject>(schema: S, message: string): S {
   return schema.when('shared', {
     is: 'false',
-    then: (schema: S) => schema.required(message),
+    then: (schema: S) => schema.defined(message),
     otherwise: (schema: S) => schema.optional()
   });
 }
@@ -149,13 +149,13 @@ const getDefaultValues = (emailConfig: AdminEmailConfig | undefined, project: Ad
 };
 
 const emailServerSchema = yup.object({
-  type: yup.string().oneOf(['shared', 'standard']).required(),
-  host: requiredWhenShared(yup.string(), "Host is required"),
-  port: requiredWhenShared(yup.number(), "Port is required"),
-  username: requiredWhenShared(yup.string(), "Username is required"),
-  password: requiredWhenShared(yup.string(), "Password is required"),
-  senderEmail: requiredWhenShared(yup.string().email("Sender email must be a valid email"), "Sender email is required"),
-  senderName: requiredWhenShared(yup.string(), "Email sender name is required"),
+  type: yup.string().oneOf(['shared', 'standard']).defined(),
+  host: definedWhenShared(yup.string(), "Host is required"),
+  port: definedWhenShared(yup.number(), "Port is required"),
+  username: definedWhenShared(yup.string(), "Username is required"),
+  password: definedWhenShared(yup.string(), "Password is required"),
+  senderEmail: definedWhenShared(yup.string().email("Sender email must be a valid email"), "Sender email is required"),
+  senderName: definedWhenShared(yup.string(), "Email sender name is required"),
 });
 
 function EditEmailServerDialog(props: {

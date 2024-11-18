@@ -17,7 +17,7 @@ export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
   const { t } = useTranslation();
 
   const schema = yupObject({
-    email: yupString().email(t("Please enter a valid email")).required(t("Please enter your email"))
+    email: yupString().email(t("Please enter a valid email")).defined().nonEmpty(t("Please enter your email"))
   });
 
   const { register, handleSubmit, formState: { errors }, clearErrors } = useForm({

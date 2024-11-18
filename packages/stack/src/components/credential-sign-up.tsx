@@ -16,8 +16,8 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
   const { t } = useTranslation();
 
   const schema = yupObject({
-    email: yupString().email(t('Please enter a valid email')).required(t('Please enter your email')),
-    password: yupString().required(t('Please enter your password')).test({
+    email: yupString().email(t('Please enter a valid email')).defined().nonEmpty(t('Please enter your email')),
+    password: yupString().defined().nonEmpty(t('Please enter your password')).test({
       name: 'is-valid-password',
       test: (value, ctx) => {
         const error = getPasswordError(value);
@@ -29,7 +29,7 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
       }
     }),
     ...(!props.noPasswordRepeat && {
-      passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
+      passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], t('Passwords do not match')).nonEmpty(t('Please repeat your password'))
     })
   });
 

@@ -28,12 +28,12 @@ export const GET = createSmartRouteHandler({
       "X-Stack-Secret-Server-Key": yupTuple([yupString()]),
       "X-Stack-Super-Secret-Admin-Key": yupTuple([yupString()]),
     }),
-    method: yupString().oneOf(["GET"]).required(),
+    method: yupString().oneOf(["GET"]).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["text"]).required(),
-    body: yupString().required().meta({ openapiField: { exampleValue: "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com/\n\nAuthentication: None" } }),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["text"]).defined(),
+    body: yupString().defined().meta({ openapiField: { exampleValue: "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com/\n\nAuthentication: None" } }),
   }),
   handler: async (req) => {
     return {

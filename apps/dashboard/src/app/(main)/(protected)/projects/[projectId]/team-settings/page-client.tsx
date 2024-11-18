@@ -19,7 +19,7 @@ function CreateDialog(props: {
     project.config.teamMemberDefaultPermissions.map(x => x.id);
 
   const formSchema = yup.object({
-    permissions: yup.array().of(yup.string().required()).required().meta({
+    permissions: yup.array().of(yup.string().defined()).defined().meta({
       stackFormFieldRender: (props) => (
         <PermissionListField
           {...props}

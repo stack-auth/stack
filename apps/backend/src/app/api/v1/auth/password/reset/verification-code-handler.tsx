@@ -22,17 +22,17 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
   },
   type: VerificationCodeType.PASSWORD_RESET,
   data: yupObject({
-    user_id: yupString().required(),
+    user_id: yupString().defined(),
   }),
   method: yupObject({
-    email: yupString().email().required(),
+    email: yupString().email().defined(),
   }),
   requestBody: yupObject({
-    password: yupString().required(),
-  }).required(),
+    password: yupString().defined(),
+  }).defined(),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
     await sendEmailFromTemplate({

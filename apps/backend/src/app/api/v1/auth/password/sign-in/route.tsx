@@ -18,20 +18,20 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
-    }).required(),
+    }).defined(),
     body: yupObject({
-      email: yupString().email().required(),
-      password: yupString().required(),
-    }).required(),
+      email: yupString().email().defined(),
+      password: yupString().defined(),
+    }).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
     body: yupObject({
-      access_token: yupString().required(),
-      refresh_token: yupString().required(),
-      user_id: yupString().required(),
-    }).required(),
+      access_token: yupString().defined(),
+      refresh_token: yupString().defined(),
+      user_id: yupString().defined(),
+    }).defined(),
   }),
   async handler({ auth: { project }, body: { email, password } }, fullReq) {
     if (!project.config.credential_enabled) {

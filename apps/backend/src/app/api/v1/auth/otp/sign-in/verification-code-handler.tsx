@@ -24,16 +24,16 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
   type: VerificationCodeType.ONE_TIME_PASSWORD,
   data: yupObject({
     user_id: yupString().uuid().optional(),
-    is_new_user: yupBoolean().required(),
+    is_new_user: yupBoolean().defined(),
   }),
   method: yupObject({
-    email: yupString().email().required(),
-    type: yupString().oneOf(["legacy", "standard"]).required(),
+    email: yupString().email().defined(),
+    type: yupString().oneOf(["legacy", "standard"]).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
-    body: signInResponseSchema.required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: signInResponseSchema.defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { email: string }) {
     await sendEmailFromTemplate({

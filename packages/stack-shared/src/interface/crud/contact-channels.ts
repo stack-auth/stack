@@ -2,33 +2,33 @@ import { CrudTypeOf, createCrud } from "../../crud";
 import { contactChannelIdSchema, contactChannelIsPrimarySchema, contactChannelIsVerifiedSchema, contactChannelTypeSchema, contactChannelUsedForAuthSchema, contactChannelValueSchema, userIdOrMeSchema, userIdSchema, yupMixed, yupObject } from "../../schema-fields";
 
 export const contactChannelsClientReadSchema = yupObject({
-  user_id: userIdSchema.required(),
-  id: contactChannelIdSchema.required(),
-  value: contactChannelValueSchema.required(),
-  type: contactChannelTypeSchema.required(),
-  used_for_auth: contactChannelUsedForAuthSchema.required(),
-  is_verified: contactChannelIsVerifiedSchema.required(),
-  is_primary: contactChannelIsPrimarySchema.required(),
-}).required();
+  user_id: userIdSchema.defined(),
+  id: contactChannelIdSchema.defined(),
+  value: contactChannelValueSchema.defined(),
+  type: contactChannelTypeSchema.defined(),
+  used_for_auth: contactChannelUsedForAuthSchema.defined(),
+  is_verified: contactChannelIsVerifiedSchema.defined(),
+  is_primary: contactChannelIsPrimarySchema.defined(),
+}).defined();
 
 export const contactChannelsCrudClientUpdateSchema = yupObject({
   value: contactChannelValueSchema.optional(),
   type: contactChannelTypeSchema.optional(),
   used_for_auth: contactChannelUsedForAuthSchema.optional(),
   is_primary: contactChannelIsPrimarySchema.optional(),
-}).required();
+}).defined();
 
 export const contactChannelsCrudServerUpdateSchema = contactChannelsCrudClientUpdateSchema.concat(yupObject({
   is_verified: contactChannelIsVerifiedSchema.optional(),
 }));
 
 export const contactChannelsCrudClientCreateSchema = yupObject({
-  user_id: userIdOrMeSchema.required(),
-  value: contactChannelValueSchema.required(),
-  type: contactChannelTypeSchema.required(),
-  used_for_auth: contactChannelUsedForAuthSchema.required(),
+  user_id: userIdOrMeSchema.defined(),
+  value: contactChannelValueSchema.defined(),
+  type: contactChannelTypeSchema.defined(),
+  used_for_auth: contactChannelUsedForAuthSchema.defined(),
   is_primary: contactChannelIsPrimarySchema.optional(),
-}).required();
+}).defined();
 
 export const contactChannelsCrudServerCreateSchema = contactChannelsCrudClientCreateSchema.concat(yupObject({
   is_verified: contactChannelIsVerifiedSchema.optional(),

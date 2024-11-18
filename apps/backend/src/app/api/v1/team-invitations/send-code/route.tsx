@@ -1,9 +1,9 @@
 import { ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, teamIdSchema, teamInvitationCallbackUrlSchema, teamInvitationEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { teamInvitationCodeHandler } from "../accept/verification-code-handler";
-import { KnownErrors } from "@stackframe/stack-shared";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -14,23 +14,23 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema.required(),
+      project: adaptSchema.defined(),
       user: adaptSchema.optional(),
-    }).required(),
+    }).defined(),
     body: yupObject({
-      team_id: teamIdSchema.required(),
-      email: teamInvitationEmailSchema.required(),
-      callback_url: teamInvitationCallbackUrlSchema.required(),
-    }).required(),
+      team_id: teamIdSchema.defined(),
+      email: teamInvitationEmailSchema.defined(),
+      callback_url: teamInvitationCallbackUrlSchema.defined(),
+    }).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async handler({ auth, body }) {
     await prismaClient.$transaction(async (tx) => {
       if (auth.type === "client") {
-        if (!auth.user) throw new KnownErrors.UserAuthenticationRequired();
+        if (!auth.user) throw new KnownErrors.UserAuthenticationRequired;
 
         await ensureUserTeamPermissionExists(tx, {
           project: auth.project,

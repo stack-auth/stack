@@ -15,8 +15,8 @@ export function CredentialSignIn() {
   const { t } = useTranslation();
 
   const schema = yupObject({
-    email: yupString().email(t('Please enter a valid email')).required(t('Please enter your email')),
-    password: yupString().required(t('Please enter your password'))
+    email: yupString().email(t('Please enter a valid email')).defined().nonEmpty(t('Please enter your email')),
+    password: yupString().defined().nonEmpty(t('Please enter your password'))
   });
 
   const { register, handleSubmit, setError, formState: { errors } } = useForm({

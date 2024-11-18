@@ -20,14 +20,14 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
   },
   type: VerificationCodeType.CONTACT_CHANNEL_VERIFICATION,
   data: yupObject({
-    user_id: yupString().required(),
-  }).required(),
+    user_id: yupString().defined(),
+  }).defined(),
   method: yupObject({
-    email: yupString().email().required(),
+    email: yupString().email().defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
     await sendEmailFromTemplate({

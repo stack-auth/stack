@@ -13,14 +13,14 @@ export const POST = createSmartRouteHandler({
   },
   request: yupObject({
     body: yupObject({
-      grant_type: yupString().oneOf(["authorization_code", "refresh_token"]).required(),
-    }).unknown().required(),
-  }).required(),
+      grant_type: yupString().oneOf(["authorization_code", "refresh_token"]).defined(),
+    }).unknown().defined(),
+  }).defined(),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
-    body: yupMixed().required(),
-    headers: yupMixed().required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: yupMixed().defined(),
+    headers: yupMixed().defined(),
   }),
   async handler(req, fullReq) {
     const oauthRequest = new OAuthRequest({

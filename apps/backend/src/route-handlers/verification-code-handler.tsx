@@ -91,23 +91,23 @@ export function createVerificationCodeHandler<
     metadata: options.metadata?.[handlerType],
     request: yupObject({
       auth: yupObject({
-        project: adaptSchema.required(),
+        project: adaptSchema.defined(),
         user: adaptSchema,
-      }).required(),
+      }).defined(),
       body: yupObject({
-        code: yupString().length(45).required(),
+        code: yupString().length(45).defined(),
       // we cast to undefined as a typehack because the types are a bit icky
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      }).concat((handlerType === 'post' ? options.requestBody : undefined) as undefined ?? yupObject({})).required(),
+      }).concat((handlerType === 'post' ? options.requestBody : undefined) as undefined ?? yupObject({})).defined(),
     }),
     response: handlerType === 'check' ?
       yupObject({
-        statusCode: yupNumber().oneOf([200]).required(),
-        bodyType: yupString().oneOf(["json"]).required(),
+        statusCode: yupNumber().oneOf([200]).defined(),
+        bodyType: yupString().oneOf(["json"]).defined(),
         body: yupObject({
-          "is_code_valid": yupBoolean().oneOf([true]).required(),
-        }).required(),
-      }).required() as yup.ObjectSchema<any> :
+          "is_code_valid": yupBoolean().oneOf([true]).defined(),
+        }).defined(),
+      }).defined() as yup.ObjectSchema<any> :
       handlerType === 'details' ?
         options.detailsResponse || throwErr('detailsResponse is required') :
         options.response,

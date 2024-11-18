@@ -30,12 +30,12 @@ function EditDialog(props: {
 
   const formSchema = yup.object({
     id: yup.string()
-      .required()
+      .defined()
       .notOneOf(permissions.map((p) => p.id).filter(p => p !== props.selectedPermissionId), "ID already exists")
       .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":" and "_" are allowed')
       .label("ID"),
     description: yup.string().label("Description"),
-    containedPermissionIds: yup.array().of(yup.string().required()).required().meta({
+    containedPermissionIds: yup.array().of(yup.string().defined()).defined().meta({
       stackFormFieldRender: (innerProps) => (
         <PermissionListField
           {...innerProps}
