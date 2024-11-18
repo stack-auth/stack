@@ -1,5 +1,15 @@
 # @stackframe/stack
 
+## 2.6.25
+
+### Patch Changes
+
+- Translation overrides
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.25
+  - @stackframe/stack-ui@2.6.25
+  - @stackframe/stack-sc@2.6.25
+
 ## 2.6.24
 
 ### Patch Changes

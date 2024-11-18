@@ -1,5 +1,7 @@
 # @stackframe/init-stack
 
+## 2.6.25
+
 ## 2.6.24
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.6.25
+
+### Patch Changes
+
+- Translation overrides
+  - @stackframe/stack-sc@2.6.25
+
 ## 2.6.24
 
 ### Patch Changes
