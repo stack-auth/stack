@@ -104,9 +104,9 @@ export class StackClientInterface {
         throw new Error("Failed to send Stack network request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
       }
       throw new Error(deindent`
-        Stack is unable to connect to the server. Please check your internet connection and try again.
+        Stack Auth is unable to connect to the server. Please check your internet connection and try again.
         
-        If the problem persists, please contact Stack support and provide a screenshot of your entire browser console.
+        If the problem persists, please contact support and provide a screenshot of your entire browser console.
 
         ${retriedResult.error}
         
