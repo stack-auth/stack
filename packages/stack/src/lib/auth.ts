@@ -77,7 +77,7 @@ function consumeOAuthCallbackQueryParams() {
   if (!cookieResult) {
     // If the state can't be found in the cookies, then the callback wasn't meant for us.
     // Maybe the website uses another OAuth library?
-    captureError("consumeOAuthCallbackQueryParams", new Error(deindent`
+    console.warn(deindent`
       Stack found an outer OAuth callback state in the query parameters, but not in cookies.
       
       This could have multiple reasons:
@@ -85,7 +85,10 @@ function consumeOAuthCallbackQueryParams() {
         - The user's browser deleted the cookie, either manually or because of a very strict cookie policy.
         - The cookie was already consumed by this page, and the user already logged in.
         - You are using another OAuth client library with the same callback URL as Stack.
-    `));
+        - The user opened the OAuth callback page from their history.
+
+      Either way, it is probably safe to ignore this warning unless you are debugging an OAuth issue.
+    `);
     return null;
   }
 
