@@ -62,6 +62,11 @@ export const POST = createSmartRouteHandler({
       if (e instanceof InvalidRequestError) {
         if (e.message.includes("`redirect_uri` is invalid")) {
           throw new KnownErrors.RedirectUrlNotWhitelisted();
+        } else if (oauthResponse.status && oauthResponse.status >= 400 && oauthResponse.status < 500) {
+          console.log("Invalid OAuth token request by a client; returning it to the user", e);
+          return oauthResponseToSmartResponse(oauthResponse);
+        } else {
+          throw e;
         }
       }
       if (e instanceof ServerError) {
