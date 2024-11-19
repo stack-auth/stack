@@ -16,6 +16,29 @@ export function throwErr(...args: any[]): never {
   }
 }
 
+function removeStacktraceNameLine(stack: string): string {
+  // some browsers (eg. Chrome) prepend the stack with an extra line with the error name
+  const addsNameLine = new Error().stack?.startsWith("Error\n");
+  return stack.split("\n").slice(addsNameLine ? 1 : 0).join("\n");
+}
+
+export function concatStacktraces(first: Error, ...errors: Error[]): void {
+  // some browsers (eg. Firefox) add an extra empty line at the end
+  const addsEmptyLineAtEnd = first.stack?.endsWith("\n");
+
+
+  // Add a reference to this function itself so that we know that stacktraces were concatenated
+  // If you are coming here from a stacktrace, please know that the two parts before and after this line are different
+  // stacktraces that were concatenated with concatStacktraces
+  const separator = removeStacktraceNameLine(new Error().stack ?? "").split("\n")[0];
+
+
+  for (const error of errors) {
+    const toAppend = removeStacktraceNameLine(error.stack ?? "");
+    first.stack += (addsEmptyLineAtEnd ? "" : "\n") + separator + "\n" + toAppend;
+  }
+}
+
 
 export class StackAssertionError extends Error implements ErrorWithCustomCapture {
   constructor(message: string, public readonly extraData?: Record<string, any>, options?: ErrorOptions) {

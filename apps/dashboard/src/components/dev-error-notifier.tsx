@@ -15,7 +15,7 @@ if (process.env.NODE_ENV === 'development' && isBrowserLike()) {
   for (const prop of ["warn", "error"] as const) {
     const original = console[prop];
     console[prop] = (...args) => {
-      original(...args, new Error("This error was caught by DevErrorNotifier, and the original stacktrace is below."));
+      original(...args, { devErrorNotifierNote: new Error("The error above was caught by DevErrorNotifier, and the original stacktrace is below.") });
       if (!neverNotify.some((msg) => args.some((arg) => `${arg}`.includes(msg)))) {
         callbacks.forEach((cb) => cb(prop, args));
       }
