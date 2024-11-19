@@ -22,6 +22,28 @@ function removeStacktraceNameLine(stack: string): string {
   return stack.split("\n").slice(addsNameLine ? 1 : 0).join("\n");
 }
 
+
+/**
+ * Concatenates the stacktraces of the given errors onto the first.
+ *
+ * Useful when you invoke an async function to receive a promise without awaiting it immediately. Browsers are smart
+ * enough to keep track of the call stack in async function calls when you invoke `.then` within the same async tick,
+ * but if you don't,
+ *
+ * Here's an example of the unwanted behavior:
+ *
+ * ```tsx
+ * async function log() {
+ *   await wait(0);  // simulate an put the task on the event loop
+ *   console.log(new Error().stack);
+ * }
+ *
+ * async function main() {
+ *   await log();  // good; prints both "log" and "main" on the stacktrace
+ *   log();  // bad; prints only "log" on the stacktrace
+ * }
+ * ```
+ */
 export function concatStacktraces(first: Error, ...errors: Error[]): void {
   // some browsers (eg. Firefox) add an extra empty line at the end
   const addsEmptyLineAtEnd = first.stack?.endsWith("\n");
