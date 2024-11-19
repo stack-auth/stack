@@ -1,5 +1,13 @@
 # @stackframe/example-cjs-test
 
+## 2.6.26
+
+### Patch Changes
+
+- Various bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.6.26
+
 ## 2.6.25
 
 ### Patch Changes
