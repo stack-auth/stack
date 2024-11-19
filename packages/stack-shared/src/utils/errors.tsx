@@ -68,7 +68,7 @@ export function registerErrorSink(sink: (location: string, error: unknown) => vo
   errorSinks.add(sink);
 }
 registerErrorSink((location, ...args) => {
-  console.error(`\x1b[41mError in ${location}:`, ...args, "\x1b[0m");
+  console.error(`\x1b[41mCaptured error in ${location}:`, ...args, "\x1b[0m");
 });
 registerErrorSink((location, error, ...extraArgs) => {
   globalVar.stackCapturedErrors = globalVar.stackCapturedErrors ?? [];

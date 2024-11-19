@@ -253,7 +253,6 @@ export function rateLimited<T>(
   runAsynchronously(async () => {
     while (true) {
       await next();
-      throw new Error("test");
     }
   });
 
