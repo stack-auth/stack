@@ -162,33 +162,78 @@ navigation:
         path: ./docs/pages/sdk/overview.mdx
       - section: Objects
         contents:
-          - page: StackApp
+          - section: StackApp
             icon: fa-duotone fa-square-t
             path: ./docs/pages/sdk/objects/stack-app.mdx
+            contents:
+              - link: StackClientApp
+                icon: fa-duotone fa-square-t
+                href: /sdk/objects/stack-app#stackclientapp
+              - link: StackServerApp
+                icon: fa-duotone fa-square-t
+                href: /sdk/objects/stack-app#stackserverapp
       - section: Types
         contents:
-          - page: ContactChannel
+          - section: ContactChannel
             icon: fa-duotone fa-square-t
             path: ./docs/pages/sdk/types/contact-channel.mdx
+            contents:
+              - link: ContactChannel
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/contact-channel#contactchannel
+              - link: ServerContactChannel
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/contact-channel#servercontactchannel
           - page: Project
             icon: fa-duotone fa-square-t
             path: ./docs/pages/sdk/types/project.mdx
-          - page: Team
+          - section: Team
             icon: fa-duotone fa-square-t
             path: ./docs/pages/sdk/types/team.mdx
+            contents:
+              - link: Team
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/team#team
+              - link: ServerTeam
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/team#serverteam
           - page: TeamPermission
             icon: fa-duotone fa-square-t
             path: ./docs/pages/sdk/types/team-permission.mdx
-          - page: TeamProfile
+          - section: TeamProfile
             icon: fa-duotone fa-square-t
             path: ./docs/pages/sdk/types/team-profile.mdx
-          - page: TeamUser
+            contents:
+              - link: TeamProfile
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/team-profile#teamprofile
+              - link: ServerTeamProfile
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/team-profile#serverteamprofile
+          - section: TeamUser
             icon: fa-duotone fa-square-t
             path: ./docs/pages/sdk/types/team-user.mdx
-          - page: User
+            contents:
+              - link: TeamUser
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/team-user#teamuser
+              - link: ServerTeamUser
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/team-user#serverteamuser
+          - section: User
             icon: fa-duotone fa-square-t
             path: ./docs/pages/sdk/types/user.mdx
-          # - page: ConnectedAccount
+            contents:
+              - link: CurrentUser
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/user#currentuser
+              - link: ServerUser
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/user#serveruser
+              - link: CurrentServerUser
+                icon: fa-duotone fa-square-t
+                href: /sdk/types/user#currentserveruser
+          # - section: ConnectedAccount
           #   path: ./docs/pages/sdk/types/connected-account.mdx
       - section: Hooks
         contents:
