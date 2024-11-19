@@ -17,7 +17,7 @@ import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
 import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, concatStacktraces, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { DependenciesMap } from "@stackframe/stack-shared/dist/utils/maps";
 import { ProviderType } from "@stackframe/stack-shared/dist/utils/oauth";
@@ -197,8 +197,8 @@ function createEmptyTokenStore() {
   });
 }
 
-const cachePromiseByComponentId = new Map<string, Promise<unknown>>();
-function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies: D, caller: string): T {
+const cachePromiseByComponentId = new Map<string, ReactPromise<Result<unknown>>>();
+function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, Result<T>>, dependencies: D, caller: string): T {
   // we explicitly don't want to run this hook in SSR
   suspendIfSsr(caller);
 
@@ -217,7 +217,7 @@ function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies
     if (!cachePromiseByComponentId.has(id)) {
       cachePromiseByComponentId.set(id, cache.getOrWait(dependencies, "read-write"));
     }
-    return cachePromiseByComponentId.get(id) as ReactPromise<T>;
+    return cachePromiseByComponentId.get(id) as ReactPromise<Result<T>>;
   }, [cache, ...dependencies]);
 
   // note: we must use React.useSyncExternalStore instead of importing the function directly, as it will otherwise
@@ -228,7 +228,15 @@ function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, T>, dependencies
     () => throwErr(new Error("getServerSnapshot should never be called in useAsyncCache because we restrict to CSR earlier"))
   );
 
-  return React.use(promise);
+  const result = React.use(promise);
+  if (result.status === "error") {
+    const error = result.error;
+    if (error instanceof Error) {
+      concatStacktraces(error, new Error());
+    }
+    throw error;
+  }
+  return result.data;
 }
 
 function useStore<T>(store: Store<T>): T {
@@ -246,15 +254,15 @@ export const stackAppInternalsSymbol = Symbol.for("StackAppInternals");
 const allClientApps = new Map<string, [checkString: string, app: StackClientApp<any, any>]>();
 
 const createCache = <D extends any[], T>(fetcher: (dependencies: D) => Promise<T>) => {
-  return new AsyncCache<D, T>(
-    async (dependencies) => await fetcher(dependencies),
+  return new AsyncCache<D, Result<T>>(
+    async (dependencies) => await Result.fromThrowingAsync(async () => await fetcher(dependencies)),
     {},
   );
 };
 
 const createCacheBySession = <D extends any[], T>(fetcher: (session: InternalSession, extraDependencies: D) => Promise<T> ) => {
-  return new AsyncCache<[InternalSession, ...D], T>(
-    async ([session, ...extraDependencies]) => await fetcher(session, extraDependencies),
+  return new AsyncCache<[InternalSession, ...D], Result<T>>(
+    async ([session, ...extraDependencies]) => await Result.fromThrowingAsync(async () => await fetcher(session, extraDependencies)),
     {
       onSubscribe: ([session], refresh) => {
         const handler = session.onInvalidate(() => refresh());
@@ -313,8 +321,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserOAuthConnectionCache = createCacheBySession<[ProviderType, string, boolean], OAuthConnection | null>(
     async (session, [providerId, scope, redirect]) => {
       return await this._getUserOAuthConnectionCacheFn({
-        getUser: async () => await this._currentUserCache.getOrWait([session], "write-only"),
-        getOrWaitOAuthToken: async () => await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, providerId, scope || ""] as const, "write-only"),
+        getUser: async () => Result.orThrow(await this._currentUserCache.getOrWait([session], "write-only")),
+        getOrWaitOAuthToken: async () => Result.orThrow(await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, providerId, scope || ""] as const, "write-only")),
         useOAuthToken: () => useAsyncCache(this._currentUserOAuthConnectionAccessTokensCache, [session, providerId, scope || ""] as const, "useOAuthToken"),
         providerId,
         scope,
@@ -765,7 +773,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         });
       },
       async listUsers() {
-        const result = await app._teamMemberProfilesCache.getOrWait([session, crud.id], "write-only");
+        const result = Result.orThrow(await app._teamMemberProfilesCache.getOrWait([session, crud.id], "write-only"));
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
       },
       useUsers() {
@@ -912,7 +920,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     async function getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
     async function getConnectedAccount(id: ProviderType, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
       const scopeString = options?.scopes?.join(" ");
-      return await app._currentUserOAuthConnectionCache.getOrWait([session, id, scopeString || "", options?.or === 'redirect'], "write-only");
+      return Result.orThrow(await app._currentUserOAuthConnectionCache.getOrWait([session, id, scopeString || "", options?.or === 'redirect'], "write-only"));
     }
 
     function useConnectedAccount(id: ProviderType, options?: { scopes?: string[] }): OAuthConnection | null;
@@ -945,7 +953,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         }, [teams, teamId]);
       },
       async listTeams() {
-        const teams = await app._currentUserTeamsCache.getOrWait([session], "write-only");
+        const teams = Result.orThrow(await app._currentUserTeamsCache.getOrWait([session], "write-only"));
         return teams.map((crud) => app._clientTeamFromCrud(crud, session));
       },
       useTeams() {
@@ -966,7 +974,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<TeamPermission[]> {
         const recursive = options?.recursive ?? true;
-        const permissions = await app._currentUserPermissionsCache.getOrWait([session, scope.id, recursive], "write-only");
+        const permissions = Result.orThrow(await app._currentUserPermissionsCache.getOrWait([session, scope.id, recursive], "write-only"));
         return permissions.map((crud) => app._clientTeamPermissionFromCrud(crud));
       },
       usePermissions(scope: Team, options?: { recursive?: boolean }): TeamPermission[] {
@@ -1006,7 +1014,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       selectedTeam: crud.selected_team && this._clientTeamFromCrud(crud.selected_team, session),
       async getTeamProfile(team: Team) {
-        const result = await app._currentUserTeamProfileCache.getOrWait([session, team.id], "write-only");
+        const result = Result.orThrow(await app._currentUserTeamProfileCache.getOrWait([session, team.id], "write-only"));
         return app._editableTeamProfileFromCrud(result, session);
       },
       useTeamProfile(team: Team) {
@@ -1018,7 +1026,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         session.markInvalid();
       },
       async listContactChannels() {
-        const result = await app._clientContactChannelsCache.getOrWait([session], "write-only");
+        const result = Result.orThrow(await app._clientContactChannelsCache.getOrWait([session], "write-only"));
         return result.map((crud) => app._clientContactChannelFromCrud(crud, session));
       },
       useContactChannels() {
@@ -1213,7 +1221,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentUser<ProjectId> | null> {
     this._ensurePersistentTokenStore(options?.tokenStore);
     const session = await this._getSession(options?.tokenStore);
-    const crud = await this._currentUserCache.getOrWait([session], "write-only");
+    const crud = Result.orThrow(await this._currentUserCache.getOrWait([session], "write-only"));
 
     if (crud === null) {
       switch (options?.or) {
@@ -1487,7 +1495,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async getProject(): Promise<Project> {
-    const crud = await this._currentProjectCache.getOrWait([], "write-only");
+    const crud = Result.orThrow(await this._currentProjectCache.getOrWait([], "write-only"));
     return this._clientProjectFromCrud(crud);
   }
 
@@ -1498,7 +1506,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   protected async _listOwnedProjects(session: InternalSession): Promise<AdminOwnedProject[]> {
     this._ensureInternalProject();
-    const crud = await this._ownedProjectsCache.getOrWait([session], "write-only");
+    const crud = Result.orThrow(await this._ownedProjectsCache.getOrWait([session], "write-only"));
     return crud.map((j) => this._getOwnedAdminApp(j.id, session)._adminOwnedProjectFromCrud(
       j,
       () => this._refreshOwnedProjects(session),
@@ -1589,7 +1597,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       setCurrentUser: (userJsonPromise: Promise<CurrentUserCrud['Client']['Read'] | null>) => {
         runAsynchronously(async () => {
-          await this._currentUserCache.forceSetCachedValueAsync([await this._getSession()], userJsonPromise);
+          await this._currentUserCache.forceSetCachedValueAsync([await this._getSession()], Result.fromPromise(userJsonPromise));
         });
       },
     };
@@ -1642,8 +1650,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _serverUserOAuthConnectionCache = createCache<[string, ProviderType, string, boolean], OAuthConnection | null>(
     async ([userId, providerId, scope, redirect]) => {
       return await this._getUserOAuthConnectionCacheFn({
-        getUser: async () => await this._serverUserCache.getOrWait([userId], "write-only"),
-        getOrWaitOAuthToken: async () => await this._serverUserOAuthConnectionAccessTokensCache.getOrWait([userId, providerId, scope || ""] as const, "write-only"),
+        getUser: async () => Result.orThrow(await this._serverUserCache.getOrWait([userId], "write-only")),
+        getOrWaitOAuthToken: async () => Result.orThrow(await this._serverUserOAuthConnectionAccessTokensCache.getOrWait([userId, providerId, scope || ""] as const, "write-only")),
         useOAuthToken: () => useAsyncCache(this._serverUserOAuthConnectionAccessTokensCache, [userId, providerId, scope || ""] as const, "user.useConnectedAccount()"),
         providerId,
         scope,
@@ -1749,7 +1757,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     async function getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>;
     async function getConnectedAccount(id: ProviderType, options?: { or?: 'redirect', scopes?: string[] }): Promise<OAuthConnection | null> {
       const scopeString = options?.scopes?.join(" ");
-      return await app._serverUserOAuthConnectionCache.getOrWait([crud.id, id, scopeString || "", options?.or === 'redirect'], "write-only");
+      return Result.orThrow(await app._serverUserOAuthConnectionCache.getOrWait([crud.id, id, scopeString || "", options?.or === 'redirect'], "write-only"));
     }
 
     function useConnectedAccount(id: ProviderType, options?: { scopes?: string[] }): OAuthConnection | null;
@@ -1820,7 +1828,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         }, [teams, teamId]);
       },
       async listTeams() {
-        const teams = await app._serverTeamsCache.getOrWait([crud.id], "write-only");
+        const teams = Result.orThrow(await app._serverTeamsCache.getOrWait([crud.id], "write-only"));
         return teams.map((t) => app._serverTeamFromCrud(t));
       },
       useTeams() {
@@ -1841,7 +1849,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       async listPermissions(scope: Team, options?: { recursive?: boolean }): Promise<AdminTeamPermission[]> {
         const recursive = options?.recursive ?? true;
-        const permissions = await app._serverTeamUserPermissionsCache.getOrWait([scope.id, crud.id, recursive], "write-only");
+        const permissions = Result.orThrow(await app._serverTeamUserPermissionsCache.getOrWait([scope.id, crud.id, recursive], "write-only"));
         return permissions.map((crud) => app._serverPermissionFromCrud(crud));
       },
       usePermissions(scope: Team, options?: { recursive?: boolean }): AdminTeamPermission[] {
@@ -1877,7 +1885,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return result;
       },
       async getTeamProfile(team: Team) {
-        const result = await app._serverUserTeamProfileCache.getOrWait([team.id, crud.id], "write-only");
+        const result = Result.orThrow(await app._serverUserTeamProfileCache.getOrWait([team.id, crud.id], "write-only"));
         return app._serverEditableTeamProfileFromCrud(result);
       },
       useTeamProfile(team: Team) {
@@ -1885,7 +1893,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return useMemo(() => app._serverEditableTeamProfileFromCrud(result), [result]);
       },
       async listContactChannels() {
-        const result = await app._serverContactChannelsCache.getOrWait([crud.id], "write-only");
+        const result = Result.orThrow(await app._serverContactChannelsCache.getOrWait([crud.id], "write-only"));
         return result.map((data) => app._serverContactChannelFromCrud(crud.id, data));
       },
       useContactChannels() {
@@ -1941,7 +1949,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._serverTeamsCache.refresh([undefined]);
       },
       async listUsers() {
-        const result = await app._serverTeamMemberProfilesCache.getOrWait([crud.id], "write-only");
+        const result = Result.orThrow(await app._serverTeamMemberProfilesCache.getOrWait([crud.id], "write-only"));
         return result.map(u => app._serverTeamUserFromCrud(u));
       },
       useUsers() {
@@ -1994,7 +2002,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       // TODO this code is duplicated from the client app; fix that
       this._ensurePersistentTokenStore(options?.tokenStore);
       const session = await this._getSession(options?.tokenStore);
-      const crud = await this._currentServerUserCache.getOrWait([session], "write-only");
+      const crud = Result.orThrow(await this._currentServerUserCache.getOrWait([session], "write-only"));
 
       if (crud === null) {
         switch (options?.or) {
@@ -2021,7 +2029,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async getServerUserById(userId: string): Promise<ServerUser | null> {
-    const crud = await this._serverUserCache.getOrWait([userId], "write-only");
+    const crud = Result.orThrow(await this._serverUserCache.getOrWait([userId], "write-only"));
     return crud && this._serverUserFromCrud(crud);
   }
 
@@ -2071,7 +2079,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { nextCursor: string | null }> {
-    const crud = await this._serverUsersCache.getOrWait([options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.query], "write-only");
+    const crud = Result.orThrow(await this._serverUsersCache.getOrWait([options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.query], "write-only"));
     const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
     result.nextCursor = crud.pagination?.next_cursor ?? null;
     return result as any;
@@ -2099,7 +2107,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async listTeams(): Promise<ServerTeam[]> {
-    const teams = await this._serverTeamsCache.getOrWait([undefined], "write-only");
+    const teams = Result.orThrow(await this._serverTeamsCache.getOrWait([undefined], "write-only"));
     return teams.map((t) => this._serverTeamFromCrud(t));
   }
 
@@ -2276,7 +2284,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 
   override async getProject(): Promise<AdminProject> {
     return this._adminProjectFromCrud(
-      await this._adminProjectCache.getOrWait([], "write-only"),
+      Result.orThrow(await this._adminProjectCache.getOrWait([], "write-only")),
       () => this._refreshProject()
     );
   }
@@ -2332,7 +2340,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 
   async listApiKeys(): Promise<ApiKey[]> {
-    const crud = await this._apiKeysCache.getOrWait([], "write-only");
+    const crud = Result.orThrow(await this._apiKeysCache.getOrWait([], "write-only"));
     return crud.map((j) => this._createApiKeyFromCrud(j));
   }
 
@@ -2357,7 +2365,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 
   async listEmailTemplates(): Promise<AdminEmailTemplate[]> {
-    const crud = await this._adminEmailTemplatesCache.getOrWait([], "write-only");
+    const crud = Result.orThrow(await this._adminEmailTemplatesCache.getOrWait([], "write-only"));
     return crud.map((j) => this._adminEmailTemplateFromCrud(j));
   }
 
@@ -2388,7 +2396,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   }
 
   async listTeamPermissionDefinitions(): Promise<AdminTeamPermissionDefinition[]> {
-    const crud = await this._adminTeamPermissionDefinitionsCache.getOrWait([], "write-only");
+    const crud = Result.orThrow(await this._adminTeamPermissionDefinitionsCache.getOrWait([], "write-only"));
     return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
   }
 
