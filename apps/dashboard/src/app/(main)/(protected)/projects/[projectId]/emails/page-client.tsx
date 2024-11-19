@@ -8,6 +8,7 @@ import { AdminEmailConfig, AdminProject } from "@stackframe/stack";
 import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
 import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
+import { strictEmailSchema, emailSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { ActionCell, ActionDialog, Button, Card, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
@@ -154,7 +155,7 @@ const emailServerSchema = yup.object({
   port: definedWhenShared(yup.number(), "Port is required"),
   username: definedWhenShared(yup.string(), "Username is required"),
   password: definedWhenShared(yup.string(), "Password is required"),
-  senderEmail: definedWhenShared(yup.string().email("Sender email must be a valid email"), "Sender email is required"),
+  senderEmail: definedWhenShared(strictEmailSchema("Sender email must be a valid email"), "Sender email is required"),
   senderName: definedWhenShared(yup.string(), "Email sender name is required"),
 });
 

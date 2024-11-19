@@ -3,7 +3,7 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
 import { useAsyncCallback } from '@stackframe/stack-shared/dist/hooks/use-async-callback';
-import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
+import { emailSchema, strictEmailSchema, yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
@@ -190,8 +190,7 @@ function EmailsSection() {
   }, [contactChannels, addedEmail]);
 
   const emailSchema = yupObject({
-    email: yupString()
-      .email(t('Please enter a valid email address'))
+    email: strictEmailSchema(t('Please enter a valid email address'))
       .notOneOf(contactChannels.map(x => x.value), t('Email already exists'))
       .defined()
       .nonEmpty(t('Email is required')),
@@ -911,7 +910,7 @@ function useMemberInvitationSection(props: { team: Team }) {
   const { t } = useTranslation();
 
   const invitationSchema = yupObject({
-    email: yupString().email().defined().nonEmpty(t('Please enter an email address')),
+    email: emailSchema.defined().nonEmpty(t('Please enter an email address')),
   });
 
   const user = useUser({ or: 'redirect' });

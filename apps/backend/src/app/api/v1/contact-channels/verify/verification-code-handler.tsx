@@ -3,7 +3,7 @@ import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { emailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const contactChannelVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -23,7 +23,7 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
     user_id: yupString().defined(),
   }).defined(),
   method: yupObject({
-    email: yupString().email().defined(),
+    email: emailSchema.defined(),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).defined(),

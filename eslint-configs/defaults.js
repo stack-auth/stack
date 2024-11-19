@@ -83,6 +83,12 @@ module.exports = {
       },
       {
         selector:
+          "CallExpression > MemberExpression:has(Identifier[name='yupString']) > Identifier[name='email']",
+        message:
+          `Use emailSchema instead of yupString().email().`,
+      },
+      {
+        selector:
           "MemberExpression:has(Identifier[name='yup']):has(Identifier[name='string'], Identifier[name='number'], Identifier[name='boolean'], Identifier[name='array'], Identifier[name='object'], Identifier[name='tuple'], Identifier[name='date'], Identifier[name='mixed'])",
         message: "Use yupXyz() from schema-fields.tsx instead of yup.xyz().",
       },

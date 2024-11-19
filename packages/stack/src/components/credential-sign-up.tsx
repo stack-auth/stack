@@ -2,7 +2,7 @@
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { strictEmailSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { runAsynchronously, runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, PasswordInput } from "@stackframe/stack-ui";
 import { useState } from "react";
@@ -16,7 +16,7 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
   const { t } = useTranslation();
 
   const schema = yupObject({
-    email: yupString().email(t('Please enter a valid email')).defined().nonEmpty(t('Please enter your email')),
+    email: strictEmailSchema(t('Please enter a valid email')).defined().nonEmpty(t('Please enter your email')),
     password: yupString().defined().nonEmpty(t('Please enter your password')).test({
       name: 'is-valid-password',
       test: (value, ctx) => {

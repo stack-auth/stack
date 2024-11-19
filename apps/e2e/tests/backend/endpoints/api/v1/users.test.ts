@@ -890,6 +890,47 @@ describe("with server access", () => {
     `);
   });
 
+  it("should be able to create a user with an email that doesn't match the strict email schema", async ({ expect }) => {
+    // This test is to ensure that we don't break existing users who have an email that doesn't match the strict email
+    // schema.
+    // The frontend no longer allows those emails, but some users may still have them in their accounts and we should
+    // continue to support them.
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: "invalid_email@gmai"
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_with_email": false,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+          "oauth_providers": [],
+          "otp_auth_enabled": false,
+          "passkey_auth_enabled": false,
+          "primary_email": "invalid_email@gmai",
+          "primary_email_auth_enabled": false,
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
   it("should be able to create a user with a password and sign in with it", async ({ expect }) => {
     const password = generateSecureRandomString();
     const response = await niceBackendFetch("/api/v1/users", {
