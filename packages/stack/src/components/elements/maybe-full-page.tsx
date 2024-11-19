@@ -29,6 +29,7 @@ export function MaybeFullPage({
     return (
       <>
         <div
+          suppressHydrationWarning
           id={id}
           style={{
             minHeight: '100vh',
