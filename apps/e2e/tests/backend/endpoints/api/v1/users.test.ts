@@ -983,6 +983,104 @@ describe("with server access", () => {
     `);
   });
 
+  it("should be able to create a user with a password hash and sign in with it", async ({ expect }) => {
+    const password = "hello-world";
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+        password_hash: "$2a$13$TVyY/gpw9Db/w1fBeJkCgeNg2Rae2JfNqrPnSAKtj.ufAO5cVF13.",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "display_name": null,
+          "has_password": true,
+          "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+          "oauth_providers": [],
+          "otp_auth_enabled": false,
+          "passkey_auth_enabled": false,
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_auth_enabled": true,
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const signInResponse = await Auth.Password.signInWithEmail({ password });
+    expect(signInResponse.signInResponse).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "access_token": <stripped field 'access_token'>,
+          "refresh_token": <stripped field 'refresh_token'>,
+          "user_id": "<stripped UUID>",
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should not be able to create a user when both password and password hash are provided", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+        password: "hello-world",
+        password_hash: "$2a$13$TVyY/gpw9Db/w1fBeJkCgeNg2Rae2JfNqrPnSAKtj.ufAO5cVF13.",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": "Cannot set both password and password_hash at the same time.",
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should not be able to create a user with a password hash that has too many rounds", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+        password_hash: "$2a$17$VIhIOofSMqGdGlL4wzE//e.77dAQGqNtF/1dT7bqCrVtQuInWy2qi",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "SCHEMA_ERROR",
+          "details": { "message": "Request validation failed on POST /api/v1/users:\\n  - Invalid password hash" },
+          "error": "Request validation failed on POST /api/v1/users:\\n  - Invalid password hash",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "SCHEMA_ERROR",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
   it("should not be able to create a user without primary email but with email auth enabled", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1/users", {
       accessType: "server",

@@ -3,7 +3,7 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { passwordSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Label, PasswordInput, Typography, cn } from "@stackframe/stack-ui";
@@ -24,7 +24,7 @@ export default function PasswordResetForm(props: {
   const { t } = useTranslation();
 
   const schema = yupObject({
-    password: yupString().defined().nonEmpty(t("Please enter your password")).test({
+    password: passwordSchema.defined(t("Please enter your password")).nonEmpty(t("Please enter your password")).test({
       name: 'is-valid-password',
       test: (value, ctx) => {
         const error = getPasswordError(value);

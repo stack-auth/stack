@@ -14,6 +14,7 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   primary_email_auth_enabled: fieldSchema.primaryEmailAuthEnabledSchema.optional(),
   passkey_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.optional(),
   password: fieldSchema.userPasswordMutationSchema.optional(),
+  password_hash: fieldSchema.userPasswordHashMutationSchema.optional(),
   otp_auth_enabled: fieldSchema.userOtpAuthEnabledMutationSchema.optional(),
   totp_secret_base64: fieldSchema.userTotpSecretMutationSchema.optional(),
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().optional(),

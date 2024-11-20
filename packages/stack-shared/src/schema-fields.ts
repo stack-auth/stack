@@ -2,6 +2,7 @@ import * as yup from "yup";
 import { KnownErrors } from ".";
 import { isBase64 } from "./utils/bytes";
 import { StackAssertionError } from "./utils/errors";
+import { isPasswordHashValid as isValidPasswordHash } from "./utils/hashes";
 import { allProviders } from "./utils/oauth";
 import { deepPlainClone, omit } from "./utils/objects";
 import { isUuid } from "./utils/uuids";
@@ -145,10 +146,7 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
   return object.default(undefined) as any as typeof object;
 }
 
-/**
- * Note that the .defined() on unions is implicit.
- */
-export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.ISchema<yup.InferType<T[number]>> {
+export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.MixedSchema<yup.InferType<T[number]>> {
   if (args.length === 0) throw new Error('yupUnion must have at least one schema');
 
   const [first] = args;
@@ -158,7 +156,7 @@ export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.ISchema<
     if (desc.type !== firstDesc.type) throw new StackAssertionError(`yupUnion must have schemas of the same type (got: ${firstDesc.type} and ${desc.type})`, { first, schema, firstDesc, desc });
   }
 
-  return yupMixed().defined().test('is-one-of', 'Invalid value', async (value, context) => {
+  return yupMixed().test('is-one-of', 'Invalid value', async (value, context) => {
     const errors = [];
     for (const schema of args) {
       try {
@@ -216,6 +214,7 @@ export const base64Schema = yupString().test("is-base64", "Invalid base64 format
   if (value == null) return true;
   return isBase64(value);
 });
+export const passwordSchema = yupString().max(70);
 
 /**
  * A stricter email schema that does some additional checks for UX input.
@@ -263,7 +262,7 @@ export const emailHostSchema = yupString().meta({ openapiField: { description: '
 export const emailPortSchema = yupNumber().meta({ openapiField: { description: 'Email port. Needs to be specified when using type="standard"', exampleValue: 587 } });
 export const emailUsernameSchema = yupString().meta({ openapiField: { description: 'Email username. Needs to be specified when using type="standard"', exampleValue: 'smtp-email' } });
 export const emailSenderEmailSchema = emailSchema.meta({ openapiField: { description: 'Email sender email. Needs to be specified when using type="standard"', exampleValue: 'example@your-domain.com' } });
-export const emailPasswordSchema = yupString().meta({ openapiField: { description: 'Email password. Needs to be specified when using type="standard"', exampleValue: 'your-email-password' } });
+export const emailPasswordSchema = passwordSchema.meta({ openapiField: { description: 'Email password. Needs to be specified when using type="standard"', exampleValue: 'your-email-password' } });
 // Project domain config
 export const projectTrustedDomainSchema = yupString().test('is-https', 'Trusted domain must start with https://', (value) => value?.startsWith('https://')).meta({ openapiField: { description: 'Your domain URL. Make sure you own and trust this domain. Needs to start with https://', exampleValue: 'https://example.com' } });
 export const handlerPathSchema = yupString().test('is-handler-path', 'Handler path must start with /', (value) => value?.startsWith('/')).meta({ openapiField: { description: 'Handler path. If you did not setup a custom handler path, it should be "/handler" by default. It needs to start with /', exampleValue: '/handler' } });
@@ -305,7 +304,11 @@ export const userPasskeyAuthEnabledSchema = yupBoolean().meta({ openapiField: { 
 export const userOtpAuthEnabledSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled. ', exampleValue: true } });
 export const userOtpAuthEnabledMutationSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled. Note that only accounts with verified emails can sign-in with OTP.', exampleValue: true } });
 export const userHasPasswordSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has a password set. If the user does not have a password set, they will not be able to sign in with email/password.', exampleValue: true } });
-export const userPasswordMutationSchema = yupString().nullable().meta({ openapiField: { description: 'Sets the user\'s password. Doing so revokes all current sessions.', exampleValue: 'my-new-password' } });
+export const userPasswordMutationSchema = passwordSchema.nullable().meta({ openapiField: { description: 'Sets the user\'s password. Doing so revokes all current sessions.', exampleValue: 'my-new-password' } }).max(70);
+export const userPasswordHashMutationSchema = yupString()
+  .nonEmpty()
+  .test('is-valid-password-hash', 'Invalid password hash', async (value, ctx) => value == null ? true : await isValidPasswordHash(value))
+  .meta({ openapiField: { description: 'If `password` is not given, sets the user\'s password hash to the given string in Modular Crypt Format (ex.: `$2a$10$VIhIOofSMqGdGlL4wzE//e.77dAQGqNtF/1dT7bqCrVtQuInWy2qi`). Doing so revokes all current sessions.' } });  // we don't set an exampleValue here because it's exclusive with the password field and having both would break the generated example
 export const userTotpSecretMutationSchema = base64Schema.nullable().meta({ openapiField: { description: 'Enables 2FA and sets a TOTP secret for the user. Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } });
 
 // Auth

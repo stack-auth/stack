@@ -25,7 +25,7 @@ export const POST = createSmartRouteHandler({
         error: yupString().defined(),
         severe: yupBoolean().defined(),
       }),
-    ),
+    ).defined(),
   }),
   handler: async (req) => {
     const err = (severe: boolean, msg: string) => ({

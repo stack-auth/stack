@@ -1,7 +1,7 @@
 'use client';
 
 import { yupResolver } from "@hookform/resolvers/yup";
-import { strictEmailSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { passwordSchema, strictEmailSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, PasswordInput, StyledLink } from "@stackframe/stack-ui";
 import { useState } from "react";
@@ -16,7 +16,7 @@ export function CredentialSignIn() {
 
   const schema = yupObject({
     email: strictEmailSchema(t('Please enter a valid email')).defined().nonEmpty(t('Please enter your email')),
-    password: yupString().defined().nonEmpty(t('Please enter your password'))
+    password: passwordSchema.defined().nonEmpty(t('Please enter your password'))
   });
 
   const { register, handleSubmit, setError, formState: { errors } } = useForm({

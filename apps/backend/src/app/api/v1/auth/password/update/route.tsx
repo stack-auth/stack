@@ -2,9 +2,9 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { adaptSchema, clientOrHigherAuthTypeSchema, passwordSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/hashes";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -19,8 +19,8 @@ export const POST = createSmartRouteHandler({
       user: adaptSchema.defined(),
     }).defined(),
     body: yupObject({
-      old_password: yupString().defined(),
-      new_password: yupString().defined(),
+      old_password: passwordSchema.defined(),
+      new_password: passwordSchema.defined(),
     }).defined(),
     headers: yupObject({
       "x-stack-refresh-token": yupTuple([yupString().optional()]).optional(),

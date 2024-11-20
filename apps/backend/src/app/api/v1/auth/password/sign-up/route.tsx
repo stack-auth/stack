@@ -4,7 +4,7 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, passwordSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
 import { usersCrudHandlers } from "../../../users/crud";
@@ -23,7 +23,7 @@ export const POST = createSmartRouteHandler({
     }).defined(),
     body: yupObject({
       email: signInEmailSchema.defined(),
-      password: yupString().defined(),
+      password: passwordSchema.defined(),
       verification_callback_url: emailVerificationCallbackUrlSchema.defined(),
     }).defined(),
   }),

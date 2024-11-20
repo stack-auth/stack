@@ -1,7 +1,7 @@
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { ServerUser } from "@stackframe/stack";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { emailSchema, jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { emailSchema, jsonStringOrEmptySchema, passwordSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Typography, useToast } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { FormDialog } from "./form-dialog";
@@ -48,7 +48,7 @@ export function UserDialog(props: {
     clientReadOnlyMetadata: jsonStringOrEmptySchema.default("null"),
     serverMetadata: jsonStringOrEmptySchema.default("null"),
     primaryEmailVerified: yup.boolean().optional(),
-    password: yup.string().optional(),
+    password: passwordSchema.optional(),
     otpAuthEnabled: yup.boolean().test({
       name: 'otp-verified',
       message: "Primary email must be verified if OTP/magic link sign-in is enabled",

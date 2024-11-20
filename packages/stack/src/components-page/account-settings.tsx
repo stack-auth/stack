@@ -3,7 +3,7 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
 import { useAsyncCallback } from '@stackframe/stack-shared/dist/hooks/use-async-callback';
-import { emailSchema, strictEmailSchema, yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
+import { emailSchema, passwordSchema as schemaFieldsPasswordSchema, strictEmailSchema, yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
@@ -523,8 +523,8 @@ function usePasswordSection() {
   const [loading, setLoading] = useState(false);
 
   const passwordSchema = yupObject({
-    oldPassword: user.hasPassword ? yupString().defined().nonEmpty(t('Please enter your old password')) : yupString(),
-    newPassword: yupString().defined().nonEmpty(t('Please enter your password')).test({
+    oldPassword: user.hasPassword ? schemaFieldsPasswordSchema.defined().nonEmpty(t('Please enter your old password')) : yupString(),
+    newPassword: schemaFieldsPasswordSchema.defined().nonEmpty(t('Please enter your password')).test({
       name: 'is-valid-password',
       test: (value, ctx) => {
         const error = getPasswordError(value);
