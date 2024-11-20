@@ -12,7 +12,7 @@ import { userIdOrMeSchema, yupBoolean, yupNumber, yupObject, yupString } from "@
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { hashPassword } from "@stackframe/stack-shared/dist/utils/hashes";
+import { hashPassword, isPasswordHashValid } from "@stackframe/stack-shared/dist/utils/hashes";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
@@ -117,8 +117,13 @@ async function getPasswordHashFromData(data: {
       return null;
     }
     return await hashPassword(data.password);
-  } else {
+  } else if (data.password_hash !== undefined) {
+    if (!await isPasswordHashValid(data.password_hash)) {
+      throw new StatusError(400, "Invalid password hash. Make sure it's a supported algorithm in Modular Crypt Format.");
+    }
     return data.password_hash;
+  } else {
+    return undefined;
   }
 }
 

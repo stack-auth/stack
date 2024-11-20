@@ -2,7 +2,6 @@ import * as yup from "yup";
 import { KnownErrors } from ".";
 import { isBase64 } from "./utils/bytes";
 import { StackAssertionError } from "./utils/errors";
-import { isPasswordHashValid as isValidPasswordHash } from "./utils/hashes";
 import { allProviders } from "./utils/oauth";
 import { deepPlainClone, omit } from "./utils/objects";
 import { isUuid } from "./utils/uuids";
@@ -307,7 +306,6 @@ export const userHasPasswordSchema = yupBoolean().meta({ openapiField: { hidden:
 export const userPasswordMutationSchema = passwordSchema.nullable().meta({ openapiField: { description: 'Sets the user\'s password. Doing so revokes all current sessions.', exampleValue: 'my-new-password' } }).max(70);
 export const userPasswordHashMutationSchema = yupString()
   .nonEmpty()
-  .test('is-valid-password-hash', 'Invalid password hash', async (value, ctx) => value == null ? true : await isValidPasswordHash(value))
   .meta({ openapiField: { description: 'If `password` is not given, sets the user\'s password hash to the given string in Modular Crypt Format (ex.: `$2a$10$VIhIOofSMqGdGlL4wzE//e.77dAQGqNtF/1dT7bqCrVtQuInWy2qi`). Doing so revokes all current sessions.' } });  // we don't set an exampleValue here because it's exclusive with the password field and having both would break the generated example
 export const userTotpSecretMutationSchema = base64Schema.nullable().meta({ openapiField: { description: 'Enables 2FA and sets a TOTP secret for the user. Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } });
 

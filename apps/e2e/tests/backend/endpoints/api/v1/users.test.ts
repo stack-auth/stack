@@ -1068,15 +1068,8 @@ describe("with server access", () => {
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 400,
-        "body": {
-          "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on POST /api/v1/users:\\n  - Invalid password hash" },
-          "error": "Request validation failed on POST /api/v1/users:\\n  - Invalid password hash",
-        },
-        "headers": Headers {
-          "x-stack-known-error": "SCHEMA_ERROR",
-          <some fields may have been hidden>,
-        },
+        "body": "Invalid password hash. Make sure it's a supported algorithm in Modular Crypt Format.",
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
