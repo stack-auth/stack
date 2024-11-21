@@ -11,6 +11,12 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   release: `${packageJson.name}@${packageJson.version}`,
 
+  ignoreErrors: [
+		// React throws these errors when used with some browser extensions (eg. Google Translate)
+		"NotFoundError: Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node.",
+		"NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.",
+	],
+
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,
 
@@ -35,7 +41,7 @@ Sentry.init({
         errorProps: {
           ...error,
         },
-        nicifiedError: nicify(error),
+        nicifiedError: nicified,
       };
     }
     return event;
