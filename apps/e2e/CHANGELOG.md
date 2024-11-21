@@ -1,5 +1,13 @@
 # @stackframe/e2e-tests
 
+## 2.6.27
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.27
+
 ## 2.6.26
 
 ### Patch Changes
