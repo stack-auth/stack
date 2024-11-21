@@ -4,9 +4,11 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
+import packageJson from "./package.json";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  release: `${packageJson.name}@${packageJson.version}`,
 
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,
