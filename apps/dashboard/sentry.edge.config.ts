@@ -30,7 +30,7 @@ Sentry.init({
     const error = hint.originalException;
     let nicified;
     try {
-      nicified = nicify(error);
+      nicified = nicify(error, { maxDepth: 8 });
     } catch (e) {
       nicified = `Error occurred during nicification: ${e}`;
     }
