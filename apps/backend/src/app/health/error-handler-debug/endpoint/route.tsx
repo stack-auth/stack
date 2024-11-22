@@ -11,6 +11,6 @@ export const GET = createSmartRouteHandler({
     bodyType: yupString().oneOf(["success"]).defined(),
   }),
   handler: async (req) => {
-    throw new StackAssertionError(`Server debug error thrown successfully! ${Math.random()}`);
+    throw new StackAssertionError(`Server debug error thrown successfully!`);
   },
 });

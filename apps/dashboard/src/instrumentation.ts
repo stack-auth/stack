@@ -1,16 +1,9 @@
-import { PrismaInstrumentation } from "@prisma/instrumentation";
 import * as Sentry from "@sentry/nextjs";
 import { getEnvVariable, getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
-import { registerOTel } from '@vercel/otel';
 import "./polyfills";
 
 export function register() {
-  registerOTel({
-    serviceName: 'stack-backend',
-    instrumentations: [new PrismaInstrumentation()],
-  });
-
   if (getEnvVariable("NEXT_RUNTIME") === "nodejs" || getEnvVariable("NEXT_RUNTIME") === "edge") {
     Sentry.init({
       dsn: getEnvVariable("NEXT_PUBLIC_SENTRY_DSN"),
@@ -25,7 +18,7 @@ export function register() {
       tracesSampleRate: 1,
 
       // Setting this option to true will print useful information to the console while you're setting up Sentry.
-      debug: true,
+      debug: false,
 
       enabled: getNodeEnvironment() !== "development" && !getEnvVariable("CI"),
 
