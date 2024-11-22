@@ -29,7 +29,7 @@ export function getEnvVariable(name: string, defaultValue?: string | undefined):
 
 export function getNextRuntime() {
   // This variable is compiled into the client bundle, so we can't use getEnvVariable here.
-  return process.env.NEXT_RUNTIME;
+  return process.env.NEXT_RUNTIME || throwErr("Missing environment variable: NEXT_RUNTIME");
 }
 
 export function getNodeEnvironment() {
