@@ -1,6 +1,6 @@
 import { PrismaInstrumentation } from "@prisma/instrumentation";
 import * as Sentry from "@sentry/nextjs";
-import { getEnvVariable, getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { getEnvVariable, getNextRuntime, getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import { registerOTel } from '@vercel/otel';
 import "./polyfills";
@@ -11,7 +11,7 @@ export function register() {
     instrumentations: [new PrismaInstrumentation()],
   });
 
-  if (getEnvVariable("NEXT_RUNTIME") === "nodejs" || getEnvVariable("NEXT_RUNTIME") === "edge") {
+  if (getNextRuntime() === "nodejs" || getNextRuntime() === "edge") {
     Sentry.init({
       dsn: getEnvVariable("NEXT_PUBLIC_SENTRY_DSN", ""),
 

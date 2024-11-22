@@ -4,7 +4,7 @@ import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import "./polyfills";
 
 export function register() {
-  if (getEnvVariable("NEXT_RUNTIME") === "nodejs" || getEnvVariable("NEXT_RUNTIME") === "edge") {
+  if (getNextRuntime() === "nodejs" || getNextRuntime() === "edge") {
     Sentry.init({
       dsn: getEnvVariable("NEXT_PUBLIC_SENTRY_DSN", ""),
 
