@@ -1,8 +1,8 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import rehypeKatex from "rehype-katex";
-import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import remarkHeadingId from "remark-heading-id";
+import remarkMath from "remark-math";
 
 import createMDX from "@next/mdx";
 
@@ -88,6 +88,9 @@ const nextConfig = {
   },
   skipTrailingSlashRedirect: true, 
 
+  experimental: {
+    instrumentationHook: true,
+  },
 
   async headers() {
     return [
