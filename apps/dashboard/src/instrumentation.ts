@@ -6,7 +6,7 @@ import "./polyfills";
 export function register() {
   if (getEnvVariable("NEXT_RUNTIME") === "nodejs" || getEnvVariable("NEXT_RUNTIME") === "edge") {
     Sentry.init({
-      dsn: getEnvVariable("NEXT_PUBLIC_SENTRY_DSN"),
+      dsn: getEnvVariable("NEXT_PUBLIC_SENTRY_DSN", ""),
 
       ignoreErrors: [
         // React throws these errors when used with some browser extensions (eg. Google Translate)
