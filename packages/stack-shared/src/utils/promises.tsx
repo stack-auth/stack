@@ -128,7 +128,7 @@ export function runAsynchronouslyWithAlert(...args: Parameters<typeof runAsynchr
     {
       ...args[1],
       onError: error => {
-        alert(`An unhandled error occurred. Please ${process.env.NODE_ENV === "development" ? `check the browser console for the full error. ${error}` : "report this to the developer."}\n\n${error}`);
+        alert(`An unhandled error occurred. Please ${process.env.NODE_ENV === "development" ? `check the browser console for the full error.` : "report this to the developer."}\n\n${error}`);
         args[1]?.onError?.(error);
       },
     },
@@ -148,12 +148,12 @@ export function runAsynchronously(
   }
   const duringError = new Error();
   promiseOrFunc?.catch(error => {
+    options.onError?.(error);
     const newError = new StackAssertionError(
       "Uncaught error in asynchronous function: " + error.toString(),
       { cause: error },
     );
     concatStacktraces(newError, duringError);
-    options.onError?.(newError);
     if (!options.noErrorLogging) {
       captureError("runAsynchronously", newError);
     }

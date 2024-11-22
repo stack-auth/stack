@@ -1,6 +1,6 @@
 import { KnownError, StackClientInterface } from "@stackframe/stack-shared";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
-import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 import { Result } from "@stackframe/stack-shared/dist/utils/results";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
@@ -66,7 +66,7 @@ function consumeOAuthCallbackQueryParams() {
   const originalUrl = new URL(window.location.href);
   for (const param of requiredParams) {
     if (!originalUrl.searchParams.has(param)) {
-      captureError("consumeOAuthCallbackQueryParams", new Error(`Missing required query parameter on OAuth callback: ${param}`));
+      console.warn(new Error(`Missing required query parameter on OAuth callback: ${param}. Maybe you opened or reloaded the oauth-callback page from your history?`));
       return null;
     }
   }

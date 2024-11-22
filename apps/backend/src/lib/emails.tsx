@@ -1,5 +1,6 @@
 import { getProject } from '@/lib/projects';
 import { prismaClient } from '@/prisma-client';
+import { trace } from '@opentelemetry/api';
 import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
 import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
 import { ProjectsCrud } from '@stackframe/stack-shared/dist/interface/crud/projects';
@@ -9,8 +10,6 @@ import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors'
 import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
 import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
 import nodemailer from 'nodemailer';
-import { trace } from '@opentelemetry/api';
-import { wait } from '@stackframe/stack-shared/dist/utils/promises';
 
 export async function getEmailTemplate(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
   const project = await getProject(projectId);
