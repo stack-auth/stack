@@ -27,7 +27,7 @@ export function register() {
       // Setting this option to true will print useful information to the console while you're setting up Sentry.
       debug: false,
 
-      enabled: getNodeEnvironment() !== "development" && !getEnvVariable("CI"),
+      enabled: getNodeEnvironment() !== "development" && !getEnvVariable("CI", ""),
 
       // Add exception metadata to the event
       beforeSend(event, hint) {

@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
-import { getEnvVariable, getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { getEnvVariable, getNextRuntime, getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import "./polyfills";
 
@@ -20,7 +20,7 @@ export function register() {
       // Setting this option to true will print useful information to the console while you're setting up Sentry.
       debug: false,
 
-      enabled: getNodeEnvironment() !== "development" && !getEnvVariable("CI"),
+      enabled: getNodeEnvironment() !== "development" && !getEnvVariable("CI", ""),
 
       // Add exception metadata to the event
       beforeSend(event, hint) {
