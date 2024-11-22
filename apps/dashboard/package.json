@@ -23,7 +23,7 @@
     "@next/mdx": "^14",
     "@node-oauth/oauth2-server": "^5.1.0",
     "@radix-ui/react-icons": "^1.3.1",
-    "@sentry/nextjs": "^7.105.0",
+    "@sentry/nextjs": "^8.40.0",
     "@stackframe/stack": "workspace:*",
     "@stackframe/stack-emails": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",

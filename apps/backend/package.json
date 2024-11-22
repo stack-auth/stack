@@ -43,7 +43,7 @@
     "@opentelemetry/semantic-conventions": "^1.27.0",
     "@prisma/client": "^5.9.1",
     "@prisma/instrumentation": "^5.19.1",
-    "@sentry/nextjs": "^7.105.0",
+    "@sentry/nextjs": "^8.40.0",
     "@simplewebauthn/server": "^11.0.0",
     "@stackframe/stack-emails": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
