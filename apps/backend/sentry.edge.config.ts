@@ -5,10 +5,8 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
-import packageJson from "./package.json";
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  release: `${packageJson.name}@${packageJson.version}`,
 
   ignoreErrors: [
 		// React throws these errors when used with some browser extensions (eg. Google Translate)
