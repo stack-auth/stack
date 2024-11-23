@@ -70,6 +70,23 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
         value: data.value,
       });
 
+      // if usedForAuth is set to true, make sure no other account uses this channel for auth
+      if (data.used_for_auth) {
+        const existingWithSameChannel = await tx.contactChannel.findUnique({
+          where: {
+            projectId_type_value_usedForAuth: {
+              projectId: auth.project.id,
+              type: crudContactChannelTypeToPrisma(data.type),
+              value: data.value,
+              usedForAuth: 'TRUE',
+            },
+          },
+        });
+        if (existingWithSameChannel) {
+          throw new KnownErrors.ContactChannelAlreadyUsedForAuthBySomeoneElse(data.type);
+        }
+      }
+
       const createdContactChannel = await tx.contactChannel.create({
         data: {
           projectId: auth.project.id,
