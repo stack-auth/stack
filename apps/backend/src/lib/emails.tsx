@@ -88,16 +88,27 @@ export async function sendEmail({
         },
       });
 
-      try {
-        return await transporter.sendMail({
-          from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
-          to,
-          subject,
-          text,
-          html
-        });
-      } catch (error) {
-        throw new StackAssertionError('Failed to send email', { error, host: emailConfig.host, from: emailConfig.senderEmail, to, subject });
+      for (let retries = 0; retries < 2; retries++) {
+        try {
+          return await transporter.sendMail({
+            from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
+            to,
+            subject,
+            text,
+            html
+          });
+        } catch (error) {
+          // TODO if using custom email config, we should notify the developer instead of throwing an error
+
+          const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject };
+          if (error instanceof Error && error.message === "Client network socket disconnected before secure TLS connection was established") {
+            // this can happen occasionally (especially with certain unreliable email providers)
+            // so let's retry one more time
+            console.warn("Failed to send email, but error is possibly transient so retrying.", extraData, error);
+            continue;
+          }
+          throw new StackAssertionError('Failed to send email', extraData, { cause: error });
+        }
       }
     } finally {
       span.end();
