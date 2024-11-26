@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/oauth-mock-server",
-  "version": "2.6.28",
+  "version": "2.6.29",
   "private": true,
   "main": "index.js",
   "scripts": {
