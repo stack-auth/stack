@@ -2,7 +2,7 @@
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { strictEmailSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, InputOTP, InputOTPGroup, InputOTPSlot, Label, Typography } from "@stackframe/stack-ui";
 import { useEffect, useState } from "react";
@@ -79,7 +79,7 @@ export function MagicLinkSignIn() {
   const [nonce, setNonce] = useState<string | null>(null);
 
   const schema = yupObject({
-    email: yupString().email(t('Please enter a valid email')).required(t('Please enter your email'))
+    email: strictEmailSchema(t('Please enter a valid email')).defined().nonEmpty(t('Please enter your email'))
   });
 
   const { register, handleSubmit, setError, formState: { errors } } = useForm({

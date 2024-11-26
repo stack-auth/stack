@@ -12,8 +12,8 @@ import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>createCrudHandlers(connectedAccountAccessTokenCrud, {
   paramsSchema: yupObject({
-    provider_id: yupString().required(),
-    user_id: userIdOrMeSchema.required(),
+    provider_id: yupString().defined(),
+    user_id: userIdOrMeSchema.defined(),
   }),
   async onCreate({ auth, data, params }) {
     if (auth.type === 'client' && auth.user?.id !== params.user_id) {

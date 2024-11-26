@@ -1,6 +1,6 @@
-import '../polyfills';
-import React from 'react';
 import type { Metadata } from 'next';
+import React from 'react';
+import '../polyfills';
 
 export const metadata: Metadata = {
   title: 'Stack Auth API',
@@ -13,8 +13,8 @@ export default function RootLayout({
   children: React.ReactNode,
 }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         {children}
       </body>
     </html>

@@ -21,17 +21,17 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
   },
   type: VerificationCodeType.PASSKEY_AUTHENTICATION_CHALLENGE,
   requestBody: yupObject({
-    authentication_response: yupMixed<AuthenticationResponseJSON>().required(),
-    code: yupString().required(),
+    authentication_response: yupMixed<AuthenticationResponseJSON>().defined(),
+    code: yupString().defined(),
   }),
   data: yupObject({
-    challenge: yupString().required()
+    challenge: yupString().defined()
   }),
   method: yupObject({}),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
-    body: signInResponseSchema.required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: signInResponseSchema.defined(),
   }),
   async send() {
     throw new StackAssertionError("send() called on a Passkey sign in verification code handler");

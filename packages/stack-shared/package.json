@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-shared",
-  "version": "2.6.23",
+  "version": "2.6.29",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
@@ -54,6 +54,7 @@
     "bcrypt": "^5.1.1",
     "elliptic": "^6.5.7",
     "jose": "^5.2.2",
+    "ip-regex": "^5.0.0",
     "oauth4webapi": "^2.10.3",
     "semver": "^7.6.3",
     "uuid": "^9.0.1"

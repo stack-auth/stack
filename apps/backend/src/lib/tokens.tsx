@@ -5,7 +5,6 @@ import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { legacySignGlobalJWT, legacyVerifyGlobalJWT, signJWT, verifyJWT } from '@stackframe/stack-shared/dist/utils/jwt';
 import { Result } from '@stackframe/stack-shared/dist/utils/results';
-import { waitUntil } from '@vercel/functions';
 import * as jose from 'jose';
 import { JOSEError, JWTExpired } from 'jose/errors';
 import { SystemEventTypes, logEvent } from './events';
@@ -13,23 +12,23 @@ import { SystemEventTypes, logEvent } from './events';
 export const authorizationHeaderSchema = yupString().matches(/^StackSession [^ ]+$/);
 
 const accessTokenSchema = yupObject({
-  projectId: yupString().required(),
-  userId: yupString().required(),
-  exp: yupNumber().required(),
+  projectId: yupString().defined(),
+  userId: yupString().defined(),
+  exp: yupNumber().defined(),
 });
 
 export const oauthCookieSchema = yupObject({
-  projectId: yupString().required(),
-  publishableClientKey: yupString().required(),
-  innerCodeVerifier: yupString().required(),
-  redirectUri: yupString().required(),
-  scope: yupString().required(),
-  state: yupString().required(),
-  grantType: yupString().required(),
-  codeChallenge: yupString().required(),
-  codeChallengeMethod: yupString().required(),
-  responseType: yupString().required(),
-  type: yupString().oneOf(['authenticate', 'link']).required(),
+  projectId: yupString().defined(),
+  publishableClientKey: yupString().defined(),
+  innerCodeVerifier: yupString().defined(),
+  redirectUri: yupString().defined(),
+  scope: yupString().defined(),
+  state: yupString().defined(),
+  grantType: yupString().defined(),
+  codeChallenge: yupString().defined(),
+  codeChallengeMethod: yupString().defined(),
+  responseType: yupString().defined(),
+  type: yupString().oneOf(['authenticate', 'link']).defined(),
   projectUserId: yupString().optional(),
   providerScope: yupString().optional(),
   errorRedirectUrl: yupString().optional(),
@@ -75,7 +74,7 @@ export async function generateAccessToken(options: {
   useLegacyGlobalJWT: boolean,
   userId: string,
 }) {
-  waitUntil(logEvent([SystemEventTypes.UserActivity], { projectId: options.projectId, userId: options.userId }));
+  await logEvent([SystemEventTypes.UserActivity], { projectId: options.projectId, userId: options.userId });
 
   if (options.useLegacyGlobalJWT) {
     return await legacySignGlobalJWT(

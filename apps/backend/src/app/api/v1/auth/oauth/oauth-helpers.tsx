@@ -7,9 +7,7 @@ export function oauthResponseToSmartResponse(oauthResponse: OAuthResponse): Smar
     throw new StackAssertionError(`OAuth response status is missing`, { oauthResponse });
   } else if (oauthResponse.status >= 500 && oauthResponse.status < 600) {
     throw new StackAssertionError(`OAuth server error: ${JSON.stringify(oauthResponse.body)}`, { oauthResponse });
-  } else if (oauthResponse.status >= 400 && oauthResponse.status < 500) {
-    throw new StatusError(oauthResponse.status, oauthResponse.body);
-  } else if (oauthResponse.status >= 200 && oauthResponse.status < 400) {
+  } else if (oauthResponse.status >= 200 && oauthResponse.status < 500) {
     return {
       statusCode: oauthResponse.status,
       bodyType: "json",

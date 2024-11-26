@@ -8,24 +8,24 @@ export const POST = createSmartRouteHandler({
     hidden: true,
   },
   request: yupObject({
-    method: yupString().oneOf(["POST"]).required(),
+    method: yupString().oneOf(["POST"]).defined(),
     body: yupObject({
-      clientVersion: yupString().required(),
+      clientVersion: yupString().defined(),
     }),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
     body: yupUnion(
       yupObject({
-        upToDate: yupBoolean().oneOf([true]).required(),
+        upToDate: yupBoolean().oneOf([true]).defined(),
       }),
       yupObject({
-        upToDate: yupBoolean().oneOf([false]).required(),
-        error: yupString().required(),
-        severe: yupBoolean().required(),
+        upToDate: yupBoolean().oneOf([false]).defined(),
+        error: yupString().defined(),
+        severe: yupBoolean().defined(),
       }),
-    ),
+    ).defined(),
   }),
   handler: async (req) => {
     const err = (severe: boolean, msg: string) => ({

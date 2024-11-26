@@ -58,8 +58,8 @@ export function parseWebhookOpenAPI(options: {
               method: 'POST',
               path: webhook.type,
               requestBodyDesc: undefinedIfMixed(yupObject({
-                type: yupString().required().meta({ openapiField: { description: webhook.type, exampleValue: webhook.type }}),
-                data: webhook.schema.required(),
+                type: yupString().defined().meta({ openapiField: { description: webhook.type, exampleValue: webhook.type }}),
+                data: webhook.schema.defined(),
               }).describe()) || yupObject().describe(),
               responseTypeDesc: yupString().oneOf(['json']).describe(),
               statusCodeDesc: yupNumber().oneOf([200]).describe(),
@@ -228,7 +228,7 @@ function toParameters(description: yup.SchemaFieldDescription, crudOperation?: C
       in: path ? 'path' : 'query',
       schema,
       description: meta?.openapiField?.description,
-      required: !(field as any).optional && !(field as any).nullable && schema,
+      required: !(field as any).optional && !!schema,
     };
   }).filter((x) => x.schema !== undefined);
 }

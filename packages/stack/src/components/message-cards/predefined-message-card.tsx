@@ -1,9 +1,9 @@
 "use client";
 
 import { Typography } from "@stackframe/stack-ui";
-import { useStackApp, useUser } from "../..";
-import { MessageCard } from "./message-card";
+import { useStackApp } from "../..";
 import { useTranslation } from "../../lib/translations";
+import { MessageCard } from "./message-card";
 
 export function PredefinedMessageCard({
   type,
@@ -27,7 +27,7 @@ export function PredefinedMessageCard({
       title = t("You are already signed in");
       primaryAction = () => stackApp.redirectToHome();
       secondaryAction = () => stackApp.redirectToSignOut();
-      primaryButton = t("Go to home");
+      primaryButton = t("Go home");
       secondaryButton = t("Sign out");
       break;
     }
@@ -41,7 +41,7 @@ export function PredefinedMessageCard({
       title = t("Sign up for new users is not enabled at the moment.");
       primaryAction = () => stackApp.redirectToHome();
       secondaryAction = () => stackApp.redirectToSignIn();
-      primaryButton = t("Go to home");
+      primaryButton = t("Go home");
       secondaryButton = t("Sign in");
       break;
     }
@@ -49,7 +49,7 @@ export function PredefinedMessageCard({
       title = t("Email sent!");
       message = t("If the user with this e-mail address exists, an e-mail was sent to your inbox. Make sure to check your spam folder.");
       primaryAction = () => stackApp.redirectToHome();
-      primaryButton = t("Go to home");
+      primaryButton = t("Go home");
       break;
     }
     case 'passwordReset': {
@@ -63,7 +63,7 @@ export function PredefinedMessageCard({
       title = t("An unknown error occurred");
       message = t("Please try again and if the problem persists, contact support.");
       primaryAction = () => stackApp.redirectToHome();
-      primaryButton = t("Go to home");
+      primaryButton = t("Go home");
       break;
     }
   }

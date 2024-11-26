@@ -38,10 +38,10 @@ function EditDialog(props: {
           .map(({ domain }) => domain),
         "Domain already exists"
       )
-      .required(),
+      .defined(),
     handlerPath: yup.string()
       .matches(/^\//, "Handler path must start with /")
-      .required(),
+      .defined(),
     addWww: yup.boolean(),
   });
 
@@ -104,7 +104,7 @@ function EditDialog(props: {
         />
 
         {props.type === 'create' &&
-          urlSchema.url().required().isValidSync('https://' + form.watch('domain')) &&
+          urlSchema.url().defined().isValidSync('https://' + form.watch('domain')) &&
           !((form.watch('domain') as any)?.startsWith('www.')) && (
           <SwitchField
             label={`Also add www.${form.watch('domain') as any ?? ''} to the trusted domains`}

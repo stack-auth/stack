@@ -36,6 +36,8 @@ type Team = {
   inviteUser(options): Promise<void>;  //$stack-link-to:#teaminviteuseroptions
   listUsers(): Promise<TeamUser[]>;  //$stack-link-to:#teamlistusers
    ⤷ useUsers(): TeamUser[];  //$stack-link-to:#teamuseusers
+  listInvitations(): Promise<{ ... }[]>;  //$stack-link-to:#teamlistinvitations
+   ⤷ useInvitations(): { ... }[];  //$stack-link-to:#teamuseinvitations
 };
 ```
 
@@ -296,11 +298,7 @@ users.forEach(user => {
 ## `team.useUsers()`
 </div><div className="stack-content">
 
-Gets a list of users in the team.
-
-Note that this operation requires the current user to have the `$read_members` permission. If the user lacks this permission, an error will be thrown.
-
-This is the same as `listUsers` but it is a React hook.
+Functionally equivalent to [`listUsers()`](#teamlistusers), but as a React hook.
 
 ### Parameters
 
@@ -328,6 +326,88 @@ declare function useUsers(): TeamUser[];
 const users = team.useUsers();
 users.forEach(user => {
   console.log(user.id, user.teamProfile.displayName);
+});
+```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+
+## `team.listInvitations()`
+</div><div className="stack-content">
+
+Gets a list of invitations to the team.
+
+Note that this operation requires the current user to have the `$read_members` and `$invite_members` permissions. If the user lacks this permission, an error will be thrown.
+
+### Parameters
+
+<div className="indented">
+  None.
+</div>
+
+### Returns
+
+<div className="indented">
+  `Promise<{ id: string, email: string, expiresAt: Date }[]>`
+</div>
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
+
+```typescript
+declare function listInvitations(): Promise<{ id: string, email: string, expiresAt: Date }[]>;
+```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Listing team invitations
+const invitations = await team.listInvitations();
+invitations.forEach(invitation => {
+  console.log(invitation.id, invitation.email);
+});
+```
+<Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>
+</div></div><div className="stack-content">
+
+</div><div className="stack-full-size">
+<Markdown src="../../snippets/divider.mdx" />
+
+
+## `team.useInvitations()`
+</div><div className="stack-content">
+
+Functionally equivalent to [`listInvitations()`](#teamlistinvitations), but as a React hook.
+
+### Parameters
+
+<div className="indented">
+  None.
+</div>
+
+### Returns
+
+<div className="indented">
+  `{ id: string, email: string, expiresAt: Date }[]`
+</div>
+
+</div><div className="stack-aside"><div className="stack-sticky">
+### Signature
+
+```typescript
+declare function useInvitations(): { id: string, email: string, expiresAt: Date }[];
+```
+
+### Examples
+
+<div className="small-codeblock-tabs"><CodeBlocks>
+```typescript Listing team invitations in React component
+const invitations = team.useInvitations();
+invitations.forEach(invitation => {
+  console.log(invitation.id, invitation.email);
 });
 ```
 <Markdown src="../../snippets/always-tab-codeblock.mdx" /></CodeBlocks></div>

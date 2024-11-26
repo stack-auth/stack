@@ -1,11 +1,11 @@
 import { ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
+import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { listUserTeamPermissions } from "./permissions";
 import { PrismaTransaction } from "./types";
-import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 
 
 async function _getTeamMembership(
@@ -198,4 +198,6 @@ export async function ensureContactChannelExists(
   if (!contactChannel) {
     throw new StatusError(StatusError.BadRequest, 'Contact channel not found');
   }
+
+  return contactChannel;
 }

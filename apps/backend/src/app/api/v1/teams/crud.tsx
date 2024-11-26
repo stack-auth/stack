@@ -2,6 +2,7 @@ import { ensureTeamExists, ensureTeamMembershipExists, ensureUserTeamPermissionE
 import { sendTeamCreatedWebhook, sendTeamDeletedWebhook, sendTeamUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { teamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
@@ -9,7 +10,6 @@ import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
-import { waitUntil } from "@vercel/functions";
 import { addUserToTeam } from "../team-memberships/crud";
 
 
@@ -32,7 +32,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     add_current_user: yupString().oneOf(["true", "false"]).optional().meta({ openapiField: { onlyShowInOperations: ['Create'], hidden: true } }),
   }),
   paramsSchema: yupObject({
-    team_id: yupString().uuid().required(),
+    team_id: yupString().uuid().defined(),
   }),
   onCreate: async ({ query, auth, data }) => {
     if (data.creator_user_id && query.add_current_user) {
@@ -40,7 +40,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     }
 
     if (auth.type === 'client' && !auth.user) {
-      throw new KnownErrors.UserAuthenticationRequired();
+      throw new KnownErrors.UserAuthenticationRequired;
     }
 
     if (auth.type === 'client' && !auth.project.config.client_team_creation_enabled) {
@@ -93,7 +93,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
     const result = teamPrismaToCrud(db);
 
-    waitUntil(sendTeamCreatedWebhook({
+    runAsynchronouslyAndWaitUntil(sendTeamCreatedWebhook({
       projectId: auth.project.id,
       data: result,
     }));
@@ -106,7 +106,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureTeamMembershipExists(tx, {
           projectId: auth.project.id,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
+          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired),
         });
       }
 
@@ -138,7 +138,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
+          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired),
           permissionId: "$update_team",
           errorType: 'required',
           recursive: true,
@@ -166,7 +166,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
     const result = teamPrismaToCrud(db);
 
-    waitUntil(sendTeamUpdatedWebhook({
+    runAsynchronouslyAndWaitUntil(sendTeamUpdatedWebhook({
       projectId: auth.project.id,
       data: result,
     }));
@@ -179,7 +179,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         await ensureUserTeamPermissionExists(tx, {
           project: auth.project,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired()),
+          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired),
           permissionId: "$delete_team",
           errorType: 'required',
           recursive: true,
@@ -197,7 +197,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
       });
     });
 
-    waitUntil(sendTeamDeletedWebhook({
+    runAsynchronouslyAndWaitUntil(sendTeamDeletedWebhook({
       projectId: auth.project.id,
       data: {
         id: params.team_id,

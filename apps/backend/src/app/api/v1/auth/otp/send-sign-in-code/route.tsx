@@ -18,22 +18,22 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
-    }).required(),
+    }).defined(),
     body: yupObject({
-      email: signInEmailSchema.required(),
-      callback_url: emailOtpSignInCallbackUrlSchema.required(),
-    }).required(),
+      email: signInEmailSchema.defined(),
+      callback_url: emailOtpSignInCallbackUrlSchema.defined(),
+    }).defined(),
     clientVersion: yupObject({
       version: yupString().optional(),
       sdk: yupString().optional(),
     }).optional(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
     body: yupObject({
-      nonce: yupString().required(),
-    }).required(),
+      nonce: yupString().defined(),
+    }).defined(),
   }),
   async handler({ auth: { project }, body: { email, callback_url: callbackUrl }, clientVersion }, fullReq) {
     if (!project.config.magic_link_enabled) {

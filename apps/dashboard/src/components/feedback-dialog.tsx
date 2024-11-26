@@ -1,7 +1,8 @@
 import { useUser } from "@stackframe/stack";
+import { emailSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { useToast } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { SmartFormDialog } from "./form-dialog";
-import { useToast } from "@stackframe/stack-ui";
 
 export function FeedbackDialog(props: {
   open?: boolean,
@@ -17,13 +18,14 @@ export function FeedbackDialog(props: {
       .optional()
       .label("Your name")
       .default(user?.displayName),
-    email: yup.string()
-      .email("Invalid email")
-      .required("Email is required")
+    email: emailSchema
+      .defined()
+      .nonEmpty("Email is required")
       .label("Your email")
       .default(user?.primaryEmail),
     message: yup.string()
-      .required("Message is required")
+      .defined()
+      .nonEmpty("Message is required")
       .label("Message")
       .meta({ type: "textarea" }),
   });

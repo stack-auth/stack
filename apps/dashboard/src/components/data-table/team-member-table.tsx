@@ -56,7 +56,7 @@ function EditPermissionDialog(props: {
   const permissions = stackAdminApp.useTeamPermissionDefinitions();
 
   const formSchema = yup.object({
-    permissions: yup.array().of(yup.string().required()).required().meta({
+    permissions: yup.array().of(yup.string().defined()).defined().meta({
       stackFormFieldRender: (innerProps) => (
         <PermissionListField
           {...innerProps}

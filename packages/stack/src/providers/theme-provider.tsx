@@ -95,6 +95,7 @@ export function StackTheme({
     <>
       <BrowserScript nonce={nonce} />
       <style
+        suppressHydrationWarning // we need this since the nonce can differ between client and server
         nonce={nonce}
         dangerouslySetInnerHTML={{
           __html: globalCSS + "\n" + convertColorsToCSS(themeValue),

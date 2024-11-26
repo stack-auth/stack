@@ -3,10 +3,10 @@ import { yupMixed, yupObject, yupString } from "../../schema-fields";
 import { WebhookEvent } from "../webhooks";
 
 export const teamMembershipsCrudClientReadSchema = yupObject({
-  team_id: yupString().required(),
-  user_id: yupString().required(),
-}).required();
-export const teamMembershipsCrudServerCreateSchema = yupObject({}).required();
+  team_id: yupString().defined(),
+  user_id: yupString().defined(),
+}).defined();
+export const teamMembershipsCrudServerCreateSchema = yupObject({}).defined();
 export const teamMembershipsCrudClientDeleteSchema = yupMixed();
 
 export const teamMembershipsCrud = createCrud({

@@ -1,9 +1,9 @@
-import React from "react";
-import { Metadata } from "next";
 import { StackProvider, StackTheme } from "@stackframe/stack";
-import { stackServerApp } from "src/stack";
-import Provider from "src/components/provider";
+import { Metadata } from "next";
+import React from "react";
 import Header from "src/components/header";
+import Provider from "src/components/provider";
+import { stackServerApp } from "src/stack";
 import './global.css';
 
 export const metadata: Metadata = {

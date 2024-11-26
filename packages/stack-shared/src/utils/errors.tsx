@@ -16,6 +16,51 @@ export function throwErr(...args: any[]): never {
   }
 }
 
+function removeStacktraceNameLine(stack: string): string {
+  // some browsers (eg. Chrome) prepend the stack with an extra line with the error name
+  const addsNameLine = new Error().stack?.startsWith("Error\n");
+  return stack.split("\n").slice(addsNameLine ? 1 : 0).join("\n");
+}
+
+
+/**
+ * Concatenates the stacktraces of the given errors onto the first.
+ *
+ * Useful when you invoke an async function to receive a promise without awaiting it immediately. Browsers are smart
+ * enough to keep track of the call stack in async function calls when you invoke `.then` within the same async tick,
+ * but if you don't,
+ *
+ * Here's an example of the unwanted behavior:
+ *
+ * ```tsx
+ * async function log() {
+ *   await wait(0);  // simulate an put the task on the event loop
+ *   console.log(new Error().stack);
+ * }
+ *
+ * async function main() {
+ *   await log();  // good; prints both "log" and "main" on the stacktrace
+ *   log();  // bad; prints only "log" on the stacktrace
+ * }
+ * ```
+ */
+export function concatStacktraces(first: Error, ...errors: Error[]): void {
+  // some browsers (eg. Firefox) add an extra empty line at the end
+  const addsEmptyLineAtEnd = first.stack?.endsWith("\n");
+
+
+  // Add a reference to this function itself so that we know that stacktraces were concatenated
+  // If you are coming here from a stacktrace, please know that the two parts before and after this line are different
+  // stacktraces that were concatenated with concatStacktraces
+  const separator = removeStacktraceNameLine(new Error().stack ?? "").split("\n")[0];
+
+
+  for (const error of errors) {
+    const toAppend = removeStacktraceNameLine(error.stack ?? "");
+    first.stack += (addsEmptyLineAtEnd ? "" : "\n") + separator + "\n" + toAppend;
+  }
+}
+
 
 export class StackAssertionError extends Error implements ErrorWithCustomCapture {
   constructor(message: string, public readonly extraData?: Record<string, any>, options?: ErrorOptions) {
@@ -45,7 +90,7 @@ export function registerErrorSink(sink: (location: string, error: unknown) => vo
   errorSinks.add(sink);
 }
 registerErrorSink((location, ...args) => {
-  console.error(`\x1b[41mError in ${location}:`, ...args, "\x1b[0m");
+  console.error(`\x1b[41mCaptured error in ${location}:`, ...args, "\x1b[0m");
 });
 registerErrorSink((location, error, ...extraArgs) => {
   globalVar.stackCapturedErrors = globalVar.stackCapturedErrors ?? [];
