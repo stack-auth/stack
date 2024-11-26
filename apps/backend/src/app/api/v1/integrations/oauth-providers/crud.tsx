@@ -155,36 +155,40 @@ async function createOrUpdateProvider(
         throw new StatusError(StatusError.NotFound, 'OAuth provider not found');
       }
 
-      const db = await tx.oAuthProviderConfig.create({
+      const db = await tx.authMethodConfig.create({
         data: {
-          id: providerId,
-          projectConfig: {
-            connect: {
-              id: options.project.config.id,
+          oauthProviderConfig: {
+            create: {
+              id: providerId,
+              ...options.data.type === 'shared' ? {
+                proxiedOAuthConfig: {
+                  create: {
+                    type: typedToUppercase(providerId) as any,
+                  }
+                },
+              } : {
+                standardOAuthConfig: {
+                  create: {
+                    type: typedToUppercase(providerId) as any,
+                    clientId: options.data.client_id || throwErr('client_id is required'),
+                    clientSecret: options.data.client_secret || throwErr('client_secret is required'),
+                    facebookConfigId: options.data.facebook_config_id,
+                    microsoftTenantId: options.data.microsoft_tenant_id,
+                  }
+                },
+              },
             }
           },
-          ...options.data.type === 'shared' ? {
-            proxiedOAuthConfig: {
-              create: {
-                type: typedToUppercase(providerId) as any,
-              }
-            },
-          } : {
-            standardOAuthConfig: {
-              create: {
-                type: typedToUppercase(providerId) as any,
-                clientId: options.data.client_id || throwErr('client_id is required'),
-                clientSecret: options.data.client_secret || throwErr('client_secret is required'),
-                facebookConfigId: options.data.facebook_config_id,
-                microsoftTenantId: options.data.microsoft_tenant_id,
-              }
-            },
-          },
+          projectConfigId: options.project.config.id,
         },
-        include: fullOAuthProviderInclude,
+        include: {
+          oauthProviderConfig: {
+            include: fullOAuthProviderInclude,
+          }
+        }
       });
 
-      return oauthProviderPrismaToCrud(db);
+      return oauthProviderPrismaToCrud(db.oauthProviderConfig || throwErr("provider config does not exist"));
     }
   });
 };
