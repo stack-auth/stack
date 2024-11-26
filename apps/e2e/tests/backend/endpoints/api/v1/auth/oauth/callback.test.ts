@@ -28,13 +28,9 @@ it("should fail when inner callback has invalid provider ID", async ({ expect })
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 400,
-      "body": {
-        "code": "INVALID_AUTHORIZATION_CODE",
-        "error": "The given authorization code is invalid.",
-      },
+      "body": "Inner OAuth callback failed due to invalid grant; something went wrong with authorization code exchange",
       "headers": Headers {
         "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
-        "x-stack-known-error": "INVALID_AUTHORIZATION_CODE",
         <some fields may have been hidden>,
       },
     }
@@ -99,13 +95,9 @@ it("should fail when inner callback has invalid authorization code", async ({ ex
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 400,
-      "body": {
-        "code": "INVALID_AUTHORIZATION_CODE",
-        "error": "The given authorization code is invalid.",
-      },
+      "body": "Inner OAuth callback failed due to invalid grant; something went wrong with authorization code exchange",
       "headers": Headers {
         "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
-        "x-stack-known-error": "INVALID_AUTHORIZATION_CODE",
         <some fields may have been hidden>,
       },
     }
@@ -126,9 +118,9 @@ it("should redirect to error callback url when inner callback has invalid author
   });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 307,
+      "status": 400,
+      "body": "Inner OAuth callback failed due to invalid grant; something went wrong with authorization code exchange",
       "headers": Headers {
-        "location": "http://stack-test.localhost/some-callback-url/callback-error?errorCode=INVALID_AUTHORIZATION_CODE&message=The+given+authorization+code+is+invalid.&details=%7B%7D",
         "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
         <some fields may have been hidden>,
       },
@@ -151,13 +143,9 @@ it("should fail when inner callback has invalid authorization code and when an i
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 400,
-      "body": {
-        "code": "INVALID_AUTHORIZATION_CODE",
-        "error": "The given authorization code is invalid.",
-      },
+      "body": "Inner OAuth callback failed due to invalid grant; something went wrong with authorization code exchange",
       "headers": Headers {
         "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
-        "x-stack-known-error": "INVALID_AUTHORIZATION_CODE",
         <some fields may have been hidden>,
       },
     }

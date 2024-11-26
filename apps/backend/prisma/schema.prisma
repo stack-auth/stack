@@ -707,6 +707,7 @@ model VerificationCode {
 
   @@id([projectId, id])
   @@unique([projectId, code])
+  @@index([data(ops: JsonbPathOps)], type: Gin)
 }
 
 enum VerificationCodeType {

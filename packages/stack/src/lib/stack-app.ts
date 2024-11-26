@@ -8,6 +8,7 @@ import { ContactChannelsCrud } from "@stackframe/stack-shared/dist/interface/cru
 import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { EmailTemplateCrud, EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { TeamInvitationCrud } from "@stackframe/stack-shared/dist/interface/crud/team-invitation";
 import { TeamMemberProfilesCrud } from "@stackframe/stack-shared/dist/interface/crud/team-member-profiles";
 import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-permissions";
 import { TeamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
@@ -334,6 +335,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _teamMemberProfilesCache = createCacheBySession<[string], TeamMemberProfilesCrud['Client']['Read'][]>(
     async (session, [teamId]) => {
       return await this._interface.listTeamMemberProfiles({ teamId }, session);
+    }
+  );
+  private readonly _teamInvitationsCache = createCacheBySession<[string], TeamInvitationCrud['Client']['Read'][]>(
+    async (session, [teamId]) => {
+      return await this._interface.listTeamInvitations({ teamId }, session);
     }
   );
   private readonly _currentUserTeamProfileCache = createCacheBySession<[string], TeamMemberProfilesCrud['Client']['Read']>(
@@ -753,6 +759,18 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
+  protected _clientTeamInvitationFromCrud(session: InternalSession, crud: TeamInvitationCrud['Client']['Read']): TeamInvitation {
+    return {
+      id: crud.id,
+      recipientEmail: crud.recipient_email,
+      expiresAt: new Date(crud.expires_at_millis),
+      revoke: async () => {
+        await this._interface.revokeTeamInvitation(crud.id, crud.team_id, session);
+        await this._teamInvitationsCache.refresh([session, crud.team_id]);
+      },
+    };
+  }
+
   protected _clientTeamFromCrud(crud: TeamsCrud['Client']['Read'], session: InternalSession): Team {
     const app = this;
     return {
@@ -771,6 +789,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           session,
           callbackUrl: options.callbackUrl ?? constructRedirectUrl(app.urls.teamInvitation),
         });
+        await app._teamInvitationsCache.refresh([session, crud.id]);
       },
       async listUsers() {
         const result = Result.orThrow(await app._teamMemberProfilesCache.getOrWait([session, crud.id], "write-only"));
@@ -779,6 +798,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       useUsers() {
         const result = useAsyncCache(app._teamMemberProfilesCache, [session, crud.id] as const, "team.useUsers()");
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
+      },
+      async listInvitations() {
+        const result = Result.orThrow(await app._teamInvitationsCache.getOrWait([session, crud.id], "write-only"));
+        return result.map((crud) => app._clientTeamInvitationFromCrud(session, crud));
+      },
+      useInvitations() {
+        const result = useAsyncCache(app._teamInvitationsCache, [session, crud.id] as const, "team.useInvitations()");
+        return result.map((crud) => app._clientTeamInvitationFromCrud(session, crud));
       },
       async update(data: TeamUpdateOptions){
         await app._interface.updateTeam({ data: teamUpdateOptionsToCrud(data), teamId: crud.id }, session);
@@ -1665,6 +1692,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return await this._interface.listServerTeamMemberProfiles({ teamId });
     }
   );
+  private readonly _serverTeamInvitationsCache = createCache<[string], TeamInvitationCrud['Server']['Read'][]>(
+    async ([teamId]) => {
+      return await this._interface.listServerTeamInvitations({ teamId });
+    }
+  );
   private readonly _serverUserTeamProfileCache = createCache<[string, string], TeamMemberProfilesCrud['Client']['Read']>(
     async ([teamId, userId]) => {
       return await this._interface.getServerTeamMemberProfile({ teamId, userId });
@@ -1918,6 +1950,17 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
+  protected _serverTeamInvitationFromCrud(crud: TeamInvitationCrud['Server']['Read']): TeamInvitation {
+    return {
+      id: crud.id,
+      recipientEmail: crud.recipient_email,
+      expiresAt: new Date(crud.expires_at_millis),
+      revoke: async () => {
+        await this._interface.revokeServerTeamInvitation(crud.id, crud.team_id);
+      },
+    };
+  }
+
   protected override _currentUserFromCrud(crud: UsersCrud['Server']['Read'], session: InternalSession): ProjectCurrentServerUser<ProjectId> {
     const app = this;
     const currentUser = {
@@ -1980,6 +2023,15 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           email: options.email,
           callbackUrl: options.callbackUrl ?? constructRedirectUrl(app.urls.teamInvitation),
         });
+        await app._serverTeamInvitationsCache.refresh([crud.id]);
+      },
+      async listInvitations() {
+        const result = Result.orThrow(await app._serverTeamInvitationsCache.getOrWait([crud.id], "write-only"));
+        return result.map((crud) => app._serverTeamInvitationFromCrud(crud));
+      },
+      useInvitations() {
+        const result = useAsyncCache(app._serverTeamInvitationsCache, [crud.id] as const, "team.useInvitations()");
+        return useMemo(() => result.map((crud) => app._serverTeamInvitationFromCrud(crud)), [result]);
       },
     };
   }
@@ -3054,6 +3106,13 @@ export type TeamUser = {
   teamProfile: TeamMemberProfile,
 }
 
+export type TeamInvitation = {
+  id: string,
+  recipientEmail: string | null,
+  expiresAt: Date,
+  revoke(): Promise<void>,
+}
+
 export type Team = {
   id: string,
   displayName: string,
@@ -3063,6 +3122,8 @@ export type Team = {
   inviteUser(options: { email: string, callbackUrl?: string }): Promise<void>,
   listUsers(): Promise<TeamUser[]>,
   useUsers(): TeamUser[],
+  listInvitations(): Promise<TeamInvitation[]>,
+  useInvitations(): TeamInvitation[],
   update(update: TeamUpdateOptions): Promise<void>,
 };
 

@@ -15,6 +15,7 @@ import { ContactChannelsCrud } from './crud/contact-channels';
 import { CurrentUserCrud } from './crud/current-user';
 import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
+import { TeamInvitationCrud } from './crud/team-invitation';
 import { TeamMemberProfilesCrud } from './crud/team-member-profiles';
 import { TeamPermissionsCrud } from './crud/team-permissions';
 import { TeamsCrud } from './crud/teams';
@@ -989,6 +990,33 @@ export class StackClientInterface {
     const user: CurrentUserCrud["Client"]["Read"] = await response.json();
     if (!(user as any)) throw new StackAssertionError("User endpoint returned null; this should never happen");
     return user;
+  }
+
+  async listTeamInvitations(
+    options: {
+      teamId: string,
+    },
+    session: InternalSession,
+  ): Promise<TeamInvitationCrud['Client']['Read'][]> {
+    const response = await this.sendClientRequest(
+      "/team-invitations?" + new URLSearchParams({ team_id: options.teamId }),
+      {},
+      session,
+    );
+    const result = await response.json() as TeamInvitationCrud['Client']['List'];
+    return result.items;
+  }
+
+  async revokeTeamInvitation(
+    invitationId: string,
+    teamId: string,
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-invitations/${invitationId}?team_id=${teamId}`,
+      { method: "DELETE" },
+      session,
+    );
   }
 
   async listTeamMemberProfiles(

@@ -1,13 +1,11 @@
 'use client';
 
-import React from "react";
-import { StackClientApp, useStackApp, useUser } from "..";
-import { MessageCard } from "../components/message-cards/message-card";
-import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
-import { useTranslation } from "../lib/translations";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import React from "react";
+import { useStackApp, useUser } from "..";
+import { MessageCard } from "../components/message-cards/message-card";
+import { useTranslation } from "../lib/translations";
 
 export function EmailVerification(props: {
   searchParams?: Record<string, string>,
@@ -64,7 +62,7 @@ export function EmailVerification(props: {
     return <MessageCard
       title={t("You email has been verified!")}
       fullPage={!!props.fullPage}
-      primaryButtonText={t("Go to home")}
+      primaryButtonText={t("Go home")}
       primaryAction={async () => {
         await stackApp.redirectToHome();
       }}

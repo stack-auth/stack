@@ -1,14 +1,13 @@
 'use client';
 
+import { KnownErrors } from "@stackframe/stack-shared";
+import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import React from "react";
 import { StackClientApp, useStackApp, useUser } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
-import { KnownErrors } from "@stackframe/stack-shared";
-import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
-import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { useTranslation } from "../lib/translations";
-import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 const cacheSignInWithMagicLink = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
   return await stackApp.signInWithMagicLink(code);
@@ -79,7 +78,7 @@ export function MagicLinkCallback(props: {
     return <MessageCard
       title={t("Signed in successfully!")}
       fullPage={!!props.fullPage}
-      primaryButtonText={t("Go to home")}
+      primaryButtonText={t("Go home")}
       primaryAction={async () => {
         await stackApp.redirectToHome();
       }}
