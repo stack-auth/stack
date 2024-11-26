@@ -36,15 +36,17 @@ const oauthProviderCreateSchema = oauthProviderUpdateSchema.defined().concat(yup
   id: schemaFields.oauthIdSchema.defined(),
 }));
 
+const oauthProviderDeleteSchema = yupObject({
+  id: schemaFields.oauthIdSchema.defined(),
+});
+
 const oauthProvidersCrud = createCrud({
   adminReadSchema: oauthProviderReadSchema,
   adminCreateSchema: oauthProviderCreateSchema,
   adminUpdateSchema: oauthProviderUpdateSchema,
+  adminDeleteSchema: oauthProviderDeleteSchema,
   docs: {
     adminList: {
-      hidden: true,
-    },
-    adminRead: {
       hidden: true,
     },
     adminCreate: {
@@ -61,7 +63,7 @@ const oauthProvidersCrud = createCrud({
 
 type OAuthProvidersCrud = CrudTypeOf<typeof oauthProvidersCrud>;
 
-const getProvider = (project: ProjectsCrud['Admin']['Read'], id: string, enabledRequired = true) => {
+const getProvider = (project: ProjectsCrud['Admin']['Read'], id: string, enabledRequired: boolean) => {
   return project.config.oauth_providers
     .filter(provider => enabledRequired ? provider.enabled : true)
     .find(provider => provider.id === id);
@@ -198,14 +200,6 @@ export const oauthProvidersCrudHandlers = createLazyProxy(() => createCrudHandle
   paramsSchema: yupObject({
     oauth_provider_id: schemaFields.oauthIdSchema.defined(),
   }),
-  onRead: async ({ auth, params }) => {
-    const provider = getProvider(auth.project, params.oauth_provider_id);
-
-    if (!provider) {
-      throw new StatusError(StatusError.NotFound, 'OAuth provider not found');
-    }
-    return provider;
-  },
   onCreate: async ({ auth, data }) => {
     return await createOrUpdateProvider({
       project: auth.project,
@@ -226,5 +220,23 @@ export const oauthProvidersCrudHandlers = createLazyProxy(() => createCrudHandle
       items: auth.project.config.oauth_providers.filter(provider => provider.enabled),
       is_paginated: false,
     };
+  },
+  onDelete: async ({ auth, params }) => {
+    const provider = getProvider(auth.project, params.oauth_provider_id, false);
+    if (!provider) {
+      throw new StatusError(StatusError.NotFound, 'OAuth provider not found');
+    }
+
+    await prismaClient.authMethodConfig.updateMany({
+      where: {
+        projectConfigId: auth.project.config.id,
+        oauthProviderConfig: {
+          id: params.oauth_provider_id,
+        },
+      },
+      data: {
+        enabled: false,
+      },
+    });
   },
 }));
