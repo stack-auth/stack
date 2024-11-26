@@ -217,4 +217,10 @@ export const oauthProvidersCrudHandlers = createLazyProxy(() => createCrudHandle
       data,
     });
   },
+  onList: async ({ auth }) => {
+    return {
+      items: auth.project.config.oauth_providers.filter(provider => provider.enabled),
+      is_paginated: false,
+    };
+  },
 }));
