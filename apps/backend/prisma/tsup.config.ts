@@ -8,5 +8,6 @@ export default defineConfig({
   outDir: 'dist',
   target: 'node22',
   platform: 'node',
+  noExternal: ['@stackframe/stack-shared', '@prisma/client'],
   clean: true
 });

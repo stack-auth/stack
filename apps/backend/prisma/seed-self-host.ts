@@ -1,6 +1,6 @@
 /* eslint-disable no-restricted-syntax */
 import { BooleanTrue, PrismaClient } from '@prisma/client';
-import { hashPassword } from '@stackframe/stack-shared/dist/utils/password';
+import { hashPassword } from "@stackframe/stack-shared/dist/utils/hashes";
 
 const prisma = new PrismaClient();
 
