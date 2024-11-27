@@ -92,3 +92,7 @@ USER node
 
 # Set entrypoint to run both backend and dashboard
 ENTRYPOINT ["./entrypoint.sh"]
+
+
+# docker build -f deploy/docker/all-in-one/Dockerfile -t all-in-one .
+# docker run --env-file deploy/docker/all-in-one/.env.example -p 8101:8101 -p 8102:8102 -it all-in-one
