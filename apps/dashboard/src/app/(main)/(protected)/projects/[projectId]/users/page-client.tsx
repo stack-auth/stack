@@ -1,23 +1,22 @@
 "use client";
 
 import { UserTable } from "@/components/data-table/user-table";
-import { FormDialog } from "@/components/form-dialog";
-import { InputField, SwitchField } from "@/components/form-fields";
 import { StyledLink } from "@/components/link";
+import { UserDialog } from "@/components/user-dialog";
 import { Alert, Button } from "@stackframe/stack-ui";
-import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
-import { UserDialog } from "@/components/user-dialog";
 
 
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProject();
   const users = stackAdminApp.useUsers();
 
   return (
     <PageLayout
       title="Users"
+      description={`User count: ${project.userCount}`}
       actions={<UserDialog
         type="create"
         trigger={<Button>Create User</Button>}
