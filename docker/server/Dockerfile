@@ -49,7 +49,7 @@ ENV NEXT_CONFIG_OUTPUT=standalone
 # Build the backend NextJS app
 RUN pnpm turbo run docker-build --filter=@stackframe/stack-backend... --filter=@stackframe/stack-dashboard...
 
-# Build the self-hosting seed script
+# Build the self-host seed script
 RUN cd apps/backend && pnpm self-host-seed-script
 
 # Final image
@@ -78,7 +78,7 @@ COPY --from=builder --chown=node:node /app/apps/dashboard/.next/static ./apps/da
 COPY --from=builder --chown=node:node /app/apps/dashboard/public ./apps/dashboard/public
 
 # Add the entrypoint script
-COPY ./docker/all-in-one/entrypoint.sh .
+COPY ./docker/server/entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
 WORKDIR /app
@@ -94,5 +94,6 @@ USER node
 ENTRYPOINT ["./entrypoint.sh"]
 
 
-# docker build -f docker/all-in-one/Dockerfile -t all-in-one .
-# docker run --env-file docker/all-in-one/.env.example -p 8101:8101 -p 8102:8102 -it all-in-one
+# docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+# docker build -f docker/server/Dockerfile -t server .
+# docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -it server

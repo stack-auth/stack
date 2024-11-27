@@ -2,6 +2,8 @@
 
 set -e
 
+export NEXT_PUBLIC_STACK_URL=${STACK_BASE_URL}
+
 if [ "$STACK_RUN_MIGRATIONS" = "true" ]; then
   echo "Running migrations..."
   prisma migrate deploy --schema=./apps/backend/prisma/schema.prisma

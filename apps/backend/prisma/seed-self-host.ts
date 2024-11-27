@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax */
-import { BooleanTrue, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/hashes";
 
 const prisma = new PrismaClient();
@@ -8,9 +8,9 @@ async function seed() {
   console.log('Seeding database...');
 
   // Optional default admin user
-  const adminEmail = process.env.STACK_DEFAULT_ADMIN_EMAIL;
-  const adminPassword = process.env.STACK_DEFAULT_ADMIN_PASSWORD;
-  const adminInternalAccess = process.env.STACK_DEFAULT_ADMIN_INTERNAL_ACCESS === 'true';
+  const adminEmail = process.env.STACK_DEFAULT_DASHBOARD_USER_EMAIL;
+  const adminPassword = process.env.STACK_DEFAULT_DASHBOARD_USER_PASSWORD;
+  const adminInternalAccess = process.env.STACK_DEFAULT_DASHBOARD_USER_INTERNAL_ACCESS === 'true';
 
   // Optionally disable sign up for "internal" project
   const signUpEnabled = process.env.STACK_INTERNAL_SIGN_UP_ENABLED === 'true';
@@ -78,7 +78,6 @@ async function seed() {
       const newUser = await tx.projectUser.create({
         data: {
           projectId: 'internal',
-          displayName: adminDisplayName,
           serverMetadata: adminInternalAccess
             ? { managedProjectIds: ['internal'] }
             : undefined,
@@ -91,32 +90,9 @@ async function seed() {
           projectId: 'internal',
           type: 'EMAIL' as const,
           value: adminEmail as string,
-          isVerified: true,
+          isVerified: false,
           isPrimary: 'TRUE',
-          usedForAuth: BooleanTrue.TRUE,
-        }
-      });
-
-      const otpConfig = await tx.otpAuthMethodConfig.findFirstOrThrow({
-        where: {
-          projectConfigId: createdProject.configId
-        },
-        include: {
-          authMethodConfig: true,
-        }
-      });
-
-      await tx.authMethod.create({
-        data: {
-          projectId: 'internal',
-          projectUserId: newUser.projectUserId,
-          projectConfigId: createdProject.configId,
-          authMethodConfigId: otpConfig.authMethodConfigId,
-          otpAuthMethod: {
-            create: {
-              projectUserId: newUser.projectUserId,
-            }
-          }
+          usedForAuth: 'TRUE',
         }
       });
 
