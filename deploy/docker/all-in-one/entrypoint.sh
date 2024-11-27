@@ -20,10 +20,10 @@ fi
 
 # Start backend and dashboard in parallel
 echo "Starting backend on port $BACKEND_PORT..."
-PORT=8102 node apps/backend/server.js --port $BACKEND_PORT &
+PORT=$BACKEND_PORT HOSTNAME=0.0.0.0 node apps/backend/server.js &
 
 echo "Starting dashboard on port $DASHBOARD_PORT..."
-PORT=8101 node apps/dashboard/server.js --port $DASHBOARD_PORT &
+PORT=$DASHBOARD_PORT HOSTNAME=0.0.0.0 node apps/dashboard/server.js &
 
 # Wait for both to finish
 wait -n
