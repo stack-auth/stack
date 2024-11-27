@@ -8,12 +8,12 @@ async function seed() {
   console.log('Seeding database...');
 
   // Optional default admin user
-  const adminDisplayName = process.env.STACK_DEFAULT_ADMIN_DISPLAY_NAME || 'Admin';
   const adminEmail = process.env.STACK_DEFAULT_ADMIN_EMAIL;
   const adminPassword = process.env.STACK_DEFAULT_ADMIN_PASSWORD;
+  const adminInternalAccess = process.env.STACK_DEFAULT_ADMIN_INTERNAL_ACCESS === 'true';
 
   // Optionally disable sign up for "internal" project
-  const signUpEnabled = process.env.STACK_SIGN_UP_DISABLED !== 'true';
+  const signUpEnabled = process.env.STACK_INTERNAL_SIGN_UP_ENABLED === 'true';
 
   const existingProject = await prisma.project.findUnique({
     where: {
@@ -59,13 +59,6 @@ async function seed() {
             authMethodConfigs: {
               create: [
                 {
-                  otpConfig: {
-                    create: {
-                      contactChannelType: 'EMAIL',
-                    }
-                  }
-                },
-                {
                   passwordConfig: {
                     create: {},
                   }
@@ -86,7 +79,9 @@ async function seed() {
         data: {
           projectId: 'internal',
           displayName: adminDisplayName,
-          serverMetadata: { managedProjectIds: ['internal'] }
+          serverMetadata: adminInternalAccess
+            ? { managedProjectIds: ['internal'] }
+            : undefined,
         }
       });
 
