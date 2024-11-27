@@ -78,7 +78,7 @@ COPY --from=builder --chown=node:node /app/apps/dashboard/.next/static ./apps/da
 COPY --from=builder --chown=node:node /app/apps/dashboard/public ./apps/dashboard/public
 
 # Add the entrypoint script
-COPY ./deploy/docker/all-in-one/entrypoint.sh .
+COPY ./docker/all-in-one/entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
 WORKDIR /app
@@ -94,5 +94,5 @@ USER node
 ENTRYPOINT ["./entrypoint.sh"]
 
 
-# docker build -f deploy/docker/all-in-one/Dockerfile -t all-in-one .
-# docker run --env-file deploy/docker/all-in-one/.env.example -p 8101:8101 -p 8102:8102 -it all-in-one
+# docker build -f docker/all-in-one/Dockerfile -t all-in-one .
+# docker run --env-file docker/all-in-one/.env.example -p 8101:8101 -p 8102:8102 -it all-in-one
