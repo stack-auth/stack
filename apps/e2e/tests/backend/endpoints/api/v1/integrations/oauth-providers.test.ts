@@ -6,7 +6,7 @@ it("creates a new oauth provider", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
 
-  const response = await niceBackendFetch(`/api/v1/integrations/oauth-providers`, {
+  const response = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers`, {
     accessType: "admin",
     method: "POST",
     headers: {
@@ -34,7 +34,7 @@ it("lists oauth providers", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
 
-  const response1 = await niceBackendFetch(`/api/v1/integrations/oauth-providers`, {
+  const response1 = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers`, {
     accessType: "admin",
     method: "GET",
     headers: {
@@ -53,7 +53,7 @@ it("lists oauth providers", async ({ expect }) => {
     }
   `);
 
-  const response2 = await niceBackendFetch(`/api/v1/integrations/oauth-providers`, {
+  const response2 = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers`, {
     accessType: "admin",
     method: "POST",
     headers: {
@@ -67,7 +67,7 @@ it("lists oauth providers", async ({ expect }) => {
 
   expect(response2.status).toBe(201);
 
-  const response3 = await niceBackendFetch(`/api/v1/integrations/oauth-providers`, {
+  const response3 = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers`, {
     accessType: "admin",
     method: "GET",
     headers: {
@@ -136,7 +136,7 @@ it("creates standard oauth providers", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
 
-  const response1 = await niceBackendFetch(`/api/v1/integrations/oauth-providers`, {
+  const response1 = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers`, {
     accessType: "admin",
     method: "POST",
     headers: {
@@ -163,7 +163,7 @@ it("creates standard oauth providers", async ({ expect }) => {
     }
   `);
 
-  const response2 = await niceBackendFetch(`/api/v1/integrations/oauth-providers`, {
+  const response2 = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers`, {
     accessType: "admin",
     method: "GET",
     headers: {
@@ -194,7 +194,7 @@ it("updates shared to standard oauth provider", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
 
-  const response1 = await niceBackendFetch(`/api/v1/integrations/oauth-providers`, {
+  const response1 = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers`, {
     accessType: "admin",
     method: "POST",
     headers: {
@@ -217,7 +217,7 @@ it("updates shared to standard oauth provider", async ({ expect }) => {
     }
   `);
 
-  const response2 = await niceBackendFetch(`/api/v1/integrations/oauth-providers/google`, {
+  const response2 = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers/google`, {
     accessType: "admin",
     method: "PATCH",
     headers: {
@@ -249,7 +249,7 @@ it("deletes an oauth provider", async ({ expect }) => {
   const { adminAccessToken } = await Project.createAndGetAdminToken();
 
   // Create a provider first
-  const createResponse = await niceBackendFetch(`/api/v1/integrations/oauth-providers`, {
+  const createResponse = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers`, {
     accessType: "admin",
     method: "POST",
     headers: {
@@ -266,7 +266,7 @@ it("deletes an oauth provider", async ({ expect }) => {
   expect(createResponse.status).toBe(201);
 
   // Delete the provider
-  const deleteResponse = await niceBackendFetch(`/api/v1/integrations/oauth-providers/google`, {
+  const deleteResponse = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers/google`, {
     accessType: "admin",
     method: "DELETE",
     headers: {
@@ -283,7 +283,7 @@ it("deletes an oauth provider", async ({ expect }) => {
   `);
 
   // Verify provider is deleted by trying to fetch it
-  const getResponse = await niceBackendFetch(`/api/v1/integrations/oauth-providers/google`, {
+  const getResponse = await niceBackendFetch(`/api/v1/integrations/neon/oauth-providers/google`, {
     accessType: "admin",
     method: "GET",
     headers: {

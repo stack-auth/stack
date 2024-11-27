@@ -9,7 +9,7 @@ describe("without project access", () => {
   });
 
   it("should not have have access to api keys", async ({ expect }) => {
-    const response = await niceBackendFetch("/api/v1/integrations/api-keys", { accessType: "client" });
+    const response = await niceBackendFetch("/api/v1/integrations/neon/api-keys", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 400,
@@ -30,13 +30,13 @@ describe("without project access", () => {
 describe("with admin access to the internal project", () => {
   it("list api keys", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const response = await niceBackendFetch("/api/v1/integrations/api-keys", { accessType: "admin" });
+    const response = await niceBackendFetch("/api/v1/integrations/neon/api-keys", { accessType: "admin" });
     expect(response.status).toBe(200); // not doing snapshot as it contains all the test api keys
   });
 
   it("creates api keys for internal project", async ({ expect }) => {
     await Auth.Otp.signIn();
-    const response1 = await niceBackendFetch("/api/v1/integrations/api-keys", {
+    const response1 = await niceBackendFetch("/api/v1/integrations/neon/api-keys", {
       accessType: "admin",
       method: "POST",
       body: {
@@ -67,7 +67,7 @@ describe("with admin access to the internal project", () => {
 
 describe("with admin access to a non-internal project", () => {
   it("creates api keys without admin access token", async ({ expect }) => {
-    const response = await niceBackendFetch("/api/v1/integrations/api-keys", {
+    const response = await niceBackendFetch("/api/v1/integrations/neon/api-keys", {
       accessType: "admin",
       method: "POST",
       body: {
@@ -96,7 +96,7 @@ describe("with admin access to a non-internal project", () => {
   });
 
   it("creates api keys with invalid admin access token", async ({ expect }) => {
-    const response1 = await niceBackendFetch("/api/v1/integrations/api-keys", {
+    const response1 = await niceBackendFetch("/api/v1/integrations/neon/api-keys", {
       accessType: "admin",
       method: "POST",
       body: {
@@ -145,7 +145,7 @@ describe("with admin access to a non-internal project", () => {
     `);
 
     // update api key description
-    const response2 = await niceBackendFetch(`/api/v1/integrations/api-keys/${response1.body.id}`, {
+    const response2 = await niceBackendFetch(`/api/v1/integrations/neon/api-keys/${response1.body.id}`, {
       accessType: "admin",
       method: "PATCH",
       body: {
@@ -181,7 +181,7 @@ describe("with admin access to a non-internal project", () => {
     });
 
     // list api keys
-    const response3 = await niceBackendFetch("/api/v1/integrations/api-keys", {
+    const response3 = await niceBackendFetch("/api/v1/integrations/neon/api-keys", {
       accessType: "admin",
       headers: {
         'x-stack-admin-access-token': adminAccessToken,
@@ -216,7 +216,7 @@ describe("with admin access to a non-internal project", () => {
     `);
 
     // revoke api key
-    const response4 = await niceBackendFetch(`/api/v1/integrations/api-keys/${response1.body.id}`, {
+    const response4 = await niceBackendFetch(`/api/v1/integrations/neon/api-keys/${response1.body.id}`, {
       accessType: "admin",
       method: "PATCH",
       body: {
