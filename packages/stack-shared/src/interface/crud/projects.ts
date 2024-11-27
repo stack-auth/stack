@@ -1,6 +1,6 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as schemaFields from "../../schema-fields";
-import { yupArray, yupObject, yupDefinedWhen, yupString } from "../../schema-fields";
+import { yupArray, yupDefinedWhen, yupObject, yupString } from "../../schema-fields";
 
 const teamPermissionSchema = yupObject({
   id: yupString().defined(),
@@ -14,8 +14,8 @@ const oauthProviderSchema = yupObject({
   client_secret: yupDefinedWhen(schemaFields.oauthClientSecretSchema, 'type', 'standard'),
 
   // extra params
-  facebook_config_id: yupString().optional().meta({ openapiField: { description: 'This parameter is the configuration id for Facebook business login (for things like ads and marketing).' } }),
-  microsoft_tenant_id: yupString().optional().meta({ openapiField: { description: 'This parameter is the Microsoft tenant id for Microsoft directory' } }),
+  facebook_config_id: schemaFields.oauthFacebookConfigIdSchema.optional(),
+  microsoft_tenant_id: schemaFields.oauthMicrosoftTenantIdSchema.optional(),
 });
 
 const enabledOAuthProviderSchema = yupObject({
