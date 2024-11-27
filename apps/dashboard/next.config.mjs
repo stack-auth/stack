@@ -1,8 +1,8 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import rehypeKatex from "rehype-katex";
-import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import remarkHeadingId from "remark-heading-id";
+import remarkMath from "remark-math";
 
 import createMDX from "@next/mdx";
 
@@ -26,8 +26,6 @@ const withConfiguredSentryConfig = (nextConfig) =>
       // For all available options, see:
       // https://github.com/getsentry/sentry-webpack-plugin#options
 
-      // Suppresses source map uploading logs during build
-      silent: true,
       org: "stackframe-pw",
       project: "stack-server",
     },
@@ -92,6 +90,9 @@ const nextConfig = {
   },
   skipTrailingSlashRedirect: true, 
 
+  experimental: {
+    instrumentationHook: true,
+  },
 
   async headers() {
     return [

@@ -1,8 +1,8 @@
-import { Issuer, generators, CallbackParamsType, Client, TokenSet as OIDCTokenSet } from "openid-client";
-import { OAuthUserInfo } from "../utils";
-import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
-import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
+import { CallbackParamsType, Client, Issuer, TokenSet as OIDCTokenSet, generators } from "openid-client";
+import { OAuthUserInfo } from "../utils";
 
 export type TokenSet = {
   accessToken: string,
@@ -151,8 +151,9 @@ export abstract class OAuthBaseProvider {
       if (error?.error === "invalid_grant") {
         // while this is technically a "user" error, it would only be caused by a client that is not properly implemented
         // to catch the case where our own client is not properly implemented, we capture the error here
+        // TODO is the comment above actually true? This is inner OAuth, not outer OAuth, so why does the client implementation matter?
         captureError("inner-oauth-callback", error);
-        throw new KnownErrors.InvalidAuthorizationCode();
+        throw new StatusError(400, "Inner OAuth callback failed due to invalid grant; something went wrong with authorization code exchange");
       }
       if (error?.error === 'access_denied') {
         throw new KnownErrors.OAuthProviderAccessDenied();

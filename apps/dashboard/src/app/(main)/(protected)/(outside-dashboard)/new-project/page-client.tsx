@@ -11,10 +11,10 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 
 export const projectFormSchema = yup.object({
-  displayName: yup.string().min(1, "Display name is required").required("Display name is required"),
-  signInMethods: yup.array(yup.string().oneOf(["credential", "magicLink", "passkey"].concat(allProviders)).required())
+  displayName: yup.string().min(1, "Display name is required").defined().nonEmpty("Display name is required"),
+  signInMethods: yup.array(yup.string().oneOf(["credential", "magicLink", "passkey"].concat(allProviders)).defined())
     .min(1, "At least one sign-in method is required")
-    .required("At least one sign-in method is required"),
+    .defined("At least one sign-in method is required"),
 });
 
 export type ProjectFormValues = yup.InferType<typeof projectFormSchema>

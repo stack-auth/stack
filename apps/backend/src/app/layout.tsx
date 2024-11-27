@@ -1,6 +1,6 @@
-import '../polyfills';
-import React from 'react';
 import type { Metadata } from 'next';
+import React from 'react';
+import '../polyfills';
 
 export const metadata: Metadata = {
   title: 'Stack Auth API',

@@ -2,7 +2,7 @@
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { passwordSchema, strictEmailSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { runAsynchronously, runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, PasswordInput } from "@stackframe/stack-ui";
 import { useState } from "react";
@@ -16,8 +16,8 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
   const { t } = useTranslation();
 
   const schema = yupObject({
-    email: yupString().email(t('Please enter a valid email')).required(t('Please enter your email')),
-    password: yupString().required(t('Please enter your password')).test({
+    email: strictEmailSchema(t('Please enter a valid email')).defined().nonEmpty(t('Please enter your email')),
+    password: passwordSchema.defined().nonEmpty(t('Please enter your password')).test({
       name: 'is-valid-password',
       test: (value, ctx) => {
         const error = getPasswordError(value);
@@ -29,7 +29,7 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
       }
     }),
     ...(!props.noPasswordRepeat && {
-      passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
+      passwordRepeat: passwordSchema.nullable().oneOf([yup.ref('password'), "", null], t('Passwords do not match')).nonEmpty(t('Please repeat your password'))
     })
   });
 
@@ -68,6 +68,7 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
       <Label htmlFor="password" className="mt-4 mb-1">{t('Password')}</Label>
       <PasswordInput
         id="password"
+        autoComplete="new-password"
         {...registerPassword}
         onChange={(e) => {
           clearErrors('password');

@@ -111,5 +111,11 @@ export function ApiKeyTable(props: { apiKeys: ApiKey[] }) {
     });
   }, [props.apiKeys]);
 
-  return <DataTable data={extendedApiKeys} columns={columns} toolbarRender={toolbarRender} />;
+  return <DataTable
+    data={extendedApiKeys}
+    columns={columns}
+    toolbarRender={toolbarRender}
+    defaultColumnFilters={[{ id: 'status', value: ['valid'] }]}
+    defaultSorting={[]}
+  />;
 }

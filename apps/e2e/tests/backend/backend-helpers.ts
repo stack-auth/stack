@@ -895,32 +895,80 @@ export namespace Project {
 }
 
 export namespace Team {
-  export async function create(options: { accessType?: "client" | "server" } = {}, body?: any) {
+  export async function create(options: { accessType?: "client" | "server", addCurrentUser?: boolean } = {}, body?: any) {
+    const displayName = body?.display_name || 'New Team';
     const response = await niceBackendFetch("/api/v1/teams", {
       accessType: options.accessType ?? "server",
       method: "POST",
       body: {
-        display_name: body?.display_name || 'New Team',
-        creator_user_id: 'me',
+        display_name: displayName,
+        creator_user_id: options.addCurrentUser ? 'me' : undefined,
         ...body,
       },
     });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "display_name": ${JSON.stringify(displayName)},
+          "id": "<stripped UUID>",
+          "profile_image_url": null,
+          "server_metadata": null,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
     return {
       createTeamResponse: response,
       teamId: response.body.id,
     };
   }
 
-  export async function sendInvitation(receiveMailbox: Mailbox, teamId: string) {
+  export async function createAndAddCurrent(options: { accessType?: "client" | "server" } = {}, body?: any) {
+    return await Team.create({ ...options, addCurrentUser: true }, body);
+  }
+
+  export async function addMember(teamId: string, userId: string) {
+    const response = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId}`, {
+      method: "POST",
+      accessType: "server",
+      body: {},
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "team_id": "<stripped UUID>",
+          "user_id": "<stripped UUID>",
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  }
+
+  export async function sendInvitation(mail: string | Mailbox, teamId: string) {
     const response = await niceBackendFetch("/api/v1/team-invitations/send-code", {
       method: "POST",
       accessType: "client",
       body: {
-        email: receiveMailbox.emailAddress,
+        email: typeof mail === 'string' ? mail : mail.emailAddress,
         team_id: teamId,
         callback_url: "http://localhost:12345/some-callback-url",
       },
     });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "id": "<stripped UUID>",
+          "success": true,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
 
     return {
       sendTeamInvitationResponse: response,

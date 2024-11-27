@@ -1,7 +1,6 @@
 import { StackAssertionError, StatusError, throwErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
-import { filterUndefined } from "./utils/objects";
 import { deindent } from "./utils/strings";
 
 export type KnownErrorJson = {
@@ -708,7 +707,7 @@ const RedirectUrlNotWhitelisted = createKnownErrorConstructor(
   "REDIRECT_URL_NOT_WHITELISTED",
   () => [
     400,
-    "Redirect URL not whitelisted.",
+    "Redirect URL not whitelisted. Did you forget to add this domain to the trusted domains list on the Stack Auth dashboard?",
   ] as const,
   () => [] as const,
 );
@@ -1187,6 +1186,17 @@ const OAuthProviderAccessDenied = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const ContactChannelAlreadyUsedForAuthBySomeoneElse = createKnownErrorConstructor(
+  KnownError,
+  "CONTACT_CHANNEL_ALREADY_USED_FOR_AUTH_BY_SOMEONE_ELSE",
+  (type: "email") => [
+    400,
+    `This ${type} is already used for authentication by another account.`,
+    { type },
+  ] as const,
+  (json) => [json.type] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -1283,6 +1293,7 @@ export const KnownErrors = {
   InvalidAuthorizationCode,
   TeamPermissionNotFound,
   OAuthProviderAccessDenied,
+  ContactChannelAlreadyUsedForAuthBySomeoneElse,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

@@ -3,6 +3,7 @@ import { PrismaTransaction } from "@/lib/types";
 import { sendTeamMembershipDeletedWebhook, sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 import { BooleanTrue, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
@@ -11,10 +12,9 @@ import { userIdOrMeSchema, yupBoolean, yupNumber, yupObject, yupString } from "@
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { hashPassword, isPasswordHashValid } from "@stackframe/stack-shared/dist/utils/hashes";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
-import { waitUntil } from '@vercel/functions';
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 
 export const userFullInclude = {
@@ -105,6 +105,28 @@ export const userPrismaToCrud = (
   };
 };
 
+async function getPasswordHashFromData(data: {
+  password?: string | null,
+  password_hash?: string,
+}) {
+  if (data.password !== undefined) {
+    if (data.password_hash !== undefined) {
+      throw new StatusError(400, "Cannot set both password and password_hash at the same time.");
+    }
+    if (data.password === null) {
+      return null;
+    }
+    return await hashPassword(data.password);
+  } else if (data.password_hash !== undefined) {
+    if (!await isPasswordHashValid(data.password_hash)) {
+      throw new StatusError(400, "Invalid password hash. Make sure it's a supported algorithm in Modular Crypt Format.");
+    }
+    return data.password_hash;
+  } else {
+    return undefined;
+  }
+}
+
 async function checkAuthData(
   tx: PrismaTransaction,
   data: {
@@ -113,7 +135,6 @@ async function checkAuthData(
     primaryEmail?: string | null,
     primaryEmailVerified?: boolean,
     primaryEmailAuthEnabled?: boolean,
-    passwordHash?: string | null,
   }
 ) {
   if (!data.primaryEmail && data.primaryEmailAuthEnabled) {
@@ -245,7 +266,7 @@ export async function getUser(options: { projectId: string, userId: string }) {
 
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
   paramsSchema: yupObject({
-    user_id: userIdOrMeSchema.required(),
+    user_id: userIdOrMeSchema.defined(),
   }),
   querySchema: yupObject({
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Only return users who are members of the given team" }}),
@@ -327,12 +348,12 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   },
   onCreate: async ({ auth, data }) => {
     const result = await prismaClient.$transaction(async (tx) => {
+      const passwordHash = await getPasswordHashFromData(data);
       await checkAuthData(tx, {
         projectId: auth.project.id,
         primaryEmail: data.primary_email,
         primaryEmailVerified: data.primary_email_verified,
         primaryEmailAuthEnabled: data.primary_email_auth_enabled,
-        passwordHash: data.password && await hashPassword(data.password),
       });
 
       const newUser = await tx.projectUser.create({
@@ -436,7 +457,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         });
       }
 
-      if (data.password) {
+      if (passwordHash) {
         const passwordConfig = await getPasswordConfig(tx, auth.project.config.id);
 
         if (!passwordConfig) {
@@ -451,7 +472,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             authMethodConfigId: passwordConfig.authMethodConfigId,
             passwordAuthMethod: {
               create: {
-                passwordHash: await hashPassword(data.password),
+                passwordHash,
                 projectUserId: newUser.projectUserId,
               }
             }
@@ -513,7 +534,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       });
     }
 
-    waitUntil(sendUserCreatedWebhook({
+    runAsynchronouslyAndWaitUntil(sendUserCreatedWebhook({
       projectId: auth.project.id,
       data: result,
     }));
@@ -521,6 +542,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     return result;
   },
   onUpdate: async ({ auth, data, params }) => {
+    const passwordHash = await getPasswordHashFromData(data);
     const result = await prismaClient.$transaction(async (tx) => {
       await ensureUserExists(tx, { projectId: auth.project.id, userId: params.user_id });
 
@@ -585,7 +607,6 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         primaryEmail: primaryEmailContactChannel?.value || data.primary_email,
         primaryEmailVerified: primaryEmailContactChannel?.isVerified || data.primary_email_verified,
         primaryEmailAuthEnabled: !!primaryEmailContactChannel?.usedForAuth || data.primary_email_auth_enabled,
-        passwordHash: passwordAuth ? passwordAuth.passwordHash : (data.password && await hashPassword(data.password)),
       });
 
       // if there is a new primary email
@@ -625,7 +646,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             },
             update: {
               value: data.primary_email,
-              usedForAuth: data.primary_email_auth_enabled ? BooleanTrue.TRUE : null,
+              usedForAuth: data.primary_email_auth_enabled === undefined ? undefined : (data.primary_email_auth_enabled ? BooleanTrue.TRUE : null),
             }
           });
         }
@@ -715,8 +736,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       // - update the password auth method if it exists
       // if the password is null
       // - delete the password auth method if it exists
-      if (data.password !== undefined) {
-        if (data.password === null) {
+      if (passwordHash !== undefined) {
+        if (passwordHash === null) {
           if (passwordAuth) {
             await tx.authMethod.delete({
               where: {
@@ -737,7 +758,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 },
               },
               data: {
-                passwordHash: await hashPassword(data.password),
+                passwordHash,
               },
             });
           } else {
@@ -768,7 +789,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 authMethodConfigId: passwordConfig.authMethodConfigId,
                 passwordAuthMethod: {
                   create: {
-                    passwordHash: await hashPassword(data.password),
+                    passwordHash,
                     projectUserId: params.user_id,
                   }
                 }
@@ -798,7 +819,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       });
 
       // if user password changed, reset all refresh tokens
-      if (data.password !== undefined) {
+      if (passwordHash !== undefined) {
         await prismaClient.projectUserRefreshToken.deleteMany({
           where: {
             projectId: auth.project.id,
@@ -811,7 +832,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     });
 
 
-    waitUntil(sendUserUpdatedWebhook({
+    runAsynchronouslyAndWaitUntil(sendUserUpdatedWebhook({
       projectId: auth.project.id,
       data: result,
     }));
@@ -849,7 +870,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       return { teams };
     });
 
-    waitUntil(Promise.all(teams.map(t => sendTeamMembershipDeletedWebhook({
+    runAsynchronouslyAndWaitUntil(Promise.all(teams.map(t => sendTeamMembershipDeletedWebhook({
       projectId: auth.project.id,
       data: {
         team_id: t.teamId,
@@ -857,7 +878,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       },
     }))));
 
-    waitUntil(sendUserDeletedWebhook({
+    runAsynchronouslyAndWaitUntil(sendUserDeletedWebhook({
       projectId: auth.project.id,
       data: {
         id: params.user_id,

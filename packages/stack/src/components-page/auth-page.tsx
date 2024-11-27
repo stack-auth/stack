@@ -1,8 +1,8 @@
 'use client';
 
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography, cn } from '@stackframe/stack-ui';
-import { useEffect } from 'react';
+import { Skeleton, StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography, cn } from '@stackframe/stack-ui';
+import { Suspense, useEffect } from 'react';
 import { useStackApp, useUser } from '..';
 import { CredentialSignIn } from '../components/credential-sign-in';
 import { CredentialSignUp } from '../components/credential-sign-up';
@@ -11,10 +11,10 @@ import { SeparatorWithText } from '../components/elements/separator-with-text';
 import { MagicLinkSignIn } from '../components/magic-link-sign-in';
 import { PredefinedMessageCard } from '../components/message-cards/predefined-message-card';
 import { OAuthButtonGroup } from '../components/oauth-button-group';
-import { useTranslation } from '../lib/translations';
 import { PasskeyButton } from '../components/passkey-button';
+import { useTranslation } from '../lib/translations';
 
-export function AuthPage(props: {
+type Props = {
   noPasswordRepeat?: boolean,
   firstTab?: 'magic-link' | 'password',
   fullPage?: boolean,
@@ -32,7 +32,37 @@ export function AuthPage(props: {
       }[],
     },
   },
-}) {
+}
+
+export function AuthPage(props: Props) {
+  return <Suspense fallback={<Fallback {...props} />}>
+    <Inner {...props} />
+  </Suspense>;
+}
+
+function Fallback(props: Props) {
+  const { t } = useTranslation();
+
+  return (
+    <MaybeFullPage fullPage={!!props.fullPage}>
+      <div className='stack-scope flex flex-col items-stretch' style={{ maxWidth: '380px', flexBasis: '380px', padding: props.fullPage ? '1rem' : 0 }}>
+        <div className="text-center mb-6 flex flex-col">
+          <Skeleton className='h-9 w-2/3 self-center' />
+
+          <Skeleton className='h-3 w-16 mt-8' />
+          <Skeleton className='h-9 w-full mt-1' />
+
+          <Skeleton className='h-3 w-24 mt-2' />
+          <Skeleton className='h-9 w-full mt-1' />
+
+          <Skeleton className='h-9 w-full mt-6' />
+        </div>
+      </div>
+    </MaybeFullPage>
+  );
+}
+
+function Inner (props: Props) {
   const stackApp = useStackApp();
   const user = useUser();
   const projectFromHook = stackApp.useProject();

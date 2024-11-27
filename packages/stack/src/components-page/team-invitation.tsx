@@ -35,7 +35,7 @@ function TeamInvitationInner(props: { fullPage?: boolean, searchParams: Record<s
       <MessageCard
         title={t('Team invitation')}
         fullPage={props.fullPage}
-        primaryButtonText="Go to home"
+        primaryButtonText="Go home"
         primaryAction={() => stackApp.redirectToHome()}
       >
         <Typography>You have successfully joined {details.data.teamDisplayName}</Typography>
@@ -98,7 +98,7 @@ export function TeamInvitation({ fullPage=false, searchParams }: { fullPage?: bo
       <MessageCard
         title={t('Team invitation')}
         fullPage={fullPage}
-        primaryButtonText={t('Go to sign in')}
+        primaryButtonText={t('Sign in')}
         primaryAction={() => stackApp.redirectToSignIn()}
         secondaryButtonText={t('Cancel')}
         secondaryAction={() => stackApp.redirectToHome()}

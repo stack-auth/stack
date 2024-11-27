@@ -8,16 +8,16 @@ import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from 
 export function redirectHandler(redirectPath: string, statusCode: 301 | 302 | 303 | 307 | 308 = 307): (req: NextRequest, options: any) => Promise<Response> {
   return createSmartRouteHandler({
     request: yupObject({
-      url: yupString().required(),
-      method: yupString().oneOf(["GET"]).required(),
+      url: yupString().defined(),
+      method: yupString().oneOf(["GET"]).defined(),
     }),
     response: yupObject({
-      statusCode: yupNumber().oneOf([statusCode]).required(),
+      statusCode: yupNumber().oneOf([statusCode]).defined(),
       headers: yupObject({
-        location: yupArray(yupString().required()),
+        location: yupArray(yupString().defined()),
       }),
-      bodyType: yupString().oneOf(["text"]).required(),
-      body: yupString().required(),
+      bodyType: yupString().oneOf(["text"]).defined(),
+      body: yupString().defined(),
     }),
     async handler(req) {
       const urlWithTrailingSlash = new URL(req.url);

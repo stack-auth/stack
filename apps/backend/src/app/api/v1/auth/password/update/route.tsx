@@ -2,9 +2,9 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
-import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/password";
+import { adaptSchema, clientOrHigherAuthTypeSchema, passwordSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { comparePassword, hashPassword } from "@stackframe/stack-shared/dist/utils/hashes";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -16,19 +16,19 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
-      user: adaptSchema.required(),
-    }).required(),
+      user: adaptSchema.defined(),
+    }).defined(),
     body: yupObject({
-      old_password: yupString().required(),
-      new_password: yupString().required(),
-    }).required(),
+      old_password: passwordSchema.defined(),
+      new_password: passwordSchema.defined(),
+    }).defined(),
     headers: yupObject({
       "x-stack-refresh-token": yupTuple([yupString().optional()]).optional(),
-    }).required(),
+    }).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async handler({ auth: { project, user }, body: { old_password, new_password }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
     if (!project.config.credential_enabled) {

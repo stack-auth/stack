@@ -1,7 +1,7 @@
 'use client';
 
 import { yupResolver } from "@hookform/resolvers/yup";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { passwordSchema, strictEmailSchema, yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Input, Label, PasswordInput, StyledLink } from "@stackframe/stack-ui";
 import { useState } from "react";
@@ -15,8 +15,8 @@ export function CredentialSignIn() {
   const { t } = useTranslation();
 
   const schema = yupObject({
-    email: yupString().email(t('Please enter a valid email')).required(t('Please enter your email')),
-    password: yupString().required(t('Please enter your password'))
+    email: strictEmailSchema(t('Please enter a valid email')).defined().nonEmpty(t('Please enter your email')),
+    password: passwordSchema.defined().nonEmpty(t('Please enter your password'))
   });
 
   const { register, handleSubmit, setError, formState: { errors } } = useForm({
@@ -59,6 +59,7 @@ export function CredentialSignIn() {
       <Label htmlFor="password" className="mt-4 mb-1">{t('Password')}</Label>
       <PasswordInput
         id="password"
+        autoComplete="current-password"
         {...register('password')}
       />
       <FormWarningText text={errors.password?.message?.toString()} />

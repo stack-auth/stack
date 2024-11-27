@@ -1,4 +1,5 @@
 import { yupResolver } from "@hookform/resolvers/yup";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, DelayedInput, Form, Label, Switch, Typography, useToast } from "@stackframe/stack-ui";
 import { Settings } from "lucide-react";
@@ -81,7 +82,7 @@ export function SettingSwitch(props: {
   );
 }
 
-export const SettingIconButton = React.forwardRef<
+export const SettingIconButton = forwardRefIfNeeded<
   HTMLButtonElement,
   React.ComponentProps<typeof Button>
 >((props, ref) => {

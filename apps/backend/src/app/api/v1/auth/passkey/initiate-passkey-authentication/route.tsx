@@ -18,15 +18,15 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
-    }).required()
+    }).defined()
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
     body: yupObject({
-      options_json: yupMixed().required(),
-      code: yupString().required(),
-    }).required(),
+      options_json: yupMixed().defined(),
+      code: yupString().defined(),
+    }).defined(),
   }),
   async handler({ auth: { project }}) {
 

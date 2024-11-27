@@ -14,20 +14,20 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: serverOrHigherAuthTypeSchema,
-      project: adaptSchema.required(),
-    }).required(),
+      project: adaptSchema.defined(),
+    }).defined(),
     body: yupObject({
-      user_id: userIdOrMeSchema.required(),
+      user_id: userIdOrMeSchema.defined(),
       expires_in_millis: yupNumber().max(1000 * 60 * 60 * 24 * 367).default(1000 * 60 * 60 * 24 * 365),
-    }).required(),
+    }).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
     body: yupObject({
-      refresh_token: yupString().required(),
-      access_token: yupString().required(),
-    }).required(),
+      refresh_token: yupString().defined(),
+      access_token: yupString().defined(),
+    }).defined(),
   }),
   async handler({ auth: { project }, body: { user_id: userId, expires_in_millis: expiresInMillis } }) {
     let user;

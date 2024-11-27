@@ -6,6 +6,19 @@ import { allProviders } from "./utils/oauth";
 import { deepPlainClone, omit } from "./utils/objects";
 import { isUuid } from "./utils/uuids";
 
+declare module "yup" {
+  interface StringSchema<TType, TContext, TDefault, TFlags> {
+    nonEmpty(message?: string): StringSchema<TType, TContext, TDefault, TFlags>,
+  }
+}
+// eslint-disable-next-line no-restricted-syntax
+yup.addMethod(yup.string, "nonEmpty", function (message?: string) {
+  return this.test("non-empty", message ?? "String must not be empty", (value) => {
+    return value !== "";
+  });
+});
+
+
 export async function yupValidate<S extends yup.ISchema<any>>(
   schema: S,
   obj: unknown,
@@ -73,32 +86,39 @@ declare const StackAdaptSentinel: unique symbol;
 export type StackAdaptSentinel = typeof StackAdaptSentinel;
 
 // Built-in replacements
-/* eslint-disable no-restricted-syntax */
 export function yupString<A extends string, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.string<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.string(...args);
 }
 export function yupNumber<A extends number, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.number<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.number(...args);
 }
 export function yupBoolean<A extends boolean, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.boolean<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.boolean(...args);
 }
 /**
  * @deprecated, use number of milliseconds since epoch instead
  */
 export function yupDate<A extends Date, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.date<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.date(...args);
 }
 export function yupMixed<A extends {}>(...args: Parameters<typeof yup.mixed<A>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.mixed(...args);
 }
 export function yupArray<A extends yup.Maybe<yup.AnyObject> = yup.AnyObject, B = any>(...args: Parameters<typeof yup.array<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.array(...args);
 }
 export function yupTuple<T extends [unknown, ...unknown[]]>(...args: Parameters<typeof yup.tuple<T>>) {
+  // eslint-disable-next-line no-restricted-syntax
   return yup.tuple<T>(...args);
 }
 export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.ObjectShape>(...args: Parameters<typeof yup.object<A, B>>) {
+  // eslint-disable-next-line no-restricted-syntax
   const object = yup.object(...args).test(
     'no-unknown-object-properties',
     ({ path }) => `${path} contains unknown properties`,
@@ -124,9 +144,8 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
   // we don't want to update the type of `object` to have a default flag
   return object.default(undefined) as any as typeof object;
 }
-/* eslint-enable no-restricted-syntax */
 
-export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.ISchema<yup.InferType<T[number]>> {
+export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.MixedSchema<yup.InferType<T[number]>> {
   if (args.length === 0) throw new Error('yupUnion must have at least one schema');
 
   const [first] = args;
@@ -136,7 +155,7 @@ export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.ISchema<
     if (desc.type !== firstDesc.type) throw new StackAssertionError(`yupUnion must have schemas of the same type (got: ${firstDesc.type} and ${desc.type})`, { first, schema, firstDesc, desc });
   }
 
-  return yupMixed().required().test('is-one-of', 'Invalid value', async (value, context) => {
+  return yupMixed().test('is-one-of', 'Invalid value', async (value, context) => {
     const errors = [];
     for (const schema of args) {
       try {
@@ -190,11 +209,22 @@ export const jsonStringOrEmptySchema = yupString().test("json", "Invalid JSON fo
     return false;
   }
 });
-export const emailSchema = yupString().email();
 export const base64Schema = yupString().test("is-base64", "Invalid base64 format", (value) => {
   if (value == null) return true;
   return isBase64(value);
 });
+export const passwordSchema = yupString().max(70);
+
+/**
+ * A stricter email schema that does some additional checks for UX input.
+ *
+ * Note that some users in the DB have an email that doesn't match this regex, so most of the time you should use
+ * `emailSchema` instead until we do the DB migration.
+ */
+// eslint-disable-next-line no-restricted-syntax
+export const strictEmailSchema = (message: string | undefined) => yupString().email(message).matches(/^.*@.*\..*$/, message);
+// eslint-disable-next-line no-restricted-syntax
+export const emailSchema = yupString().email();
 
 // Request auth
 export const clientOrHigherAuthTypeSchema = yupString().oneOf(['client', 'server', 'admin']);
@@ -224,6 +254,8 @@ export const oauthEnabledSchema = yupBoolean().meta({ openapiField: { descriptio
 export const oauthTypeSchema = yupString().oneOf(['shared', 'standard']).meta({ openapiField: { description: 'OAuth provider type, one of shared, standard. "shared" uses Stack shared OAuth keys and it is only meant for development. "standard" uses your own OAuth keys and will show your logo and company name when signing in with the provider.', exampleValue: 'standard' } });
 export const oauthClientIdSchema = yupString().meta({ openapiField: { description: 'OAuth client ID. Needs to be specified when using type="standard"', exampleValue: 'google-oauth-client-id' } });
 export const oauthClientSecretSchema = yupString().meta({ openapiField: { description: 'OAuth client secret. Needs to be specified when using type="standard"', exampleValue: 'google-oauth-client-secret' } });
+export const oauthFacebookConfigIdSchema = yupString().meta({ openapiField: { description: 'The configuration id for Facebook business login (for things like ads and marketing). This is only required if you are using the standard OAuth with Facebook and you are using Facebook business login.' } });
+export const oauthMicrosoftTenantIdSchema = yupString().meta({ openapiField: { description: 'The Microsoft tenant id for Microsoft directory. This is only required if you are using the standard OAuth with Microsoft and you have an Azure AD tenant.' } });
 // Project email config
 export const emailTypeSchema = yupString().oneOf(['shared', 'standard']).meta({ openapiField: { description: 'Email provider type, one of shared, standard. "shared" uses Stack shared email provider and it is only meant for development. "standard" uses your own email server and will have your email address as the sender.', exampleValue: 'standard' } });
 export const emailSenderNameSchema = yupString().meta({ openapiField: { description: 'Email sender name. Needs to be specified when using type="standard"', exampleValue: 'Stack' } });
@@ -231,7 +263,7 @@ export const emailHostSchema = yupString().meta({ openapiField: { description: '
 export const emailPortSchema = yupNumber().meta({ openapiField: { description: 'Email port. Needs to be specified when using type="standard"', exampleValue: 587 } });
 export const emailUsernameSchema = yupString().meta({ openapiField: { description: 'Email username. Needs to be specified when using type="standard"', exampleValue: 'smtp-email' } });
 export const emailSenderEmailSchema = emailSchema.meta({ openapiField: { description: 'Email sender email. Needs to be specified when using type="standard"', exampleValue: 'example@your-domain.com' } });
-export const emailPasswordSchema = yupString().meta({ openapiField: { description: 'Email password. Needs to be specified when using type="standard"', exampleValue: 'your-email-password' } });
+export const emailPasswordSchema = passwordSchema.meta({ openapiField: { description: 'Email password. Needs to be specified when using type="standard"', exampleValue: 'your-email-password' } });
 // Project domain config
 export const projectTrustedDomainSchema = yupString().test('is-https', 'Trusted domain must start with https://', (value) => value?.startsWith('https://')).meta({ openapiField: { description: 'Your domain URL. Make sure you own and trust this domain. Needs to start with https://', exampleValue: 'https://example.com' } });
 export const handlerPathSchema = yupString().test('is-handler-path', 'Handler path must start with /', (value) => value?.startsWith('/')).meta({ openapiField: { description: 'Handler path. If you did not setup a custom handler path, it should be "/handler" by default. It needs to start with /', exampleValue: '/handler' } });
@@ -264,29 +296,32 @@ export const userClientMetadataSchema = jsonSchema.meta({ openapiField: { descri
 export const userClientReadOnlyMetadataSchema = jsonSchema.meta({ openapiField: { description: _clientReadOnlyMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userServerMetadataSchema = jsonSchema.meta({ openapiField: { description: _serverMetaDataDescription('user'), exampleValue: { key: 'value' } } });
 export const userOAuthProviderSchema = yupObject({
-  id: yupString().required(),
-  type: yupString().oneOf(allProviders).required(),
-  provider_user_id: yupString().required(),
+  id: yupString().defined(),
+  type: yupString().oneOf(allProviders).defined(),
+  provider_user_id: yupString().defined(),
 });
 export const userLastActiveAtMillisSchema = yupNumber().nullable().meta({ openapiField: { description: _lastActiveAtMillisDescription, exampleValue: 1630000000000 } });
 export const userPasskeyAuthEnabledSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has passkeys enabled', exampleValue: false } });
 export const userOtpAuthEnabledSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled. ', exampleValue: true } });
 export const userOtpAuthEnabledMutationSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has OTP/magic link enabled. Note that only accounts with verified emails can sign-in with OTP.', exampleValue: true } });
 export const userHasPasswordSchema = yupBoolean().meta({ openapiField: { hidden: true, description: 'Whether the user has a password set. If the user does not have a password set, they will not be able to sign in with email/password.', exampleValue: true } });
-export const userPasswordMutationSchema = yupString().nullable().meta({ openapiField: { description: 'Sets the user\'s password. Doing so revokes all current sessions.', exampleValue: 'my-new-password' } });
+export const userPasswordMutationSchema = passwordSchema.nullable().meta({ openapiField: { description: 'Sets the user\'s password. Doing so revokes all current sessions.', exampleValue: 'my-new-password' } }).max(70);
+export const userPasswordHashMutationSchema = yupString()
+  .nonEmpty()
+  .meta({ openapiField: { description: 'If `password` is not given, sets the user\'s password hash to the given string in Modular Crypt Format (ex.: `$2a$10$VIhIOofSMqGdGlL4wzE//e.77dAQGqNtF/1dT7bqCrVtQuInWy2qi`). Doing so revokes all current sessions.' } });  // we don't set an exampleValue here because it's exclusive with the password field and having both would break the generated example
 export const userTotpSecretMutationSchema = base64Schema.nullable().meta({ openapiField: { description: 'Enables 2FA and sets a TOTP secret for the user. Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } });
 
 // Auth
-export const signInEmailSchema = emailSchema.meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
+export const signInEmailSchema = strictEmailSchema(undefined).meta({ openapiField: { description: 'The email to sign in with.', exampleValue: 'johndoe@example.com' } });
 export const emailOtpSignInCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct the magic link from. A query parameter `code` with the verification code will be appended to it. The page should then make a request to the `/auth/otp/sign-in` endpoint.', exampleValue: 'https://example.com/handler/magic-link-callback' } });
 export const emailVerificationCallbackUrlSchema = urlSchema.meta({ openapiField: { description: 'The base callback URL to construct a verification link for the verification e-mail. A query parameter `code` with the verification code will be appended to it. The page should then make a request to the `/contact-channels/verify` endpoint.', exampleValue: 'https://example.com/handler/email-verification' } });
 export const accessTokenResponseSchema = yupString().meta({ openapiField: { description: 'Short-lived access token that can be used to authenticate the user', exampleValue: 'eyJhmMiJB2TO...diI4QT' } });
 export const refreshTokenResponseSchema = yupString().meta({ openapiField: { description: 'Long-lived refresh token that can be used to obtain a new access token', exampleValue: 'i8ns3aq2...14y' } });
 export const signInResponseSchema = yupObject({
-  refresh_token: refreshTokenResponseSchema.required(),
-  access_token: accessTokenResponseSchema.required(),
-  is_new_user: yupBoolean().meta({ openapiField: { description: 'Whether the user is a new user', exampleValue: true } }).required(),
-  user_id: userIdSchema.required(),
+  refresh_token: refreshTokenResponseSchema.defined(),
+  access_token: accessTokenResponseSchema.defined(),
+  is_new_user: yupBoolean().meta({ openapiField: { description: 'Whether the user is a new user', exampleValue: true } }).defined(),
+  user_id: userIdSchema.defined(),
 });
 
 // Permissions
@@ -311,7 +346,7 @@ export const customTeamPermissionDefinitionIdSchema = yupString()
   .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":", "_" are allowed')
   .meta({ openapiField: { description: 'The permission ID used to uniquely identify a permission. Can only contain lowercase letters, numbers, ":", and "_" characters', exampleValue: 'read_secret_info' } });
 export const teamPermissionDescriptionSchema = yupString().meta({ openapiField: { description: 'A human-readable description of the permission', exampleValue: 'Read secret information' } });
-export const containedPermissionIdsSchema = yupArray(teamPermissionDefinitionIdSchema.required()).meta({ openapiField: { description: 'The IDs of the permissions that are contained in this permission', exampleValue: ['read_public_info'] } });
+export const containedPermissionIdsSchema = yupArray(teamPermissionDefinitionIdSchema.defined()).meta({ openapiField: { description: 'The IDs of the permissions that are contained in this permission', exampleValue: ['read_public_info'] } });
 
 // Teams
 export const teamIdSchema = yupString().uuid().meta({ openapiField: { description: _idDescription('team'), exampleValue: 'ad962777-8244-496a-b6a2-e0c6a449c79e' } });
@@ -341,14 +376,14 @@ export const contactChannelIsVerifiedSchema = yupBoolean().meta({ openapiField: 
 export const contactChannelIsPrimarySchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel is the primary contact channel. If this is set to `true`, it will be used for authentication and notifications by default.', exampleValue: true } });
 
 // Utils
-export function yupRequiredWhen<S extends yup.AnyObject>(
+export function yupDefinedWhen<S extends yup.AnyObject>(
   schema: S,
   triggerName: string,
   isValue: any
 ): S {
   return schema.when(triggerName, {
     is: isValue,
-    then: (schema: S) => schema.required(),
+    then: (schema: S) => schema.defined(),
     otherwise: (schema: S) => schema.optional()
   });
 }

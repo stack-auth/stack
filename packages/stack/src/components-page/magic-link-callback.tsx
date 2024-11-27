@@ -1,12 +1,12 @@
 'use client';
 
+import { KnownErrors } from "@stackframe/stack-shared";
+import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import React from "react";
 import { StackClientApp, useStackApp, useUser } from "..";
 import { MessageCard } from "../components/message-cards/message-card";
 import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
-import { KnownErrors } from "@stackframe/stack-shared";
-import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
-import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { useTranslation } from "../lib/translations";
 
 const cacheSignInWithMagicLink = cacheFunction(async (stackApp: StackClientApp<true>, code: string) => {
@@ -20,6 +20,7 @@ export function MagicLinkCallback(props: {
   const { t } = useTranslation();
   const stackApp = useStackApp();
   const user = useUser();
+  const [result, setResult] = React.useState<Awaited<ReturnType<typeof stackApp.signInWithMagicLink>> | null>(null);
 
   if (user) {
     return <PredefinedMessageCard type='signedIn' fullPage={!!props.fullPage} />;
@@ -47,18 +48,40 @@ export function MagicLinkCallback(props: {
     return invalidJsx;
   }
 
-  const result = React.use(cacheSignInWithMagicLink(stackApp, props.searchParams.code));
-  if (result.status === 'error') {
-    if (result.error instanceof KnownErrors.VerificationCodeNotFound) {
-      return invalidJsx;
-    } else if (result.error instanceof KnownErrors.VerificationCodeExpired) {
-      return expiredJsx;
-    } else if (result.error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
-      return alreadyUsedJsx;
-    } else {
-      throw result.error;
+  if (!result) {
+    return <MessageCard
+      title={t("Do you want to sign in?")}
+      fullPage={!!props.fullPage}
+      primaryButtonText={t("Sign in")}
+      primaryAction={async () => {
+        const result = await stackApp.signInWithMagicLink(props.searchParams?.code || throwErr("No magic link provided"));
+        setResult(result);
+      }}
+      secondaryButtonText={t("Cancel")}
+      secondaryAction={async () => {
+        await stackApp.redirectToHome();
+      }}
+    />;
+  } else {
+    if (result.status === 'error') {
+      if (result.error instanceof KnownErrors.VerificationCodeNotFound) {
+        return invalidJsx;
+      } else if (result.error instanceof KnownErrors.VerificationCodeExpired) {
+        return expiredJsx;
+      } else if (result.error instanceof KnownErrors.VerificationCodeAlreadyUsed) {
+        return alreadyUsedJsx;
+      } else {
+        throw result.error;
+      }
     }
-  }
 
-  React.use(neverResolve());
+    return <MessageCard
+      title={t("Signed in successfully!")}
+      fullPage={!!props.fullPage}
+      primaryButtonText={t("Go home")}
+      primaryAction={async () => {
+        await stackApp.redirectToHome();
+      }}
+    />;
+  }
 }

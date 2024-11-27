@@ -4,9 +4,9 @@ import { yupObject } from "../../schema-fields";
 
 
 export const teamInvitationDetailsClientReadSchema = yupObject({
-  team_id: schemaFields.teamIdSchema.required(),
-  team_display_name: schemaFields.teamDisplayNameSchema.required(),
-}).required();
+  team_id: schemaFields.teamIdSchema.defined(),
+  team_display_name: schemaFields.teamDisplayNameSchema.defined(),
+}).defined();
 
 export const teamInvitationDetailsCrud = createCrud({
   clientReadSchema: teamInvitationDetailsClientReadSchema,

@@ -1,19 +1,18 @@
 "use client";
 
 import { Typography } from "@stackframe/stack-ui";
-import { useStackApp, useUser } from "../..";
-import { MessageCard } from "./message-card";
+import { useStackApp } from "../..";
 import { useTranslation } from "../../lib/translations";
+import { MessageCard } from "./message-card";
 
 export function PredefinedMessageCard({
   type,
   fullPage=false,
 }: {
-  type: 'signedIn' | 'signedOut' | 'emailSent' | 'passwordReset' | 'emailVerified' | 'unknownError' | 'signUpDisabled',
+  type: 'signedIn' | 'signedOut' | 'emailSent' | 'passwordReset' | 'unknownError' | 'signUpDisabled',
   fullPage?: boolean,
 }) {
   const stackApp = useStackApp();
-  const user = useUser();
   const { t } = useTranslation();
 
   let title: string;
@@ -28,7 +27,7 @@ export function PredefinedMessageCard({
       title = t("You are already signed in");
       primaryAction = () => stackApp.redirectToHome();
       secondaryAction = () => stackApp.redirectToSignOut();
-      primaryButton = t("Go to home");
+      primaryButton = t("Go home");
       secondaryButton = t("Sign out");
       break;
     }
@@ -42,7 +41,7 @@ export function PredefinedMessageCard({
       title = t("Sign up for new users is not enabled at the moment.");
       primaryAction = () => stackApp.redirectToHome();
       secondaryAction = () => stackApp.redirectToSignIn();
-      primaryButton = t("Go to home");
+      primaryButton = t("Go home");
       secondaryButton = t("Sign in");
       break;
     }
@@ -50,7 +49,7 @@ export function PredefinedMessageCard({
       title = t("Email sent!");
       message = t("If the user with this e-mail address exists, an e-mail was sent to your inbox. Make sure to check your spam folder.");
       primaryAction = () => stackApp.redirectToHome();
-      primaryButton = t("Go to home");
+      primaryButton = t("Go home");
       break;
     }
     case 'passwordReset': {
@@ -60,23 +59,11 @@ export function PredefinedMessageCard({
       primaryButton = t("Sign in");
       break;
     }
-    case 'emailVerified': {
-      title = t("Email verified!");
-      message = t("Your have successfully verified your email.");
-      if (user) {
-        primaryAction = () => stackApp.redirectToSignIn({ noRedirectBack: true });
-        primaryButton = t("Sign in");
-      } else {
-        primaryAction = () => stackApp.redirectToHome();
-        primaryButton = t("Go to home");
-      }
-      break;
-    }
     case 'unknownError': {
       title = t("An unknown error occurred");
       message = t("Please try again and if the problem persists, contact support.");
       primaryAction = () => stackApp.redirectToHome();
-      primaryButton = t("Go to home");
+      primaryButton = t("Go home");
       break;
     }
   }

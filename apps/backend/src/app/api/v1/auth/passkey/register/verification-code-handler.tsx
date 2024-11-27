@@ -19,20 +19,20 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
   },
   type: VerificationCodeType.PASSKEY_REGISTRATION_CHALLENGE,
   requestBody: yupObject({
-    credential: yupMixed<RegistrationResponseJSON>().required(),
-    code: yupString().required(),
+    credential: yupMixed<RegistrationResponseJSON>().defined(),
+    code: yupString().defined(),
   }),
   data: yupObject({
-    challenge: yupString().required(),
-    userHandle: yupString().required(),
+    challenge: yupString().defined(),
+    userHandle: yupString().defined(),
   }),
   method: yupObject({
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
     body: yupObject({
-      user_handle: yupString().required(),
+      user_handle: yupString().defined(),
     }),
   }),
   async send() {

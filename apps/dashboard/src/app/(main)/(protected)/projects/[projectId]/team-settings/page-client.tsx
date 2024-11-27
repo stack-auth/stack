@@ -19,7 +19,7 @@ function CreateDialog(props: {
     project.config.teamMemberDefaultPermissions.map(x => x.id);
 
   const formSchema = yup.object({
-    permissions: yup.array().of(yup.string().required()).required().meta({
+    permissions: yup.array().of(yup.string().defined()).defined().meta({
       stackFormFieldRender: (props) => (
         <PermissionListField
           {...props}
@@ -36,7 +36,7 @@ function CreateDialog(props: {
     trigger={props.trigger}
     title={props.type === "creator" ? "Team Creator Default Permissions" : "Team Member Default Permissions"}
     formSchema={formSchema}
-    okButton={{ label: "Create" }}
+    okButton={{ label: "Save" }}
     onSubmit={async (values) => {
       if (props.type === "creator") {
         await project.update({

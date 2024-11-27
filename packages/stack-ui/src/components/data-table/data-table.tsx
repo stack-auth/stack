@@ -34,10 +34,19 @@ export function TableView<TData, TValue>(props: {
   table: TableType<TData>,
   columns: ColumnDef<TData, TValue>[],
   toolbarRender?: (table: TableType<TData>) => React.ReactNode,
+  showDefaultToolbar?: boolean,
+  defaultColumnFilters: ColumnFiltersState,
+  defaultSorting: SortingState,
 }) {
   return (
     <div className="space-y-4">
-      <DataTableToolbar table={props.table} toolbarRender={props.toolbarRender} />
+      <DataTableToolbar
+        table={props.table}
+        toolbarRender={props.toolbarRender}
+        showDefaultToolbar={props.showDefaultToolbar}
+        defaultColumnFilters={props.defaultColumnFilters}
+        defaultSorting={props.defaultSorting}
+      />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -98,6 +107,9 @@ type DataTableProps<TData, TValue> = {
   data: TData[],
   toolbarRender?: (table: TableType<TData>) => React.ReactNode,
   defaultVisibility?: VisibilityState,
+  defaultColumnFilters: ColumnFiltersState,
+  defaultSorting: SortingState,
+  showDefaultToolbar?: boolean,
 }
 
 export function DataTable<TData, TValue>({
@@ -105,34 +117,113 @@ export function DataTable<TData, TValue>({
   data,
   toolbarRender,
   defaultVisibility,
+  defaultColumnFilters,
+  defaultSorting,
+  showDefaultToolbar = true,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>(defaultSorting);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(defaultColumnFilters);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
   const [globalFilter, setGlobalFilter] = React.useState<any>();
 
-  return <DataTableManual
+  return <DataTableBase
     columns={columns}
     data={data}
     toolbarRender={toolbarRender}
     defaultVisibility={defaultVisibility}
     sorting={sorting}
     setSorting={setSorting}
+    defaultSorting={defaultSorting}
     columnFilters={columnFilters}
     setColumnFilters={setColumnFilters}
+    defaultColumnFilters={defaultColumnFilters}
     manualPagination={false}
     manualFiltering={false}
     pagination={pagination}
     setPagination={setPagination}
     globalFilter={globalFilter}
     setGlobalFilter={setGlobalFilter}
+    showDefaultToolbar={showDefaultToolbar}
   />;
 }
 
-type DataTableServerProps<TData, TValue> = DataTableProps<TData, TValue> & {
+type DataTableManualPaginationProps<TData, TValue> = DataTableProps<TData, TValue> & {
+  onUpdate: (options: {
+    cursor: string,
+    limit: number,
+    sorting: SortingState,
+    columnFilters: ColumnFiltersState,
+    globalFilters: any,
+  }) => Promise<{ nextCursor: string | null }>,
+}
+
+export function DataTableManualPagination<TData, TValue>({
+  columns,
+  data,
+  toolbarRender,
+  defaultVisibility,
+  defaultColumnFilters,
+  defaultSorting,
+  onUpdate,
+  showDefaultToolbar = true,
+}: DataTableManualPaginationProps<TData, TValue>) {
+  const [sorting, setSorting] = React.useState<SortingState>(defaultSorting);
+  const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 });
+  const [cursors, setCursors] = React.useState<Record<number, string>>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(defaultColumnFilters);
+  const [globalFilter, setGlobalFilter] = React.useState<any>();
+  const [refreshCounter, setRefreshCounter] = React.useState(0);
+
+  React.useEffect(() => {
+    onUpdate({
+      cursor: cursors[pagination.pageIndex],
+      limit: pagination.pageSize,
+      sorting,
+      columnFilters,
+      globalFilters: globalFilter,
+    }).then(({ nextCursor }) => {
+      setCursors(c => nextCursor ? { ...c, [pagination.pageIndex + 1]: nextCursor } : c);
+    }).catch(console.error);
+  }, [pagination, sorting, columnFilters, refreshCounter]);
+
+  // Reset to first page when filters change
+  React.useEffect(() => {
+    setPagination(pagination => ({ ...pagination, pageIndex: 0 }));
+    setCursors({});
+  }, [columnFilters, sorting, pagination.pageSize]);
+
+  // Refresh the users when the global filter changes. Delay to prevent unnecessary re-renders.
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setRefreshCounter(x => x + 1);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [globalFilter]);
+
+  return <DataTableBase
+    columns={columns}
+    data={data}
+    toolbarRender={toolbarRender}
+    sorting={sorting}
+    setSorting={setSorting}
+    pagination={pagination}
+    setPagination={setPagination}
+    columnFilters={columnFilters}
+    setColumnFilters={setColumnFilters}
+    rowCount={pagination.pageSize * Object.keys(cursors).length + (cursors[pagination.pageIndex + 1] ? 1 : 0)}
+    globalFilter={globalFilter}
+    setGlobalFilter={setGlobalFilter}
+    defaultColumnFilters={defaultColumnFilters}
+    defaultSorting={defaultSorting}
+    defaultVisibility={defaultVisibility}
+    showDefaultToolbar={showDefaultToolbar}
+  />;
+}
+
+type DataTableBaseProps<TData, TValue> = DataTableProps<TData, TValue> & {
   sorting?: SortingState,
   setSorting?: OnChangeFn<SortingState>,
   pagination?: PaginationState,
@@ -146,13 +237,15 @@ type DataTableServerProps<TData, TValue> = DataTableProps<TData, TValue> & {
   setGlobalFilter?: OnChangeFn<any>,
 }
 
-export function DataTableManual<TData, TValue>({
+function DataTableBase<TData, TValue>({
   columns,
   data,
   toolbarRender,
   defaultVisibility,
   sorting,
   setSorting,
+  defaultColumnFilters,
+  defaultSorting,
   pagination,
   setPagination,
   rowCount,
@@ -162,7 +255,8 @@ export function DataTableManual<TData, TValue>({
   setGlobalFilter,
   manualPagination = true,
   manualFiltering = true,
-}: DataTableServerProps<TData, TValue>) {
+  showDefaultToolbar = true,
+}: DataTableBaseProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(defaultVisibility || {});
 
@@ -197,5 +291,12 @@ export function DataTableManual<TData, TValue>({
     rowCount,
   });
 
-  return <TableView table={table} columns={columns} toolbarRender={toolbarRender} />;
+  return <TableView
+    table={table}
+    columns={columns}
+    toolbarRender={toolbarRender}
+    showDefaultToolbar={showDefaultToolbar}
+    defaultColumnFilters={defaultColumnFilters}
+    defaultSorting={defaultSorting}
+  />;
 }

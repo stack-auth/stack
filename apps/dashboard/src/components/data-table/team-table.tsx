@@ -121,5 +121,11 @@ const columns: ColumnDef<ServerTeam>[] =  [
 ];
 
 export function TeamTable(props: { teams: ServerTeam[] }) {
-  return <DataTable data={props.teams} columns={columns} toolbarRender={toolbarRender} />;
+  return <DataTable
+    data={props.teams}
+    columns={columns}
+    toolbarRender={toolbarRender}
+    defaultColumnFilters={[]}
+    defaultSorting={[{ id: 'createdAt', desc: true }]}
+  />;
 }

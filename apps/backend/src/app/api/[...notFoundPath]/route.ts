@@ -4,12 +4,12 @@ import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 
 const handler = createSmartRouteHandler({
   request: yupObject({
-    url: yupString().required(),
+    url: yupString().defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([404]).required(),
-    bodyType: yupString().oneOf(["text"]).required(),
-    body: yupString().required(),
+    statusCode: yupNumber().oneOf([404]).defined(),
+    bodyType: yupString().oneOf(["text"]).defined(),
+    body: yupString().defined(),
   }),
   handler: async (req, fullReq) => {
     return {

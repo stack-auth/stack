@@ -9,17 +9,20 @@
   "cSpell.words": [
     "cjsx",
     "clsx",
+    "cmdk",
     "codegen",
     "Crudl",
     "ctsx",
     "deindent",
     "Falsey",
     "frontends",
+    "geoip",
     "hookform",
     "hostable",
     "INBUCKET",
     "Jwks",
     "JWTs",
+    "katex",
     "lucide",
     "Luma",
     "midfix",
@@ -39,18 +42,22 @@
     "pageleave",
     "pageview",
     "pkcco",
+    "PKCE",
     "posthog",
     "Proxied",
     "psql",
     "qrcode",
     "quetzallabs",
+    "rehype",
     "reqs",
     "RPID",
     "simplewebauthn",
+    "spoofable",
     "stackframe",
     "supabase",
     "Svix",
     "tailwindcss",
+    "tanstack",
     "totp",
     "tsup",
     "typecheck",
@@ -60,15 +67,12 @@
     "webapi",
     "webauthn",
     "Whitespaces",
-    "wolfgunblood"
+    "wolfgunblood",
+    "zustand"
   ],
-  "[typescript]": {
-      "editor.codeActionsOnSave": {
-          "source.organizeImports": "explicit"
-      }
-  },
   "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit"
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
   },
   "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|",
   "editor.formatOnSave": false,

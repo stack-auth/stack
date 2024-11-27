@@ -10,6 +10,7 @@ import {
 import { ContactChannelsCrud } from "./crud/contact-channels";
 import { CurrentUserCrud } from "./crud/current-user";
 import { ConnectedAccountAccessTokenCrud } from "./crud/oauth";
+import { TeamInvitationCrud } from "./crud/team-invitation";
 import { TeamMemberProfilesCrud } from "./crud/team-member-profiles";
 import { TeamMembershipsCrud } from "./crud/team-memberships";
 import { TeamPermissionsCrud } from "./crud/team-permissions";
@@ -118,6 +119,26 @@ export class StackServerInterface extends StackClientInterface {
     const user: CurrentUserCrud['Server']['Read'] | null = await response.json();
     if (!user) return Result.error(new Error("Failed to get user"));
     return Result.ok(user);
+  }
+
+  async listServerTeamInvitations(options: {
+    teamId: string,
+  }): Promise<TeamInvitationCrud['Server']['Read'][]> {
+    const response = await this.sendServerRequest(
+      "/team-invitations?team_id=" + options.teamId,
+      {},
+      null,
+    );
+    const result = await response.json() as TeamInvitationCrud['Server']['List'];
+    return result.items;
+  }
+
+  async revokeServerTeamInvitation(invitationId: string, teamId: string) {
+    await this.sendServerRequest(
+      `/team-invitations/${invitationId}?team_id=${teamId}`,
+      { method: "DELETE" },
+      null,
+    );
   }
 
   async listServerTeamMemberProfiles(
@@ -362,6 +383,24 @@ export class StackServerInterface extends StackClientInterface {
     );
   }
 
+  async updateServerTeamMemberProfile(options: {
+    teamId: string,
+    userId: string,
+    profile: TeamMemberProfilesCrud['Server']['Update'],
+  }) {
+    await this.sendServerRequest(
+      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(options.profile),
+      },
+      null,
+    );
+  }
+
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {
     await this.sendServerRequest(
       `/team-permissions/${teamId}/${userId}/${permissionId}`,
@@ -480,6 +519,28 @@ export class StackServerInterface extends StackClientInterface {
           "content-type": "application/json",
         },
         body: JSON.stringify({ callback_url: callbackUrl }),
+      },
+      null,
+    );
+  }
+
+  async sendServerTeamInvitation(options: {
+    email: string,
+    teamId: string,
+    callbackUrl: string,
+  }): Promise<void> {
+    await this.sendServerRequest(
+      "/team-invitations/send-code",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: options.email,
+          team_id: options.teamId,
+          callback_url: options.callbackUrl,
+        }),
       },
       null,
     );

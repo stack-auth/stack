@@ -1,35 +1,50 @@
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 
 import { cn } from "../../lib/utils";
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  prefixItem?: React.ReactNode,
+}
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => {
-    return (
-      <input
-        type={type}
-        className={cn(
-          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
-          className
-        )}
-        ref={ref}
-        {...props}
-      />
-    );
+export const Input = forwardRefIfNeeded<HTMLInputElement, InputProps>(
+  ({ className, type, prefixItem, ...props }, ref) => {
+    const baseClasses =  "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+
+    if (prefixItem) {
+      return (
+        <div className="flex flex-row items-center">
+          <div className={'flex self-stretch justify-center items-center text-muted-foreground pl-3 select-none bg-muted/70 pr-3 border-r border-input rounded-l-md'}>
+            {prefixItem}
+          </div>
+          <input
+            type={type}
+            className={cn(baseClasses, 'rounded-l-none', className)}
+            ref={ref}
+            {...props}
+          />
+        </div>
+      );
+    } else {
+      return (
+        <input
+          type={type}
+          className={cn(baseClasses, className)}
+          ref={ref}
+          {...props}
+        />
+      );
+    }
   }
 );
 Input.displayName = "Input";
-
-export { Input };
 
 
 export interface DelayedInputProps extends InputProps {
   delay?: number,
 }
 
-export const DelayedInput = React.forwardRef<HTMLInputElement, DelayedInputProps>(
+export const DelayedInput = forwardRefIfNeeded<HTMLInputElement, DelayedInputProps>(
   ({ delay = 500, defaultValue, ...props }, ref) => {
     const [value, setValue] = React.useState(defaultValue ?? "");
 

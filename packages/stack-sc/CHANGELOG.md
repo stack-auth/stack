@@ -1,5 +1,63 @@
 # @stackframe/stack-sc
 
+## 2.6.29
+
+## 2.6.28
+
+## 2.6.27
+
+## 2.6.26
+
+### Patch Changes
+
+- Various bugfixes
+
+## 2.6.25
+
+## 2.6.24
+
+## 2.6.23
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.22
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.21
+
+### Patch Changes
+
+- Fixed inviteUser
+
+## 2.6.20
+
+### Patch Changes
+
+- Next.js 15 fixes
+
+## 2.6.19
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.18
+
+### Patch Changes
+
+- fixed user update bug
+
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+
 ## 2.6.16
 
 ## 2.6.15

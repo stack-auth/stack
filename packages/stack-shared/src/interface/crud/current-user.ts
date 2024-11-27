@@ -11,7 +11,7 @@ const clientUpdateSchema = usersCrudServerUpdateSchema.pick([
   "totp_secret_base64",
   "otp_auth_enabled",
   "passkey_auth_enabled",
-]).required();
+]).defined();
 
 const serverUpdateSchema = usersCrudServerUpdateSchema;
 

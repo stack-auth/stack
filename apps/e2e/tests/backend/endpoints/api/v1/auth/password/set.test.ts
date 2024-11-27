@@ -107,8 +107,8 @@ it("should not update password when not logged in", async ({ expect }) => {
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on POST /api/v1/auth/password/set:\\n  - auth.user is a required field" },
-        "error": "Request validation failed on POST /api/v1/auth/password/set:\\n  - auth.user is a required field",
+        "details": { "message": "Request validation failed on POST /api/v1/auth/password/set:\\n  - auth.user must be defined" },
+        "error": "Request validation failed on POST /api/v1/auth/password/set:\\n  - auth.user must be defined",
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",

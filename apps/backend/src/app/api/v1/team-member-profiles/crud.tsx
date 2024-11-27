@@ -27,8 +27,8 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
     team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: ['List'] }}),
   }),
   paramsSchema: yupObject({
-    team_id: yupString().uuid().required(),
-    user_id: userIdOrMeSchema.required(),
+    team_id: yupString().uuid().defined(),
+    user_id: userIdOrMeSchema.defined(),
   }),
   onList: async ({ auth, query }) => {
     return await prismaClient.$transaction(async (tx) => {

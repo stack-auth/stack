@@ -3,19 +3,19 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
 import { useAsyncCallback } from '@stackframe/stack-shared/dist/hooks/use-async-callback';
-import { yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
+import { passwordSchema as schemaFieldsPasswordSchema, strictEmailSchema, yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, Badge, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck } from 'lucide-react';
+import { CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck, Trash } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
 import React, { useEffect, useState } from "react";
 import { useForm } from 'react-hook-form';
 import * as yup from "yup";
-import { CurrentUser, MessageCard, Project, Team, useStackApp, useUser } from '..';
+import { CurrentUser, MessageCard, Project, Team, TeamInvitation, useStackApp, useUser } from '..';
 import { FormWarningText } from '../components/elements/form-warning';
 import { MaybeFullPage } from "../components/elements/maybe-full-page";
 import { SidebarLayout } from '../components/elements/sidebar-layout';
@@ -190,10 +190,10 @@ function EmailsSection() {
   }, [contactChannels, addedEmail]);
 
   const emailSchema = yupObject({
-    email: yupString()
-      .email(t('Please enter a valid email address'))
+    email: strictEmailSchema(t('Please enter a valid email address'))
       .notOneOf(contactChannels.map(x => x.value), t('Email already exists'))
-      .required(t('Email is required')),
+      .defined()
+      .nonEmpty(t('Email is required')),
   });
 
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
@@ -379,7 +379,7 @@ function usePasskeySection() {
       <Section title={t("Passkey")} description={hasPasskey ? t("Passkey registered") : t("Register a passkey")}>
         <div className='flex md:justify-end gap-2'>
           {!hasValidEmail && (
-            <Typography variant='secondary' type='label'>{t("To enable Passkey sign-in, please add a verified email and set it as your sign-in email.")}</Typography>
+            <Typography variant='secondary' type='label'>{t("To enable Passkey sign-in, please add a verified sign-in email.")}</Typography>
           )}
           {hasValidEmail && hasPasskey && isLastAuth && (
             <Typography variant='secondary' type='label'>{t("Passkey sign-in is enabled and cannot be disabled as it is currently the only sign-in method")}</Typography>
@@ -496,7 +496,7 @@ function useOtpSection() {
             </Button>
           )
         ) : (
-          <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified email and set it as your sign-in email.")}</Typography>
+          <Typography variant='secondary' type='label'>{t("To enable OTP sign-in, please add a verified sign-in email.")}</Typography>
         )}
       </div>
     </Section>
@@ -523,8 +523,8 @@ function usePasswordSection() {
   const [loading, setLoading] = useState(false);
 
   const passwordSchema = yupObject({
-    oldPassword: user.hasPassword ? yupString().required(t('Please enter your old password')) : yupString(),
-    newPassword: yupString().required(t('Please enter your password')).test({
+    oldPassword: user.hasPassword ? schemaFieldsPasswordSchema.defined().nonEmpty(t('Please enter your old password')) : yupString(),
+    newPassword: schemaFieldsPasswordSchema.defined().nonEmpty(t('Please enter your password')).test({
       name: 'is-valid-password',
       test: (value, ctx) => {
         const error = getPasswordError(value);
@@ -535,7 +535,7 @@ function usePasswordSection() {
         }
       }
     }),
-    newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], t('Passwords do not match')).required(t('Please repeat your password'))
+    newPasswordRepeat: yupString().nullable().oneOf([yup.ref('newPassword'), "", null], t('Passwords do not match')).defined().nonEmpty(t('Please repeat your password'))
   });
 
   const { register, handleSubmit, setError, formState: { errors }, clearErrors, reset } = useForm({
@@ -543,7 +543,7 @@ function usePasswordSection() {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  const hasValidEmail = contactChannels.filter(x => x.type === 'email' && x.isVerified && x.usedForAuth).length > 0;
+  const hasValidEmail = contactChannels.filter(x => x.type === 'email' && x.usedForAuth).length > 0;
 
   const onSubmit = async (data: yup.InferType<typeof passwordSchema>) => {
     setLoading(true);
@@ -581,7 +581,7 @@ function usePasswordSection() {
               {user.hasPassword ? t("Update password") : t("Set password")}
             </Button>
           ) : (
-            <Typography variant='secondary' type='label'>{t("To set a password, please add a verified email and set it as your sign-in email.")}</Typography>
+            <Typography variant='secondary' type='label'>{t("To set a password, please add a sign-in email.")}</Typography>
           )
         ) : (
           <form
@@ -594,6 +594,7 @@ function usePasswordSection() {
                 <Input
                   id="old-password"
                   type="password"
+                  autoComplete="current-password"
                   {...register("oldPassword")}
                 />
                 <FormWarningText text={errors.oldPassword?.message?.toString()} />
@@ -603,6 +604,7 @@ function usePasswordSection() {
             <Label htmlFor="new-password" className="mt-4 mb-1">{t("New password")}</Label>
             <PasswordInput
               id="new-password"
+              autoComplete="new-password"
               {...registerPassword}
               onChange={(e) => {
                 clearErrors('newPassword');
@@ -615,6 +617,7 @@ function usePasswordSection() {
             <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat new password")}</Label>
             <PasswordInput
               id="repeat-password"
+              autoComplete="new-password"
               {...registerPasswordRepeat}
               onChange={(e) => {
                 clearErrors('newPassword');
@@ -781,8 +784,8 @@ function TeamPage(props: { team: Team }) {
   return (
     <PageLayout>
       {teamUserProfileSection}
-      {memberInvitationSection}
       {memberListSection}
+      {memberInvitationSection}
       {teamProfileImageSection}
       {teamDisplayNameSection}
       {leaveTeamSection}
@@ -907,14 +910,21 @@ function useMemberInvitationSection(props: { team: Team }) {
   const { t } = useTranslation();
 
   const invitationSchema = yupObject({
-    email: yupString().email().required(t('Please enter an email address')),
+    email: strictEmailSchema(t('Please enter a valid email address')).defined().nonEmpty(t('Please enter an email address')),
   });
 
   const user = useUser({ or: 'redirect' });
   const inviteMemberPermission = user.usePermission(props.team, '$invite_members');
+  const readMemberPermission = user.usePermission(props.team, '$read_members');
+  const removeMemberPermission = user.usePermission(props.team, '$remove_members');
 
   if (!inviteMemberPermission) {
     return null;
+  }
+
+  let invitationsToShow: TeamInvitation[] = [];
+  if (readMemberPermission) {
+    invitationsToShow = props.team.useInvitations();
   }
 
   const { register, handleSubmit, formState: { errors }, watch } = useForm({
@@ -939,26 +949,60 @@ function useMemberInvitationSection(props: { team: Team }) {
   }, [watch('email')]);
 
   return (
-    <Section
-      title={t("Invite member")}
-      description={t("Invite a user to your team through email")}
-    >
-      <form
-        onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
-        noValidate
-        className='w-full'
+    <div>
+      <Section
+        title={t("Invite member")}
+        description={t("Invite a user to your team through email")}
       >
-        <div className="flex flex-col gap-4 sm:flex-row w-full">
-          <Input
-            placeholder={t("Email")}
-            {...register("email")}
-          />
-          <Button type="submit" loading={loading}>{t("Invite User")}</Button>
-        </div>
-        <FormWarningText text={errors.email?.message?.toString()} />
-        {invitedEmail && <Typography type='label' variant='secondary'>Invited {invitedEmail}</Typography>}
-      </form>
-    </Section>
+        <form
+          onSubmit={e => runAsynchronouslyWithAlert(handleSubmit(onSubmit)(e))}
+          noValidate
+          className='w-full'
+        >
+          <div className="flex flex-col gap-4 sm:flex-row w-full">
+            <Input
+              placeholder={t("Email")}
+              {...register("email")}
+            />
+            <Button type="submit" loading={loading}>{t("Invite User")}</Button>
+          </div>
+          <FormWarningText text={errors.email?.message?.toString()} />
+          {invitedEmail && <Typography type='label' variant='secondary'>Invited {invitedEmail}</Typography>}
+        </form>
+      </Section>
+      {invitationsToShow.length > 0 && (
+        <>
+          <Table className='mt-6'>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">{t("Outstanding invitations")}</TableHead>
+                <TableHead className="w-[60px]">{t("Expires")}</TableHead>
+                <TableHead className="w-[36px] max-w-[36px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invitationsToShow.map((invitation, i) => (
+                <TableRow key={invitation.id}>
+                  <TableCell>
+                    <Typography>{invitation.recipientEmail}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant='secondary'>{invitation.expiresAt.toLocaleString()}</Typography>
+                  </TableCell>
+                  <TableCell align='right' className='max-w-[36px]'>
+                    {removeMemberPermission && (
+                      <Button onClick={async () => await invitation.revoke()} size='icon' variant='ghost'>
+                        <Trash className="w-4 h-4"/>
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
+      )}
+    </div>
   );
 }
 
@@ -1012,7 +1056,7 @@ export function TeamCreation() {
   const { t } = useTranslation();
 
   const teamCreationSchema = yupObject({
-    displayName: yupString().required(t("Please enter a team name")),
+    displayName: yupString().defined().nonEmpty(t("Please enter a team name")),
   });
 
   const { register, handleSubmit, formState: { errors } } = useForm({

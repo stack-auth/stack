@@ -10,11 +10,12 @@ import {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
+  Skeleton,
   Typography
 } from "@stackframe/stack-ui";
 import { PlusCircle, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import { Team, useStackApp, useUser } from "..";
 import { useTranslation } from "../lib/translations";
 import { TeamIcon } from "./team-icon";
@@ -26,6 +27,16 @@ type SelectedTeamSwitcherProps = {
 };
 
 export function SelectedTeamSwitcher(props: SelectedTeamSwitcherProps) {
+  return <Suspense fallback={<Fallback />}>
+    <Inner {...props} />
+  </Suspense>;
+}
+
+function Fallback() {
+  return <Skeleton className="h-9 w-full max-w-64 stack-scope" />;
+}
+
+function Inner(props: SelectedTeamSwitcherProps) {
   const { t } = useTranslation();
   const app = useStackApp();
   const user = useUser();

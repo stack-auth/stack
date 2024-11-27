@@ -2,12 +2,12 @@ import { CrudTypeOf, createCrud } from "../../crud";
 import { yupObject, yupString } from "../../schema-fields";
 
 export const connectedAccountAccessTokenReadSchema = yupObject({
-  access_token: yupString().required(),
-}).required();
+  access_token: yupString().defined(),
+}).defined();
 
 export const connectedAccountAccessTokenCreateSchema = yupObject({
   scope: yupString().optional(),
-}).required();
+}).defined();
 
 export const connectedAccountAccessTokenCrud = createCrud({
   clientReadSchema: connectedAccountAccessTokenReadSchema,

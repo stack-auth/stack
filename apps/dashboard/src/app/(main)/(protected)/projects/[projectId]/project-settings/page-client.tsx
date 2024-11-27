@@ -8,7 +8,7 @@ import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
 
 const projectInformationSchema = yup.object().shape({
-  displayName: yup.string().required(),
+  displayName: yup.string().defined(),
   description: yup.string(),
 });
 

@@ -4,7 +4,7 @@ import { VerificationCodeType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { emailSchema, passwordSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { usersCrudHandlers } from "../../../users/crud";
 
 export const resetPasswordVerificationCodeHandler = createVerificationCodeHandler({
@@ -22,17 +22,17 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
   },
   type: VerificationCodeType.PASSWORD_RESET,
   data: yupObject({
-    user_id: yupString().required(),
+    user_id: yupString().defined(),
   }),
   method: yupObject({
-    email: yupString().email().required(),
+    email: emailSchema.defined(),
   }),
   requestBody: yupObject({
-    password: yupString().required(),
-  }).required(),
+    password: passwordSchema.defined(),
+  }).defined(),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
     await sendEmailFromTemplate({

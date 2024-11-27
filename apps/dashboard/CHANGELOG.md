@@ -1,5 +1,148 @@
 # @stackframe/stack-dashboard
 
+## 2.6.29
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.29
+  - @stackframe/stack-ui@2.6.29
+  - @stackframe/stack@2.6.29
+  - @stackframe/stack-emails@2.6.29
+
+## 2.6.28
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.28
+  - @stackframe/stack@2.6.28
+  - @stackframe/stack-emails@2.6.28
+  - @stackframe/stack-ui@2.6.28
+
+## 2.6.27
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.27
+  - @stackframe/stack@2.6.27
+  - @stackframe/stack-emails@2.6.27
+  - @stackframe/stack-ui@2.6.27
+
+## 2.6.26
+
+### Patch Changes
+
+- Various bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.6.26
+  - @stackframe/stack-emails@2.6.26
+  - @stackframe/stack-shared@2.6.26
+  - @stackframe/stack-ui@2.6.26
+
+## 2.6.25
+
+### Patch Changes
+
+- Translation overrides
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.25
+  - @stackframe/stack@2.6.25
+  - @stackframe/stack-emails@2.6.25
+  - @stackframe/stack-ui@2.6.25
+
+## 2.6.24
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.24
+  - @stackframe/stack-ui@2.6.24
+  - @stackframe/stack@2.6.24
+  - @stackframe/stack-emails@2.6.24
+
+## 2.6.23
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.23
+  - @stackframe/stack-shared@2.6.23
+  - @stackframe/stack-ui@2.6.23
+  - @stackframe/stack@2.6.23
+
+## 2.6.22
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.22
+  - @stackframe/stack-shared@2.6.22
+  - @stackframe/stack-ui@2.6.22
+  - @stackframe/stack@2.6.22
+
+## 2.6.21
+
+### Patch Changes
+
+- Fixed inviteUser
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.21
+  - @stackframe/stack-shared@2.6.21
+  - @stackframe/stack-ui@2.6.21
+  - @stackframe/stack@2.6.21
+
+## 2.6.20
+
+### Patch Changes
+
+- Next.js 15 fixes
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.20
+  - @stackframe/stack-shared@2.6.20
+  - @stackframe/stack-ui@2.6.20
+  - @stackframe/stack@2.6.20
+
+## 2.6.19
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.19
+  - @stackframe/stack-shared@2.6.19
+  - @stackframe/stack-ui@2.6.19
+  - @stackframe/stack@2.6.19
+
+## 2.6.18
+
+### Patch Changes
+
+- fixed user update bug
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.18
+  - @stackframe/stack-shared@2.6.18
+  - @stackframe/stack-ui@2.6.18
+  - @stackframe/stack@2.6.18
+
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+- Updated dependencies
+  - @stackframe/stack-emails@2.6.17
+  - @stackframe/stack-shared@2.6.17
+  - @stackframe/stack-ui@2.6.17
+  - @stackframe/stack@2.6.17
+
 ## 2.6.16
 
 ### Patch Changes

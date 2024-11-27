@@ -31,13 +31,7 @@ type UserButtonProps = {
 
 export function UserButton(props: UserButtonProps) {
   return (
-    <Suspense
-      fallback={
-        <Skeleton>
-          <UserButtonInnerInner {...props} user={null} />
-        </Skeleton>
-      }
-    >
+    <Suspense fallback={<Skeleton className="h-[34px] w-[34px] rounded-full stack-scope" />}>
       <UserButtonInner {...props} />
     </Suspense>
   );

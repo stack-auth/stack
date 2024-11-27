@@ -1,8 +1,8 @@
 'use client';
 
-import { Alert, Button, Checkbox, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label } from '..';
 import { CircleAlert, Info, LucideIcon } from "lucide-react";
-import React, { useId } from "react";
+import React, { Suspense, useId } from "react";
+import { Alert, Button, Checkbox, Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, Label, Skeleton } from '..';
 
 export type ActionDialogProps = {
   trigger?: React.ReactNode,
@@ -25,6 +25,7 @@ export type ActionDialogProps = {
   }>,
   confirmText?: string,
   children?: React.ReactNode,
+  preventClose?: boolean,
 };
 
 export function ActionDialog(props: ActionDialogProps) {
@@ -56,7 +57,10 @@ export function ActionDialog(props: ActionDialogProps) {
         {props.trigger}
       </DialogTrigger>}
 
-      <DialogContent>
+      <DialogContent
+        onInteractOutside={props.preventClose ? (e) => e.preventDefault() : undefined}
+        className={props.preventClose ? "[&>button]:hidden" : ""}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <TitleIcon className="h-4 w-4 mr-2"/>
@@ -69,7 +73,21 @@ export function ActionDialog(props: ActionDialogProps) {
 
         <DialogBody className="pb-2">
           <div>
-            {props.children}
+            <Suspense fallback={
+              <>
+                <Skeleton className='h-9 w-2/3 self-center' />
+
+                <Skeleton className='h-3 w-16 mt-8' />
+                <Skeleton className='h-9 w-full mt-1' />
+
+                <Skeleton className='h-3 w-24 mt-2' />
+                <Skeleton className='h-9 w-full mt-1' />
+
+                <Skeleton className='h-9 w-full mt-6' />
+              </>
+            }>
+              {props.children}
+            </Suspense>
           </div>
 
           {props.confirmText && <Alert>

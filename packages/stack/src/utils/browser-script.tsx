@@ -2,7 +2,6 @@
 
 import { SsrScript } from "../components/elements/ssr-layout-effect";
 
-// Also please note that there might be hydration issues with this script, always check the browser console for errors after changing this script.
 const script = () => {
   const attributes = ['data-joy-color-scheme', 'data-mui-color-scheme', 'data-theme', 'data-color-scheme', 'class'];
 
@@ -17,7 +16,14 @@ const script = () => {
   };
 
   const setTheme = (mode: 'dark' | 'light') => {
-    document.documentElement.setAttribute('data-stack-theme', mode);
+    let el = document.getElementById(`--stack-theme-mode`);
+    if (!el) {
+      el = document.createElement("style");
+      el.id = `--stack-theme-mode`;
+      el.innerHTML = `/* This tag is used by Stack Auth to set the theme in the browser without causing a hydration error (since React ignores additional tags in the <head>). We later use the \`html:has(head > [data-stack-theme=XYZ])\` selector to apply styles based on the theme. */`;
+      document.head.appendChild(el);
+    }
+    el.setAttribute("data-stack-theme", mode);
   };
 
   const colorToRGB = (color: string): [number, number, number] | null => {

@@ -22,11 +22,11 @@ const disableSignUpByDefault = new Set([
 
 export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHandlers(internalProjectsCrud, {
   paramsSchema: yupObject({
-    projectId: projectIdSchema.required(),
+    projectId: projectIdSchema.defined(),
   }),
   onPrepare: async ({ auth }) => {
     if (!auth.user) {
-      throw new KnownErrors.UserAuthenticationRequired();
+      throw new KnownErrors.UserAuthenticationRequired;
     }
     if (auth.project.id !== "internal") {
       throw new KnownErrors.ExpectedInternalProject();

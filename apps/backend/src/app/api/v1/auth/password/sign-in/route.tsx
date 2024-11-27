@@ -1,12 +1,12 @@
+import { getAuthContactChannel } from "@/lib/contact-channel";
 import { createAuthTokens } from "@/lib/tokens";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, clientOrHigherAuthTypeSchema, emailSchema, passwordSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { comparePassword } from "@stackframe/stack-shared/dist/utils/password";
+import { comparePassword } from "@stackframe/stack-shared/dist/utils/hashes";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
-import { getAuthContactChannel } from "@/lib/contact-channel";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -18,20 +18,20 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
-    }).required(),
+    }).defined(),
     body: yupObject({
-      email: yupString().email().required(),
-      password: yupString().required(),
-    }).required(),
+      email: emailSchema.defined(),
+      password: passwordSchema.defined(),
+    }).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
     body: yupObject({
-      access_token: yupString().required(),
-      refresh_token: yupString().required(),
-      user_id: yupString().required(),
-    }).required(),
+      access_token: yupString().defined(),
+      refresh_token: yupString().defined(),
+      user_id: yupString().defined(),
+    }).defined(),
   }),
   async handler({ auth: { project }, body: { email, password } }, fullReq) {
     if (!project.config.credential_enabled) {

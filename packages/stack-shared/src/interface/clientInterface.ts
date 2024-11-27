@@ -15,6 +15,7 @@ import { ContactChannelsCrud } from './crud/contact-channels';
 import { CurrentUserCrud } from './crud/current-user';
 import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
+import { TeamInvitationCrud } from './crud/team-invitation';
 import { TeamMemberProfilesCrud } from './crud/team-member-profiles';
 import { TeamPermissionsCrud } from './crud/team-permissions';
 import { TeamsCrud } from './crud/teams';
@@ -104,9 +105,9 @@ export class StackClientInterface {
         throw new Error("Failed to send Stack network request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
       }
       throw new Error(deindent`
-        Stack is unable to connect to the server. Please check your internet connection and try again.
+        Stack Auth is unable to connect to the server. Please check your internet connection and try again.
         
-        If the problem persists, please contact Stack support and provide a screenshot of your entire browser console.
+        If the problem persists, please contact support and provide a screenshot of your entire browser console.
 
         ${retriedResult.error}
         
@@ -244,7 +245,7 @@ export class StackClientInterface {
     let adminTokenObj = adminSession ? await adminSession.getPotentiallyExpiredTokens() : null;
 
     // all requests should be dynamic to prevent Next.js caching
-    cookies?.();
+    await cookies?.();
 
     const url = this.getApiUrl() + path;
     const params: RequestInit = {
@@ -645,7 +646,7 @@ export class StackClientInterface {
     email: string,
     teamId: string,
     callbackUrl: string,
-    session: InternalSession | null,
+    session: InternalSession,
   }): Promise<void> {
     await this.sendClientRequest(
       "/team-invitations/send-code",
@@ -989,6 +990,33 @@ export class StackClientInterface {
     const user: CurrentUserCrud["Client"]["Read"] = await response.json();
     if (!(user as any)) throw new StackAssertionError("User endpoint returned null; this should never happen");
     return user;
+  }
+
+  async listTeamInvitations(
+    options: {
+      teamId: string,
+    },
+    session: InternalSession,
+  ): Promise<TeamInvitationCrud['Client']['Read'][]> {
+    const response = await this.sendClientRequest(
+      "/team-invitations?" + new URLSearchParams({ team_id: options.teamId }),
+      {},
+      session,
+    );
+    const result = await response.json() as TeamInvitationCrud['Client']['List'];
+    return result.items;
+  }
+
+  async revokeTeamInvitation(
+    invitationId: string,
+    teamId: string,
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-invitations/${invitationId}?team_id=${teamId}`,
+      { method: "DELETE" },
+      session,
+    );
   }
 
   async listTeamMemberProfiles(

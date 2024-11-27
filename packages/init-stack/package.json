@@ -1,11 +1,15 @@
 {
   "name": "@stackframe/init-stack",
-  "version": "2.6.16",
+  "version": "2.6.29",
   "description": "The setup wizard for Stack. https://stack-auth.com",
   "main": "index.mjs",
   "bin": "./index.mjs",
   "scripts": {
-    "init-stack": "node index.mjs"
+    "clean": "rimraf test-run-output && rimraf node_modules",
+    "init-stack": "node index.mjs",
+    "init-stack:local": "STACK_PACKAGE_NAME_OVERRIDE=../../stack node index.mjs",
+    "test-run": "rimraf test-run-output && npx -y create-next-app@latest test-run-output && pnpm run init-stack:local test-run-output",
+    "test-run-auto": "rimraf test-run-output && npx -y create-next-app@latest test-run-output --app --ts --no-src-dir --tailwind --use-npm --eslint --import-alias '##@#/*' --turbopack && STACK_DISABLE_INTERACTIVE=true pnpm run init-stack:local test-run-output"
   },
   "files": [
     "README.md",

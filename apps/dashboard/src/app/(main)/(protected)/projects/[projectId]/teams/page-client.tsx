@@ -40,7 +40,7 @@ function CreateDialog({ open, onOpenChange }: CreateDialogProps) {
 
 
   const formSchema = yup.object({
-    displayName: yup.string().required().label("Display Name"),
+    displayName: yup.string().defined().label("Display Name"),
   });
 
   return (

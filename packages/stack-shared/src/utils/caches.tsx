@@ -60,6 +60,16 @@ export class AsyncCache<D extends any[], T> {
     return cache;
   }
 
+  async refreshWhere(predicate: (dependencies: D) => boolean) {
+    const promises: Promise<T>[] = [];
+    for (const [dependencies, cache] of this._map) {
+      if (predicate(dependencies)) {
+        promises.push(cache.refresh());
+      }
+    }
+    await Promise.all(promises);
+  }
+
   readonly isCacheAvailable = this._createKeyed("isCacheAvailable");
   readonly getIfCached = this._createKeyed("getIfCached");
   readonly getOrWait = this._createKeyed("getOrWait");

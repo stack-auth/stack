@@ -13,13 +13,13 @@ export const POST = createSmartRouteHandler({
       user: yupMixed(),
       project: yupMixed(),
     }).nullable(),
-    method: yupString().oneOf(["POST"]).required(),
+    method: yupString().oneOf(["POST"]).defined(),
     body: yupMixed(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["text"]).required(),
-    body: yupString().required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["text"]).defined(),
+    body: yupString().defined(),
   }),
   handler: async (req) => {
     captureError("check-feature-support", new StackAssertionError(`${req.auth?.user?.primaryEmail || "User"} tried to check support of unsupported feature: ${JSON.stringify(req.body, null, 2)}`, { req }));
