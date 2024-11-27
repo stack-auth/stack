@@ -1,15 +1,13 @@
 // TODO remove and replace with CRUD handler
 
-import * as yup from 'yup';
-import { ApiKeySet } from '@prisma/client';
-import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
 import { prismaClient } from '@/prisma-client';
-import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
-import { yupString } from '@stackframe/stack-shared/dist/schema-fields';
+import { ApiKeySet } from '@prisma/client';
 import { ApiKeysCrud } from '@stackframe/stack-shared/dist/interface/crud/api-keys';
-import { ApiKeyCreateCrudResponse } from '@stackframe/stack-shared/dist/interface/adminInterface';
-import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
+import { yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { typedIncludes } from '@stackframe/stack-shared/dist/utils/arrays';
+import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
+import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
+import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 
 export const publishableClientKeyHeaderSchema = yupString().matches(/^[a-zA-Z0-9_-]*$/);
 export const secretServerKeyHeaderSchema = publishableClientKeyHeaderSchema;
@@ -81,77 +79,6 @@ export async function getApiKeySet(
   return createSummaryFromDbType(set);
 }
 
-export async function listApiKeySets(
-  projectId: string,
-): Promise<ApiKeysCrud["Admin"]["Read"][]> {
-  const sets = await prismaClient.apiKeySet.findMany({
-    where: {
-      projectId,
-    },
-  });
-
-  return sets.map(createSummaryFromDbType);
-}
-
-export async function createApiKeySet(
-  projectId: string,
-  description: string,
-  expiresAt: Date,
-  hasPublishableClientKey: boolean,
-  hasSecretServerKey: boolean,
-  hasSuperSecretAdminKey: boolean,
-): Promise<ApiKeyCreateCrudResponse> {
-  const set = await prismaClient.apiKeySet.create({
-    data: {
-      id: generateUuid(),
-      projectId,
-      description,
-      expiresAt,
-      ...hasPublishableClientKey ? {
-        publishableClientKey: `pck_${generateSecureRandomString()}`,
-      } : {},
-      ...hasSecretServerKey ? {
-        secretServerKey: `ssk_${generateSecureRandomString()}`,
-      } : {},
-      ...hasSuperSecretAdminKey ? {
-        superSecretAdminKey: `sak_${generateSecureRandomString()}`,
-      } : {},
-    },
-  });
-
-  return {
-    id: set.id,
-    ...set.publishableClientKey ? {
-      publishableClientKey: set.publishableClientKey,
-    } : {},
-    ...set.secretServerKey ? {
-      secretServerKey: set.secretServerKey,
-    } : {},
-    ...set.superSecretAdminKey ? {
-      superSecretAdminKey: set.superSecretAdminKey,
-    } : {},
-    created_at_millis: set.createdAt.getTime(),
-    expires_at_millis: set.expiresAt.getTime(),
-    description: set.description,
-    manually_revoked_at_millis: set.manuallyRevokedAt?.getTime() ?? undefined,
-  };
-}
-
-export async function revokeApiKeySet(projectId: string, apiKeyId: string) {
-  const set = await prismaClient.apiKeySet.update({
-    where: {
-      projectId_id: {
-        projectId,
-        id: apiKeyId,
-      },
-    },
-    data: {
-      manuallyRevokedAt: new Date(),
-    },
-  });
-
-  return createSummaryFromDbType(set);
-}
 
 function createSummaryFromDbType(set: ApiKeySet): ApiKeysCrud["Admin"]["Read"] {
   return {
@@ -171,3 +98,36 @@ function createSummaryFromDbType(set: ApiKeySet): ApiKeysCrud["Admin"]["Read"] {
     manually_revoked_at_millis: set.manuallyRevokedAt?.getTime() ?? undefined,
   };
 }
+
+
+export const createApiKeySet = async (data: {
+  projectId: string,
+  description: string,
+  expires_at_millis: number,
+  has_publishable_client_key: boolean,
+  has_secret_server_key: boolean,
+  has_super_secret_admin_key: boolean,
+}) => {
+  const set = await prismaClient.apiKeySet.create({
+    data: {
+      id: generateUuid(),
+      projectId: data.projectId,
+      description: data.description,
+      expiresAt: new Date(data.expires_at_millis),
+      publishableClientKey: data.has_publishable_client_key ? `pck_${generateSecureRandomString()}` : undefined,
+      secretServerKey: data.has_secret_server_key ? `ssk_${generateSecureRandomString()}` : undefined,
+      superSecretAdminKey: data.has_super_secret_admin_key ? `sak_${generateSecureRandomString()}` : undefined,
+    },
+  });
+
+  return {
+    id: set.id,
+    description: set.description,
+    publishable_client_key: set.publishableClientKey || undefined,
+    secret_server_key: set.secretServerKey || undefined,
+    super_secret_admin_key: set.superSecretAdminKey || undefined,
+    created_at_millis: set.createdAt.getTime(),
+    expires_at_millis: set.expiresAt.getTime(),
+    manually_revoked_at_millis: set.manuallyRevokedAt?.getTime(),
+  };
+};
