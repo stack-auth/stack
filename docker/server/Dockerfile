@@ -92,8 +92,3 @@ USER node
 
 # Set entrypoint to run both backend and dashboard
 ENTRYPOINT ["./entrypoint.sh"]
-
-
-# docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
-# docker build -f docker/server/Dockerfile -t server .
-# docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -it server

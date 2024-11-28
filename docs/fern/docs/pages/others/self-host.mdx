@@ -26,6 +26,32 @@ On a high level, Stack Auth is composed of the following services:
 - **Svix**: Used to send webhooks. Svix is open-source and can be self-hosted, but also offers a cloud hosted solution. More on Svix [here](https://svix.com)
 - **Email server**: We use [Inbucket](https://inbucket.org) as a local email server for development and a separate SMTP server for production. Any email service supporting SMTP will work.
 
+## Run with Docker
+
+Stack Auth provides a pre-configured Dockerfile that bundles both the dashboard and API backend into a single container. To complete the setup, you'll need to provide your own PostgreSQL database, and optionally configure an email server and Svix instance for webhook functionality.
+
+Here is an example of how to run the services with Docker:
+
+```sh
+# Start a Postgres database
+docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+
+# Clone the Stack Auth repository
+git clone git@github.com:stack-auth/stack.git
+cd stack
+
+# Build the Docker image
+docker build -f docker/server/Dockerfile -t stack-auth-server .
+
+# Run the Docker container
+# copy the docker/server/.env.example file and modify it with your own values
+docker run --env-file your-env-file.env -p 8101:8101 -p 8102:8102 -it stack-auth-server
+```
+
+Now you can open the dashboard at [http://localhost:8101](http://localhost:8101) and the API backend on port 8102.
+
+Now, login with your admin account on the dashboard and follow the [normal setup process](/getting-started/setup). Add `NEXT_PUBLIC_STACK_URL=https://your-backend-url.com` to your app's environment variables so that it connects to your API backend instead of the default Stack Auth API backend (https://api.stack-auth.com).
+
 ## Local development
 
 ### Setup
@@ -79,7 +105,7 @@ If you make changes to the Prisma schema, you need to run the following command 
 pnpm run prisma migrate dev
 ```
 
-## Production deployment
+## Run individual services
 
 ### Database, Svix, email
 
