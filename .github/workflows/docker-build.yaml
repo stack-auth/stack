@@ -3,7 +3,6 @@ name: Docker Build and Push
 on:
   push:
     branches:
-      - dev
       - main
       - docker-build # remove me before PR merge
     tags:
@@ -43,7 +42,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./docker/dashboard/Dockerfile
+          file: ./docker/serverd/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
