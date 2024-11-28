@@ -32,20 +32,14 @@ Stack Auth provides a pre-configured Dockerfile that bundles both the dashboard 
 
 Here is an example of how to run the services with Docker:
 
+Get the example environment file [here](https://github.com/stack-auth/stack/tree/dev/docker/server/.env.example). See the full template [here](https://github.com/stack-auth/stack/blob/dev/docker/server/.env).
+
 ```sh
 # Start a Postgres database
 docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
 
-# Clone the Stack Auth repository
-git clone git@github.com:stack-auth/stack.git
-cd stack
-
-# Build the Docker image
-docker build -f docker/server/Dockerfile -t stack-auth-server .
-
 # Run the Docker container
-# copy the docker/server/.env.example file and modify it with your own values
-docker run --env-file your-env-file.env -p 8101:8101 -p 8102:8102 -it stack-auth-server
+docker run --env-file your-env-file.env -p 8101:8101 -p 8102:8102 stackauth/server:main
 ```
 
 Now you can open the dashboard at [http://localhost:8101](http://localhost:8101) and the API backend on port 8102.
