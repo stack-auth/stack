@@ -41,7 +41,7 @@ export default function PageClient () {
       credentialEnabled: form.watch("signInMethods").includes("credential"),
       magicLinkEnabled: form.watch("signInMethods").includes("magicLink"),
       passkeyEnabled: form.watch("signInMethods").includes("passkey"),
-      oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "spotify"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
+      oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "eartho"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
     }
   };
 
@@ -56,7 +56,7 @@ export default function PageClient () {
           credentialEnabled: values.signInMethods.includes("credential"),
           magicLinkEnabled: values.signInMethods.includes("magicLink"),
           passkeyEnabled: values.signInMethods.includes("passkey"),
-          oauthProviders: (["google", "facebook", "github", "microsoft"] as const).map(provider => ({
+          oauthProviders: (["google", "facebook", "github", "microsoft", "eartho"] as const).map(provider => ({
             id: provider,
             enabled: values.signInMethods.includes(provider),
             type: 'shared'
@@ -94,7 +94,7 @@ export default function PageClient () {
                   { value: "google", label: "Google" },
                   { value: "github", label: "GitHub" },
                   { value: "microsoft", label: "Microsoft" },
-                  { value: "spotify", label: "Spotify" },
+                  { value: "eartho", label: "Eartho" },
                 ]}
               />
 
