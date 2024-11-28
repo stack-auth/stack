@@ -16,7 +16,7 @@ export default function PageClient() {
   return (
     <PageLayout
       title="Users"
-      description={`User count: ${project.userCount}`}
+      description={`Total: ${project.userCount}`}
       actions={<UserDialog
         type="create"
         trigger={<Button>Create User</Button>}
