@@ -11,8 +11,8 @@ export default async function SignIn() {
         "use server"
         await signIn("stack-auth")
       }}
-    >
-      <button type="submit">Sign-in with Stack</button>
+      >
+        <button type="submit">Sign-in with Stack</button>
       </form>
     </>
   )

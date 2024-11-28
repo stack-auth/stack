@@ -200,7 +200,7 @@ const oidc = new Provider(`http://localhost:${port}`, configuration);
 
 
 oidc.use(async (ctx, next) => {
-  console.log('oidc.use', ctx.path);
+  console.log('oidc.use', ctx);
   if (ctx.method === 'GET' && /^\/interaction\/[^/]+\/login$/.test(ctx.path)) {
     console.log('oidc.use login', ctx.path);
     ctx.body = 'OIDC Mock Server';
