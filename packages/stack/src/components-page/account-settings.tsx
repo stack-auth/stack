@@ -8,7 +8,7 @@ import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, Badge, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
-import { CirclePlus, Contact, Edit, LucideIcon, Settings, ShieldCheck, Trash } from 'lucide-react';
+import { Edit, Trash, icons } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
@@ -24,15 +24,22 @@ import { ProfileImageEditor } from "../components/profile-image-editor";
 import { TeamIcon } from '../components/team-icon';
 import { useTranslation } from "../lib/translations";
 
+const Icon = ({ name }: { name: keyof typeof icons }) => {
+  const LucideIcon = icons[name];
+  return <LucideIcon className="mr-2 h-4 w-4"/>;
+};
 
 export function AccountSettings(props: {
   fullPage?: boolean,
-  extraItems?: {
+  extraItems?: ({
     title: string,
-    icon: LucideIcon,
     content: React.ReactNode,
     id: string,
-  }[],
+  } & ({
+    icon?: React.ReactNode,
+  } | {
+    iconName?: keyof typeof icons,
+  }))[],
 }) {
   const { t } = useTranslation();
   const user = useUser({ or: 'redirect' });
@@ -49,28 +56,36 @@ export function AccountSettings(props: {
               title: t('My Profile'),
               type: 'item',
               id: 'profile',
-              icon: Contact,
+              icon: <Icon name="Contact"/>,
               content: <ProfilePage/>,
             },
             {
               title: t('Emails & Auth'),
               type: 'item',
               id: 'auth',
-              icon: ShieldCheck,
+              icon: <Icon name="ShieldCheck"/>,
               content: <EmailsAndAuthPage/>,
             },
             {
               title: t('Settings'),
               type: 'item',
               id: 'settings',
-              icon: Settings,
+              icon: <Icon name="Settings"/>,
               content: <SettingsPage/>,
             },
             ...(props.extraItems?.map(item => ({
               title: item.title,
               type: 'item',
               id: item.id,
-              icon: item.icon,
+              icon: (() => {
+                const iconName = (item as any).iconName as keyof typeof icons | undefined;
+                if (iconName) {
+                  return <Icon name={iconName}/>;
+                } else if ((item as any).icon) {
+                  return (item as any).icon;
+                }
+                return null;
+              })(),
               content: item.content,
             } as const)) || []),
             ...(teams.length > 0 || project.config.clientTeamCreationEnabled) ? [{
@@ -88,7 +103,7 @@ export function AccountSettings(props: {
             } as const)),
             ...project.config.clientTeamCreationEnabled ? [{
               title: t('Create a team'),
-              icon: CirclePlus,
+              icon: <Icon name="CirclePlus"/>,
               type: 'item',
               id: 'team-creation',
               content: <TeamCreation />,
