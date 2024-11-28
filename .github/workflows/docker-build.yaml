@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - dev
       - docker-build # remove me before PR merge
     tags:
       - "*.*.*"
