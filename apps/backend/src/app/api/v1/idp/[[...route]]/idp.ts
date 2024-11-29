@@ -38,7 +38,6 @@ class MemoryAdapter {
   private model: string;
 
   constructor(model: string) {
-    console.log('MemoryAdapter constructor', model);
     this.model = model;
   }
 
@@ -47,37 +46,37 @@ class MemoryAdapter {
   }
 
   async destroy(id: string): Promise<void> {
-    console.log('MemoryAdapter destroy', id);
+    console.log('MemoryAdapter destroy', this.model, id);
     const key = this.key(id);
     storage.delete(key);
   }
 
   async consume(id: string): Promise<void> {
-    console.log('MemoryAdapter consume', id);
+    console.log('MemoryAdapter consume', this.model, id);
     const value = storage.get(this.key(id)) as StorageValue;
     value.consumed = Math.floor(Date.now() / 1000);
   }
 
   async find(id: string): Promise<StorageValue | undefined> {
-    console.log('MemoryAdapter find', id);
+    console.log('MemoryAdapter find', this.model, id);
     return storage.get(this.key(id)) as StorageValue | undefined;
   }
 
   async findByUid(uid: string): Promise<StorageValue | undefined> {
-    console.log('MemoryAdapter findByUid', uid);
+    console.log('MemoryAdapter findByUid', this.model, uid);
     const id = storage.get(sessionUidKeyFor(uid)) as string;
     return await this.find(id);
   }
 
   async findByUserCode(userCode: string): Promise<StorageValue | undefined> {
-    console.log('MemoryAdapter findByUserCode', userCode);
+    console.log('MemoryAdapter findByUserCode', this.model, userCode);
     const id = storage.get(userCodeKeyFor(userCode)) as string;
     return await this.find(id);
   }
 
   async upsert(id: string, payload: StorageValue, expiresIn: number): Promise<void> {
     const key = this.key(id);
-    console.log('MemoryAdapter upsert', id, payload, expiresIn);
+    console.log('MemoryAdapter upsert', this.model, id, payload, expiresIn);
     if (this.model === 'Session') {
       storage.set(sessionUidKeyFor(payload.uid), id, { maxAge: expiresIn * 1000 });
     }
@@ -201,35 +200,71 @@ export function createOidcProvider(baseUrl: string) {
   });
 
   oidc.use(async (ctx, next) => {
-    if (ctx.method === 'GET' && /^\/interaction\/[^/]+\/login$/.test(ctx.path)) {
-      console.log('oidc.use login', ctx.path);
-      ctx.body = 'OIDC Mock Server';
-      const uid = ctx.path.split('/')[2];
+    try {
+      if (/^\/interaction\/[^/]+\/login$/.test(ctx.path)) {
+        switch (ctx.method) {
+          case 'GET': {
+            ctx.status = 200;
+            ctx.body = `
+              <html>
+                <body>
+                  <noscript>
+                    Note: JavaScript is disabled, so you must click the button below to continue.
+                  </noscript>
+                  <form id="continue-form" method="POST">
+                    <input type="submit" value="Continue">
+                  </form>
+                  <script>
+                    document.getElementById('continue-form').style.display = 'none';
+                    document.getElementById('continue-form').submit();
+                    setTimeout(() => {
+                      document.getElementById('continue-form').style.display = 'block';
+                    }, 5000);
+                  </script>
+                </body>
+              </html>
+            `;
+            break;
+          }
+          case 'POST': {
+            console.log("OOOOO 1");
+            const uid = ctx.path.split('/')[2];
 
 
-      const grant = new oidc.Grant({
-        accountId: "lmao_id",
-        clientId: "client-id",
-      });
+            const grant = new oidc.Grant({
+              accountId: "lmao_id",
+              clientId: "client-id",
+            });
+            console.log("OOOOO 2");
 
-      const grantId = await grant.save();
+            const grantId = await grant.save();
+            console.log("OOOOO 3");
 
 
-      const result = {
-        login: {
-          accountId: "lmao_id",
-        },
-        consent: {
-          grantId,
-        },
-      };
+            const result = {
+              login: {
+                accountId: "lmao_id",
+              },
+              consent: {
+                grantId,
+              },
+            };
+            console.log("OOOOO 4");
 
-      return await oidc.interactionFinished(ctx.req, ctx.res, result);
-    }
-    if (ctx.method === 'GET' && /^\/interaction\/[^/]+$/.test(ctx.path)) {
-      console.log('oidc.use interaction', ctx.path);
-      const uid = ctx.path.split('/')[2];
-      return ctx.redirect(`http://localhost:8103/handler/sign-in?after_auth_return_to=${encodeURIComponent(`${baseUrl}/interaction/${encodeURIComponent(uid)}/login`)}`);
+            console.log("RESSS", await oidc.interactionResult(ctx.req, ctx.res, result));
+            console.log("OOOOO 5");
+
+            return await oidc.interactionFinished(ctx.req, ctx.res, result);
+          }
+        }
+      }
+      if (ctx.method === 'GET' && /^\/interaction\/[^/]+$/.test(ctx.path)) {
+        const uid = ctx.path.split('/')[2];
+        return ctx.redirect(`http://localhost:8103/handler/sign-in?after_auth_return_to=${encodeURIComponent(`${baseUrl}/interaction/${encodeURIComponent(uid)}/login`)}`);
+      }
+    } catch (err) {
+      captureError('idp-oidc-interaction-middleware', err);
+      throw err;
     }
     await next();
   });

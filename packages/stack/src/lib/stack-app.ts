@@ -1114,6 +1114,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected async _isTrusted(url: string): Promise<boolean> {
+    // TODO next-release HACK fix
     return true;isRelative(url);
   }
 

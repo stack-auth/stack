@@ -72,7 +72,7 @@ function Inner (props: Props) {
   useEffect(() => {
     if (props.automaticRedirect) {
       if (user && !props.mockProject) {
-        runAsynchronously(props.type === 'sign-in' ? stackApp.redirectToAfterSignIn() : stackApp.redirectToAfterSignUp());
+        runAsynchronously(props.type === 'sign-in' ? stackApp.redirectToAfterSignIn({ replace: true }) : stackApp.redirectToAfterSignUp({ replace: true }));
       }
     }
   }, [user, props.mockProject, stackApp, props.automaticRedirect]);
