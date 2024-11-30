@@ -1,3 +1,4 @@
+import { prismaClient } from '@/prisma-client';
 import { StackAssertionError, captureError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import Provider, { Adapter, AdapterConstructor, AdapterPayload } from 'oidc-provider';
 
@@ -106,7 +107,7 @@ function createAdapter(options: {
 
 const memoryAdapterStorage = new Map<string, Map<string, AdapterData>>();
 const MemoryAdapter = createAdapter({
-  onUpdateUnique(model: string, idOrWhere: string | { propertyKey: keyof AdapterPayload, propertyValue: string }, updater: (old: AdapterData | undefined) => AdapterData | undefined) {
+  onUpdateUnique(model, idOrWhere, updater) {
     let map = memoryAdapterStorage.get(model);
     if (!map) {
         memoryAdapterStorage.set(model, map = new Map());
@@ -124,16 +125,82 @@ const MemoryAdapter = createAdapter({
     if (old?.expiresAt && old.expiresAt < new Date()) {
       old = undefined;
     }
-    console.log("onUpdateUnique", model, idOrWhere, old, map);
+    console.log("MemoryAdapter.onUpdateUnique", model, idOrWhere, { old, map });
 
     const updated = updater(old);
     if (updated) {
-        map.set(id, updated);
+      map.set(id, updated);
     } else {
-        map.delete(id);
+      map.delete(id);
     }
   },
 });
+
+const PrismaAdapter = createAdapter({
+  async onUpdateUnique(model, idOrWhere, updater) {
+    await prismaClient.$transaction(async (tx) => {
+      const prismaWhere = typeof idOrWhere === 'string' ? {
+        model,
+        id: idOrWhere,
+        expiresAt: {
+          gt: new Date(),
+        },
+      } : {
+        model,
+        payload: {
+          path: [`${idOrWhere.propertyKey}`],
+          equals: idOrWhere.propertyValue,
+        },
+        expiresAt: {
+          gt: new Date(),
+        },
+      };
+
+      const oldAll = await tx.idPAdapterData.findMany({
+        where: prismaWhere,
+      });
+
+      if (oldAll.length > 1) throwErr(`Multiple ${model} found with ${idOrWhere}; this shouldn't happen`);
+      const old = oldAll.length === 0 ? undefined : oldAll[0];
+
+      const updated = updater(old ? {
+        payload: old.payload as AdapterPayload,
+        expiresAt: old.expiresAt,
+      } : undefined);
+
+      if (updated) {
+        if (old) {
+          await tx.idPAdapterData.update({
+            where: {
+              model_id: {
+                model,
+                id: old.id,
+              },
+            },
+            data: {
+              payload: updated.payload as any,
+              expiresAt: updated.expiresAt,
+            },
+          });
+        } else {
+          await tx.idPAdapterData.create({
+            data: {
+              model,
+              id: typeof idOrWhere === "string" ? idOrWhere : throwErr(`No ${model} found where ${JSON.stringify(idOrWhere)}`),
+              payload: updated.payload as any,
+              expiresAt: updated.expiresAt,
+            },
+          });
+        }
+      } else {
+        await tx.idPAdapterData.deleteMany({
+          where: prismaWhere,
+        });
+      }
+    });
+  },
+});
+
 
 const mockedProviders = [
   "stack-auth",
@@ -144,7 +211,7 @@ const mockedProviders = [
 
 export function createOidcProvider(baseUrl: string) {
   const oidc = new Provider(baseUrl, {
-    adapter: MemoryAdapter,
+    adapter: PrismaAdapter,
     clients: mockedProviders.map((providerId) => ({
       client_id: "client-id",
       client_secret: "test-client-secret",

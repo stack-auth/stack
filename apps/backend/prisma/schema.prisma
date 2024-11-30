@@ -796,6 +796,23 @@ model StandardEmailServiceConfig {
 
 //#endregion
 
+//#region IdP
+model IdPAdapterData {
+  model String
+  id String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payload Json
+  expiresAt DateTime
+
+  @@id([model, id])
+  @@index([payload(ops: JsonbPathOps)], type: Gin)
+  @@index([expiresAt])
+}
+//#endregion
+
 //#region Events
 
 model Event {
