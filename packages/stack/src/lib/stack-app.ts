@@ -810,7 +810,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async update(data: TeamUpdateOptions){
         await app._interface.updateTeam({ data: teamUpdateOptionsToCrud(data), teamId: crud.id }, session);
         await app._currentUserTeamsCache.refresh([session]);
-      }
+      },
+      async delete() {
+        await app._interface.deleteTeam(crud.id, session);
+        await app._currentUserTeamsCache.refresh([session]);
+      },
     };
   }
 
@@ -3126,6 +3130,7 @@ export type Team = {
   listInvitations(): Promise<TeamInvitation[]>,
   useInvitations(): TeamInvitation[],
   update(update: TeamUpdateOptions): Promise<void>,
+  delete(): Promise<void>,
 };
 
 export type TeamUpdateOptions = {
