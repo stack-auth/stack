@@ -52,7 +52,7 @@ function createAdapter(options: {
     idOrWhere: string | { propertyKey: keyof AdapterPayload, propertyValue: string },
     updater?: (old: AdapterData | undefined) => AdapterData | undefined,
   ): Promise<AdapterPayload | undefined> => {
-    let wasCalled = false as boolean;
+    let wasCalled = false as boolean;  // casting due to https://stackoverflow.com/a/76698580
     let updated: AdapterData | undefined;
     await options.onUpdateUnique(
       model,
@@ -139,25 +139,23 @@ const MemoryAdapter = createAdapter({
 const PrismaAdapter = createAdapter({
   async onUpdateUnique(model, idOrWhere, updater) {
     await prismaClient.$transaction(async (tx) => {
-      const prismaWhere = typeof idOrWhere === 'string' ? {
-        model,
-        id: idOrWhere,
-        expiresAt: {
-          gt: new Date(),
-        },
-      } : {
-        model,
-        payload: {
-          path: [`${idOrWhere.propertyKey}`],
-          equals: idOrWhere.propertyValue,
-        },
-        expiresAt: {
-          gt: new Date(),
-        },
-      };
-
       const oldAll = await tx.idPAdapterData.findMany({
-        where: prismaWhere,
+        where: typeof idOrWhere === 'string' ? {
+          model,
+          id: idOrWhere,
+          expiresAt: {
+            gt: new Date(),
+          },
+        } : {
+          model,
+          payload: {
+            path: [`${idOrWhere.propertyKey}`],
+            equals: idOrWhere.propertyValue,
+          },
+          expiresAt: {
+            gt: new Date(),
+          },
+        },
       });
 
       if (oldAll.length > 1) throwErr(`Multiple ${model} found with ${idOrWhere}; this shouldn't happen`);
@@ -193,9 +191,16 @@ const PrismaAdapter = createAdapter({
           });
         }
       } else {
-        await tx.idPAdapterData.deleteMany({
-          where: prismaWhere,
-        });
+        if (old) {
+          await tx.idPAdapterData.delete({
+            where: {
+              model_id: {
+                model,
+                id: old.id,
+              },
+            },
+          });
+        }
       }
     });
   },
