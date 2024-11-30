@@ -32,10 +32,10 @@ Stack Auth provides a pre-configured Dockerfile that bundles both the dashboard 
 
 Here is an example of how to run the services with Docker:
 
-Get the example environment file [here](https://github.com/stack-auth/stack/tree/dev/docker/server/.env.example). See the full template [here](https://github.com/stack-auth/stack/blob/dev/docker/server/.env).
+Get the example environment file [here](https://github.com/stack-auth/stack/tree/dev/docker/server/.env.example) and modify it to your needs. See the full template [here](https://github.com/stack-auth/stack/blob/dev/docker/server/.env).
 
 ```sh
-# Start a Postgres database
+# Start a example Postgres database, don't use this setting in production
 docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
 
 # Run the Docker container
