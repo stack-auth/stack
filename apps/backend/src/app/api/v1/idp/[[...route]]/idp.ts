@@ -1,39 +1,9 @@
 import { prismaClient } from '@/prisma-client';
+import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError, captureError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
+import { sha512 } from '@stackframe/stack-shared/dist/utils/hashes';
+import { getPerAudienceSecret, getPrivateJwk } from '@stackframe/stack-shared/dist/utils/jwt';
 import Provider, { Adapter, AdapterConstructor, AdapterPayload } from 'oidc-provider';
-
-
-import QuickLRU from 'quick-lru';
-
-interface StorageValue {
-  consumed?: number,
-  uid: string,
-  grantId?: string,
-  userCode?: string,
-  [key: string]: any, // Add index signature to allow arbitrary string keys
-}
-
-let storage = new QuickLRU<string, StorageValue | string[] | string>({ maxSize: 1000 });
-
-function grantKeyFor(id: string): string {
-  return `grant:${id}`;
-}
-
-function sessionUidKeyFor(id: string): string {
-  return `sessionUid:${id}`;
-}
-
-function userCodeKeyFor(userCode: string): string {
-  return `userCode:${userCode}`;
-}
-
-const grantable = new Set([
-  'AccessToken',
-  'AuthorizationCode',
-  'RefreshToken',
-  'DeviceCode',
-  'BackchannelAuthenticationRequest',
-]);
 
 type AdapterData = {
   payload: AdapterPayload,
@@ -206,28 +176,37 @@ const PrismaAdapter = createAdapter({
   },
 });
 
-
-const mockedProviders = [
-  "stack-auth",
-];
-
 // TODO: add stateful session management
 
 
-export function createOidcProvider(baseUrl: string) {
-  const oidc = new Provider(baseUrl, {
+export async function createOidcProvider(options: { baseUrl: string }) {
+  const jwks = {
+    keys: [
+      await getPrivateJwk(getPerAudienceSecret({
+        audience: options.baseUrl,
+        secret: getEnvVariable("STACK_SERVER_SECRET"),
+      })),
+    ],
+  };
+
+  const oidc = new Provider(options.baseUrl, {
     adapter: PrismaAdapter,
-    clients: mockedProviders.map((providerId) => ({
+    clients: [{
       client_id: "client-id",
       client_secret: "test-client-secret",
       redirect_uris: [
         `http://localhost:8116/api/auth/callback/stack-auth`,
       ],
-    })),
+    }],
     ttl: {
-      // we make sessions short so it asks us for our login again after a minute, instead of automatically logging us in with the already-logged-in session
-      Session: 60,
+      Session: 1, // we always want to ask for login again immediately
     },
+    cookies: {
+      keys: [
+        await sha512(`oidc-idp-cookie-encryption-key:${getEnvVariable("STACK_SERVER_SECRET")}`),
+      ],
+    },
+    jwks,
     features: {
       devInteractions: {
         enabled: false,
@@ -272,7 +251,7 @@ export function createOidcProvider(baseUrl: string) {
     interactions: {
       // THIS IS WHERE WE REDIRECT TO PRIMARY AUTH SERVER
       // TODO: do we need to sanitize the parameter?
-      url: (ctx, interaction) => `${baseUrl}/interaction/${encodeURIComponent(interaction.uid)}`,
+      url: (ctx, interaction) => `${options.baseUrl}/interaction/${encodeURIComponent(interaction.uid)}`,
 
     },
 
@@ -296,6 +275,17 @@ export function createOidcProvider(baseUrl: string) {
     captureError('idp-oidc-provider-server-error', err);
   });
 
+  // .well-known/jwks.json
+  oidc.use(async (ctx, next) => {
+    if (ctx.path === '/.well-known/jwks.json') {
+      ctx.body = jwks;
+      ctx.header['content-type'] = 'application/json';
+      return;
+    }
+    await next();
+  });
+
+  // Interactions
   oidc.use(async (ctx, next) => {
     try {
       if (/^\/interaction\/[^/]+\/login$/.test(ctx.path)) {
@@ -322,7 +312,7 @@ export function createOidcProvider(baseUrl: string) {
               </html>
             `;
             ctx.header['content-type'] = 'text/html';
-            break;
+            return;
           }
           case 'POST': {
             const uid = ctx.path.split('/')[2];
@@ -347,10 +337,9 @@ export function createOidcProvider(baseUrl: string) {
             return await oidc.interactionFinished(ctx.req, ctx.res, result);
           }
         }
-      }
-      if (ctx.method === 'GET' && /^\/interaction\/[^/]+$/.test(ctx.path)) {
+      } else if (ctx.method === 'GET' && /^\/interaction\/[^/]+$/.test(ctx.path)) {
         const uid = ctx.path.split('/')[2];
-        return ctx.redirect(`http://localhost:8103/handler/sign-in?after_auth_return_to=${encodeURIComponent(`${baseUrl}/interaction/${encodeURIComponent(uid)}/login`)}`);
+        return ctx.redirect(`http://localhost:8103/handler/sign-in?after_auth_return_to=${encodeURIComponent(`${options.baseUrl}/interaction/${encodeURIComponent(uid)}/login`)}`);
       }
     } catch (err) {
       captureError('idp-oidc-interaction-middleware', err);

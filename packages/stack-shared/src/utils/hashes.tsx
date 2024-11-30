@@ -1,6 +1,13 @@
 import bcrypt from 'bcrypt';
 import { StackAssertionError } from './errors';
 
+export async function sha512(input: Uint8Array | string) {
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
+  return await crypto.subtle.digest("SHA-512", bytes).then(buf => {
+    return Array.prototype.map.call(new Uint8Array(buf), x=>(('00'+x.toString(16)).slice(-2))).join('');
+  });
+}
+
 export async function hashPassword(password: string) {
   const passwordBytes = new TextEncoder().encode(password);
   if (passwordBytes.length >= 72) {

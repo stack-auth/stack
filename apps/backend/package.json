@@ -60,7 +60,6 @@
     "oslo": "^1.2.1",
     "pg": "^8.11.3",
     "posthog-node": "^4.1.0",
-    "quick-lru": "^7.0.0",
     "react": "^18.2",
     "react-dom": "^18.2",
     "semver": "^7.6.3",

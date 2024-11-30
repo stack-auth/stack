@@ -35,9 +35,6 @@ export async function createNodeHttpServerDuplex(options: {
   (incomingMessage as any).originalUrl = options.originalUrl && getRelativePart(options.originalUrl);  // originalUrl is an extension used by some servers; for example, oidc-provider reads it to construct the paths for the .well-known/openid-configuration
   const rawHeaders = [...options.headers.entries()].flat();
   (incomingMessage as any)._addHeaderLines(rawHeaders, rawHeaders.length);
-  if (options.body.length > 0) {
-  console.log("pushing body", options.body);
-  }
   incomingMessage.push(Buffer.from(options.body));
   incomingMessage.complete = true;
   incomingMessage.push(null);  // to emit end event, see: https://github.com/nodejs/node/blob/4cf6fabce20eb3050c5b543d249e931ea3d3cad5/lib/_http_common.js#L150
