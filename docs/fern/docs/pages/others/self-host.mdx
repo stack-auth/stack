@@ -28,11 +28,9 @@ On a high level, Stack Auth is composed of the following services:
 
 ## Run with Docker
 
-Stack Auth provides a pre-configured Dockerfile that bundles both the dashboard and API backend into a single container. To complete the setup, you'll need to provide your own PostgreSQL database, and optionally configure an email server and Svix instance for webhook functionality.
+Stack Auth provides a pre-configured Docker image that bundles the dashboard and API backend into a single container. To complete the setup, you'll need to provide your own PostgreSQL database, and optionally configure an email server and Svix instance for webhooks.
 
-Here is an example of how to run the services with Docker:
-
-Get the example environment file [here](https://github.com/stack-auth/stack/tree/dev/docker/server/.env.example) and modify it to your needs. See the full template [here](https://github.com/stack-auth/stack/blob/dev/docker/server/.env).
+First, you need to get the [example environment file](https://github.com/stack-auth/stack/tree/dev/docker/server/.env.example) and modify it to your needs. See the [full template here](https://github.com/stack-auth/stack/blob/dev/docker/server/.env).
 
 ```sh
 # Start a example Postgres database, don't use this setting in production
