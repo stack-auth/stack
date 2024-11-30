@@ -27,6 +27,8 @@ const handler = handleApiRequest(async (req: NextRequest) => {
 
   await (await oidcCallbackPromise)(incomingMessage, serverResponse);
 
+  console.log("AAAAAAAA", { incomingMessage, serverResponse });
+
   const body = new Uint8Array(serverResponse.bodyChunks.flatMap(chunk => [...chunk]));
 
   return new NextResponse(body, {

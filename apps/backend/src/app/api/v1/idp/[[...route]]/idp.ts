@@ -2,7 +2,7 @@ import { prismaClient } from '@/prisma-client';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError, captureError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { sha512 } from '@stackframe/stack-shared/dist/utils/hashes';
-import { getPerAudienceSecret, getPrivateJwk } from '@stackframe/stack-shared/dist/utils/jwt';
+import { getPerAudienceSecret, getPrivateJwk, getPublicJwkSet } from '@stackframe/stack-shared/dist/utils/jwt';
 import Provider, { Adapter, AdapterConstructor, AdapterPayload } from 'oidc-provider';
 
 type AdapterData = {
@@ -149,20 +149,23 @@ const PrismaAdapter = createAdapter({
 
 
 export async function createOidcProvider(options: { baseUrl: string }) {
-  const jwks = {
+  const privateJwk = await getPrivateJwk(getPerAudienceSecret({
+    audience: options.baseUrl,
+    secret: getEnvVariable("STACK_SERVER_SECRET"),
+  }));
+  const privateJwks = {
     keys: [
-      await getPrivateJwk(getPerAudienceSecret({
-        audience: options.baseUrl,
-        secret: getEnvVariable("STACK_SERVER_SECRET"),
-      })),
+      privateJwk,
     ],
   };
+  const publicJwks = await getPublicJwkSet(privateJwk);
 
   const oidc = new Provider(options.baseUrl, {
     adapter: PrismaAdapter,
     clients: [{
       client_id: "client-id",
       client_secret: "test-client-secret",
+      id_token_signed_response_alg: "ES256",
       redirect_uris: [
         `http://localhost:8116/api/auth/callback/stack-auth`,
       ],
@@ -175,7 +178,7 @@ export async function createOidcProvider(options: { baseUrl: string }) {
         await sha512(`oidc-idp-cookie-encryption-key:${getEnvVariable("STACK_SERVER_SECRET")}`),
       ],
     },
-    jwks,
+    jwks: privateJwks,
     features: {
       devInteractions: {
         enabled: false,
@@ -224,6 +227,13 @@ export async function createOidcProvider(options: { baseUrl: string }) {
 
     },
 
+    async renderError(ctx, out, error) {
+      console.warn("IdP error occurred. This usually indicates a misconfigured client, not a server error.", error, { out });
+      ctx.status = 400;
+      ctx.type = "application/json";
+      ctx.body = JSON.stringify(out);
+    },
+
 
     async findAccount(ctx, id) {
       return {
@@ -247,8 +257,8 @@ export async function createOidcProvider(options: { baseUrl: string }) {
   // .well-known/jwks.json
   oidc.use(async (ctx, next) => {
     if (ctx.path === '/.well-known/jwks.json') {
-      ctx.body = jwks;
-      ctx.header['content-type'] = 'application/json';
+      ctx.body = publicJwks;
+      ctx.type = 'application/json';
       return;
     }
     await next();
@@ -263,6 +273,7 @@ export async function createOidcProvider(options: { baseUrl: string }) {
             // GETs need to be idempotent, but we want to allow people to redirect to a URL with a normal browser redirect
             // so provide this GET version of the endpoint that just redirects to the POST version
             ctx.status = 200;
+            ctx.type = 'text/html';
             ctx.body = `
               <html>
                 <body>
@@ -280,7 +291,6 @@ export async function createOidcProvider(options: { baseUrl: string }) {
                 </body>
               </html>
             `;
-            ctx.header['content-type'] = 'text/html';
             return;
           }
           case 'POST': {

@@ -1,11 +1,11 @@
+import crypto from "crypto";
 import elliptic from "elliptic";
 import * as jose from "jose";
-import { encodeBase64, encodeBase64Url } from "./bytes";
+import { JOSEError } from "jose/errors";
+import { encodeBase64Url } from "./bytes";
 import { getEnvVariable } from "./env";
 import { globalVar } from "./globals";
 import { pick } from "./objects";
-import crypto from "crypto";
-import { JOSEError } from "jose/errors";
 
 const STACK_SERVER_SECRET = getEnvVariable("STACK_SERVER_SECRET");
 try {
@@ -64,7 +64,16 @@ export async function verifyJWT(options: {
   return verified.payload;
 }
 
-export async function getPrivateJwk(secret: string) {
+export type PrivateJwk = {
+  kty: "EC",
+  alg: "ES256",
+  crv: "P-256",
+  kid: string,
+  d: string,
+  x: string,
+  y: string,
+};
+export async function getPrivateJwk(secret: string): Promise<PrivateJwk> {
   const secretHash = await globalVar.crypto.subtle.digest("SHA-256", jose.base64url.decode(secret));
   const priv = new Uint8Array(secretHash);
 
@@ -75,17 +84,27 @@ export async function getPrivateJwk(secret: string) {
   return {
     kty: 'EC',
     crv: 'P-256',
+    alg: 'ES256',
+    kid: getKid({ secret }),
     d: encodeBase64Url(priv),
     x: encodeBase64Url(publicKey.getX().toBuffer()),
     y: encodeBase64Url(publicKey.getY().toBuffer()),
   };
 }
 
-export async function getPublicJwkSet(secret: string) {
-  const privateJwk = await getPrivateJwk(secret);
-  const jwk = pick(privateJwk, ["kty", "crv", "x", "y"]);
+export type PublicJwk = {
+  kty: "EC",
+  alg: "ES256",
+  crv: "P-256",
+  kid: string,
+  x: string,
+  y: string,
+};
+export async function getPublicJwkSet(secretOrPrivateJwk: string | PrivateJwk): Promise<{ keys: PublicJwk[] }> {
+  const privateJwk = typeof secretOrPrivateJwk === "string" ? await getPrivateJwk(secretOrPrivateJwk) : secretOrPrivateJwk;
+  const jwk = pick(privateJwk, ["kty", "alg", "crv", "x", "y", "kid"]);
   return {
-    keys: [{ ...jwk, kid: getKid({ secret }) }],
+    keys: [jwk],
   };
 }
 
@@ -96,7 +115,7 @@ export function getPerAudienceSecret(options: {
   return jose.base64url.encode(
     crypto
       .createHash('sha256')
-      .update(JSON.stringify([options.secret, options.audience]))
+      .update(JSON.stringify(["stack-audience-secret", options.secret, options.audience]))
       .digest()
   );
 };
@@ -107,7 +126,7 @@ export function getKid(options: {
   return jose.base64url.encode(
     crypto
       .createHash('sha256')
-      .update(JSON.stringify([options.secret, "kid"]))
+      .update(JSON.stringify(["stack-kid-secret", options.secret]))
       .digest()
   ).slice(0, 12);
 }
