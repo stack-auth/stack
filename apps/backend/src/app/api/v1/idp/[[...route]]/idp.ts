@@ -75,37 +75,6 @@ function createAdapter(options: {
   };
 }
 
-const memoryAdapterStorage = new Map<string, Map<string, AdapterData>>();
-const MemoryAdapter = createAdapter({
-  onUpdateUnique(model, idOrWhere, updater) {
-    let map = memoryAdapterStorage.get(model);
-    if (!map) {
-        memoryAdapterStorage.set(model, map = new Map());
-    }
-
-    let id: string;
-    if (typeof idOrWhere === 'string') {
-      id = idOrWhere;
-    } else {
-      const { propertyKey, propertyValue } = idOrWhere;
-      id = [...map].find(([_, data]) => data.payload[propertyKey] === propertyValue)?.[0] ?? throwErr(`No ${model} found with ${propertyKey} = ${propertyValue}`);
-    }
-
-    let old = map.get(id);
-    if (old?.expiresAt && old.expiresAt < new Date()) {
-      old = undefined;
-    }
-    console.log("MemoryAdapter.onUpdateUnique", model, idOrWhere, { old, map });
-
-    const updated = updater(old);
-    if (updated) {
-      map.set(id, updated);
-    } else {
-      map.delete(id);
-    }
-  },
-});
-
 const PrismaAdapter = createAdapter({
   async onUpdateUnique(model, idOrWhere, updater) {
     await prismaClient.$transaction(async (tx) => {
