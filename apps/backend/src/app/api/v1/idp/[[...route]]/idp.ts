@@ -1,5 +1,5 @@
-import { captureError } from '@stackframe/stack-shared/dist/utils/errors';
-import Provider from 'oidc-provider';
+import { StackAssertionError, captureError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
+import Provider, { Adapter, AdapterConstructor, AdapterPayload } from 'oidc-provider';
 
 
 import QuickLRU from 'quick-lru';
@@ -34,81 +34,106 @@ const grantable = new Set([
   'BackchannelAuthenticationRequest',
 ]);
 
-class MemoryAdapter {
-  private model: string;
+type AdapterData = {
+  payload: AdapterPayload,
+  expiresAt: Date,
+};
 
-  constructor(model: string) {
-    this.model = model;
-  }
+function createAdapter(options: {
+  onUpdateUnique: (
+    model: string,
+    idOrWhere: string | { propertyKey: keyof AdapterPayload, propertyValue: string },
+    updater: (old: AdapterData | undefined) => AdapterData | undefined
+  ) => void | Promise<void>,
+}): AdapterConstructor {
+  const niceUpdate = async (
+    model: string,
+    idOrWhere: string | { propertyKey: keyof AdapterPayload, propertyValue: string },
+    updater?: (old: AdapterData | undefined) => AdapterData | undefined,
+  ): Promise<AdapterPayload | undefined> => {
+    let wasCalled = false as boolean;
+    let updated: AdapterData | undefined;
+    await options.onUpdateUnique(
+      model,
+      idOrWhere,
+      (old) => {
+        if (wasCalled) throw new StackAssertionError('Adapter update called more than once');
+        wasCalled = true;
+        updated = (updater ? updater(old) : old);
+        return updated;
+      },
+    );
+    if (!wasCalled) throw new StackAssertionError('Adapter update was not called');
+    return updated?.payload;
+  };
 
-  key(id: string): string {
-    return `${this.model}:${id}`;
-  }
+  return class CustomAdapter implements Adapter {
+    private model: string;
 
-  async destroy(id: string): Promise<void> {
-    console.log('MemoryAdapter destroy', this.model, id);
-    const key = this.key(id);
-    storage.delete(key);
-  }
-
-  async consume(id: string): Promise<void> {
-    console.log('MemoryAdapter consume', this.model, id);
-    const value = storage.get(this.key(id)) as StorageValue;
-    value.consumed = Math.floor(Date.now() / 1000);
-  }
-
-  async find(id: string): Promise<StorageValue | undefined> {
-    console.log('MemoryAdapter find', this.model, id);
-    return storage.get(this.key(id)) as StorageValue | undefined;
-  }
-
-  async findByUid(uid: string): Promise<StorageValue | undefined> {
-    console.log('MemoryAdapter findByUid', this.model, uid);
-    const id = storage.get(sessionUidKeyFor(uid)) as string;
-    return await this.find(id);
-  }
-
-  async findByUserCode(userCode: string): Promise<StorageValue | undefined> {
-    console.log('MemoryAdapter findByUserCode', this.model, userCode);
-    const id = storage.get(userCodeKeyFor(userCode)) as string;
-    return await this.find(id);
-  }
-
-  async upsert(id: string, payload: StorageValue, expiresIn: number): Promise<void> {
-    const key = this.key(id);
-    console.log('MemoryAdapter upsert', this.model, id, payload, expiresIn);
-    if (this.model === 'Session') {
-      storage.set(sessionUidKeyFor(payload.uid), id, { maxAge: expiresIn * 1000 });
+    constructor(model: string) {
+      this.model = model;
     }
 
-    const { grantId, userCode } = payload;
-    if (grantable.has(this.model) && grantId) {
-      const grantKey = grantKeyFor(grantId);
-      const grant = storage.get(grantKey) as string[] | undefined;
-      if (!grant) {
-        storage.set(grantKey, [key]);
-      } else {
-        grant.push(key);
-      }
+    async upsert(id: string, payload: AdapterPayload, expiresInSeconds: number): Promise<void> {
+      await niceUpdate(this.model, id, () => ({ payload, expiresAt: new Date(Date.now() + expiresInSeconds * 1000) }));
     }
 
-    if (userCode) {
-      storage.set(userCodeKeyFor(userCode), id, { maxAge: expiresIn * 1000 });
+    async find(id: string): Promise<AdapterPayload | undefined> {
+      return await niceUpdate(this.model, id);
     }
 
-    storage.set(key, payload, { maxAge: expiresIn * 1000 });
-  }
-
-
-  async revokeByGrantId(grantId: string): Promise<void> {
-    const grantKey = grantKeyFor(grantId);
-    const grant = storage.get(grantKey) as string[] | undefined;
-    if (grant) {
-      grant.forEach((token: string) => storage.delete(token));
-      storage.delete(grantKey);
+    async findByUserCode(userCode: string): Promise<AdapterPayload | undefined> {
+      return await niceUpdate(this.model, { propertyKey: 'userCode', propertyValue: userCode });
     }
-  }
+
+    async findByUid(uid: string): Promise<AdapterPayload | undefined> {
+      return await niceUpdate(this.model, { propertyKey: 'uid', propertyValue: uid });
+    }
+
+    async consume(id: string): Promise<void> {
+      await niceUpdate(this.model, id, (old) => old ? { ...old, payload: { ...old.payload, consumed: true } } : undefined);
+    }
+
+    async destroy(id: string): Promise<void> {
+      await niceUpdate(this.model, id, () => undefined);
+    }
+
+    async revokeByGrantId(grantId: string): Promise<void> {
+      await niceUpdate(this.model, { propertyKey: 'grantId', propertyValue: grantId }, () => undefined);
+    }
+  };
 }
+
+const memoryAdapterStorage = new Map<string, Map<string, AdapterData>>();
+const MemoryAdapter = createAdapter({
+  onUpdateUnique(model: string, idOrWhere: string | { propertyKey: keyof AdapterPayload, propertyValue: string }, updater: (old: AdapterData | undefined) => AdapterData | undefined) {
+    let map = memoryAdapterStorage.get(model);
+    if (!map) {
+        memoryAdapterStorage.set(model, map = new Map());
+    }
+
+    let id: string;
+    if (typeof idOrWhere === 'string') {
+      id = idOrWhere;
+    } else {
+      const { propertyKey, propertyValue } = idOrWhere;
+      id = [...map].find(([_, data]) => data.payload[propertyKey] === propertyValue)?.[0] ?? throwErr(`No ${model} found with ${propertyKey} = ${propertyValue}`);
+    }
+
+    let old = map.get(id);
+    if (old?.expiresAt && old.expiresAt < new Date()) {
+      old = undefined;
+    }
+    console.log("onUpdateUnique", model, idOrWhere, old, map);
+
+    const updated = updater(old);
+    if (updated) {
+        map.set(id, updated);
+    } else {
+        map.delete(id);
+    }
+  },
+});
 
 const mockedProviders = [
   "stack-auth",
@@ -204,41 +229,38 @@ export function createOidcProvider(baseUrl: string) {
       if (/^\/interaction\/[^/]+\/login$/.test(ctx.path)) {
         switch (ctx.method) {
           case 'GET': {
+            // GETs need to be idempotent, but we want to allow people to redirect to a URL with a normal browser redirect
+            // so provide this GET version of the endpoint that just redirects to the POST version
             ctx.status = 200;
             ctx.body = `
               <html>
                 <body>
-                  <noscript>
-                    Note: JavaScript is disabled, so you must click the button below to continue.
-                  </noscript>
                   <form id="continue-form" method="POST">
+                    If you are not redirected, please press the button below.<br>
                     <input type="submit" value="Continue">
                   </form>
                   <script>
-                    document.getElementById('continue-form').style.display = 'none';
+                    document.getElementById('continue-form').style.visibility = 'hidden';
                     document.getElementById('continue-form').submit();
                     setTimeout(() => {
-                      document.getElementById('continue-form').style.display = 'block';
-                    }, 5000);
+                      document.getElementById('continue-form').style.visibility = 'visible';
+                    }, 3000);
                   </script>
                 </body>
               </html>
             `;
+            ctx.header['content-type'] = 'text/html';
             break;
           }
           case 'POST': {
-            console.log("OOOOO 1");
             const uid = ctx.path.split('/')[2];
-
 
             const grant = new oidc.Grant({
               accountId: "lmao_id",
               clientId: "client-id",
             });
-            console.log("OOOOO 2");
 
             const grantId = await grant.save();
-            console.log("OOOOO 3");
 
 
             const result = {
@@ -249,10 +271,6 @@ export function createOidcProvider(baseUrl: string) {
                 grantId,
               },
             };
-            console.log("OOOOO 4");
-
-            console.log("RESSS", await oidc.interactionResult(ctx.req, ctx.res, result));
-            console.log("OOOOO 5");
 
             return await oidc.interactionFinished(ctx.req, ctx.res, result);
           }
