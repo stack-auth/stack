@@ -115,7 +115,9 @@ export function getPerAudienceSecret(options: {
   return jose.base64url.encode(
     crypto
       .createHash('sha256')
-      .update(JSON.stringify(["stack-audience-secret", options.secret, options.audience]))
+      // TODO we should prefix a string like "stack-audience-secret" before we hash so you can't use `getKid(...)` to get the secret for eg. the "kid" audience if the same secret value is used
+      // Sadly doing this modification is a bit annoying as we need to leave the old keys to be valid for a little longer
+      .update(JSON.stringify([options.secret, options.audience]))
       .digest()
   );
 };
@@ -126,7 +128,7 @@ export function getKid(options: {
   return jose.base64url.encode(
     crypto
       .createHash('sha256')
-      .update(JSON.stringify(["stack-kid-secret", options.secret]))
+      .update(JSON.stringify([options.secret, "kid"]))  // TODO see above in getPerAudienceSecret
       .digest()
   ).slice(0, 12);
 }

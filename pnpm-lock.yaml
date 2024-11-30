@@ -432,25 +432,6 @@ importers:
         specifier: ^4.16.2
         version: 4.16.2
 
-  apps/oidc-mock-server:
-    dependencies:
-      '@stackframe/stack-shared':
-        specifier: workspace:*
-        version: link:../../packages/stack-shared
-      '@types/oidc-provider':
-        specifier: ^8.5.1
-        version: 8.5.1
-      oidc-provider:
-        specifier: ^8.5.1
-        version: 8.5.1
-      quick-lru:
-        specifier: ^7.0.0
-        version: 7.0.0
-    devDependencies:
-      tsx:
-        specifier: ^4.16.2
-        version: 4.16.2
-
   docs:
     dependencies:
       fern-api:

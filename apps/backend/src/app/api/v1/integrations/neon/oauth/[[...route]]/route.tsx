@@ -1,11 +1,12 @@
 import { handleApiRequest } from "@/route-handlers/smart-route-handler";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { createNodeHttpServerDuplex } from "@stackframe/stack-shared/dist/utils/node-http";
 import { NextRequest, NextResponse } from "next/server";
 import { createOidcProvider } from "./idp";
 
 const apiBaseUrl = new URL(getEnvVariable("STACK_BASE_URL"));
-const pathPrefix = "/api/v1/idp";
+const pathPrefix = "/api/v1/integrations/neon/oauth";
 const idpBaseUrl = new URL(pathPrefix, apiBaseUrl);
 const oidcCallbackPromise = (async () => {
   const oidc = await createOidcProvider({
@@ -16,6 +17,9 @@ const oidcCallbackPromise = (async () => {
 
 const handler = handleApiRequest(async (req: NextRequest) => {
   const newUrl = req.url.replace(pathPrefix, "");
+  if (newUrl === req.url) {
+    throw new StackAssertionError("No path prefix found in request URL. Is the pathPrefix correct?", { newUrl, url: req.url, pathPrefix });
+  }
   const newHeaders = new Headers(req.headers);
   const [incomingMessage, serverResponse] = await createNodeHttpServerDuplex({
     method: req.method,
@@ -26,8 +30,6 @@ const handler = handleApiRequest(async (req: NextRequest) => {
   });
 
   await (await oidcCallbackPromise)(incomingMessage, serverResponse);
-
-  console.log("AAAAAAAA", { incomingMessage, serverResponse });
 
   const body = new Uint8Array(serverResponse.bodyChunks.flatMap(chunk => [...chunk]));
 
