@@ -1,7 +1,8 @@
 import { createApiKeySet } from "@/lib/api-keys";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { adaptSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, adminAuthTypeSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { apiKeyCrudHandlers } from "./crud";
+
 
 export const GET = apiKeyCrudHandlers.listHandler;
 
