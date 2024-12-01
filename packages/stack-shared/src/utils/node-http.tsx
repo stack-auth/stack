@@ -27,7 +27,7 @@ export async function createNodeHttpServerDuplex(options: {
   // and https://github.com/nodejs/node/blob/main/lib/_http_common.js (particularly the `parserXyz` functions)
 
   const incomingMessage = new IncomingMessage({
-    encrypted: options.originalUrl?.protocol === "https:",
+    encrypted: options.originalUrl?.protocol === "https:",  // trick frameworks into believing this is an HTTPS request
   } as any);
   incomingMessage.httpVersionMajor = 1;
   incomingMessage.httpVersionMinor = 1;

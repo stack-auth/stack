@@ -2,8 +2,11 @@ import { handleApiRequest } from "@/route-handlers/smart-route-handler";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { createNodeHttpServerDuplex } from "@stackframe/stack-shared/dist/utils/node-http";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { createOidcProvider } from "./idp";
+
+export const dynamic = "force-dynamic";
 
 const pathPrefix = "/api/v1/integrations/neon/oauth/idp";
 
@@ -25,6 +28,9 @@ function getOidcCallbackPromise() {
 }
 
 const handler = handleApiRequest(async (req: NextRequest) => {
+  // force dynamic
+  cookies();
+
   const newUrl = req.url.replace(pathPrefix, "");
   if (newUrl === req.url) {
     throw new StackAssertionError("No path prefix found in request URL. Is the pathPrefix correct?", { newUrl, url: req.url, pathPrefix });
