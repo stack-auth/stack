@@ -1,5 +1,6 @@
 -- CreateTable
 CREATE TABLE "IdPAdapterData" (
+    "idpId" TEXT NOT NULL,
     "model" TEXT NOT NULL,
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -7,7 +8,7 @@ CREATE TABLE "IdPAdapterData" (
     "payload" JSONB NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "IdPAdapterData_pkey" PRIMARY KEY ("model","id")
+    CONSTRAINT "IdPAdapterData_pkey" PRIMARY KEY ("idpId","model","id")
 );
 
 -- CreateIndex

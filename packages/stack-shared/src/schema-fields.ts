@@ -145,6 +145,10 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
   return object.default(undefined) as any as typeof object;
 }
 
+export function yupNever(): yup.MixedSchema<never> {
+  return yupMixed().test('never', 'This value should never be reached', () => false) as any;
+}
+
 export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.MixedSchema<yup.InferType<T[number]>> {
   if (args.length === 0) throw new Error('yupUnion must have at least one schema');
 
@@ -191,7 +195,7 @@ export const urlSchema = yupString().test({
   },
 });
 export const jsonSchema = yupMixed().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value)));
-export const jsonStringSchema = yupString().test("json", "Invalid JSON format", (value) => {
+export const jsonStringSchema = yupString().test("json", (params) => `${params.path} is not valid JSON`, (value) => {
   if (value == null) return true;
   try {
     JSON.parse(value);
@@ -200,7 +204,7 @@ export const jsonStringSchema = yupString().test("json", "Invalid JSON format", 
     return false;
   }
 });
-export const jsonStringOrEmptySchema = yupString().test("json", "Invalid JSON format", (value) => {
+export const jsonStringOrEmptySchema = yupString().test("json", (params) => `${params.path} is not valid JSON`, (value) => {
   if (!value) return true;
   try {
     JSON.parse(value);
@@ -209,7 +213,7 @@ export const jsonStringOrEmptySchema = yupString().test("json", "Invalid JSON fo
     return false;
   }
 });
-export const base64Schema = yupString().test("is-base64", "Invalid base64 format", (value) => {
+export const base64Schema = yupString().test("is-base64", (params) => `${params.path} is not valid base64`, (value) => {
   if (value == null) return true;
   return isBase64(value);
 });

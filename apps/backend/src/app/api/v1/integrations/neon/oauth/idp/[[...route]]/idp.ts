@@ -5,6 +5,14 @@ import { sha512 } from '@stackframe/stack-shared/dist/utils/hashes';
 import { getPerAudienceSecret, getPrivateJwk, getPublicJwkSet } from '@stackframe/stack-shared/dist/utils/jwt';
 import Provider, { Adapter, AdapterConstructor, AdapterPayload } from 'oidc-provider';
 
+// untyped & hacky imports, we don't care
+// @ts-ignore
+// @ts-ignore
+// @ts-ignore
+// @ts-ignore
+// @ts-ignore
+// @ts-ignore
+
 type AdapterData = {
   payload: AdapterPayload,
   expiresAt: Date,
@@ -75,82 +83,89 @@ function createAdapter(options: {
   };
 }
 
-const PrismaAdapter = createAdapter({
-  async onUpdateUnique(model, idOrWhere, updater) {
-    await prismaClient.$transaction(async (tx) => {
-      const oldAll = await tx.idPAdapterData.findMany({
-        where: typeof idOrWhere === 'string' ? {
-          model,
-          id: idOrWhere,
-          expiresAt: {
-            gt: new Date(),
+function createPrismaAdapter(idpId: string) {
+  return createAdapter({
+    async onUpdateUnique(model, idOrWhere, updater) {
+      await prismaClient.$transaction(async (tx) => {
+        const oldAll = await tx.idPAdapterData.findMany({
+          where: typeof idOrWhere === 'string' ? {
+            idpId,
+            model,
+            id: idOrWhere,
+            expiresAt: {
+              gt: new Date(),
+            },
+          } : {
+            idpId,
+            model,
+            payload: {
+              path: [`${idOrWhere.propertyKey}`],
+              equals: idOrWhere.propertyValue,
+            },
+            expiresAt: {
+              gt: new Date(),
+            },
           },
-        } : {
-          model,
-          payload: {
-            path: [`${idOrWhere.propertyKey}`],
-            equals: idOrWhere.propertyValue,
-          },
-          expiresAt: {
-            gt: new Date(),
-          },
-        },
-      });
+        });
 
-      if (oldAll.length > 1) throwErr(`Multiple ${model} found with ${idOrWhere}; this shouldn't happen`);
-      const old = oldAll.length === 0 ? undefined : oldAll[0];
+        if (oldAll.length > 1) throwErr(`Multiple ${model} found with ${idOrWhere}; this shouldn't happen`);
+        const old = oldAll.length === 0 ? undefined : oldAll[0];
 
-      const updated = updater(old ? {
-        payload: old.payload as AdapterPayload,
-        expiresAt: old.expiresAt,
-      } : undefined);
+        const updated = updater(old ? {
+          payload: old.payload as AdapterPayload,
+          expiresAt: old.expiresAt,
+        } : undefined);
 
-      if (updated) {
-        if (old) {
-          await tx.idPAdapterData.update({
-            where: {
-              model_id: {
-                model,
-                id: old.id,
+        if (updated) {
+          if (old) {
+            await tx.idPAdapterData.update({
+              where: {
+                idpId_model_id: {
+                  idpId,
+                  model,
+                  id: old.id,
+                },
               },
-            },
-            data: {
-              payload: updated.payload as any,
-              expiresAt: updated.expiresAt,
-            },
-          });
+              data: {
+                payload: updated.payload as any,
+                expiresAt: updated.expiresAt,
+              },
+            });
+          } else {
+            await tx.idPAdapterData.create({
+              data: {
+                idpId,
+                model,
+                id: typeof idOrWhere === "string" ? idOrWhere : throwErr(`No ${model} found where ${JSON.stringify(idOrWhere)}`),
+                payload: updated.payload as any,
+                expiresAt: updated.expiresAt,
+              },
+            });
+          }
         } else {
-          await tx.idPAdapterData.create({
-            data: {
-              model,
-              id: typeof idOrWhere === "string" ? idOrWhere : throwErr(`No ${model} found where ${JSON.stringify(idOrWhere)}`),
-              payload: updated.payload as any,
-              expiresAt: updated.expiresAt,
-            },
-          });
-        }
-      } else {
-        if (old) {
-          await tx.idPAdapterData.delete({
-            where: {
-              model_id: {
-                model,
-                id: old.id,
+          if (old) {
+            await tx.idPAdapterData.delete({
+              where: {
+                idpId_model_id: {
+                  idpId,
+                  model,
+                  id: old.id,
+                },
               },
-            },
-          });
+            });
+          }
         }
-      }
-    });
-  },
-});
+      });
+    },
+  });
+}
 
 // TODO: add stateful session management
 
 
-export async function createOidcProvider(options: { baseUrl: string }) {
+export async function createOidcProvider(options: { id: string, baseUrl: string }) {
   const privateJwk = await getPrivateJwk(getPerAudienceSecret({
-    audience: options.baseUrl,
+    audience: `https://idp-jwk-audience.stack-auth.com/${encodeURIComponent(options.id)}`,
     secret: getEnvVariable("STACK_SERVER_SECRET"),
   }));
   const privateJwks = {
@@ -161,15 +176,26 @@ export async function createOidcProvider(options: { baseUrl: string }) {
   const publicJwks = await getPublicJwkSet(privateJwk);
 
   const oidc = new Provider(options.baseUrl, {
-    adapter: PrismaAdapter,
-    clients: [{
-      client_id: "client-id",
-      client_secret: "test-client-secret",
-      id_token_signed_response_alg: "ES256",
-      redirect_uris: [
-        `http://localhost:8116/api/auth/callback/stack-auth`,
-      ],
-    }],
+    adapter: createPrismaAdapter(options.id),
+    clients: [
+      {
+        client_id: "client-id",
+        client_secret: "test-client-secret",
+        id_token_signed_response_alg: "ES256",
+        redirect_uris: [
+          `http://localhost:8116/api/auth/callback/stack-auth`,
+          `http://localhost:30000/api/v2/identity/authorize`,
+        ],
+      },
+      {
+        client_id: "neon-local",
+        client_secret: "neon-local-secret",
+        id_token_signed_response_alg: "ES256",
+        redirect_uris: [
+          `http://localhost:30000/api/v2/identity/authorize`,
+        ],
+      }
+    ],
     ttl: {
       Session: 1, // we always want to ask for login again immediately
     },
@@ -184,6 +210,10 @@ export async function createOidcProvider(options: { baseUrl: string }) {
         enabled: false,
       },
     },
+    scopes: [],
+    responseTypes: [
+      "code",
+    ],
 
     async loadExistingGrant(ctx: any) {
       const grantId = ctx.oidc.result?.consent?.grantId
@@ -254,8 +284,19 @@ export async function createOidcProvider(options: { baseUrl: string }) {
     captureError('idp-oidc-provider-server-error', err);
   });
 
+  function middleware(middleware: Parameters<typeof oidc.use>[0]) {
+    oidc.use((ctx, next) => {
+      try {
+        return middleware(ctx, next);
+      } catch (err) {
+        captureError('idp-oidc-provider-middleware-error', err);
+        throw err;
+      }
+    });
+  }
+
   // .well-known/jwks.json
-  oidc.use(async (ctx, next) => {
+  middleware(async (ctx, next) => {
     if (ctx.path === '/.well-known/jwks.json') {
       ctx.body = publicJwks;
       ctx.type = 'application/json';
@@ -265,64 +306,59 @@ export async function createOidcProvider(options: { baseUrl: string }) {
   });
 
   // Interactions
-  oidc.use(async (ctx, next) => {
-    try {
-      if (/^\/interaction\/[^/]+\/login$/.test(ctx.path)) {
-        switch (ctx.method) {
-          case 'GET': {
-            // GETs need to be idempotent, but we want to allow people to redirect to a URL with a normal browser redirect
-            // so provide this GET version of the endpoint that just redirects to the POST version
-            ctx.status = 200;
-            ctx.type = 'text/html';
-            ctx.body = `
-              <html>
-                <body>
-                  <form id="continue-form" method="POST">
-                    If you are not redirected, please press the button below.<br>
-                    <input type="submit" value="Continue">
-                  </form>
-                  <script>
-                    document.getElementById('continue-form').style.visibility = 'hidden';
-                    document.getElementById('continue-form').submit();
-                    setTimeout(() => {
-                      document.getElementById('continue-form').style.visibility = 'visible';
-                    }, 3000);
-                  </script>
-                </body>
-              </html>
-            `;
-            return;
-          }
-          case 'POST': {
-            const uid = ctx.path.split('/')[2];
-
-            const grant = new oidc.Grant({
-              accountId: "lmao_id",
-              clientId: "client-id",
-            });
-
-            const grantId = await grant.save();
-
-
-            const result = {
-              login: {
-                accountId: "lmao_id",
-              },
-              consent: {
-                grantId,
-              },
-            };
-
-            return await oidc.interactionFinished(ctx.req, ctx.res, result);
-          }
+  middleware(async (ctx, next) => {
+    if (/^\/interaction\/[^/]+\/login$/.test(ctx.path)) {
+      switch (ctx.method) {
+        case 'GET': {
+          // GETs need to be idempotent, but we want to allow people to redirect to a URL with a normal browser redirect
+          // so provide this GET version of the endpoint that just redirects to the POST version
+          ctx.status = 200;
+          ctx.type = 'text/html';
+          ctx.body = `
+            <html>
+              <body>
+                <form id="continue-form" method="POST">
+                  If you are not redirected, please press the button below.<br>
+                  <input type="submit" value="Continue">
+                </form>
+                <script>
+                  document.getElementById('continue-form').style.visibility = 'hidden';
+                  document.getElementById('continue-form').submit();
+                  setTimeout(() => {
+                    document.getElementById('continue-form').style.visibility = 'visible';
+                  }, 3000);
+                </script>
+              </body>
+            </html>
+          `;
+          return;
         }
-      } else if (ctx.method === 'GET' && /^\/interaction\/[^/]+$/.test(ctx.path)) {
-        const uid = ctx.path.split('/')[2];
-        return ctx.redirect(`http://localhost:8103/handler/sign-in?after_auth_return_to=${encodeURIComponent(`${options.baseUrl}/interaction/${encodeURIComponent(uid)}/login`)}`);
+        case 'POST': {
+          const uid = ctx.path.split('/')[2];
+
+          const grant = new oidc.Grant({
+            accountId: "lmao_id",
+            clientId: "client-id",
+          });
+
+          const grantId = await grant.save();
+
+
+          const result = {
+            login: {
+              accountId: "lmao_id",
+            },
+            consent: {
+              grantId,
+            },
+          };
+
+          return await oidc.interactionFinished(ctx.req, ctx.res, result);
+        }
       }
-    } catch (err) {
-      captureError('idp-oidc-interaction-middleware', err);
-      throw err;
+    } else if (ctx.method === 'GET' && /^\/interaction\/[^/]+$/.test(ctx.path)) {
+      const uid = ctx.path.split('/')[2];
+      return ctx.redirect(`http://localhost:8103/handler/sign-in?after_auth_return_to=${encodeURIComponent(`${options.baseUrl}/interaction/${encodeURIComponent(uid)}/login`)}`);
     }
     await next();
   });

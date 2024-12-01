@@ -6,10 +6,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createOidcProvider } from "./idp";
 
 const apiBaseUrl = new URL(getEnvVariable("STACK_BASE_URL"));
-const pathPrefix = "/api/v1/integrations/neon/oauth";
+const pathPrefix = "/api/v1/integrations/neon/oauth/idp";
 const idpBaseUrl = new URL(pathPrefix, apiBaseUrl);
 const oidcCallbackPromise = (async () => {
   const oidc = await createOidcProvider({
+    id: "stack-preconfigured-idp:integrations/neon",
     baseUrl: idpBaseUrl.toString(),
   });
   return oidc.callback();
@@ -30,6 +31,7 @@ const handler = handleApiRequest(async (req: NextRequest) => {
   });
 
   await (await oidcCallbackPromise)(incomingMessage, serverResponse);
+  console.log("location header", serverResponse.getHeader("location"));
 
   const body = new Uint8Array(serverResponse.bodyChunks.flatMap(chunk => [...chunk]));
 

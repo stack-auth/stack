@@ -798,6 +798,7 @@ model StandardEmailServiceConfig {
 
 //#region IdP
 model IdPAdapterData {
+  idpId String
   model String
   id String
 
@@ -807,7 +808,7 @@ model IdPAdapterData {
   payload Json
   expiresAt DateTime
 
-  @@id([model, id])
+  @@id([idpId, model, id])
   @@index([payload(ops: JsonbPathOps)], type: Gin)
   @@index([expiresAt])
 }
