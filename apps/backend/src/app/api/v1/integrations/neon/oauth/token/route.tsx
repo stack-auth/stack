@@ -63,7 +63,6 @@ export const POST = createSmartRouteHandler({
       throw new StackAssertionError("Failed to fetch user info? This should never happen", { text, userInfoResponse });
     }
     const userInfoResponseBody = await userInfoResponse.json();
-    console.log("BBBBBBBB", userInfoResponseBody);
 
     const accountId = userInfoResponseBody.sub;
     const mapping = await prismaClient.idPAccountToCdfcResultMapping.findUnique({
