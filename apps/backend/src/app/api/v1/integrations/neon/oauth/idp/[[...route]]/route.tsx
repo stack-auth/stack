@@ -22,16 +22,17 @@ const handler = handleApiRequest(async (req: NextRequest) => {
     throw new StackAssertionError("No path prefix found in request URL. Is the pathPrefix correct?", { newUrl, url: req.url, pathPrefix });
   }
   const newHeaders = new Headers(req.headers);
+  const incomingBody = new Uint8Array(await req.arrayBuffer());
+  console.log("BBBBBBBB", incomingBody, new TextDecoder().decode(incomingBody));
   const [incomingMessage, serverResponse] = await createNodeHttpServerDuplex({
     method: req.method,
     originalUrl: new URL(req.url),
     url: new URL(newUrl),
     headers: newHeaders,
-    body: new Uint8Array(await req.arrayBuffer()),
+    body: incomingBody,
   });
 
   await (await oidcCallbackPromise)(incomingMessage, serverResponse);
-  console.log("location header", serverResponse.getHeader("location"));
 
   const body = new Uint8Array(serverResponse.bodyChunks.flatMap(chunk => [...chunk]));
 

@@ -22,7 +22,7 @@ export const GET = createSmartRouteHandler({
       throw new StackAssertionError(`Expected pathname to be authorize endpoint but got ${JSON.stringify(url.pathname)}`, { url });
     }
     url.pathname = "/api/v1/integrations/neon/oauth/idp/auth";
-    url.search = new URLSearchParams({ ...req.query, scope: "openid" }).toString();
+    url.search = new URLSearchParams({ ...req.query, scope: "openid profile" }).toString();
     redirect(url.toString());
   },
 });

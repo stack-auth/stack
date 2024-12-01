@@ -52,15 +52,16 @@ async function testFlow() {
   const tokenUrl = new URL("/api/v1/integrations/neon/oauth/token", STACK_API_URL);
   const tokenResponse = await fetch(tokenUrl.toString(), {
     method: "POST",
-    body: JSON.stringify({
+    body: new URLSearchParams({
       grant_type: "authorization_code",
       client_id: "neon-local",
       client_secret: "neon-local-secret",
       code,
       code_verifier: "W2LPAD4M4ES-3wBjzU6J5ApykmuxQy5VTs3oSmtboDM",
-    }),
+      redirect_uri: authorizeUrl.searchParams.get("redirect_uri")!,
+    }).toString(),
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
     },
   });
   const tokenData = await tokenResponse.json();

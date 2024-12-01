@@ -1,9 +1,9 @@
-import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { adaptSchema, clientOrHigherAuthTypeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { apiKeysCreateInputSchema, apiKeysCreateOutputSchema } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
-import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { prismaClient } from "@/prisma-client";
+import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { apiKeysCreateInputSchema, apiKeysCreateOutputSchema } from "@stackframe/stack-shared/dist/interface/crud/api-keys";
+import { adaptSchema, adminAuthTypeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { apiKeyCrudHandlers } from "./crud";
 
 export const GET = apiKeyCrudHandlers.listHandler;
@@ -14,7 +14,7 @@ export const POST = createSmartRouteHandler({
   },
   request: yupObject({
     auth: yupObject({
-      type: clientOrHigherAuthTypeSchema,
+      type: adminAuthTypeSchema,
       project: adaptSchema.defined(),
     }).defined(),
     body: apiKeysCreateInputSchema.defined(),

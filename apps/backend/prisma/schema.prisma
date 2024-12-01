@@ -797,6 +797,28 @@ model StandardEmailServiceConfig {
 //#endregion
 
 //#region IdP
+model IdPAccountToCdfcResultMapping {
+  idpId String
+  id String
+
+  idpAccountId String @db.Uuid @unique
+  cdfcResult Json
+
+  @@id([idpId, id])
+}
+
+model ProjectWrapperCodes {
+  idpId String
+  id String @default(uuid()) @db.Uuid
+
+  interactionUid String
+  authorizationCode String @unique
+
+  cdfcResult Json
+
+  @@id([idpId, id])
+}
+
 model IdPAdapterData {
   idpId String
   model String

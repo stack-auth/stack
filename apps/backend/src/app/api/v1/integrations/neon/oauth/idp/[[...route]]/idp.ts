@@ -1,17 +1,11 @@
 import { prismaClient } from '@/prisma-client';
+import { Prisma } from '@prisma/client';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError, captureError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { sha512 } from '@stackframe/stack-shared/dist/utils/hashes';
 import { getPerAudienceSecret, getPrivateJwk, getPublicJwkSet } from '@stackframe/stack-shared/dist/utils/jwt';
+import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 import Provider, { Adapter, AdapterConstructor, AdapterPayload } from 'oidc-provider';
-
-// untyped & hacky imports, we don't care
-// @ts-ignore
-// @ts-ignore
-// @ts-ignore
-// @ts-ignore
-// @ts-ignore
-// @ts-ignore
 
 type AdapterData = {
   payload: AdapterPayload,
@@ -197,7 +191,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
       }
     ],
     ttl: {
-      Session: 1, // we always want to ask for login again immediately
+      Session: 60, // we always want to ask for login again, though the session needs to survive for a bit during the token exchange
     },
     cookies: {
       keys: [
@@ -251,8 +245,6 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
     },
 
     interactions: {
-      // THIS IS WHERE WE REDIRECT TO PRIMARY AUTH SERVER
-      // TODO: do we need to sanitize the parameter?
       url: (ctx, interaction) => `${options.baseUrl}/interaction/${encodeURIComponent(interaction.uid)}`,
 
     },
@@ -307,7 +299,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
 
   // Interactions
   middleware(async (ctx, next) => {
-    if (/^\/interaction\/[^/]+\/login$/.test(ctx.path)) {
+    if (/^\/interaction\/[^/]+\/done$/.test(ctx.path)) {
       switch (ctx.method) {
         case 'GET': {
           // GETs need to be idempotent, but we want to allow people to redirect to a URL with a normal browser redirect
@@ -334,19 +326,59 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
           return;
         }
         case 'POST': {
+          const authorizationCode = `${ctx.request.query.code}`;
+          const authorizationCodeObj = await prismaClient.projectWrapperCodes.findUnique({
+            where: {
+              idpId: "stack-preconfigured-idp:integrations/neon",
+              authorizationCode,
+            },
+          });
+
+          if (!authorizationCodeObj) {
+            ctx.status = 400;
+            ctx.type = "text/plain";
+            ctx.body = "Invalid authorization code. Please try again.";
+            return;
+          }
+
+          await prismaClient.projectWrapperCodes.delete({
+            where: {
+              idpId_id: {
+                idpId: authorizationCodeObj.idpId,
+                id: authorizationCodeObj.id,
+              },
+            },
+          });
+
+          const interactionDetails = await oidc.interactionDetails(ctx.req, ctx.res);
+
           const uid = ctx.path.split('/')[2];
+          if (uid !== authorizationCodeObj.interactionUid) {
+            ctx.status = 400;
+            ctx.type = "text/plain";
+            ctx.body = "Different interaction UID than expected from the authorization code. Did you redirect to the correct URL?";
+            return;
+          }
+
+          const account = await prismaClient.idPAccountToCdfcResultMapping.create({
+            data: {
+              idpId: authorizationCodeObj.idpId,
+              id: authorizationCodeObj.id,
+              idpAccountId: generateUuid(),
+              cdfcResult: authorizationCodeObj.cdfcResult ?? Prisma.JsonNull,
+            },
+          });
 
           const grant = new oidc.Grant({
-            accountId: "lmao_id",
-            clientId: "client-id",
+            accountId: account.idpAccountId,
+            clientId: interactionDetails.params.client_id as string,
           });
 
           const grantId = await grant.save();
 
-
           const result = {
             login: {
-              accountId: "lmao_id",
+              accountId: account.idpAccountId,
             },
             consent: {
               grantId,
@@ -358,7 +390,9 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
       }
     } else if (ctx.method === 'GET' && /^\/interaction\/[^/]+$/.test(ctx.path)) {
       const uid = ctx.path.split('/')[2];
-      return ctx.redirect(`http://localhost:8103/handler/sign-in?after_auth_return_to=${encodeURIComponent(`${options.baseUrl}/interaction/${encodeURIComponent(uid)}/login`)}`);
+      const interactionUrl = new URL(`/integrations/neon/confirm`, getEnvVariable("NEXT_PUBLIC_STACK_DASHBOARD_URL"));
+      interactionUrl.searchParams.set("interaction_uid", uid);
+      return ctx.redirect(interactionUrl.toString());
     }
     await next();
   });
