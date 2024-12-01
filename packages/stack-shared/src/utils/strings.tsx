@@ -256,6 +256,9 @@ export function nicify(
       if (value instanceof URL) {
         return `URL(${JSON.stringify(value.toString())})`;
       }
+      if (ArrayBuffer.isView(value)) {
+        return `${value.constructor.name}([${value.toString()}])`;
+      }
 
       const constructorName = [null, Object.prototype].includes(Object.getPrototypeOf(value)) ? null : (nicifiableClassNameOverrides.get(value.constructor) ?? value.constructor.name);
       const constructorString = constructorName ? `${nicifyPropertyString(constructorName)} ` : "";

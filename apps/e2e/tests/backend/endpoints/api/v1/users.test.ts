@@ -438,8 +438,8 @@ describe("with client access", () => {
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - Invalid base64 format" },
-          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - Invalid base64 format",
+          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.totp_secret_base64 is not valid base64" },
+          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.totp_secret_base64 is not valid base64",
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",

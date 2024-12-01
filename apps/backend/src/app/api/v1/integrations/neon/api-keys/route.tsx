@@ -1,7 +1,8 @@
 import { createApiKeySet } from "@/lib/api-keys";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { adaptSchema, clientOrHigherAuthTypeSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, adminAuthTypeSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { apiKeyCrudHandlers } from "./crud";
+
 
 export const GET = apiKeyCrudHandlers.listHandler;
 
@@ -11,7 +12,7 @@ export const POST = createSmartRouteHandler({
   },
   request: yupObject({
     auth: yupObject({
-      type: clientOrHigherAuthTypeSchema,
+      type: adminAuthTypeSchema,
       project: adaptSchema.defined(),
     }).defined(),
     body: yupObject({
