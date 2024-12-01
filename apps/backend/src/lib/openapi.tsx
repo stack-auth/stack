@@ -127,6 +127,8 @@ function parseRouteHandler(options: {
   let result: any = undefined;
 
   for (const overload of options.handler.overloads.values()) {
+    if (overload.metadata?.hidden) continue;
+
     const requestDescribe = overload.request.describe();
     const responseDescribe = overload.response.describe();
     if (!isSchemaObjectDescription(requestDescribe)) throw new Error('Request schema must be a yup.ObjectSchema');
