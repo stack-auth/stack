@@ -1,6 +1,6 @@
-import { OAuthBaseProvider, TokenSet } from "./base";
-import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { OAuthBaseProvider, TokenSet } from "./base";
 
 // Note: Need to install Sign In with LinkedIn using OpenID Connect from product section in app list.
 
@@ -17,7 +17,7 @@ export class LinkedInProvider extends OAuthBaseProvider {
         issuer: "https://www.linkedin.com/oauth",
         authorizationEndpoint: "https://www.linkedin.com/oauth/v2/authorization",
         tokenEndpoint: "https://www.linkedin.com/oauth/v2/accessToken",
-        redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/linkedin",
+        redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_API_URL") + "/api/v1/auth/oauth/callback/linkedin",
         baseScope: "openid profile email",
         openid: true,
         jwksUri: "https://www.linkedin.com/oauth/openid/jwks",

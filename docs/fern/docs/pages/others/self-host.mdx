@@ -42,7 +42,7 @@ docker run --env-file your-env-file.env -p 8101:8101 -p 8102:8102 stackauth/serv
 
 Now you can open the dashboard at [http://localhost:8101](http://localhost:8101) and the API backend on port 8102.
 
-Now, login with your admin account on the dashboard and follow the [normal setup process](/getting-started/setup). Add `NEXT_PUBLIC_STACK_URL=https://your-backend-url.com` to your app's environment variables so that it connects to your API backend instead of the default Stack Auth API backend (https://api.stack-auth.com).
+Now, login with your admin account on the dashboard and follow the [normal setup process](/getting-started/setup). Add `NEXT_PUBLIC_STACK_API_URL=https://your-backend-url.com` to your app's environment variables so that it connects to your API backend instead of the default Stack Auth API backend (https://api.stack-auth.com).
 
 ## Local development
 
@@ -112,7 +112,7 @@ git clone git@github.com:stack-auth/stack.git
 cd stack
 ```
 
-Set all the necessary environment variables (you can check out `apps/backend/.env`). Note that `STACK_BASE_URL` should be the URL of your deployed domain (e.g., https://your-backend-url.com).
+Set all the necessary environment variables (you can check out `apps/backend/.env`). Note that `NEXT_PUBLIC_STACK_API_URL` should be the URL of your deployed domain (e.g., https://your-backend-url.com).
 
 Build and start the server:
 
@@ -131,7 +131,7 @@ git clone git@github.com:stack-auth/stack.git
 cd stack
 ```
 
-Set all the necessary environment variables (you can check out `apps/dashboard/.env`). Note that `NEXT_PUBLIC_STACK_URL` should be the URL of your deployed backend (e.g., https://your-backend-url.com).
+Set all the necessary environment variables (you can check out `apps/dashboard/.env`). Note that `NEXT_PUBLIC_STACK_API_URL` should be the URL of your deployed backend (e.g., https://your-backend-url.com).
 
 Build and start the server:
 
@@ -161,4 +161,4 @@ To manage your dashboard configs with this account, manually go into the databas
 
 Go back to the dashboard, refresh the page, and you should see the "Stack Dashboard" project. We recommend disabling new user sign-ups to your internal project to avoid unauthorized account and project creations.
 
-Now, create a new project for your app and follow the [normal setup process](/getting-started/setup). Add `NEXT_PUBLIC_STACK_URL=https://your-backend-url.com` to your app's environment variables so that it connects to your API backend instead of the default Stack Auth API backend (https://api.stack-auth.com).
+Now, create a new project for your app and follow the [normal setup process](/getting-started/setup). Add `NEXT_PUBLIC_STACK_API_URL=https://your-backend-url.com` to your app's environment variables so that it connects to your API backend instead of the default Stack Auth API backend (https://api.stack-auth.com).

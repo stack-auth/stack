@@ -1,6 +1,6 @@
-import { OAuthBaseProvider, TokenSet } from "./base";
-import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { OAuthBaseProvider, TokenSet } from "./base";
 
 export class GitlabProvider extends OAuthBaseProvider {
   private constructor(
@@ -17,7 +17,7 @@ export class GitlabProvider extends OAuthBaseProvider {
         tokenEndpoint: "https://gitlab.com/oauth/token",
         userinfoEndpoint: "https://gitlab.com/api/v4/user",
         redirectUri:
-          getEnvVariable("STACK_BASE_URL") +
+          getEnvVariable("NEXT_PUBLIC_STACK_API_URL") +
           "/api/v1/auth/oauth/callback/gitlab",
         baseScope: "read_user",
         ...options,

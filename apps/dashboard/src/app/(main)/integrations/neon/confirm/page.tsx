@@ -28,7 +28,7 @@ export default async function NeonIntegrationConfirmPage(props: { searchParams: 
       return { error: "unauthorized" };
     }
 
-    const response = await fetch(new URL("/api/v1/integrations/neon/internal/confirm", getEnvVariable("NEXT_PUBLIC_STACK_URL")), {
+    const response = await fetch(new URL("/api/v1/integrations/neon/internal/confirm", getEnvVariable("NEXT_PUBLIC_STACK_API_URL")), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -48,7 +48,7 @@ export default async function NeonIntegrationConfirmPage(props: { searchParams: 
     const json = await response.json();
     const authorizationCode = json.authorization_code;
 
-    const redirectUrl = new URL(`/api/v1/integrations/neon/oauth/idp/interaction/${encodeURIComponent(props.searchParams.interaction_uid)}/done`, getEnvVariable("NEXT_PUBLIC_STACK_URL"));
+    const redirectUrl = new URL(`/api/v1/integrations/neon/oauth/idp/interaction/${encodeURIComponent(props.searchParams.interaction_uid)}/done`, getEnvVariable("NEXT_PUBLIC_STACK_API_URL"));
     redirectUrl.searchParams.set("code", authorizationCode);
     redirect(redirectUrl.toString());
   };

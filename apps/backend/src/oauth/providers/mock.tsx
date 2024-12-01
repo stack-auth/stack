@@ -12,7 +12,7 @@ export class MockProvider extends OAuthBaseProvider {
   static async create(providerId: string) {
     return new MockProvider(...await OAuthBaseProvider.createConstructorArgs({
       discoverFromUrl: getEnvVariable("STACK_OAUTH_MOCK_URL"),
-      redirectUri: `${getEnvVariable("STACK_BASE_URL")}/api/v1/auth/oauth/callback/${providerId}`,
+      redirectUri: `${getEnvVariable("NEXT_PUBLIC_STACK_API_URL")}/api/v1/auth/oauth/callback/${providerId}`,
       baseScope: "openid",
       openid: true,
       clientId: providerId,

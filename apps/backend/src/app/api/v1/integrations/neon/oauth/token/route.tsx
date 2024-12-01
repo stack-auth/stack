@@ -36,7 +36,7 @@ export const POST = createSmartRouteHandler({
     }),
   ),
   handler: async (req) => {
-    const tokenResponse = await fetch(new URL("/api/v1/integrations/neon/oauth/idp/token", getEnvVariable("STACK_BASE_URL")), {
+    const tokenResponse = await fetch(new URL("/api/v1/integrations/neon/oauth/idp/token", getEnvVariable("NEXT_PUBLIC_STACK_API_URL")), {
       method: "POST",
       body: new URLSearchParams(req.body).toString(),
       headers: {
@@ -52,7 +52,7 @@ export const POST = createSmartRouteHandler({
     }
     const tokenResponseBody = await tokenResponse.json();
 
-    const userInfoResponse = await fetch(new URL("/api/v1/integrations/neon/oauth/idp/me", getEnvVariable("STACK_BASE_URL")), {
+    const userInfoResponse = await fetch(new URL("/api/v1/integrations/neon/oauth/idp/me", getEnvVariable("NEXT_PUBLIC_STACK_API_URL")), {
       method: "GET",
       headers: {
         Authorization: `Bearer ${tokenResponseBody.access_token}`,
