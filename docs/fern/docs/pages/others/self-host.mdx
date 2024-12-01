@@ -37,7 +37,7 @@ First, you need to get the [example environment file](https://github.com/stack-a
 docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
 
 # Run the Docker container
-docker run --env-file your-env-file.env -p 8101:8101 -p 8102:8102 stackauth/server:main
+docker run --env-file your-env-file.env -p 8101:8101 -p 8102:8102 stackauth/server:latest
 ```
 
 Now you can open the dashboard at [http://localhost:8101](http://localhost:8101) and the API backend on port 8102.
