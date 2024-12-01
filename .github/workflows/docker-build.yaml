@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - docker-build
     tags:
       - "*.*.*"
 
