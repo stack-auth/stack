@@ -48,9 +48,9 @@ function createAdapter(options: {
     }
 
     async upsert(id: string, payload: AdapterPayload, expiresInSeconds: number): Promise<void> {
-      if (expiresInSeconds < 0) expiresInSeconds = 0;
-      if (expiresInSeconds > 60 * 60 * 24 * 365 * 100) expiresInSeconds = 60 * 60 * 24 * 365 * 100;
-      if (!Number.isFinite(expiresInSeconds)) expiresInSeconds = 0;
+      if (expiresInSeconds < 0) throw new StackAssertionError(`expiresInSeconds must be non-negative, got ${expiresInSeconds}`);
+      if (expiresInSeconds > 60 * 60 * 24 * 365 * 100) throw new StackAssertionError(`expiresInSeconds must be less than 100 years, got ${expiresInSeconds}`);
+      if (!Number.isFinite(expiresInSeconds)) throw new StackAssertionError(`expiresInSeconds must be a finite number, got ${expiresInSeconds}`);
 
       await niceUpdate(this.model, id, () => ({ payload, expiresAt: new Date(Date.now() + expiresInSeconds * 1000) }));
     }
