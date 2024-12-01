@@ -319,7 +319,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
           });
           grant.addOIDCScope('openid profile');
 
-          const grantId = await grant.save();
+          const grantId = await grant.save(60 * 60 * 24);
 
           const result = {
             login: {
