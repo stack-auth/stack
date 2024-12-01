@@ -1,3 +1,4 @@
+import { FilterUndefined, filterUndefined, pick } from "@stackframe/stack-shared/dist/utils/objects";
 import { getRelativePart } from "@stackframe/stack-shared/dist/utils/urls";
 import { RedirectType, notFound, redirect } from 'next/navigation';
 import { SignIn, SignUp, StackServerApp } from "..";
@@ -12,7 +13,6 @@ import { OAuthCallback } from "./oauth-callback";
 import { PasswordReset } from "./password-reset";
 import { SignOut } from "./sign-out";
 import { TeamInvitation } from "./team-invitation";
-import { FilterUndefined, filterUndefined, pick } from "@stackframe/stack-shared/dist/utils/objects";
 
 type Components = {
   SignIn: typeof SignIn,

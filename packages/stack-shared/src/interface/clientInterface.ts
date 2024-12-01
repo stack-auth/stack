@@ -1231,6 +1231,19 @@ export class StackClientInterface {
     return await response.json();
   }
 
+  async deleteTeam(
+    teamId: string,
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/teams/${teamId}`,
+      {
+        method: "DELETE",
+      },
+      session,
+    );
+  }
+
   async deleteCurrentUser(session: InternalSession) {
     await this.sendClientRequest(
       "/users/me",

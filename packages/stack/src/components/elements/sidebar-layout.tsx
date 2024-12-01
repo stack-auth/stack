@@ -2,7 +2,7 @@
 
 import { useHash } from '@stackframe/stack-shared/dist/hooks/use-hash';
 import { Button, Typography, cn } from '@stackframe/stack-ui';
-import { LucideIcon, XIcon } from 'lucide-react';
+import { XIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { ReactNode, useEffect } from 'react';
 
@@ -11,7 +11,7 @@ export type SidebarItem = {
   type: 'item' | 'divider',
   description?: React.ReactNode,
   id?: string,
-  icon?: LucideIcon,
+  icon?: React.ReactNode,
   content?: React.ReactNode,
   contentTitle?: React.ReactNode,
 }
@@ -58,7 +58,7 @@ function Items(props: { items: SidebarItem[], selectedIndex: number }) {
           }
         }}
       >
-        {item.icon && <item.icon className="mr-2 h-4 w-4" />}
+        {item.icon}
         {item.title}
       </Button> :
       <Typography key={index}>

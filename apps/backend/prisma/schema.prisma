@@ -796,6 +796,46 @@ model StandardEmailServiceConfig {
 
 //#endregion
 
+//#region IdP
+model IdPAccountToCdfcResultMapping {
+  idpId String
+  id String
+
+  idpAccountId String @db.Uuid @unique
+  cdfcResult Json
+
+  @@id([idpId, id])
+}
+
+model ProjectWrapperCodes {
+  idpId String
+  id String @default(uuid()) @db.Uuid
+
+  interactionUid String
+  authorizationCode String @unique
+
+  cdfcResult Json
+
+  @@id([idpId, id])
+}
+
+model IdPAdapterData {
+  idpId String
+  model String
+  id String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payload Json
+  expiresAt DateTime
+
+  @@id([idpId, model, id])
+  @@index([payload(ops: JsonbPathOps)], type: Gin)
+  @@index([expiresAt])
+}
+//#endregion
+
 //#region Events
 
 model Event {
