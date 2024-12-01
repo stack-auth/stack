@@ -5,6 +5,8 @@ import { createNodeHttpServerDuplex } from "@stackframe/stack-shared/dist/utils/
 import { NextRequest, NextResponse } from "next/server";
 import { createOidcProvider } from "./idp";
 
+export const dynamic = "force-dynamic";
+
 const pathPrefix = "/api/v1/integrations/neon/oauth/idp";
 
 // we want to initialize the OIDC provider lazily so it's not initiated at build time

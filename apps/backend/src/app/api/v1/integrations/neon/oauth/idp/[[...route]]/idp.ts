@@ -48,6 +48,15 @@ function createAdapter(options: {
     }
 
     async upsert(id: string, payload: AdapterPayload, expiresInSeconds: number): Promise<void> {
+      try {
+        if (expiresInSeconds < 0) throw new StackAssertionError(`expiresInSeconds of ${this.model}:${id} must be non-negative, got ${expiresInSeconds}`, { expiresInSeconds, model: this.model, id, payload });
+        if (expiresInSeconds > 60 * 60 * 24 * 365 * 100) throw new StackAssertionError(`expiresInSeconds of ${this.model}:${id} must be less than 100 years, got ${expiresInSeconds}`, { expiresInSeconds, model: this.model, id, payload });
+        if (!Number.isFinite(expiresInSeconds)) throw new StackAssertionError(`expiresInSeconds of ${this.model}:${id} must be a finite number, got ${expiresInSeconds}`, { expiresInSeconds, model: this.model, id, payload });
+      } catch (err) {
+        captureError('idp-adapter-upsert-assertion-error', err);
+        expiresInSeconds = 60 * 60 * 60 * 24;
+      }
+
       await niceUpdate(this.model, id, () => ({ payload, expiresAt: new Date(Date.now() + expiresInSeconds * 1000) }));
     }
 
@@ -201,16 +210,25 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
       ctx.type = "application/json";
       ctx.body = JSON.stringify(out);
     },
+
+    async findAccount(ctx, sub, token) {
+      return {
+        accountId: sub,
+        async claims(use, scope, claims, rejected) {
+          return { sub };
+        },
+      };
+    },
   });
 
   oidc.on('server_error', (ctx, err) => {
     captureError('idp-oidc-provider-server-error', err);
   });
 
-  function middleware(middleware: Parameters<typeof oidc.use>[0]) {
+  function middleware(mw: Parameters<typeof oidc.use>[0]) {
     oidc.use((ctx, next) => {
       try {
-        return middleware(ctx, next);
+        return mw(ctx, next);
       } catch (err) {
         captureError('idp-oidc-provider-middleware-error', err);
         throw err;
@@ -306,7 +324,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
           });
           grant.addOIDCScope('openid profile');
 
-          const grantId = await grant.save();
+          const grantId = await grant.save(60 * 60 * 24);
 
           const result = {
             login: {
