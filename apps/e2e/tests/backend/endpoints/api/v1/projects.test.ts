@@ -1090,6 +1090,7 @@ it("has a correctly formatted JWKS endpoint", async ({ expect }) => {
   expect(response.body).toEqual({
     keys: [
       {
+        alg: "ES256",
         crv: "P-256",
         kid: expect.any(String),
         kty: "EC",
