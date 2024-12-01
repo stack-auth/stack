@@ -1,7 +1,7 @@
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { OAuthBaseProvider, TokenSet } from "./base";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export class GithubProvider extends OAuthBaseProvider {
   private constructor(
@@ -19,7 +19,7 @@ export class GithubProvider extends OAuthBaseProvider {
       authorizationEndpoint: "https://github.com/login/oauth/authorize",
       tokenEndpoint: "https://github.com/login/oauth/access_token",
       userinfoEndpoint: "https://api.github.com/user",
-      redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/github",
+      redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_API_URL") + "/api/v1/auth/oauth/callback/github",
       baseScope: "user:email",
       // GitHub token does not expire except for lack of use in a year
       // We set a default of 1 year

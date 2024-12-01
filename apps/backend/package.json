@@ -9,6 +9,8 @@
     "with-env:prod": "dotenv -c --",
     "dev": "concurrently -n \"dev,codegen,prisma-studio\" -k \"next dev --port 8102\" \"pnpm run codegen:watch\" \"pnpm run prisma-studio\"",
     "build": "pnpm run codegen && next build",
+    "docker-build": "pnpm run codegen && next build --experimental-build-mode compile",
+    "self-host-seed-script": "tsup --config prisma/tsup.config.ts",
     "analyze-bundle": "ANALYZE_BUNDLE=1 pnpm run build",
     "start": "next start --port 8102",
     "codegen-prisma": "pnpm run prisma generate",
@@ -78,8 +80,9 @@
     "@types/semver": "^7.5.8",
     "concurrently": "^8.2.2",
     "glob": "^10.4.1",
-    "prisma": "^5.9.1",
+    "prisma": "^5.20.0",
     "rimraf": "^5.0.5",
+    "tsup": "^8.3.0",
     "tsx": "^4.7.2"
   }
 }

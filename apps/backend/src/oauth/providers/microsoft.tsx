@@ -1,6 +1,6 @@
-import { OAuthBaseProvider, TokenSet } from "./base";
-import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { OAuthBaseProvider, TokenSet } from "./base";
 
 export class MicrosoftProvider extends OAuthBaseProvider {
   private constructor(
@@ -18,7 +18,7 @@ export class MicrosoftProvider extends OAuthBaseProvider {
       issuer: `https://login.microsoftonline.com${"/" + options.microsoftTenantId || ""}`,
       authorizationEndpoint: `https://login.microsoftonline.com/${options.microsoftTenantId || 'consumers'}/oauth2/v2.0/authorize`,
       tokenEndpoint: `https://login.microsoftonline.com/${options.microsoftTenantId || 'consumers'}/oauth2/v2.0/token`,
-      redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/microsoft",
+      redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_API_URL") + "/api/v1/auth/oauth/callback/microsoft",
       baseScope: "User.Read",
       ...options,
     }));

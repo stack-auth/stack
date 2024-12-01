@@ -141,7 +141,7 @@ function getDefaultSuperSecretAdminKey() {
 }
 
 function getDefaultBaseUrl() {
-  return process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
+  return process.env.NEXT_PUBLIC_STACK_API_URL || process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
 }
 
 export type StackClientAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = {

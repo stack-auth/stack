@@ -7,7 +7,7 @@ import { getEnvVariable } from "./env";
 import { globalVar } from "./globals";
 import { pick } from "./objects";
 
-const STACK_SERVER_SECRET = getEnvVariable("STACK_SERVER_SECRET");
+const STACK_SERVER_SECRET = process.env.STACK_SERVER_SECRET ?? "";
 try {
   jose.base64url.decode(STACK_SERVER_SECRET);
 } catch (e) {

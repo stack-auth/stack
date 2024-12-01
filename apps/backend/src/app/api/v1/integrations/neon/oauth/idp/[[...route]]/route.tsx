@@ -13,7 +13,7 @@ const pathPrefix = "/api/v1/integrations/neon/oauth/idp";
 let _oidcCallbackPromiseCache: Promise<any> | undefined;
 function getOidcCallbackPromise() {
   if (!_oidcCallbackPromiseCache) {
-    const apiBaseUrl = new URL(getEnvVariable("STACK_BASE_URL"));
+    const apiBaseUrl = new URL(getEnvVariable("NEXT_PUBLIC_STACK_API_URL"));
     const idpBaseUrl = new URL(pathPrefix, apiBaseUrl);
     _oidcCallbackPromiseCache = (async () => {
       const oidc = await createOidcProvider({
