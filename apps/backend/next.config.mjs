@@ -53,6 +53,7 @@ const nextConfig = {
 
   experimental: {
     instrumentationHook: true,
+    serverMinification: false,
   },
 
   async headers() {
