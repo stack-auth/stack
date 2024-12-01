@@ -15,19 +15,23 @@ async function seed() {
   // Optionally disable sign up for "internal" project
   const signUpEnabled = process.env.STACK_INTERNAL_SIGN_UP_ENABLED === 'true';
 
-  const existingProject = await prisma.project.findUnique({
+  // Optionally add a custom domain to the internal project
+  const dashboardDomain = process.env.NEXT_PUBLIC_STACK_DASHBOARD_URL;
+  const allowLocalhost = process.env.STACK_DASHBOARD_ALLOW_LOCALHOST === 'true';
+
+  let internalProject = await prisma.project.findUnique({
     where: {
       id: 'internal',
     },
+    include: {
+      config: true,
+    }
   });
 
-  if (existingProject) {
-    console.log('Internal project already exists, skipping seed script');
-    return;
-  }
+  if (!internalProject) {
+    console.log('No existing internal project found, creating...');
 
-  await prisma.$transaction(async (tx) => {
-    const createdProject = await tx.project.create({
+    internalProject = await prisma.project.create({
       data: {
         id: 'internal',
         displayName: 'Stack Dashboard',
@@ -68,61 +72,124 @@ async function seed() {
           }
         }
       },
+      include: {
+        config: true,
+      }
     });
 
     console.log('Internal project created');
+  }
 
-    // Create optional default admin user if credentials are provided.
-    // This user will be able to login to the dashboard with both email/password and magic link.
-    if (adminEmail && adminPassword) {
-      const newUser = await tx.projectUser.create({
-        data: {
-          projectId: 'internal',
-          serverMetadata: adminInternalAccess
-            ? { managedProjectIds: ['internal'] }
-            : undefined,
-        }
-      });
-
-      await tx.contactChannel.create({
-        data: {
-          projectUserId: newUser.projectUserId,
-          projectId: 'internal',
-          type: 'EMAIL' as const,
-          value: adminEmail as string,
-          isVerified: false,
-          isPrimary: 'TRUE',
-          usedForAuth: 'TRUE',
-        }
-      });
-
-      const passwordConfig = await tx.passwordAuthMethodConfig.findFirstOrThrow({
-        where: {
-          projectConfigId: createdProject.configId
-        },
-        include: {
-          authMethodConfig: true,
-        }
-      });
-
-      await tx.authMethod.create({
-        data: {
-          projectId: 'internal',
-          projectConfigId: createdProject.configId,
-          projectUserId: newUser.projectUserId,
-          authMethodConfigId: passwordConfig.authMethodConfigId,
-          passwordAuthMethod: {
-            create: {
-              passwordHash: await hashPassword(adminPassword),
-              projectUserId: newUser.projectUserId,
-            }
+  // Create optional default admin user if credentials are provided.
+  // This user will be able to login to the dashboard with both email/password and magic link.
+  if (adminEmail && adminPassword) {
+    const oldAdminUser = await prisma.projectUser.findFirst({
+      where: {
+        projectId: 'internal',
+        contactChannels: {
+          some: {
+            type: 'EMAIL',
+            value: adminEmail,
           }
         }
+      }
+    });
+
+    if (oldAdminUser) {
+      console.log(`User with email ${adminEmail} already exists, skipping creation`);
+    } else {
+      console.log(`No existing admin user with email ${adminEmail} found, creating...`);
+
+      await prisma.$transaction(async (tx) => {
+        const newUser = await tx.projectUser.create({
+          data: {
+            projectId: 'internal',
+            serverMetadata: adminInternalAccess
+              ? { managedProjectIds: ['internal'] }
+              : undefined,
+          }
+        });
+
+        await tx.contactChannel.create({
+          data: {
+            projectUserId: newUser.projectUserId,
+            projectId: 'internal',
+            type: 'EMAIL' as const,
+            value: adminEmail as string,
+            isVerified: false,
+            isPrimary: 'TRUE',
+            usedForAuth: 'TRUE',
+          }
+        });
+
+        const passwordConfig = await tx.passwordAuthMethodConfig.findFirstOrThrow({
+          where: {
+            projectConfigId: (internalProject as any).configId
+          },
+          include: {
+            authMethodConfig: true,
+          }
+        });
+
+        await tx.authMethod.create({
+          data: {
+            projectId: 'internal',
+            projectConfigId: (internalProject as any).configId,
+            projectUserId: newUser.projectUserId,
+            authMethodConfigId: passwordConfig.authMethodConfigId,
+            passwordAuthMethod: {
+              create: {
+                passwordHash: await hashPassword(adminPassword),
+                projectUserId: newUser.projectUserId,
+              }
+            }
+          }
+        });
+
+        console.log('Initial admin user created: ', adminEmail);
       });
 
       console.log('Initial admin user created: ', adminEmail);
     }
-  });
+  }
+
+  if (internalProject.config.allowLocalhost !== allowLocalhost) {
+    console.log('Updating allowLocalhost for internal project: ', allowLocalhost);
+    await prisma.project.update({
+      where: { id: 'internal' },
+      data: {
+        config: {
+          update: {
+            allowLocalhost,
+          }
+        }
+      }
+    });
+  }
+
+  if (dashboardDomain) {
+    const url = new URL(dashboardDomain);
+
+    if (url.hostname !== 'localhost') {
+      console.log('Adding trusted domain for internal project: ', dashboardDomain);
+      await prisma.projectDomain.upsert({
+        where: {
+          projectConfigId_domain: {
+            projectConfigId: internalProject.configId,
+            domain: dashboardDomain,
+          }
+        },
+        update: {},
+        create: {
+          projectConfigId: internalProject.configId,
+          domain: dashboardDomain,
+          handlerPath: '/',
+        }
+      });
+    } else if (!allowLocalhost) {
+      throw new Error('Cannot use localhost as a trusted domain if STACK_DASHBOARD_ALLOW_LOCALHOST is not set to true');
+    }
+  }
 
   console.log('Seeding complete!');
 }
