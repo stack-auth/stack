@@ -48,7 +48,7 @@ function createAdapter(options: {
     }
 
     async upsert(id: string, payload: AdapterPayload, expiresInSeconds: number): Promise<void> {
-      await niceUpdate(this.model, id, () => ({ payload, expiresAt: new Date(Date.now() + expiresInSeconds * 1000) }));
+      await niceUpdate(this.model, id, () => ({ payload, expiresAt: new Date(Date.now() + (expiresInSeconds ?? 0) * 1000) }));
     }
 
     async find(id: string): Promise<AdapterPayload | undefined> {
