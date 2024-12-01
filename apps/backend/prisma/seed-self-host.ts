@@ -145,8 +145,6 @@ async function seed() {
             }
           }
         });
-
-        console.log('Initial admin user created: ', adminEmail);
       });
 
       console.log('Initial admin user created: ', adminEmail);
@@ -155,6 +153,7 @@ async function seed() {
 
   if (internalProject.config.allowLocalhost !== allowLocalhost) {
     console.log('Updating allowLocalhost for internal project: ', allowLocalhost);
+
     await prisma.project.update({
       where: { id: 'internal' },
       data: {
@@ -172,6 +171,7 @@ async function seed() {
 
     if (url.hostname !== 'localhost') {
       console.log('Adding trusted domain for internal project: ', dashboardDomain);
+
       await prisma.projectDomain.upsert({
         where: {
           projectConfigId_domain: {
