@@ -53,7 +53,7 @@ const nextConfig = {
 
   experimental: {
     instrumentationHook: true,
-    serverMinification: false,
+    serverMinification: false,  // needs to be disabled for oidc-provider to work, which relies on the original constructor names
   },
 
   async headers() {
