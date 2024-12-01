@@ -5,16 +5,24 @@ import { createNodeHttpServerDuplex } from "@stackframe/stack-shared/dist/utils/
 import { NextRequest, NextResponse } from "next/server";
 import { createOidcProvider } from "./idp";
 
-const apiBaseUrl = new URL(getEnvVariable("STACK_BASE_URL"));
 const pathPrefix = "/api/v1/integrations/neon/oauth/idp";
-const idpBaseUrl = new URL(pathPrefix, apiBaseUrl);
-const oidcCallbackPromise = (async () => {
-  const oidc = await createOidcProvider({
-    id: "stack-preconfigured-idp:integrations/neon",
-    baseUrl: idpBaseUrl.toString(),
-  });
-  return oidc.callback();
-})();
+
+// we want to initialize the OIDC provider lazily so it's not initiated at build time
+let _oidcCallbackPromiseCache: Promise<any> | undefined;
+function getOidcCallbackPromise() {
+  if (!_oidcCallbackPromiseCache) {
+    const apiBaseUrl = new URL(getEnvVariable("STACK_BASE_URL"));
+    const idpBaseUrl = new URL(pathPrefix, apiBaseUrl);
+    _oidcCallbackPromiseCache = (async () => {
+      const oidc = await createOidcProvider({
+        id: "stack-preconfigured-idp:integrations/neon",
+        baseUrl: idpBaseUrl.toString(),
+      });
+      return oidc.callback();
+    })();
+  }
+  return _oidcCallbackPromiseCache;
+}
 
 const handler = handleApiRequest(async (req: NextRequest) => {
   const newUrl = req.url.replace(pathPrefix, "");
@@ -23,7 +31,6 @@ const handler = handleApiRequest(async (req: NextRequest) => {
   }
   const newHeaders = new Headers(req.headers);
   const incomingBody = new Uint8Array(await req.arrayBuffer());
-  console.log("BBBBBBBB", incomingBody, new TextDecoder().decode(incomingBody));
   const [incomingMessage, serverResponse] = await createNodeHttpServerDuplex({
     method: req.method,
     originalUrl: new URL(req.url),
@@ -32,7 +39,7 @@ const handler = handleApiRequest(async (req: NextRequest) => {
     body: incomingBody,
   });
 
-  await (await oidcCallbackPromise)(incomingMessage, serverResponse);
+  await (await getOidcCallbackPromise())(incomingMessage, serverResponse);
 
   const body = new Uint8Array(serverResponse.bodyChunks.flatMap(chunk => [...chunk]));
 
