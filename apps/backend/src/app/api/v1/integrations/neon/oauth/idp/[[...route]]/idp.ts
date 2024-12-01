@@ -205,6 +205,15 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
       ctx.type = "application/json";
       ctx.body = JSON.stringify(out);
     },
+
+    async findAccount(ctx, sub, token) {
+      return {
+        accountId: sub,
+        async claims(use, scope, claims, rejected) {
+          return { sub };
+        },
+      };
+    },
   });
 
   oidc.on('server_error', (ctx, err) => {
