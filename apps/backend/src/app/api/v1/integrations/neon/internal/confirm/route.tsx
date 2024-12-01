@@ -4,6 +4,9 @@ import { serverOrHigherAuthTypeSchema, yupNumber, yupObject, yupString } from "@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    hidden: true,
+  },
   request: yupObject({
     url: yupString().defined(),
     auth: yupObject({

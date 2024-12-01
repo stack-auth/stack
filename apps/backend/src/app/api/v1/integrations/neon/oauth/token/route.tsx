@@ -5,6 +5,9 @@ import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const POST = createSmartRouteHandler({
+  metadata: {
+    hidden: true,
+  },
   request: yupObject({
     url: yupString().defined(),
     body: yupObject({

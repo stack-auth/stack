@@ -3,6 +3,9 @@ import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/s
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const GET = createSmartRouteHandler({
+  metadata: {
+    hidden: true,
+  },
   request: yupObject({
     url: yupString().defined(),
     method: yupString().oneOf(["GET"]).defined(),

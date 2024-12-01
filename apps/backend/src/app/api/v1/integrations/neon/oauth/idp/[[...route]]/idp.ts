@@ -171,25 +171,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
 
   const oidc = new Provider(options.baseUrl, {
     adapter: createPrismaAdapter(options.id),
-    clients: [
-      {
-        client_id: "client-id",
-        client_secret: "test-client-secret",
-        id_token_signed_response_alg: "ES256",
-        redirect_uris: [
-          `http://localhost:8116/api/auth/callback/stack-auth`,
-          `http://localhost:30000/api/v2/identity/authorize`,
-        ],
-      },
-      {
-        client_id: "neon-local",
-        client_secret: "neon-local-secret",
-        id_token_signed_response_alg: "ES256",
-        redirect_uris: [
-          `http://localhost:30000/api/v2/identity/authorize`,
-        ],
-      }
-    ],
+    clients: JSON.parse(getEnvVariable("STACK_NEON_INTEGRATION_CLIENTS_CONFIG", "[]")),
     ttl: {
       Session: 60, // we always want to ask for login again, though the session needs to survive for a bit during the token exchange
     },
@@ -209,44 +191,8 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
       "code",
     ],
 
-    async loadExistingGrant(ctx: any) {
-      const grantId = ctx.oidc.result?.consent?.grantId
-        || ctx.oidc.session!.grantIdFor(ctx.oidc.client!.clientId);
-
-      if (grantId) {
-        // keep grant expiry aligned with session expiry
-        // to prevent consent prompt being requested when grant expires
-        const grant = await ctx.oidc.provider.Grant.find(grantId);
-
-        // this aligns the Grant ttl with that of the current session
-        // if the same Grant is used for multiple sessions, or is set
-        // to never expire, you probably do not want this in your code
-        if (ctx.oidc.account && grant.exp < ctx.oidc.session!.exp) {
-          grant.exp = ctx.oidc.session!.exp;
-
-          await grant.save();
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-        if (true /*HACK*/) {
-          console.warn("hack iftrue");
-          const grant = new ctx.oidc.provider.Grant({
-            clientId: ctx.oidc.client!.clientId,
-            accountId: ctx.oidc.session!.accountId,
-          });
-
-        grant.addOIDCScope('openid email profile');
-        grant.addOIDCClaims(['first_name']);
-        grant.addResourceScope('urn:example:resource-indicator', 'api:read api:write');
-        await grant.save();
-        return grant;
-        }
-      }
-    },
-
     interactions: {
       url: (ctx, interaction) => `${options.baseUrl}/interaction/${encodeURIComponent(interaction.uid)}`,
-
     },
 
     async renderError(ctx, out, error) {
@@ -254,21 +200,6 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
       ctx.status = 400;
       ctx.type = "application/json";
       ctx.body = JSON.stringify(out);
-    },
-
-
-    async findAccount(ctx, id) {
-      return {
-        accountId: id,
-        claims: async (use, scope, claims, rejected) => {
-          return {
-            sub: id,
-            email: "test@example.com",
-            email_verified: true,
-            name: "Test User"
-          };
-        }
-      };
     },
   });
 
@@ -373,6 +304,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
             accountId: account.idpAccountId,
             clientId: interactionDetails.params.client_id as string,
           });
+          grant.addOIDCScope('openid profile');
 
           const grantId = await grant.save();
 
