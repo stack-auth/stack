@@ -11,6 +11,8 @@ async function seed() {
   const adminEmail = process.env.STACK_DEFAULT_DASHBOARD_USER_EMAIL;
   const adminPassword = process.env.STACK_DEFAULT_DASHBOARD_USER_PASSWORD;
   const adminInternalAccess = process.env.STACK_DEFAULT_DASHBOARD_USER_INTERNAL_ACCESS === 'true';
+  const adminGithubId = process.env.STACK_DEFAULT_DASHBOARD_USER_GITHUB_ID;
+  const oauthProviderIds = process.env.STACK_OAUTH_PROVIDER_IDS?.split(',') ?? [];
 
   // Optionally disable sign up for "internal" project
   const signUpEnabled = process.env.STACK_INTERNAL_SIGN_UP_ENABLED === 'true';
@@ -29,8 +31,6 @@ async function seed() {
   });
 
   if (!internalProject) {
-    console.log('No existing internal project found, creating...');
-
     internalProject = await prisma.project.create({
       data: {
         id: 'internal',
@@ -50,7 +50,7 @@ async function seed() {
         config: {
           create: {
             allowLocalhost: true,
-            signUpEnabled, // see STACK_SIGN_UP_DISABLED var above
+            signUpEnabled,
             emailServiceConfig: {
               create: {
                 proxiedEmailServiceConfig: {
@@ -68,7 +68,20 @@ async function seed() {
                   }
                 },
               ],
-            }
+            },
+            oauthProviderConfigs: {
+              create: oauthProviderIds.map((id) => ({
+                id,
+                proxiedOAuthConfig: {
+                  create: {
+                    type: id.toUpperCase() as any,
+                  }
+                },
+                projectUserOAuthAccounts: {
+                  create: []
+                }
+              })),
+            },
           }
         }
       },
@@ -82,27 +95,21 @@ async function seed() {
 
   // Create optional default admin user if credentials are provided.
   // This user will be able to login to the dashboard with both email/password and magic link.
-  if (adminEmail && adminPassword) {
-    const oldAdminUser = await prisma.projectUser.findFirst({
-      where: {
-        projectId: 'internal',
-        contactChannels: {
-          some: {
-            type: 'EMAIL',
-            value: adminEmail,
-          }
+  if ((adminEmail && adminPassword) || adminGithubId) {
+    await prisma.$transaction(async (tx) => {
+      const oldAdminUser = await tx.projectUser.findFirst({
+        where: {
+          projectId: 'internal',
+          projectUserId: '33e7c043-d2d1-4187-acd3-f91b5ed64b46'
         }
-      }
-    });
+      });
 
-    if (oldAdminUser) {
-      console.log(`User with email ${adminEmail} already exists, skipping creation`);
-    } else {
-      console.log(`No existing admin user with email ${adminEmail} found, creating...`);
-
-      await prisma.$transaction(async (tx) => {
+      if (oldAdminUser) {
+        console.log(`User with email ${adminEmail} already exists, skipping creation`);
+      } else {
         const newUser = await tx.projectUser.create({
           data: {
+            projectUserId: '33e7c043-d2d1-4187-acd3-f91b5ed64b46',
             projectId: 'internal',
             serverMetadata: adminInternalAccess
               ? { managedProjectIds: ['internal'] }
@@ -110,46 +117,117 @@ async function seed() {
           }
         });
 
-        await tx.contactChannel.create({
-          data: {
-            projectUserId: newUser.projectUserId,
-            projectId: 'internal',
-            type: 'EMAIL' as const,
-            value: adminEmail as string,
-            isVerified: false,
-            isPrimary: 'TRUE',
-            usedForAuth: 'TRUE',
-          }
-        });
+        if (adminEmail && adminPassword) {
+          await tx.contactChannel.create({
+            data: {
+              projectUserId: newUser.projectUserId,
+              projectId: 'internal',
+              type: 'EMAIL' as const,
+              value: adminEmail as string,
+              isVerified: false,
+              isPrimary: 'TRUE',
+              usedForAuth: 'TRUE',
+            }
+          });
 
-        const passwordConfig = await tx.passwordAuthMethodConfig.findFirstOrThrow({
-          where: {
-            projectConfigId: (internalProject as any).configId
-          },
-          include: {
-            authMethodConfig: true,
-          }
-        });
+          const passwordConfig = await tx.passwordAuthMethodConfig.findFirstOrThrow({
+            where: {
+              projectConfigId: (internalProject as any).configId
+            },
+            include: {
+              authMethodConfig: true,
+            }
+          });
 
-        await tx.authMethod.create({
-          data: {
-            projectId: 'internal',
-            projectConfigId: (internalProject as any).configId,
-            projectUserId: newUser.projectUserId,
-            authMethodConfigId: passwordConfig.authMethodConfigId,
-            passwordAuthMethod: {
-              create: {
-                passwordHash: await hashPassword(adminPassword),
-                projectUserId: newUser.projectUserId,
+          await tx.authMethod.create({
+            data: {
+              projectId: 'internal',
+              projectConfigId: (internalProject as any).configId,
+              projectUserId: newUser.projectUserId,
+              authMethodConfigId: passwordConfig.authMethodConfigId,
+              passwordAuthMethod: {
+                create: {
+                  passwordHash: await hashPassword(adminPassword),
+                  projectUserId: newUser.projectUserId,
+                }
               }
             }
-          }
-        });
-      });
+          });
 
-      console.log('Initial admin user created: ', adminEmail);
-    }
+          console.log(`Added admin user with email ${adminEmail}`);
+        }
+
+        if (adminGithubId) {
+          const githubConfig = await tx.oAuthProviderConfig.findUnique({
+            where: {
+              projectConfigId_id: {
+                projectConfigId: (internalProject as any).configId,
+                id: 'github'
+              }
+            }
+          });
+
+          if (!githubConfig) {
+            throw new Error('GitHub OAuth provider config not found');
+          }
+
+          await tx.projectUserOAuthAccount.create({
+            data: {
+              projectId: 'internal',
+              projectConfigId: (internalProject as any).configId,
+              projectUserId: newUser.projectUserId,
+              oauthProviderConfigId: 'github',
+              providerAccountId: adminGithubId
+            }
+          });
+
+          console.log(`Added admin user with GitHub ID ${adminGithubId}`);
+        }
+      }
+    });
   }
+
+  // Create optional default admin user from GitHub ID
+  // if (adminGithubId) {
+  //   const oldUser = await prisma.projectUser.findUnique({
+  //     where: {
+  //       projectId_projectUserId: {
+  //         projectId: 'internal',
+  //         projectUserId: '707156c3-0d1b-48cf-b09d-3171c7f613d5',
+  //       },
+  //     },
+  //   });
+
+  //   if (oldUser) {
+  //     await prisma.projectUser.upsert({
+  //       where: {
+  //         projectId_projectUserId: {
+  //           projectId: 'internal',
+  //           projectUserId: '707156c3-0d1b-48cf-b09d-3171c7f613d5',
+  //         },
+  //       },
+  //       create: {
+  //         projectId: 'internal',
+  //         projectUserId: '707156c3-0d1b-48cf-b09d-3171c7f613d5',
+  //         displayName: 'Admin user generated by seed script',
+  //         serverMetadata: {
+  //           managedProjectIds: [
+  //             "internal",
+  //             "12345678-1234-1234-1234-123456789abc", // intentionally invalid project ID to ensure we don't rely on project IDs being valid
+  //           ],
+  //         },
+  //         projectUserOAuthAccounts: {
+  //           create: [{
+  //             providerAccountId: adminGithubId,
+  //             projectConfigId: createdProject.configId,
+  //             oauthProviderConfigId: 'github',
+  //           }],
+  //         },
+  //       },
+  //       update: {},
+  //     });
+  //   }
+  // }
 
   if (internalProject.config.allowLocalhost !== allowLocalhost) {
     console.log('Updating allowLocalhost for internal project: ', allowLocalhost);
