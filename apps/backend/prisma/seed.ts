@@ -15,11 +15,12 @@ async function seed() {
   const adminGithubId = process.env.STACK_SEED_USER_GITHUB_ID;
 
   // dashboard settings
+  const dashboardDomain = process.env.NEXT_PUBLIC_STACK_DASHBOARD_URL;
   const oauthProviderIds = process.env.STACK_SEED_OAUTH_PROVIDERS?.split(',') ?? [];
   const otpEnabled = process.env.STACK_SEED_OTP_ENABLED === 'true';
   const signUpEnabled = process.env.STACK_SEED_SIGN_UP_ENABLED === 'true';
   const allowLocalhost = process.env.STACK_SEED_ALLOW_LOCALHOST === 'true';
-  const dashboardDomain = process.env.NEXT_PUBLIC_STACK_DASHBOARD_URL;
+  const clientTeamCreation = process.env.STACK_SEED_CLIENT_TEAM_CREATION === 'true';
 
   let internalProject = await prisma.project.findUnique({
     where: {
@@ -59,7 +60,7 @@ async function seed() {
               }
             },
             createTeamOnSignUp: false,
-            clientTeamCreationEnabled: false,
+            clientTeamCreationEnabled: clientTeamCreation,
             authMethodConfigs: {
               create: [
                 {
