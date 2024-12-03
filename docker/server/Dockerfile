@@ -70,7 +70,7 @@ RUN npm i -g prisma
 COPY --from=builder --chown=node:node /app/apps/backend/.next/standalone ./
 COPY --from=builder --chown=node:node /app/apps/backend/.next/static ./apps/backend/.next/static
 COPY --from=builder --chown=node:node /app/apps/backend/prisma ./apps/backend/prisma
-COPY --from=builder --chown=node:node /app/apps/backend/dist/seed-self-host.js ./apps/backend
+COPY --from=builder --chown=node:node /app/apps/backend/dist/seed.js ./apps/backend
 
 # Copy built dashboard
 COPY --from=builder --chown=node:node /app/apps/dashboard/.next/standalone ./

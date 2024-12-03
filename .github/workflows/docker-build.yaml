@@ -24,7 +24,8 @@ jobs:
         with:
           images: ${{ secrets.DOCKER_REPO }}/server
           tags: |
-            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=ref,event=branch,enable=${{ github.ref != 'refs/heads/main' }}
             type=sha,prefix=
             type=match,pattern=\d.\d.\d
 
@@ -56,5 +57,5 @@ jobs:
           context: .
           file: ./docker/server/Dockerfile
           push: ${{ steps.push-condition.outputs.should_push }}
-          tags: ${{ steps.meta.outputs.tags == 'main' && 'latest' || steps.meta.outputs.tags }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

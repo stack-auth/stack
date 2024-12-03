@@ -12,7 +12,7 @@ fi
 if [ "$STACK_RUN_SEED_SCRIPT" = "true" ]; then
   echo "Running seed script..."
   cd apps/backend
-  node seed-self-host.js
+  node seed.js
   cd ../..
 else
   echo "Skipping seed script."
