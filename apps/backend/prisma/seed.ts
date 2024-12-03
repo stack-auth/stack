@@ -9,16 +9,16 @@ async function seed() {
   console.log('Seeding database...');
 
   // Optional default admin user
-  const adminEmail = process.env.STACK_INTERNAL_DASHBOARD_USER_EMAIL;
-  const adminPassword = process.env.STACK_INTERNAL_DASHBOARD_USER_PASSWORD;
-  const adminInternalAccess = process.env.STACK_INTERNAL_DASHBOARD_USER_INTERNAL_ACCESS === 'true';
-  const adminGithubId = process.env.STACK_INTERNAL_DASHBOARD_USER_GITHUB_ID;
+  const adminEmail = process.env.STACK_SEED_USER_EMAIL;
+  const adminPassword = process.env.STACK_SEED_USER_PASSWORD;
+  const adminInternalAccess = process.env.STACK_SEED_USER_INTERNAL_ACCESS === 'true';
+  const adminGithubId = process.env.STACK_SEED_USER_GITHUB_ID;
 
   // dashboard settings
-  const oauthProviderIds = process.env.STACK_INTERNAL_DASHBOARD_OAUTH_PROVIDERS?.split(',') ?? [];
-  const otpEnabled = process.env.STACK_INTERNAL_DASHBOARD_OTP_ENABLED === 'true';
-  const signUpEnabled = process.env.STACK_INTERNAL_DASHBOARD_SIGN_UP_ENABLED === 'true';
-  const allowLocalhost = process.env.STACK_INTERNAL_DASHBOARD_ALLOW_LOCALHOST === 'true';
+  const oauthProviderIds = process.env.STACK_SEED_OAUTH_PROVIDERS?.split(',') ?? [];
+  const otpEnabled = process.env.STACK_SEED_OTP_ENABLED === 'true';
+  const signUpEnabled = process.env.STACK_SEED_SIGN_UP_ENABLED === 'true';
+  const allowLocalhost = process.env.STACK_SEED_ALLOW_LOCALHOST === 'true';
   const dashboardDomain = process.env.NEXT_PUBLIC_STACK_DASHBOARD_URL;
 
   let internalProject = await prisma.project.findUnique({
@@ -252,7 +252,7 @@ async function seed() {
         }
       });
     } else if (!allowLocalhost) {
-      throw new Error('Cannot use localhost as a trusted domain if STACK_INTERNAL_DASHBOARD_ALLOW_LOCALHOST is not set to true');
+      throw new Error('Cannot use localhost as a trusted domain if STACK_SEED_ALLOW_LOCALHOST is not set to true');
     }
   }
 
