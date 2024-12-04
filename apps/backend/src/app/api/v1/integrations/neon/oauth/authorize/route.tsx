@@ -1,5 +1,5 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { jsonStringSchema, yupNever, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { yupNever, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { redirect } from "next/navigation";
 
@@ -12,7 +12,7 @@ export const GET = createSmartRouteHandler({
     query: yupObject({
       client_id: yupString().defined(),
       redirect_uri: yupString().defined(),
-      state: jsonStringSchema.defined(),
+      state: yupString().defined(),
       code_challenge: yupString().defined(),
       code_challenge_method: yupString().oneOf(["S256"]).defined(),
       response_type: yupString().oneOf(["code"]).defined(),
