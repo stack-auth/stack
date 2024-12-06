@@ -12,6 +12,7 @@ const hideHeaders = [
   "connection",
   "content-security-policy",
   "content-type",
+  "content-length",
   "cross-origin-opener-policy",
   "date",
   "keep-alive",

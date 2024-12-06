@@ -45,8 +45,22 @@ const handler = handleApiRequest(async (req: NextRequest) => {
 
   const body = new Uint8Array(serverResponse.bodyChunks.flatMap(chunk => [...chunk]));
 
+  let headers: [string, string][] = [];
+  for (const [k, v] of Object.entries(serverResponse.getHeaders())) {
+    if (Array.isArray(v)) {
+      for (const vv of v) {
+        headers.push([k, vv]);
+      }
+    } else {
+      headers.push([k, `${v}`]);
+    }
+  }
+
+  // filter out session cookies; we don't want to keep sessions open, every OAuth flow should start a new session
+  headers = headers.filter(([k, v]) => k !== "set-cookie" || !v.toString().match(/^_session\.?/));
+
   return new NextResponse(body, {
-    headers: Object.entries(serverResponse.getHeaders()).filter(([k, v]) => v) as any,
+    headers: headers,
     status: {
       // our API never returns 301 or 302 by convention, so transform them to 307 or 308
       301: 308,

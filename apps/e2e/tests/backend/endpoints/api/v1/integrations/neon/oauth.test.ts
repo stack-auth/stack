@@ -82,7 +82,6 @@ async function authorize(projectId: string) {
         "status": 303,
         "body": "Redirecting to <a href=\\"http://localhost:8102/api/v1/integrations/neon/oauth/idp/interaction/<stripped interaction UID>\\">http://localhost:8102/api/v1/integrations/neon/oauth/idp/interaction/<stripped interaction UID></a>.",
         "headers": Headers {
-          "content-length": "211",
           "location": "http://localhost:8102/api/v1/integrations/neon/oauth/idp/interaction/<stripped interaction UID>",
           "set-cookie": <setting cookie "_interaction" at path "/api/v1/integrations/neon/oauth/idp/interaction/<stripped interaction UID>" to <stripped cookie value>>,
           "set-cookie": <setting cookie "_interaction.sig" at path "/api/v1/integrations/neon/oauth/idp/interaction/<stripped interaction UID>" to <stripped cookie value>>,
@@ -95,7 +94,6 @@ async function authorize(projectId: string) {
         "status": 307,
         "body": "http://localhost:8101/integrations/neon/confirm?interaction_uid=%3Cstripped+query+param%3E&amp=",
         "headers": Headers {
-          "content-length": "287",
           "location": "http://localhost:8101/integrations/neon/confirm?interaction_uid=%3Cstripped+query+param%3E&neon_project_display_name=neon-project",
           <some fields may have been hidden>,
         },
@@ -125,16 +123,12 @@ async function authorize(projectId: string) {
     [
       NiceResponse {
         "status": 200,
-        "body": "\\n            <html>\\n              <body>\\n                <form id=\\"continue-form\\" method=\\"POST\\">\\n                  If you are not redirected, please press the button below.<br>\\n                  <input type=\\"submit\\" value=\\"Continue\\">\\n                </form>\\n                <script>\\n                  document.getElementById('continue-form').style.visibility = 'hidden';\\n                  document.getElementById('continue-form').submit();\\n                  setTimeout(() => {\\n                    document.getElementById('continue-form').style.visibility = 'visible';\\n                  }, 3000);\\n                </script>\\n              </body>\\n            </html>\\n          ",
-        "headers": Headers {
-          "content-length": "674",
-          <some fields may have been hidden>,
-        },
+        "body": "\\n            <html>\\n              <head>\\n                <title>Redirecting... — Stack Auth</title>\\n                <style id=\\"gradient-style\\">\\n                  body {\\n                    color: white;\\n                    background-image: linear-gradient(45deg, #000, #444, #000, #444, #000, #444, #000);\\n                    background-size: 400% 400%;\\n                    background-repeat: no-repeat;\\n                    animation: celebrate-gradient 60s linear infinite;\\n                  }\\n                  @keyframes celebrate-gradient {\\n                    0% { background-position: 0% 100%; }\\n                    100% { background-position: 100% 0%; }\\n                  }\\n                </style>\\n              </head>\\n              <body>\\n                <form id=\\"continue-form\\" method=\\"POST\\">\\n                  If you are not redirected, please press the button below.<br>\\n                  <input type=\\"submit\\" value=\\"Continue\\">\\n                </form>\\n                <script>\\n                  document.getElementById('continue-form').style.visibility = 'hidden';\\n                  document.getElementById('continue-form').submit();\\n                  setTimeout(() => {\\n                    document.getElementById('gradient-style').remove();\\n                    document.getElementById('continue-form').style.visibility = 'visible';\\n                  }, 3000);\\n                </script>\\n              </body>\\n            </html>\\n          ",
+        "headers": Headers { <some fields may have been hidden> },
       },
       NiceResponse {
         "status": 303,
         "headers": Headers {
-          "content-length": "0",
           "location": "http://localhost:8102/api/v1/integrations/neon/oauth/idp/auth/<stripped auth UID>",
           <some fields may have been hidden>,
         },
@@ -143,14 +137,9 @@ async function authorize(projectId: string) {
         "status": 303,
         "body": "http://localhost:30000/api/v2/identity/authorize?code=%3Cstripped+query+param%3E&amp=",
         "headers": Headers {
-          "content-length": "545",
           "location": "http://localhost:30000/api/v2/identity/authorize?code=%3Cstripped+query+param%3E&state=%3Cstripped+query+param%3E&iss=http%3A%2F%2Flocalhost%3A8102%2Fapi%2Fv1%2Fintegrations%2Fneon%2Foauth%2Fidp",
           "set-cookie": <setting cookie "_interaction_resume" at path "/api/v1/integrations/neon/oauth/idp/auth/<stripped auth UID>" to <stripped cookie value>>,
           "set-cookie": <setting cookie "_interaction_resume.sig" at path "/api/v1/integrations/neon/oauth/idp/auth/<stripped auth UID>" to <stripped cookie value>>,
-          "set-cookie": <setting cookie "_session" at path "/" to <stripped cookie value>>,
-          "set-cookie": <setting cookie "_session.sig" at path "/" to <stripped cookie value>>,
-          "set-cookie": <setting cookie "_session.legacy" at path "/" to <stripped cookie value>>,
-          "set-cookie": <setting cookie "_session.legacy.sig" at path "/" to <stripped cookie value>>,
           <some fields may have been hidden>,
         },
       },

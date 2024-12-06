@@ -106,7 +106,7 @@ export default function NeonConfirmCard(props: { onContinue: (options: { project
       </CardContent>
       <CardFooter className="flex justify-end mt-4">
         <div className="flex gap-2 justify-center">
-          <Button variant="secondary" onClick={() => { router.back(); }}>
+          <Button variant="secondary" onClick={() => { window.close(); }}>
             Cancel
           </Button>
           <Button disabled={!selectedProject} onClick={async () => {

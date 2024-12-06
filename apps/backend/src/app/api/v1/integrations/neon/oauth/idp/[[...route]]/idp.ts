@@ -168,9 +168,6 @@ function createPrismaAdapter(idpId: string) {
   });
 }
 
-// TODO: add stateful session management
-
-
 export async function createOidcProvider(options: { id: string, baseUrl: string }) {
   const privateJwk = await getPrivateJwk(getPerAudienceSecret({
     audience: `https://idp-jwk-audience.stack-auth.com/${encodeURIComponent(options.id)}`,
@@ -186,9 +183,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
   const oidc = new Provider(options.baseUrl, {
     adapter: createPrismaAdapter(options.id),
     clients: JSON.parse(getEnvVariable("STACK_NEON_INTEGRATION_CLIENTS_CONFIG", "[]")),
-    ttl: {
-      Session: 60, // we always want to ask for login again, though the session needs to survive for a bit during the token exchange
-    },
+    ttl: {},
     cookies: {
       keys: [
         await sha512(`oidc-idp-cookie-encryption-key:${getEnvVariable("STACK_SERVER_SECRET")}`),
@@ -272,6 +267,22 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
           ctx.type = 'text/html';
           ctx.body = `
             <html>
+              <head>
+                <title>Redirecting... — Stack Auth</title>
+                <style id="gradient-style">
+                  body {
+                    color: white;
+                    background-image: linear-gradient(45deg, #000, #444, #000, #444, #000, #444, #000);
+                    background-size: 400% 400%;
+                    background-repeat: no-repeat;
+                    animation: celebrate-gradient 60s linear infinite;
+                  }
+                  @keyframes celebrate-gradient {
+                    0% { background-position: 0% 100%; }
+                    100% { background-position: 100% 0%; }
+                  }
+                </style>
+              </head>
               <body>
                 <form id="continue-form" method="POST">
                   If you are not redirected, please press the button below.<br>
@@ -281,6 +292,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
                   document.getElementById('continue-form').style.visibility = 'hidden';
                   document.getElementById('continue-form').submit();
                   setTimeout(() => {
+                    document.getElementById('gradient-style').remove();
                     document.getElementById('continue-form').style.visibility = 'visible';
                   }, 3000);
                 </script>
