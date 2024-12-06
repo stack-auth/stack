@@ -37,15 +37,27 @@ const stripFields = [
   "expires_at_millis",
   "created_at_millis",
   "manually_revoked_at_millis",
+  "last_four",
+  "attempt_code",
+  "nonce",
+  "authorization_code",
+] as const;
+
+const stripFieldsIfString = [
   "publishable_client_key",
   "secret_server_key",
   "super_secret_admin_key",
-  "attempt_code",
-  "nonce",
 ] as const;
 
-const keyedCookieNamePrefixes = [
-  "stack-oauth-inner-",
+const stripCookies = [
+  "_interaction",
+  "_interaction.sig",
+  "_interaction_resume",
+  "_interaction_resume.sig",
+  "_session",
+  "_session.sig",
+  "_session.legacy",
+  "_session.legacy.sig",
 ] as const;
 
 const stripUrlQueryParams = [
@@ -53,6 +65,15 @@ const stripUrlQueryParams = [
   "state",
   "code",
   "code_challenge",
+  "interaction_uid",
+] as const;
+
+const keyedCookieNamePrefixes = [
+  "stack-oauth-inner-",
+] as const;
+
+const stringRegexReplacements = [
+  [/(\/integrations\/neon\/oauth\/idp\/(interaction|auth)\/)[a-zA-Z0-9_-]+/gi, "$1<stripped $2 UID>"],
 ] as const;
 
 function addAll<T>(set: Set<T>, values: readonly T[]) {
@@ -73,6 +94,14 @@ const snapshotSerializer: SnapshotSerializer = {
       overrides: (value, options) => {
         const parentValue = options?.parent?.value;
 
+        // Strip all string regex replacements
+        if (typeof value === "string") {
+          for (const [regex, replacement] of stringRegexReplacements) {
+            const newValue: string = value.replace(regex, replacement);
+            if (newValue !== value) return nicify(newValue, options);
+          }
+        }
+
         // Strip all UUIDs except all-zero UUID
         if (typeof value === "string") {
           const newValue = value.replace(
@@ -83,22 +112,28 @@ const snapshotSerializer: SnapshotSerializer = {
         }
 
         // Strip URL query params
-        if (typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://"))) {
-          const url = new URL(value);
-          for (const param of stripUrlQueryParams) {
-            if (url.searchParams.has(param)) {
-              url.searchParams.set(param, "<stripped-query-param>");
+        const urlRegexHeuristic = /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/igm;
+        if (typeof value === "string") {
+          for (const urlMatch of value.matchAll(urlRegexHeuristic)) {
+            const questionMarkIndex = urlMatch[0].indexOf("?");
+            if (questionMarkIndex >= 0) {
+              const searchParamsObj = new URLSearchParams(urlMatch[0].slice(questionMarkIndex + 1));
+              for (const param of stripUrlQueryParams) {
+                if (searchParamsObj.has(param)) {
+                  searchParamsObj.set(param, "<stripped query param>");
+                }
+              }
+              let newValue = `${urlMatch[0].slice(0, questionMarkIndex)}?${searchParamsObj.toString()}`;
+              if (urlMatch[0].endsWith("/") !== newValue.endsWith("/")) {
+                if (urlMatch[0].endsWith("/")) {
+                  newValue += "/";
+                } else {
+                  newValue = newValue.slice(0, -1);
+                }
+              }
+              if (newValue !== value) return nicify(newValue, options);
             }
           }
-          let newValue = url.toString();
-          if (value.endsWith("/") !== newValue.endsWith("/")) {
-            if (value.endsWith("/")) {
-              newValue += "/";
-            } else {
-              newValue = newValue.slice(0, -1);
-            }
-          }
-          if (newValue !== value) return nicify(newValue, options);
         }
 
         // Strip headers
@@ -125,7 +160,7 @@ const snapshotSerializer: SnapshotSerializer = {
             if (expiresDate.getTime() < new Date("2001-01-01").getTime()) {
               return `<deleting cookie '${cookieName}' at path '${parts.get("Path") ?? "/"}'>`;
             } else {
-              return `<setting cookie ${JSON.stringify(cookieName)} at path ${JSON.stringify(parts.get("Path") ?? "/")} to ${JSON.stringify(cookieValue)}>`;
+              return `<setting cookie ${JSON.stringify(cookieName)} at path ${JSON.stringify(parts.get("path") ?? "/")} to ${typedIncludes(stripCookies, cookieName) ? "<stripped cookie value>" : JSON.stringify(cookieValue)}>`;
             }
           }
         }
@@ -163,7 +198,8 @@ const snapshotSerializer: SnapshotSerializer = {
             return `<stripped field '${options.keyInParent.toString()}'>`;
           }
         }
-        if (typedIncludes(stripFields, options?.keyInParent)) {
+        const allStripFields = [...stripFields, ...typeof value === "string" ? stripFieldsIfString : []];
+        if (typedIncludes(allStripFields, options?.keyInParent)) {
           return `<stripped field '${options.keyInParent}'>`;
         }
 

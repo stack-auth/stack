@@ -47,7 +47,11 @@ const handler = handleApiRequest(async (req: NextRequest) => {
 
   return new NextResponse(body, {
     headers: Object.entries(serverResponse.getHeaders()).filter(([k, v]) => v) as any,
-    status: serverResponse.statusCode,
+    status: {
+      // our API never returns 301 or 302 by convention, so transform them to 307 or 308
+      301: 308,
+      302: 307,
+    }[serverResponse.statusCode] ?? serverResponse.statusCode,
     statusText: serverResponse.statusMessage,
   });
 });

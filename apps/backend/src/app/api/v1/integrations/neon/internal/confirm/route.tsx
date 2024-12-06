@@ -32,7 +32,7 @@ export const POST = createSmartRouteHandler({
     const set = await prismaClient.apiKeySet.create({
       data: {
         projectId: req.body.project_id,
-        description: "API key for Neon x Stack Auth integration",
+        description: "Auto-generated for Neon",
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 100),
         superSecretAdminKey: `sak_${generateSecureRandomString()}`,
       },
