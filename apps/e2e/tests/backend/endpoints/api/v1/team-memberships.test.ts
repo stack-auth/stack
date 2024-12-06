@@ -4,7 +4,7 @@ import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, niceB
 
 it("is not allowed to add user to team on client", async ({ expect }) => {
   const { userId: userId1 } = await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   const response = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, {
     accessType: "client",
@@ -33,13 +33,13 @@ it("is not allowed to add user to team on client", async ({ expect }) => {
   `);
 });
 
-it("creates a team and manage users on the server", async ({ expect }) => {
+it("creates a team and allows managing users on the server", async ({ expect }) => {
   const { userId: userId1 } = await Auth.Otp.signIn();
   backendContext.set({
     mailbox: createMailbox(),
   });
   const { userId: userId2 } = await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   const response = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, {
     accessType: "server",
@@ -65,7 +65,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
-        "is_paginated": false,
+        "is_paginated": true,
         "items": [
           {
             "auth_with_email": true,
@@ -77,7 +77,9 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "last_active_at_millis": <stripped field 'last_active_at_millis'>,
             "oauth_providers": [],
             "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
             "primary_email": "<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
             "primary_email_verified": true,
             "profile_image_url": null,
             "requires_totp_mfa": false,
@@ -96,7 +98,9 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "last_active_at_millis": <stripped field 'last_active_at_millis'>,
             "oauth_providers": [],
             "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
             "primary_email": "<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
             "primary_email_verified": true,
             "profile_image_url": null,
             "requires_totp_mfa": false,
@@ -106,6 +110,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
           },
         ],
+        "pagination": { "next_cursor": null },
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -133,7 +138,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
     NiceResponse {
       "status": 200,
       "body": {
-        "is_paginated": false,
+        "is_paginated": true,
         "items": [
           {
             "auth_with_email": true,
@@ -145,7 +150,9 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "last_active_at_millis": <stripped field 'last_active_at_millis'>,
             "oauth_providers": [],
             "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
             "primary_email": "<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
             "primary_email_verified": true,
             "profile_image_url": null,
             "requires_totp_mfa": false,
@@ -155,6 +162,7 @@ it("creates a team and manage users on the server", async ({ expect }) => {
             "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
           },
         ],
+        "pagination": { "next_cursor": null },
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -171,7 +179,7 @@ it("should give team creator default permissions", async ({ expect }) => {
     mailbox: createMailbox(),
   });
   const { userId: userId2 } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, {
     accessType: "server",
@@ -201,9 +209,9 @@ it("should give team creator default permissions", async ({ expect }) => {
   `);
 });
 
-it("can leave team", async ({ expect }) => {
+it("allows leaving team", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   // Does not have permission to remove user from team
   const response1 = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/me`, {
@@ -226,7 +234,7 @@ it("removes user from team on the client", async ({ expect }) => {
     mailbox: createMailbox(),
   });
   const { userId: userId2 } = await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, {
     accessType: "server",
@@ -280,7 +288,7 @@ it("removes user from team on the client", async ({ expect }) => {
   `);
 });
 
-it("creates a team and not add the current user as a member on the client", async ({ expect }) => {
+it("can create a team without adding the current user as a member on the client", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
   const response = await niceBackendFetch("/api/v1/teams", {
     accessType: "client",
@@ -319,7 +327,7 @@ it("creates a team and not add the current user as a member on the client", asyn
   `);
 });
 
-it("creates a team on the server and add a different user as the creator", async ({ expect }) => {
+it("creates a team on the server and adds a different user as the creator", async ({ expect }) => {
   const user1Mailbox = createMailbox();
   backendContext.set({ mailbox: user1Mailbox });
   const { userId: userId1 } = await Auth.Otp.signIn();

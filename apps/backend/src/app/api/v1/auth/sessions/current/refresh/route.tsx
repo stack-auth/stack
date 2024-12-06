@@ -14,17 +14,17 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
-    }).required(),
+    }).defined(),
     headers: yupObject({
-      "x-stack-refresh-token": yupTuple([yupString().required()]).required(),
+      "x-stack-refresh-token": yupTuple([yupString().defined()]).defined(),
     }),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
     body: yupObject({
-      access_token: yupString().required(),
-    }).required(),
+      access_token: yupString().defined(),
+    }).defined(),
   }),
   async handler({ auth: { project }, headers: { "x-stack-refresh-token": refreshTokenHeaders } }, fullReq) {
     const refreshToken = refreshTokenHeaders[0];

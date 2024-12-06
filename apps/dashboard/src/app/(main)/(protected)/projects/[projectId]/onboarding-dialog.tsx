@@ -40,6 +40,7 @@ export function OnboardingDialog() {
       }}
       open={!!apiKey}
       onClose={() => setApiKey(null)}
+      preventClose
     >
       <div className="flex flex-col gap-2">
         <Typography className="mb-4">

@@ -3,7 +3,7 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { passwordSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { cacheFunction } from "@stackframe/stack-shared/dist/utils/caches";
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Label, PasswordInput, Typography, cn } from "@stackframe/stack-ui";
@@ -24,7 +24,7 @@ export default function PasswordResetForm(props: {
   const { t } = useTranslation();
 
   const schema = yupObject({
-    password: yupString().required(t("Please enter your password")).test({
+    password: passwordSchema.defined(t("Please enter your password")).nonEmpty(t("Please enter your password")).test({
       name: 'is-valid-password',
       test: (value, ctx) => {
         const error = getPasswordError(value);
@@ -35,7 +35,7 @@ export default function PasswordResetForm(props: {
         }
       }
     }),
-    passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], t("Passwords do not match")).required(t("Please repeat your password"))
+    passwordRepeat: yupString().nullable().oneOf([yup.ref('password'), null], t("Passwords do not match")).defined().nonEmpty(t("Please repeat your password"))
   });
 
   const { register, handleSubmit, formState: { errors }, clearErrors } = useForm({
@@ -93,6 +93,7 @@ export default function PasswordResetForm(props: {
           <Label htmlFor="password" className="mb-1">{t("New Password")}</Label>
           <PasswordInput
             id="password"
+            autoComplete="new-password"
             {...register('password')}
             onChange={() => {
               clearErrors('password');
@@ -104,6 +105,7 @@ export default function PasswordResetForm(props: {
           <Label htmlFor="repeat-password" className="mt-4 mb-1">{t("Repeat New Password")}</Label>
           <PasswordInput
             id="repeat-password"
+            autoComplete="new-password"
             {...register('passwordRepeat')}
             onChange={() => {
               clearErrors('password');

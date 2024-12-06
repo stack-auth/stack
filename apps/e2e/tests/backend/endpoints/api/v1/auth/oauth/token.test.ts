@@ -48,6 +48,7 @@ describe("with grant_type === 'authorization_code'", async () => {
             },
           ],
           "otp_auth_enabled": false,
+          "passkey_auth_enabled": false,
           "primary_email": "<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -117,7 +118,7 @@ describe("with grant_type === 'authorization_code'", async () => {
         "status": 400,
         "body": {
           "code": "REDIRECT_URL_NOT_WHITELISTED",
-          "error": "Redirect URL not whitelisted.",
+          "error": "Redirect URL not whitelisted. Did you forget to add this domain to the trusted domains list on the Stack Auth dashboard?",
         },
         "headers": Headers {
           "x-stack-known-error": "REDIRECT_URL_NOT_WHITELISTED",

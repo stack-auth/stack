@@ -3,7 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader, InlineCode, Typography } fro
 import Actions from "./actions";
 
 export const metadata = {
-  title: "Projects",
+  title: "Setup complete!",
 };
 
 export default function WizardCongratsPage() {

@@ -6,15 +6,16 @@ import { AuthPage, useUser } from "@stackframe/stack";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronouslyWithAlert, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { BrowserFrame, Button, Form, Separator, Typography } from "@stackframe/stack-ui";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
 
 export const projectFormSchema = yup.object({
-  displayName: yup.string().min(1, "Display name is required").required("Display name is required"),
-  signInMethods: yup.array(yup.string().oneOf(["credential", "magicLink"].concat(allProviders)).required())
+  displayName: yup.string().min(1, "Display name is required").defined().nonEmpty("Display name is required"),
+  signInMethods: yup.array(yup.string().oneOf(["credential", "magicLink", "passkey"].concat(allProviders)).defined())
     .min(1, "At least one sign-in method is required")
-    .required("At least one sign-in method is required"),
+    .defined("At least one sign-in method is required"),
 });
 
 export type ProjectFormValues = yup.InferType<typeof projectFormSchema>
@@ -33,6 +34,7 @@ export default function PageClient () {
     mode: "onChange",
   });
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const mockProject = {
     id: "id",
@@ -40,6 +42,7 @@ export default function PageClient () {
       signUpEnabled: true,
       credentialEnabled: form.watch("signInMethods").includes("credential"),
       magicLinkEnabled: form.watch("signInMethods").includes("magicLink"),
+      passkeyEnabled: form.watch("signInMethods").includes("passkey"),
       oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "spotify"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
     }
   };
@@ -54,6 +57,7 @@ export default function PageClient () {
         config: {
           credentialEnabled: values.signInMethods.includes("credential"),
           magicLinkEnabled: values.signInMethods.includes("magicLink"),
+          passkeyEnabled: values.signInMethods.includes("passkey"),
           oauthProviders: (["google", "facebook", "github", "microsoft"] as const).map(provider => ({
             id: provider,
             enabled: values.signInMethods.includes(provider),
@@ -61,7 +65,14 @@ export default function PageClient () {
           } as const)).filter(({ enabled }) => enabled),
         }
       });
-      router.push('/projects/' + newProject.id);
+      const redirectToNeonConfirmWith = searchParams.get("redirect_to_neon_confirm_with");
+      if (redirectToNeonConfirmWith) {
+        const confirmSearchParams = new URLSearchParams(redirectToNeonConfirmWith);
+        confirmSearchParams.set("default_selected_project_id", newProject.id);
+        router.push('/integrations/neon/confirm?' + confirmSearchParams.toString());
+      } else {
+        router.push('/projects/' + encodeURIComponent(newProject.id));
+      }
       await wait(2000);
     } finally {
       setLoading(false);
@@ -88,6 +99,7 @@ export default function PageClient () {
                 options={[
                   { value: "credential", label: "Email password" },
                   { value: "magicLink", label: "Magic link/OTP" },
+                  { value: "passkey", label: "Passkey" },
                   { value: "google", label: "Google" },
                   { value: "github", label: "GitHub" },
                   { value: "microsoft", label: "Microsoft" },

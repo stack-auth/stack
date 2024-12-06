@@ -58,8 +58,8 @@ export function parseWebhookOpenAPI(options: {
               method: 'POST',
               path: webhook.type,
               requestBodyDesc: undefinedIfMixed(yupObject({
-                type: yupString().required().meta({ openapiField: { description: webhook.type, exampleValue: webhook.type }}),
-                data: webhook.schema.required(),
+                type: yupString().defined().meta({ openapiField: { description: webhook.type, exampleValue: webhook.type }}),
+                data: webhook.schema.defined(),
               }).describe()) || yupObject().describe(),
               responseTypeDesc: yupString().oneOf(['json']).describe(),
               statusCodeDesc: yupNumber().oneOf([200]).describe(),
@@ -127,6 +127,8 @@ function parseRouteHandler(options: {
   let result: any = undefined;
 
   for (const overload of options.handler.overloads.values()) {
+    if (overload.metadata?.hidden) continue;
+
     const requestDescribe = overload.request.describe();
     const responseDescribe = overload.response.describe();
     if (!isSchemaObjectDescription(requestDescribe)) throw new Error('Request schema must be a yup.ObjectSchema');
@@ -165,7 +167,7 @@ function parseRouteHandler(options: {
   return result;
 }
 
-function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): { type: string, items?: any, properties?: any, required?: any } | undefined {
+function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capitalize<CrudlOperation>): { type: string, items?: any, properties?: any, required?: any, default?: any } | undefined {
   const meta = "meta" in field ? field.meta : {};
   if (meta?.openapiField?.hidden) {
     return undefined;
@@ -178,6 +180,7 @@ function getFieldSchema(field: yup.SchemaFieldDescription, crudOperation?: Capit
   const openapiFieldExtra = {
     example: meta?.openapiField?.exampleValue,
     description: meta?.openapiField?.description,
+    default: (field as any).default,
   };
 
   switch (field.type) {
@@ -227,7 +230,7 @@ function toParameters(description: yup.SchemaFieldDescription, crudOperation?: C
       in: path ? 'path' : 'query',
       schema,
       description: meta?.openapiField?.description,
-      required: !(field as any).optional && !(field as any).nullable && schema,
+      required: !(field as any).optional && !!schema,
     };
   }).filter((x) => x.schema !== undefined);
 }

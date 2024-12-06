@@ -30,12 +30,12 @@ function EditDialog(props: {
 
   const formSchema = yup.object({
     id: yup.string()
-      .required()
+      .defined()
       .notOneOf(permissions.map((p) => p.id).filter(p => p !== props.selectedPermissionId), "ID already exists")
       .matches(/^[a-z0-9_:]+$/, 'Only lowercase letters, numbers, ":" and "_" are allowed')
       .label("ID"),
     description: yup.string().label("Description"),
-    containedPermissionIds: yup.array().of(yup.string().required()).required().meta({
+    containedPermissionIds: yup.array().of(yup.string().defined()).defined().meta({
       stackFormFieldRender: (innerProps) => (
         <PermissionListField
           {...innerProps}
@@ -117,7 +117,7 @@ const columns: ColumnDef<AdminTeamPermissionDefinition>[] =  [
       <div className="flex items-center gap-1">
         {row.original.id}
         {row.original.id.startsWith('$') ?
-          <SimpleTooltip tooltip="Built-in system permissions are prefixed with $. They cannot be edited or deleted, but you can contain it in other permissions." type='info'/>
+          <SimpleTooltip tooltip="Built-in system permissions are prefixed with $. They cannot be edited or deleted, but can be contained in other permissions." type='info'/>
           : null}
       </div>
     </TextCell>,
@@ -145,5 +145,11 @@ const columns: ColumnDef<AdminTeamPermissionDefinition>[] =  [
 ];
 
 export function TeamPermissionTable(props: { permissions: AdminTeamPermissionDefinition[] }) {
-  return <DataTable data={props.permissions} columns={columns} toolbarRender={toolbarRender} />;
+  return <DataTable
+    data={props.permissions}
+    columns={columns}
+    toolbarRender={toolbarRender}
+    defaultColumnFilters={[]}
+    defaultSorting={[]}
+  />;
 }

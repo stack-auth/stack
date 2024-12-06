@@ -12,7 +12,7 @@ export default function GlobalError({ error }: any) {
 
   return (
     <html>
-      <body suppressHydrationWarning>
+      <body>
         [An unhandled error occurred.]
         <Error
           statusCode={500}

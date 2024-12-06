@@ -33,6 +33,7 @@ We support Next.js frontends, along with any backend that can use our [REST API]
 - [🏗 Development & Contribution](#-development--contribution)
   - [Requirements](#requirements)
   - [Setup](#setup)
+  - [Development environment port mapping](#development-environment-port-mapping)
   - [Database migrations](#database-migrations)
   - [Chat with the codebase](#chat-with-the-codebase)
   - [Architecture overview](#architecture-overview)
@@ -63,6 +64,7 @@ To get notified first when we add new features, please subscribe to [our newslet
 | <h3>Multi-tenancy & teams</h3> Manage B2B customers with an organization structure that makes sense and scales to millions. | <img alt="Selected team switcher component" src=".github/assets/team-switcher.png" width="400px"> |
 | <h3>Role-based access control</h3> Define an arbitrary permission graph and assign it to users. Organizations can create org-specific roles. | <img alt="RBAC" src=".github/assets/permissions.png"  width="400px"> |
 | <h3>OAuth Connections</h3>Beyond login, Stack can also manage access tokens for third-party APIs, such as Outlook and Google Calendar. It handles refreshing tokens and controlling scope, making access tokens accessible via a single function call. | <img alt="OAuth tokens" src=".github/assets/connected-accounts.png"  width="250px"> |
+| <h3>Passkeys</h3> Support for passwordless authentication using passkeys, allowing users to sign in securely with biometrics or security keys across all their devices. | <img alt="OAuth tokens" src=".github/assets/passkeys.png"  width="400px"> |
 | <h3>Impersonation</h3> Impersonate users for debugging and support, logging into their account as if you were them. | <img alt="Webhooks" src=".github/assets/impersonate.png"  width="350px"> |
 | <h3>Webhooks</h3> Get notified when users use your product, built on Svix. | <img alt="Webhooks" src=".github/assets/stack-webhooks.png"  width="300px"> |
 | <h3>Automatic emails</h3> Send customizable emails on triggers such as sign-up, password reset, and email verification, editable with a WYSIWYG editor. | <img alt="Email templates" src=".github/assets/email-editor.png"  width="400px"> |
@@ -72,7 +74,19 @@ To get notified first when we add new features, please subscribe to [our newslet
 
 ## 📦 Installation & Setup
 
-Refer to [our documentation](https://docs.stack-auth.com/getting-started/setup) on how to set up Stack Auth in your Next.js project.
+1. Run Stack’s installation wizard with the following command:
+    ```bash
+    npx @stackframe/init-stack@latest
+    ```
+2. Then, create an account on the [Stack Auth dashboard](https://app.stack-auth.com/projects), create a new project with an API key, and copy its environment variables into the .env.local file of your Next.js project:
+    ```
+    NEXT_PUBLIC_STACK_PROJECT_ID=<your-project-id>
+    NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=<your-publishable-client-key>
+    STACK_SECRET_SERVER_KEY=<your-secret-server-key>
+    ```
+3. That's it! You can run your app with `npm run dev` and go to [http://localhost:3000/handler/signup](http://localhost:3000/handler/signup) to see the sign-up page. You can also check out the account settings page at [http://localhost:3000/handler/account-settings](http://localhost:3000/handler/account-settings).
+
+Check out the [documentation](https://docs.stack-auth.com/getting-started/setup) for a more detailed guide.
 
 ## 🌱 Some community projects built with Stack
 
@@ -101,7 +115,7 @@ This is for you if you want to contribute to the Stack project or run the Stack 
 
 ### Setup
 
-Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages. You should copy all the `.env.development` files to `.env.local` in the respective packages for local development.
+Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages. (Note: If you're creating a production build (eg. with `pnpm run build`), you must supply the environment variables manually.)
 
 In a new terminal:
 
@@ -109,7 +123,7 @@ In a new terminal:
 pnpm install
 
 # Run build to build everything once
-pnpm run build
+pnpm run build:dev
 
 # reset & start the dependencies (DB, Inbucket, etc.) as Docker containers, seeding the DB with the Prisma schema
 pnpm run start-deps
@@ -123,7 +137,7 @@ pnpm run dev
 pnpm run test
 ```
 
-You can now open the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106.
+You can now open the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106. See the section below on more information on the ports of the running services.
 
 Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 
@@ -132,6 +146,25 @@ You can also open Prisma Studio to see the database interface and edit data dire
 ```sh
 pnpm run prisma studio
 ```
+
+### Development environment port mapping
+
+`8101`: Dashboard `apps/dashboard` (equivalent to https://app.stack-auth.com)  
+`8102`: Backend `apps/backend` (equivalent to https://api.stack-auth.com)  
+`8103`: Demo app `examples/demo` (equivalent to https://demo.stack-auth.com)  
+`8104`: Docs `docs` (equivalent to https://docs.stack-auth.com)  
+`8105`: Inbucket (e-mails)  
+`8106`: Prisma Studio  
+`8107`: Jaeger UI/OpenTelemetry (for performance tracing)  
+`8108`: `examples/docs-examples`  
+`8109`: `examples/partial-prerendering`  
+`8110`: `examples/cjs-test`  
+`8111`: `examples/e-commerce`  
+`8112`: `examples/middleware`  
+`8113`: Svix server (for webhooks)  
+`8114`: OAuth mock server  
+`8115`: `examples/supabase`  
+
 
 ### Database migrations
 

@@ -13,14 +13,14 @@ export const POST = createSmartRouteHandler({
   },
   request: yupObject({
     body: yupObject({
-      grant_type: yupString().oneOf(["authorization_code", "refresh_token"]).required(),
-    }).unknown().required(),
-  }).required(),
+      grant_type: yupString().oneOf(["authorization_code", "refresh_token"]).defined(),
+    }).unknown().defined(),
+  }).defined(),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
-    body: yupMixed().required(),
-    headers: yupMixed().required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: yupMixed().defined(),
+    headers: yupMixed().defined(),
   }),
   async handler(req, fullReq) {
     const oauthRequest = new OAuthRequest({
@@ -62,6 +62,11 @@ export const POST = createSmartRouteHandler({
       if (e instanceof InvalidRequestError) {
         if (e.message.includes("`redirect_uri` is invalid")) {
           throw new KnownErrors.RedirectUrlNotWhitelisted();
+        } else if (oauthResponse.status && oauthResponse.status >= 400 && oauthResponse.status < 500) {
+          console.log("Invalid OAuth token request by a client; returning it to the user", e);
+          return oauthResponseToSmartResponse(oauthResponse);
+        } else {
+          throw e;
         }
       }
       if (e instanceof ServerError) {

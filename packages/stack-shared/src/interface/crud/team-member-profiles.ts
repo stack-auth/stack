@@ -5,20 +5,20 @@ import { usersCrudServerReadSchema } from "./users";
 
 
 export const teamMemberProfilesCrudClientReadSchema = yupObject({
-  team_id: schemaFields.teamIdSchema.required(),
-  user_id: schemaFields.userIdSchema.required(),
+  team_id: schemaFields.teamIdSchema.defined(),
+  user_id: schemaFields.userIdSchema.defined(),
   display_name: schemaFields.teamMemberDisplayNameSchema.nullable().defined(),
   profile_image_url: schemaFields.teamMemberProfileImageUrlSchema.nullable().defined(),
-}).required();
+}).defined();
 
 export const teamMemberProfilesCrudServerReadSchema = teamMemberProfilesCrudClientReadSchema.concat(yupObject({
-  user: usersCrudServerReadSchema.required(),
-})).required();
+  user: usersCrudServerReadSchema.defined(),
+})).defined();
 
 export const teamMemberProfilesCrudClientUpdateSchema = yupObject({
   display_name: schemaFields.teamMemberDisplayNameSchema.optional(),
   profile_image_url: schemaFields.teamMemberProfileImageUrlSchema.nullable().optional(),
-}).required();
+}).defined();
 
 export const teamMemberProfilesCrud = createCrud({
   clientReadSchema: teamMemberProfilesCrudClientReadSchema,

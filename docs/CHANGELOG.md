@@ -1,5 +1,116 @@
 # @stackframe/docs
 
+## 2.6.32
+
+## 2.6.31
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.30
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.29
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.28
+
+## 2.6.27
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.26
+
+### Patch Changes
+
+- Various bugfixes
+
+## 2.6.25
+
+### Patch Changes
+
+- Translation overrides
+
+## 2.6.24
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.23
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.22
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.21
+
+### Patch Changes
+
+- Fixed inviteUser
+
+## 2.6.20
+
+### Patch Changes
+
+- Next.js 15 fixes
+
+## 2.6.19
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.18
+
+### Patch Changes
+
+- fixed user update bug
+
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+
+## 2.6.16
+
+### Patch Changes
+
+- - list user pagination
+  - fixed visual glitches
+
+## 2.6.15
+
+## 2.6.14
+
+## 2.6.13
+
+### Patch Changes
+
+- Updated docs
+
+## 2.6.12
+
+### Patch Changes
+
+- Updated account settings page
+
 ## 2.6.11
 
 ### Patch Changes

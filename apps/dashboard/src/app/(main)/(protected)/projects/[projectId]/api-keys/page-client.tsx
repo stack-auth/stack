@@ -54,7 +54,7 @@ const expiresInOptions = {
 } as const;
 
 const formSchema = yup.object({
-  description: yup.string().required().label("Description"),
+  description: yup.string().defined().label("Description"),
   expiresIn: yup.string().default(neverInMs.toString()).label("Expires in").meta({
     stackFormFieldRender: (props) => (
       <SelectField {...props} options={Object.entries(expiresInOptions).map(([value, label]) => ({ value, label }))} />
@@ -105,6 +105,7 @@ function ShowKeyDialog(props: {
       title="API Key"
       okButton={{ label: "Close" }}
       onClose={props.onClose}
+      preventClose
       confirmText="I understand that I will not be able to view this key again."
     >
       <div className="flex flex-col gap-4">

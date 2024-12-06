@@ -17,7 +17,7 @@ export class DiscordProvider extends OAuthBaseProvider {
       issuer: "https://discord.com",
       authorizationEndpoint: "https://discord.com/oauth2/authorize",
       tokenEndpoint: "https://discord.com/api/oauth2/token",
-      redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/discord",
+      redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_API_URL") + "/api/v1/auth/oauth/callback/discord",
       baseScope: "identify email",
       ...options,
     }));

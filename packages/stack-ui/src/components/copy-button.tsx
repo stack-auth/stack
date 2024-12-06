@@ -2,9 +2,10 @@
 
 import { Copy } from "lucide-react";
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import { Button, cn, useToast } from "..";
 
-const CopyButton = React.forwardRef<
+const CopyButton = forwardRefIfNeeded<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button> & { content: string }
 >((props, ref) => {

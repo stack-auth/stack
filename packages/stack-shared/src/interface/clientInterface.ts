@@ -6,14 +6,18 @@ import { AccessToken, InternalSession, RefreshToken } from '../sessions';
 import { generateSecureRandomString } from '../utils/crypto';
 import { StackAssertionError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
+import { HTTP_METHODS, HttpMethod } from '../utils/http';
 import { ReadonlyJson } from '../utils/json';
 import { filterUndefined } from '../utils/objects';
+import { AuthenticationResponseJSON, PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON, RegistrationResponseJSON } from '../utils/passkey';
+import { wait } from '../utils/promises';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
 import { ContactChannelsCrud } from './crud/contact-channels';
 import { CurrentUserCrud } from './crud/current-user';
 import { ConnectedAccountAccessTokenCrud } from './crud/oauth';
 import { InternalProjectsCrud, ProjectsCrud } from './crud/projects';
+import { TeamInvitationCrud } from './crud/team-invitation';
 import { TeamMemberProfilesCrud } from './crud/team-member-profiles';
 import { TeamPermissionsCrud } from './crud/team-permissions';
 import { TeamsCrud } from './crud/teams';
@@ -90,6 +94,18 @@ export class StackClientInterface {
     };
   }
 
+  protected async _createNetworkError(cause: Error, session?: InternalSession | null, requestType?: "client" | "server" | "admin") {
+    return new Error(deindent`
+      Stack Auth is unable to connect to the server. Please check your internet connection and try again.
+      
+      If the problem persists, please contact support and provide a screenshot of your entire browser console.
+
+      ${cause}
+      
+      ${JSON.stringify(await this.runNetworkDiagnostics(session, requestType), null, 2)}
+    `, { cause: cause });
+  }
+
   protected async _networkRetry<T>(cb: () => Promise<Result<T, any>>, session?: InternalSession | null, requestType?: "client" | "server" | "admin"): Promise<T> {
     const retriedResult = await Result.retry(
       cb,
@@ -102,15 +118,7 @@ export class StackClientInterface {
       if (globalVar.navigator && !globalVar.navigator.onLine) {
         throw new Error("Failed to send Stack network request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
       }
-      throw new Error(deindent`
-        Stack is unable to connect to the server. Please check your internet connection and try again.
-        
-        If the problem persists, please contact Stack support and provide a screenshot of your entire browser console.
-
-        ${retriedResult.error}
-        
-        ${JSON.stringify(await this.runNetworkDiagnostics(session, requestType), null, 2)}
-      `, { cause: retriedResult.error });
+      throw this._createNetworkError(retriedResult.error, session, requestType);
     }
     return retriedResult.data;
   }
@@ -243,7 +251,7 @@ export class StackClientInterface {
     let adminTokenObj = adminSession ? await adminSession.getPotentiallyExpiredTokens() : null;
 
     // all requests should be dynamic to prevent Next.js caching
-    cookies?.();
+    await cookies?.();
 
     const url = this.getApiUrl() + path;
     const params: RequestInit = {
@@ -302,8 +310,12 @@ export class StackClientInterface {
       rawRes = await fetch(url, params);
     } catch (e) {
       if (e instanceof TypeError) {
-        // Network error, retry
-        return Result.error(e);
+        // Likely to be a network error. Retry if the request is idempotent, throw network error otherwise.
+        if (HTTP_METHODS[(params.method ?? "GET") as HttpMethod].idempotent) {
+          return Result.error(e);
+        } else {
+          throw this._createNetworkError(e, session, requestType);
+        }
       }
       throw e;
     }
@@ -340,11 +352,27 @@ export class StackClientInterface {
     });
     if (res.ok) {
       return Result.ok(res);
+    } else if (res.status === 429) {
+      // Rate limited, so retry if we can
+      const retryAfter = res.headers.get("Retry-After");
+      if (retryAfter !== null) {
+        await wait(Number(retryAfter) * 1000);
+        return Result.error(new Error(`Rate limited, retrying after ${retryAfter} seconds`));
+      }
+      return Result.error(new Error("Rate limited, no retry-after header received"));
     } else {
       const error = await res.text();
 
+      const errorObj = new StackAssertionError(`Failed to send request to ${url}: ${res.status} ${error}`, { request: params, res });
+
+      if (res.status === 508 && error.includes("INFINITE_LOOP_DETECTED")) {
+        // Some Vercel deployments seem to have an odd infinite loop bug. In that case, retry.
+        // See: https://github.com/stack-auth/stack/issues/319
+        return Result.error(errorObj);
+      }
+
       // Do not retry, throw error instead of returning one
-      throw new StackAssertionError(`Failed to send request to ${url}: ${res.status} ${error}`, { request: params, res });
+      throw errorObj;
     }
   }
 
@@ -569,13 +597,84 @@ export class StackClientInterface {
     }
   }
 
+  async initiatePasskeyRegistration(
+    options: {},
+    session: InternalSession
+  ): Promise<Result<{ options_json: PublicKeyCredentialCreationOptionsJSON, code: string }, KnownErrors[]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/passkey/initiate-passkey-registration",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(options),
+      },
+      session,
+      []
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    }
+
+    return Result.ok(await res.data.json());
+  }
+
+  async registerPasskey(
+    options: { credential: RegistrationResponseJSON, code: string },
+    session: InternalSession
+  ): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/passkey/register",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(options),
+      },
+      session,
+      [KnownErrors.PasskeyRegistrationFailed]
+    );
+    if (res.status === "error") {
+      return Result.error(res.error);
+    }
+    return Result.ok(undefined);
+  }
+
+  async initiatePasskeyAuthentication(
+    options: {
+    },
+    session: InternalSession
+  ): Promise<Result<{ options_json: PublicKeyCredentialRequestOptionsJSON, code: string }, KnownErrors[]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/passkey/initiate-passkey-authentication",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(options),
+      },
+      session,
+      []
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    }
+
+    return Result.ok(await res.data.json());
+  }
+
   async sendTeamInvitation(options: {
     email: string,
     teamId: string,
     callbackUrl: string,
-    session: InternalSession | null,
-  }): Promise<Result<undefined, KnownErrors["TeamPermissionRequired"]>> {
-    const res = await this.sendClientRequestAndCatchKnownError(
+    session: InternalSession,
+  }): Promise<void> {
+    await this.sendClientRequest(
       "/team-invitations/send-code",
       {
         method: "POST",
@@ -589,14 +688,7 @@ export class StackClientInterface {
         }),
       },
       options.session,
-      [KnownErrors.TeamPermissionRequired]
     );
-
-    if (res.status === "error") {
-      return Result.error(res.error);
-    } else {
-      return Result.ok(undefined);
-    }
   }
 
   async acceptTeamInvitation<T extends 'use' | 'details' | 'check'>(options: {
@@ -746,6 +838,31 @@ export class StackClientInterface {
       accessToken: result.access_token,
       refreshToken: result.refresh_token,
       newUser: result.is_new_user,
+    });
+  }
+
+  async signInWithPasskey(body: { authentication_response: AuthenticationResponseJSON, code: string }): Promise<Result<{accessToken: string, refreshToken: string }, KnownErrors["PasskeyAuthenticationFailed"]>> {
+    const res = await this.sendClientRequestAndCatchKnownError(
+      "/auth/passkey/sign-in",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body),
+      },
+      null,
+      [KnownErrors.PasskeyAuthenticationFailed]
+    );
+
+    if (res.status === "error") {
+      return Result.error(res.error);
+    }
+
+    const result = await res.data.json();
+    return Result.ok({
+      accessToken: result.access_token,
+      refreshToken: result.refresh_token,
     });
   }
 
@@ -899,6 +1016,33 @@ export class StackClientInterface {
     const user: CurrentUserCrud["Client"]["Read"] = await response.json();
     if (!(user as any)) throw new StackAssertionError("User endpoint returned null; this should never happen");
     return user;
+  }
+
+  async listTeamInvitations(
+    options: {
+      teamId: string,
+    },
+    session: InternalSession,
+  ): Promise<TeamInvitationCrud['Client']['Read'][]> {
+    const response = await this.sendClientRequest(
+      "/team-invitations?" + new URLSearchParams({ team_id: options.teamId }),
+      {},
+      session,
+    );
+    const result = await response.json() as TeamInvitationCrud['Client']['List'];
+    return result.items;
+  }
+
+  async revokeTeamInvitation(
+    invitationId: string,
+    teamId: string,
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/team-invitations/${invitationId}?team_id=${teamId}`,
+      { method: "DELETE" },
+      session,
+    );
   }
 
   async listTeamMemberProfiles(
@@ -1111,6 +1255,19 @@ export class StackClientInterface {
       session,
     );
     return await response.json();
+  }
+
+  async deleteTeam(
+    teamId: string,
+    session: InternalSession,
+  ) {
+    await this.sendClientRequest(
+      `/teams/${teamId}`,
+      {
+        method: "DELETE",
+      },
+      session,
+    );
   }
 
   async deleteCurrentUser(session: InternalSession) {

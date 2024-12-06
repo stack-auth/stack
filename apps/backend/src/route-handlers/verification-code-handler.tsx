@@ -1,17 +1,17 @@
-import * as yup from "yup";
-import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, createSmartRouteHandler } from "./smart-route-handler";
-import { SmartResponse } from "./smart-response";
-import { KnownErrors } from "@stackframe/stack-shared";
-import { prismaClient } from "@/prisma-client";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { adaptSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { VerificationCodeType } from "@prisma/client";
-import { SmartRequest } from "./smart-request";
-import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
+import { prismaClient } from "@/prisma-client";
+import { Prisma, VerificationCodeType } from "@prisma/client";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { adaptSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { DeepPartial } from "@stackframe/stack-shared/dist/utils/objects";
+import * as yup from "yup";
+import { SmartRequest } from "./smart-request";
+import { SmartResponse } from "./smart-response";
+import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, createSmartRouteHandler } from "./smart-route-handler";
 
 const MAX_ATTEMPTS_PER_CODE = 20;
 
@@ -23,15 +23,30 @@ type CreateCodeOptions<Data, Method extends {}, CallbackUrl extends string | URL
   callbackUrl: CallbackUrl,
 };
 
-type CodeObject<CallbackUrl extends string | URL | undefined> = {
+type ListCodesOptions<Data> = {
+  project: ProjectsCrud["Admin"]["Read"],
+  dataFilter?: Prisma.JsonFilter<"VerificationCode"> | undefined,
+}
+
+type RevokeCodeOptions = {
+  project: ProjectsCrud["Admin"]["Read"],
+  id: string,
+}
+
+type CodeObject<Data, Method extends {}, CallbackUrl extends string | URL | undefined> = {
+  id: string,
+  data: Data,
+  method: Method,
   code: string,
   link: CallbackUrl extends string | URL ? URL : undefined,
   expiresAt: Date,
 };
 
 type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}, SendCodeReturnType, HasDetails extends boolean, Method extends {}> = {
-  createCode<CallbackUrl extends string | URL | undefined>(options: CreateCodeOptions<Data, Method, CallbackUrl>): Promise<CodeObject<CallbackUrl>>,
+  createCode<CallbackUrl extends string | URL | undefined>(options: CreateCodeOptions<Data, Method, CallbackUrl>): Promise<CodeObject<Data, Method, CallbackUrl>>,
   sendCode(options: CreateCodeOptions<Data, Method, string | URL>, sendOptions: SendCodeExtraOptions): Promise<SendCodeReturnType>,
+  listCodes(options: ListCodesOptions<Data>): Promise<CodeObject<Data, Method, string | URL>[]>,
+  revokeCode(options: RevokeCodeOptions): Promise<void>,
   postHandler: SmartRouteHandler<any, any, any>,
   checkHandler: SmartRouteHandler<any, any, any>,
   detailsHandler: HasDetails extends true ? SmartRouteHandler<any, any, any> : undefined,
@@ -61,7 +76,7 @@ export function createVerificationCodeHandler<
   detailsResponse?: yup.Schema<DetailsResponse>,
   response: yup.Schema<Response>,
   send?(
-    codeObject: CodeObject<string | URL>,
+    codeObject: CodeObject<Data, Method, string | URL>,
     createOptions: CreateCodeOptions<Data, Method, string | URL>,
     sendOptions: SendCodeExtraOptions,
   ): Promise<SendCodeReturnType>,
@@ -70,7 +85,7 @@ export function createVerificationCodeHandler<
     method: Method,
     data: Data,
     body: RequestBody,
-    user:UsersCrud["Admin"]["Read"] | undefined
+    user: UsersCrud["Admin"]["Read"] | undefined
   ): Promise<void>,
   handler(
     project: ProjectsCrud["Admin"]["Read"],
@@ -91,23 +106,23 @@ export function createVerificationCodeHandler<
     metadata: options.metadata?.[handlerType],
     request: yupObject({
       auth: yupObject({
-        project: adaptSchema.required(),
+        project: adaptSchema.defined(),
         user: adaptSchema,
-      }).required(),
+      }).defined(),
       body: yupObject({
-        code: yupString().length(45).required(),
+        code: yupString().length(45).defined(),
       // we cast to undefined as a typehack because the types are a bit icky
       // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      }).concat((handlerType === 'post' ? options.requestBody : undefined) as undefined ?? yupObject({})).required(),
+      }).concat((handlerType === 'post' ? options.requestBody : undefined) as undefined ?? yupObject({})).defined(),
     }),
     response: handlerType === 'check' ?
       yupObject({
-        statusCode: yupNumber().oneOf([200]).required(),
-        bodyType: yupString().oneOf(["json"]).required(),
+        statusCode: yupNumber().oneOf([200]).defined(),
+        bodyType: yupString().oneOf(["json"]).defined(),
         body: yupObject({
-          "is_code_valid": yupBoolean().oneOf([true]).required(),
-        }).required(),
-      }).required() as yup.ObjectSchema<any> :
+          "is_code_valid": yupBoolean().oneOf([true]).defined(),
+        }).defined(),
+      }).defined() as yup.ObjectSchema<any> :
       handlerType === 'details' ?
         options.detailsResponse || throwErr('detailsResponse is required') :
         options.response,
@@ -214,16 +229,7 @@ export function createVerificationCodeHandler<
         }
       });
 
-      let link;
-      if (callbackUrl !== undefined) {
-        link = new URL(callbackUrl);
-        link.searchParams.set('code', verificationCodePrisma.code);
-      }
-
-      return {
-        code: verificationCodePrisma.code,
-        link,
-      } as any;
+      return createCodeObjectFromPrismaCode(verificationCodePrisma);
     },
     async sendCode(createOptions, sendOptions) {
       const codeObj = await this.createCode(createOptions);
@@ -232,8 +238,50 @@ export function createVerificationCodeHandler<
       }
       return await options.send(codeObj, createOptions, sendOptions);
     },
+    async listCodes(listOptions) {
+      const codes = await prismaClient.verificationCode.findMany({
+        where: {
+          projectId: listOptions.project.id,
+          type: options.type,
+          data: listOptions.dataFilter,
+          expiresAt: {
+            gt: new Date(),
+          },
+          usedAt: null,
+        },
+      });
+      return codes.map(code => createCodeObjectFromPrismaCode(code));
+    },
+    async revokeCode(options) {
+      await prismaClient.verificationCode.delete({
+        where: {
+          projectId_id: {
+            projectId: options.project.id,
+            id: options.id,
+          },
+        },
+      });
+    },
     postHandler: createHandler('post'),
     checkHandler: createHandler('check'),
     detailsHandler: (options.detailsResponse ? createHandler('details') : undefined) as any,
+  };
+}
+
+
+function createCodeObjectFromPrismaCode<Data, Method extends {}, CallbackUrl extends string | URL | undefined>(code: Prisma.VerificationCodeGetPayload<{}>): CodeObject<Data, Method, CallbackUrl> {
+  let link: URL | undefined;
+  if (code.redirectUrl !== null) {
+    link = new URL(code.redirectUrl);
+    link.searchParams.set('code', code.code);
+  }
+
+  return {
+    id: code.id,
+    data: code.data as Data,
+    method: code.method as Method,
+    code: code.code,
+    link: link as any,
+    expiresAt: code.expiresAt,
   };
 }

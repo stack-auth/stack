@@ -1,5 +1,213 @@
 # @stackframe/stack
 
+## 2.6.32
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.32
+  - @stackframe/stack-ui@2.6.32
+  - @stackframe/stack-sc@2.6.32
+
+## 2.6.31
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.31
+  - @stackframe/stack-ui@2.6.31
+  - @stackframe/stack-sc@2.6.31
+
+## 2.6.30
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.30
+  - @stackframe/stack-ui@2.6.30
+  - @stackframe/stack-sc@2.6.30
+
+## 2.6.29
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.29
+  - @stackframe/stack-ui@2.6.29
+  - @stackframe/stack-sc@2.6.29
+
+## 2.6.28
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.28
+  - @stackframe/stack-ui@2.6.28
+  - @stackframe/stack-sc@2.6.28
+
+## 2.6.27
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.27
+  - @stackframe/stack-ui@2.6.27
+  - @stackframe/stack-sc@2.6.27
+
+## 2.6.26
+
+### Patch Changes
+
+- Various bugfixes
+- Updated dependencies
+  - @stackframe/stack-sc@2.6.26
+  - @stackframe/stack-shared@2.6.26
+  - @stackframe/stack-ui@2.6.26
+
+## 2.6.25
+
+### Patch Changes
+
+- Translation overrides
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.25
+  - @stackframe/stack-ui@2.6.25
+  - @stackframe/stack-sc@2.6.25
+
+## 2.6.24
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.24
+  - @stackframe/stack-ui@2.6.24
+  - @stackframe/stack-sc@2.6.24
+
+## 2.6.23
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.23
+  - @stackframe/stack-sc@2.6.23
+  - @stackframe/stack-ui@2.6.23
+
+## 2.6.22
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.22
+  - @stackframe/stack-sc@2.6.22
+  - @stackframe/stack-ui@2.6.22
+
+## 2.6.21
+
+### Patch Changes
+
+- Fixed inviteUser
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.21
+  - @stackframe/stack-sc@2.6.21
+  - @stackframe/stack-ui@2.6.21
+
+## 2.6.20
+
+### Patch Changes
+
+- Next.js 15 fixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.20
+  - @stackframe/stack-sc@2.6.20
+  - @stackframe/stack-ui@2.6.20
+
+## 2.6.19
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.19
+  - @stackframe/stack-sc@2.6.19
+  - @stackframe/stack-ui@2.6.19
+
+## 2.6.18
+
+### Patch Changes
+
+- fixed user update bug
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.18
+  - @stackframe/stack-sc@2.6.18
+  - @stackframe/stack-ui@2.6.18
+
+## 2.6.17
+
+### Patch Changes
+
+- Loading skeletons
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.17
+  - @stackframe/stack-sc@2.6.17
+  - @stackframe/stack-ui@2.6.17
+
+## 2.6.16
+
+### Patch Changes
+
+- - list user pagination
+  - fixed visual glitches
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.16
+  - @stackframe/stack-ui@2.6.16
+  - @stackframe/stack-sc@2.6.16
+
+## 2.6.15
+
+### Patch Changes
+
+- Passkeys
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.15
+  - @stackframe/stack-ui@2.6.15
+  - @stackframe/stack-sc@2.6.15
+
+## 2.6.14
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.6.14
+- @stackframe/stack-shared@2.6.14
+- @stackframe/stack-ui@2.6.14
+
+## 2.6.13
+
+### Patch Changes
+
+- Updated docs
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.13
+  - @stackframe/stack-ui@2.6.13
+  - @stackframe/stack-sc@2.6.13
+
+## 2.6.12
+
+### Patch Changes
+
+- Updated account settings page
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.12
+  - @stackframe/stack-sc@2.6.12
+  - @stackframe/stack-ui@2.6.12
+
 ## 2.6.11
 
 ### Patch Changes

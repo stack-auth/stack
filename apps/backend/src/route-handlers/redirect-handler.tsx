@@ -1,23 +1,22 @@
 import "../polyfills";
 
+import { yupArray, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { NextRequest } from "next/server";
-import * as yup from "yup";
 import { createSmartRouteHandler } from "./smart-route-handler";
-import { yupObject, yupString, yupNumber, yupBoolean, yupArray, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 
-export function redirectHandler(redirectPath: string, statusCode: 301 | 302 | 303 | 307 | 308 = 307): (req: NextRequest, options: any) => Promise<Response> {
+export function redirectHandler(redirectPath: string, statusCode: 303 | 307 | 308 = 307): (req: NextRequest, options: any) => Promise<Response> {
   return createSmartRouteHandler({
     request: yupObject({
-      url: yupString().required(),
-      method: yupString().oneOf(["GET"]).required(),
+      url: yupString().defined(),
+      method: yupString().oneOf(["GET"]).defined(),
     }),
     response: yupObject({
-      statusCode: yupNumber().oneOf([statusCode]).required(),
+      statusCode: yupNumber().oneOf([statusCode]).defined(),
       headers: yupObject({
-        location: yupArray(yupString().required()),
+        location: yupArray(yupString().defined()),
       }),
-      bodyType: yupString().oneOf(["text"]).required(),
-      body: yupString().required(),
+      bodyType: yupString().oneOf(["text"]).defined(),
+      body: yupString().defined(),
     }),
     async handler(req) {
       const urlWithTrailingSlash = new URL(req.url);

@@ -29,8 +29,8 @@ export function MaybeFullPage({
     return (
       <>
         <div
-          id={id}
           suppressHydrationWarning
+          id={id}
           style={{
             minHeight: '100vh',
             alignSelf: 'stretch',

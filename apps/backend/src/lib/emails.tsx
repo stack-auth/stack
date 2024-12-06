@@ -1,5 +1,6 @@
 import { getProject } from '@/lib/projects';
 import { prismaClient } from '@/prisma-client';
+import { trace } from '@opentelemetry/api';
 import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
 import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
 import { ProjectsCrud } from '@stackframe/stack-shared/dist/interface/crud/projects';
@@ -9,8 +10,6 @@ import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors'
 import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
 import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
 import nodemailer from 'nodemailer';
-import { trace } from '@opentelemetry/api';
-import { wait } from '@stackframe/stack-shared/dist/utils/promises';
 
 export async function getEmailTemplate(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
   const project = await getProject(projectId);
@@ -89,16 +88,27 @@ export async function sendEmail({
         },
       });
 
-      try {
-        return await transporter.sendMail({
-          from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
-          to,
-          subject,
-          text,
-          html
-        });
-      } catch (error) {
-        throw new StackAssertionError('Failed to send email', { error, host: emailConfig.host, from: emailConfig.senderEmail, to, subject });
+      for (let retries = 0; retries < 2; retries++) {
+        try {
+          return await transporter.sendMail({
+            from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
+            to,
+            subject,
+            text,
+            html
+          });
+        } catch (error) {
+          // TODO if using custom email config, we should notify the developer instead of throwing an error
+
+          const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject };
+          if (error instanceof Error && error.message === "Client network socket disconnected before secure TLS connection was established") {
+            // this can happen occasionally (especially with certain unreliable email providers)
+            // so let's retry one more time
+            console.warn("Failed to send email, but error is possibly transient so retrying.", extraData, error);
+            continue;
+          }
+          throw new StackAssertionError('Failed to send email', extraData, { cause: error });
+        }
       }
     } finally {
       span.end();

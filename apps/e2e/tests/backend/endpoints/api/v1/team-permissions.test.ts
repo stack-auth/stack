@@ -3,7 +3,7 @@ import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, niceB
 
 it("is not allowed to list permissions from the other users on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   const response = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}`, {
     accessType: "client",
@@ -20,7 +20,7 @@ it("is not allowed to list permissions from the other users on the client", asyn
 
 it("is not allowed to grant non-existing permission to a user on the server", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   const response = await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/does_not_exist`, {
     accessType: "server",
@@ -77,7 +77,7 @@ it("can create a new permission and grant it to a user on the server", async ({ 
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   const { userId } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   // list current permissions
   const response1 = await niceBackendFetch(`/api/v1/team-permissions?team_id=${teamId}&user_id=me`, {
@@ -197,6 +197,7 @@ it("can customize default team permissions", async ({ expect }) => {
           "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
+          "passkey_enabled": false,
           "sign_up_enabled": true,
           "team_creator_default_permissions": [{ "id": "admin" }],
           "team_member_default_permissions": [{ "id": "test" }],

@@ -7,10 +7,9 @@ import { decodeAccessToken } from "@/lib/tokens";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAdaptSentinel, yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
 import { ignoreUnhandledRejection } from "@stackframe/stack-shared/dist/utils/promises";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { NextRequest } from "next/server";
@@ -69,7 +68,7 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
 
         for (const inner of inners) {
           if (inner.path === "auth" && inner.type === "nullable" && inner.value === null) {
-            throw new KnownErrors.AccessTypeRequired();
+            throw new KnownErrors.AccessTypeRequired;
           }
           if (inner.path === "auth.type" && inner.type === "oneOf") {
             // Project access type not sufficient
@@ -236,7 +235,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
         break;
       }
       case "admin": {
-        if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired();
+        if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired;
         if (!await queries.isAdminKeyValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
         break;
       }

@@ -5,24 +5,24 @@ export type EmailTemplateType = typeof emailTemplateTypes[number];
 export const emailTemplateTypes = ['email_verification', 'password_reset', 'magic_link', 'team_invitation'] as const;
 
 export const emailTemplateAdminReadSchema = yupObject({
-  type: yupString().oneOf(emailTemplateTypes).required(),
-  subject: yupString().required(),
-  content: jsonSchema.required(),
-  is_default: yupBoolean().required(),
-}).required();
+  type: yupString().oneOf(emailTemplateTypes).defined(),
+  subject: yupString().defined(),
+  content: jsonSchema.defined(),
+  is_default: yupBoolean().defined(),
+}).defined();
 
 export const emailTemplateCrudAdminUpdateSchema = yupObject({
   content: jsonSchema.nonNullable().optional(),
   subject: yupString().optional(),
-}).required();
+}).defined();
 
 export const emailTemplateCrudAdminDeleteSchema = yupMixed();
 
 export const emailTemplateCrudAdminCreateSchema = yupObject({
-  type: yupString().oneOf(emailTemplateTypes).required(),
-  content: jsonSchema.required(),
-  subject: yupString().required(),
-}).required();
+  type: yupString().oneOf(emailTemplateTypes).defined(),
+  content: jsonSchema.defined(),
+  subject: yupString().defined(),
+}).defined();
 
 export const emailTemplateCrud = createCrud({
   adminReadSchema: emailTemplateAdminReadSchema,

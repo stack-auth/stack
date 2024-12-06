@@ -11,52 +11,56 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   server_metadata: fieldSchema.userServerMetadataSchema.optional(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().optional(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.optional(),
-  primary_email_auth_enabled: fieldSchema.yupBoolean().optional().meta({ openapiField: { description: "Whether the primary email is used for authentication", exampleValue: true } }),
-  password: fieldSchema.yupString().nullable().meta({ openapiField: { description: 'A new password for the user, overwriting the old one (if it exists). Specifying this option revokes all current sessions.', exampleValue: 'my-new-password' } }),
-  otp_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.optional(),
-  totp_secret_base64: fieldSchema.base64Schema.nullable().meta({ openapiField: { description: 'A TOTP secret for the user, overwriting the old one (if it exists). Set to null to disable 2FA.', exampleValue: 'dG90cC1zZWNyZXQ=' } }),
+  primary_email_auth_enabled: fieldSchema.primaryEmailAuthEnabledSchema.optional(),
+  passkey_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.optional(),
+  password: fieldSchema.userPasswordMutationSchema.optional(),
+  password_hash: fieldSchema.userPasswordHashMutationSchema.optional(),
+  otp_auth_enabled: fieldSchema.userOtpAuthEnabledMutationSchema.optional(),
+  totp_secret_base64: fieldSchema.userTotpSecretMutationSchema.optional(),
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().optional(),
-}).required();
+}).defined();
 
 export const usersCrudServerReadSchema = fieldSchema.yupObject({
-  id: fieldSchema.userIdSchema.required(),
+  id: fieldSchema.userIdSchema.defined(),
   primary_email: fieldSchema.primaryEmailSchema.nullable().defined(),
-  primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.required(),
+  primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.defined(),
+  primary_email_auth_enabled: fieldSchema.primaryEmailAuthEnabledSchema.defined(),
   display_name: fieldSchema.userDisplayNameSchema.nullable().defined(),
   selected_team: teamsCrudServerReadSchema.nullable().defined(),
   selected_team_id: fieldSchema.selectedTeamIdSchema.nullable().defined(),
   profile_image_url: fieldSchema.profileImageUrlSchema.nullable().defined(),
-  signed_up_at_millis: fieldSchema.signedUpAtMillisSchema.required(),
-  has_password: fieldSchema.yupBoolean().required().meta({ openapiField: { description: 'Whether the user has a password associated with their account', exampleValue: true } }),
-  otp_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.required(),
+  signed_up_at_millis: fieldSchema.signedUpAtMillisSchema.defined(),
+  has_password: fieldSchema.userHasPasswordSchema.defined(),
+  otp_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.defined(),
+  passkey_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.defined(),
   client_metadata: fieldSchema.userClientMetadataSchema,
   client_read_only_metadata: fieldSchema.userClientReadOnlyMetadataSchema,
   server_metadata: fieldSchema.userServerMetadataSchema,
-  last_active_at_millis: fieldSchema.userLastActiveAtMillisSchema.required(),
+  last_active_at_millis: fieldSchema.userLastActiveAtMillisSchema.nonNullable().defined(),
 
   oauth_providers: fieldSchema.yupArray(fieldSchema.yupObject({
-    id: fieldSchema.yupString().required(),
-    account_id: fieldSchema.yupString().required(),
+    id: fieldSchema.yupString().defined(),
+    account_id: fieldSchema.yupString().defined(),
     email: fieldSchema.yupString().nullable(),
-  }).required()).required().meta({ openapiField: { hidden: true, description: 'A list of OAuth providers connected to this account', exampleValue: [{ id: 'google', account_id: '12345', email: 'john.doe@gmail.com' }] } }),
+  }).defined()).defined().meta({ openapiField: { hidden: true } }),
 
   /**
    * @deprecated
    */
-  auth_with_email: fieldSchema.yupBoolean().required().meta({ openapiField: { hidden: true, description: 'Whether the user can authenticate with their primary e-mail. If set to true, the user can log-in with credentials and/or magic link, if enabled in the project settings.', exampleValue: true } }),
+  auth_with_email: fieldSchema.yupBoolean().defined().meta({ openapiField: { hidden: true, description: 'Whether the user can authenticate with their primary e-mail. If set to true, the user can log-in with credentials and/or magic link, if enabled in the project settings.', exampleValue: true } }),
   /**
    * @deprecated
    */
-  requires_totp_mfa: fieldSchema.yupBoolean().required().meta({ openapiField: { hidden: true, description: 'Whether the user is required to use TOTP MFA to sign in', exampleValue: false } }),
-}).required();
+  requires_totp_mfa: fieldSchema.yupBoolean().defined().meta({ openapiField: { hidden: true, description: 'Whether the user is required to use TOTP MFA to sign in', exampleValue: false } }),
+}).defined();
 
 export const usersCrudServerCreateSchema = usersCrudServerUpdateSchema.omit(['selected_team_id']).concat(fieldSchema.yupObject({
   oauth_providers: fieldSchema.yupArray(fieldSchema.yupObject({
-    id: fieldSchema.yupString().required(),
-    account_id: fieldSchema.yupString().required(),
+    id: fieldSchema.yupString().defined(),
+    account_id: fieldSchema.yupString().defined(),
     email: fieldSchema.yupString().nullable().defined().default(null),
-  }).required()).optional(),
-}).required());
+  }).defined()).optional().meta({ openapiField: { hidden: true } }),
+}).defined());
 
 export const usersCrudServerDeleteSchema = fieldSchema.yupMixed();
 
@@ -116,11 +120,11 @@ export const userUpdatedWebhookEvent = {
 } satisfies WebhookEvent<typeof usersCrud.server.readSchema>;
 
 const webhookUserDeletedSchema = fieldSchema.yupObject({
-  id: fieldSchema.userIdSchema.required(),
+  id: fieldSchema.userIdSchema.defined(),
   teams: fieldSchema.yupArray(fieldSchema.yupObject({
-    id: fieldSchema.yupString().required(),
-  })).required(),
-}).required();
+    id: fieldSchema.yupString().defined(),
+  })).defined(),
+}).defined();
 
 export const userDeletedWebhookEvent = {
   type: "user.deleted",

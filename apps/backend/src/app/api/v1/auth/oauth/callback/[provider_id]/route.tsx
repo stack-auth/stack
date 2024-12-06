@@ -34,16 +34,16 @@ const handler = createSmartRouteHandler({
   },
   request: yupObject({
     params: yupObject({
-      provider_id: yupString().required(),
-    }).required(),
+      provider_id: yupString().defined(),
+    }).defined(),
     query: yupMixed().optional(),
     body: yupMixed().optional(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([302]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
-    body: yupMixed().required(),
-    headers: yupMixed().required(),
+    statusCode: yupNumber().oneOf([307]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: yupMixed().defined(),
+    headers: yupMixed().defined(),
   }),
   async handler({ params, query, body }, fullReq) {
     const innerState = query.state ?? (body as any)?.state ?? "";

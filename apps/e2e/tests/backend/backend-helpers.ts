@@ -3,6 +3,7 @@ import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import * as jose from "jose";
 import { expect } from "vitest";
 import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
@@ -58,9 +59,9 @@ function expectSnakeCase(obj: unknown, path: string): void {
   } else {
     for (const [key, value] of Object.entries(obj)) {
       if (key.match(/[a-z0-9][A-Z][a-z0-9]+/) && !key.includes("_") && !["newUser", "afterCallbackRedirectUrl"].includes(key)) {
-        throw new StackAssertionError(`Object has camelCase key (expected snake case): ${path}.${key}`);
+        throw new StackAssertionError(`Object has camelCase key (expected snake_case): ${path}.${key}`);
       }
-      if (key === "client_metadata" || key === "server_metadata") continue;
+      if (["client_metadata", "server_metadata", "options_json", "credential", "authentication_response"].includes(key)) continue;
       expectSnakeCase(value, `${path}.${key}`);
     }
   }
@@ -117,7 +118,7 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
 
 export namespace Auth {
   export async function ensureParsableAccessToken() {
-    /*const accessToken = backendContext.value.userAuth?.accessToken;
+    const accessToken = backendContext.value.userAuth?.accessToken;
     if (accessToken) {
       const aud = jose.decodeJwt(accessToken).aud;
       const jwks = jose.createRemoteJWKSet(new URL(`api/v1/projects/${aud}/.well-known/jwks.json`, STACK_BACKEND_BASE_URL));
@@ -129,7 +130,7 @@ export namespace Auth {
         "aud": expect.any(String),
         "sub": expect.any(String),
       });
-    }*/
+    }
   }
 
   /**
@@ -143,7 +144,7 @@ export namespace Auth {
     if (response.status !== 200) {
       throw new StackAssertionError("Expected session to be valid, but was actually invalid.", { response });
     }
-    expect(response).toEqual({
+    expect(response).toMatchObject({
       status: 200,
       headers: expect.objectContaining({}),
       body: expect.objectContaining({}),
@@ -383,6 +384,113 @@ export namespace Auth {
     }
   }
 
+  export namespace Passkey {
+
+
+    export async function register() {
+      const initiateRegistrationRes = await Auth.Passkey.initiateRegistration();
+
+      const response = await niceBackendFetch("/api/v1/auth/passkey/register", {
+        method: "POST",
+        accessType: "client",
+        body: {
+          "credential": {
+            "id": "BBYYB_DKzPZHm1o6ILGo6Sk_cBc",
+            "rawId": "BBYYB_DKzPZHm1o6ILGo6Sk_cBc",
+            "response": {
+              "attestationObject": "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViYSZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2NdAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAQWGAfwysz2R5taOiCxqOkpP3AXpQECAyYgASFYIO7JJihe93CDhZOPFp9pVefZyBvy62JMjSs47id1q0vpIlggNMjLAQG7ESYqRZsBQbX07WWIImEzYFDsJgBOSYiQZL8",
+              "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiVFU5RFN3Iiwib3JpZ2luIjoiaHR0cDovL2xvY2FsaG9zdDo4MTAzIiwiY3Jvc3NPcmlnaW4iOmZhbHNlfQ",
+              "transports": [
+                "hybrid",
+                "internal"
+              ],
+              "publicKeyAlgorithm": -7,
+              "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7skmKF73cIOFk48Wn2lV59nIG_LrYkyNKzjuJ3WrS-k0yMsBAbsRJipFmwFBtfTtZYgiYTNgUOwmAE5JiJBkvw",
+              "authenticatorData": "SZYN5YgOjGh0NBcPZHZgW4_krrmihjLHmVzzuoMdl2NdAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAQWGAfwysz2R5taOiCxqOkpP3AXpQECAyYgASFYIO7JJihe93CDhZOPFp9pVefZyBvy62JMjSs47id1q0vpIlggNMjLAQG7ESYqRZsBQbX07WWIImEzYFDsJgBOSYiQZL8"
+            },
+            "type": "public-key",
+            "clientExtensionResults": {
+              "credProps": {
+                "rk": true
+              }
+            },
+            "authenticatorAttachment": "platform"
+          },
+          "code": initiateRegistrationRes.code,
+        },
+      });
+
+      expect(response).toMatchInlineSnapshot(`
+        NiceResponse {
+          "status": 200,
+          "body": { "user_handle": "BBYYB_DKzPZHm1o6ILGo6Sk_cBc" },
+          "headers": Headers { <some fields may have been hidden> },
+        }
+      `);
+    }
+
+    export async function initiateRegistration(): Promise<{ code: string }> {
+
+      const response = await niceBackendFetch("/api/v1/auth/passkey/initiate-passkey-registration", {
+        method: "POST",
+        accessType: "client",
+        body: {},
+      });
+      const original_code = response.body.code;
+      response.body.options_json.user.id = "<stripped encoded UUID>";
+      response.body.code = "<stripped code>";
+
+      expect(response).toMatchInlineSnapshot(`
+        NiceResponse {
+          "status": 200,
+          "body": {
+            "code": "<stripped code>",
+            "options_json": {
+              "attestation": "none",
+              "authenticatorSelection": {
+                "requireResidentKey": true,
+                "residentKey": "required",
+                "userVerification": "preferred",
+              },
+              "challenge": "TU9DSw",
+              "excludeCredentials": [],
+              "extensions": { "credProps": true },
+              "pubKeyCredParams": [
+                {
+                  "alg": -8,
+                  "type": "public-key",
+                },
+                {
+                  "alg": -7,
+                  "type": "public-key",
+                },
+                {
+                  "alg": -257,
+                  "type": "public-key",
+                },
+              ],
+              "rp": {
+                "id": "THIS_VALUE_WILL_BE_REPLACED.example.com",
+                "name": "New Project",
+              },
+              "timeout": 60000,
+              "user": {
+                "displayName": "<stripped UUID>@stack-generated.example.com",
+                "id": "<stripped encoded UUID>",
+                "name": "<stripped UUID>@stack-generated.example.com",
+              },
+            },
+          },
+          "headers": Headers { <some fields may have been hidden> },
+        }
+      `);
+      return {
+        code: original_code,
+      };
+    }
+  }
+
+
   export namespace OAuth {
     export async function getAuthorizeQuery() {
       const projectKeys = backendContext.value.projectKeys;
@@ -427,7 +535,7 @@ export namespace Auth {
       const redirectResponse1 = await niceFetch(authLocation, {
         redirect: "manual",
       });
-      expect(redirectResponse1).toEqual({
+      expect(redirectResponse1).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
@@ -447,7 +555,7 @@ export namespace Auth {
           cookie: signInInteractionCookies,
         },
       });
-      expect(response1).toEqual({
+      expect(response1).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(ArrayBuffer),
@@ -458,7 +566,7 @@ export namespace Auth {
           cookie: updateCookiesFromResponse(signInInteractionCookies, response1),
         },
       });
-      expect(redirectResponse2).toEqual({
+      expect(redirectResponse2).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
@@ -476,7 +584,7 @@ export namespace Auth {
           cookie: authorizeInteractionCookies,
         },
       });
-      expect(response2).toEqual({
+      expect(response2).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(ArrayBuffer),
@@ -487,7 +595,7 @@ export namespace Auth {
           cookie: updateCookiesFromResponse(authorizeInteractionCookies, response2),
         },
       });
-      expect(redirectResponse3).toEqual({
+      expect(redirectResponse3).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
@@ -510,8 +618,8 @@ export namespace Auth {
           cookie,
         },
       });
-      expect(response).toEqual({
-        status: 302,
+      expect(response).toMatchObject({
+        status: 307,
         headers: expect.any(Headers),
         body: {},
       });
@@ -712,6 +820,14 @@ export namespace ApiKey {
     backendContext.set({ projectKeys: res.projectKeys });
     return res;
   }
+
+  export async function listAll() {
+    const response = await niceBackendFetch("/api/v1/internal/api-keys", {
+      accessType: "admin",
+    });
+    expect(response.status).toBe(200);
+    return response.body;
+  }
 }
 
 export namespace Project {
@@ -787,32 +903,80 @@ export namespace Project {
 }
 
 export namespace Team {
-  export async function create(options: { accessType?: "client" | "server" } = {}, body?: any) {
+  export async function create(options: { accessType?: "client" | "server", addCurrentUser?: boolean } = {}, body?: any) {
+    const displayName = body?.display_name || 'New Team';
     const response = await niceBackendFetch("/api/v1/teams", {
       accessType: options.accessType ?? "server",
       method: "POST",
       body: {
-        display_name: body?.display_name || 'New Team',
-        creator_user_id: 'me',
+        display_name: displayName,
+        creator_user_id: options.addCurrentUser ? 'me' : undefined,
         ...body,
       },
     });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "display_name": ${JSON.stringify(displayName)},
+          "id": "<stripped UUID>",
+          "profile_image_url": null,
+          "server_metadata": null,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
     return {
       createTeamResponse: response,
       teamId: response.body.id,
     };
   }
 
-  export async function sendInvitation(receiveMailbox: Mailbox, teamId: string) {
+  export async function createAndAddCurrent(options: { accessType?: "client" | "server" } = {}, body?: any) {
+    return await Team.create({ ...options, addCurrentUser: true }, body);
+  }
+
+  export async function addMember(teamId: string, userId: string) {
+    const response = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId}`, {
+      method: "POST",
+      accessType: "server",
+      body: {},
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "team_id": "<stripped UUID>",
+          "user_id": "<stripped UUID>",
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  }
+
+  export async function sendInvitation(mail: string | Mailbox, teamId: string) {
     const response = await niceBackendFetch("/api/v1/team-invitations/send-code", {
       method: "POST",
       accessType: "client",
       body: {
-        email: receiveMailbox.emailAddress,
+        email: typeof mail === 'string' ? mail : mail.emailAddress,
         team_id: teamId,
         callback_url: "http://localhost:12345/some-callback-url",
       },
     });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "id": "<stripped UUID>",
+          "success": true,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
 
     return {
       sendTeamInvitationResponse: response,

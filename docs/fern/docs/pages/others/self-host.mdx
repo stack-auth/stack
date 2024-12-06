@@ -26,6 +26,24 @@ On a high level, Stack Auth is composed of the following services:
 - **Svix**: Used to send webhooks. Svix is open-source and can be self-hosted, but also offers a cloud hosted solution. More on Svix [here](https://svix.com)
 - **Email server**: We use [Inbucket](https://inbucket.org) as a local email server for development and a separate SMTP server for production. Any email service supporting SMTP will work.
 
+## Run with Docker
+
+Stack Auth provides a pre-configured Docker image that bundles the dashboard and API backend into a single container. To complete the setup, you'll need to provide your own PostgreSQL database, and optionally configure an email server and Svix instance for webhooks.
+
+First, you need to get the [example environment file](https://github.com/stack-auth/stack/tree/main/docker/server/.env.example) and modify it to your needs. See the [full template here](https://github.com/stack-auth/stack/blob/dev/docker/server/.env).
+
+```sh
+# Start a example Postgres database, don't use this setting in production
+docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+
+# Run the Docker container
+docker run --env-file your-env-file.env -p 8101:8101 -p 8102:8102 stackauth/server:latest
+```
+
+Now you can open the dashboard at [http://localhost:8101](http://localhost:8101) and the API backend on port 8102.
+
+Now, login with your admin account on the dashboard and follow the [normal setup process](/getting-started/setup). Add `NEXT_PUBLIC_STACK_API_URL=https://your-backend-url.com` to your app's environment variables so that it connects to your API backend instead of the default Stack Auth API backend (https://api.stack-auth.com).
+
 ## Local development
 
 ### Setup
@@ -79,7 +97,7 @@ If you make changes to the Prisma schema, you need to run the following command 
 pnpm run prisma migrate dev
 ```
 
-## Production deployment
+## Run individual services
 
 ### Database, Svix, email
 
@@ -94,7 +112,7 @@ git clone git@github.com:stack-auth/stack.git
 cd stack
 ```
 
-Set all the necessary environment variables (you can check out `apps/backend/.env`). Note that `STACK_BASE_URL` should be the URL of your deployed domain (e.g., https://your-backend-url.com).
+Set all the necessary environment variables (you can check out `apps/backend/.env`). Note that `NEXT_PUBLIC_STACK_API_URL` should be the URL of your deployed domain (e.g., https://your-backend-url.com).
 
 Build and start the server:
 
@@ -113,7 +131,7 @@ git clone git@github.com:stack-auth/stack.git
 cd stack
 ```
 
-Set all the necessary environment variables (you can check out `apps/dashboard/.env`). Note that `NEXT_PUBLIC_STACK_URL` should be the URL of your deployed backend (e.g., https://your-backend-url.com).
+Set all the necessary environment variables (you can check out `apps/dashboard/.env`). Note that `NEXT_PUBLIC_STACK_API_URL` should be the URL of your deployed backend (e.g., https://your-backend-url.com).
 
 Build and start the server:
 
@@ -143,4 +161,4 @@ To manage your dashboard configs with this account, manually go into the databas
 
 Go back to the dashboard, refresh the page, and you should see the "Stack Dashboard" project. We recommend disabling new user sign-ups to your internal project to avoid unauthorized account and project creations.
 
-Now, create a new project for your app and follow the [normal setup process](/getting-started/setup). Add `NEXT_PUBLIC_STACK_URL=https://your-backend-url.com` to your app's environment variables so that it connects to your API backend instead of the default Stack Auth API backend (https://api.stack-auth.com).
+Now, create a new project for your app and follow the [normal setup process](/getting-started/setup). Add `NEXT_PUBLIC_STACK_API_URL=https://your-backend-url.com` to your app's environment variables so that it connects to your API backend instead of the default Stack Auth API backend (https://api.stack-auth.com).

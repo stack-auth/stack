@@ -1,6 +1,7 @@
 'use client';
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { ServerTeam, ServerUser } from '@stackframe/stack';
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { ActionCell, ActionDialog, BadgeCell, DataTable, DataTableColumnHeader, SearchToolbarItem, SimpleTooltip } from "@stackframe/stack-ui";
 import { ColumnDef, Row, Table } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
@@ -17,7 +18,7 @@ type ExtendedServerUserForTeam = ExtendedServerUser & {
 function teamMemberToolbarRender<TData>(table: Table<TData>) {
   return (
     <>
-      <SearchToolbarItem table={table} keyName="primaryEmail" placeholder="Filter by email" />
+      <SearchToolbarItem table={table} placeholder="Search table" />
     </>
   );
 }
@@ -55,7 +56,7 @@ function EditPermissionDialog(props: {
   const permissions = stackAdminApp.useTeamPermissionDefinitions();
 
   const formSchema = yup.object({
-    permissions: yup.array().of(yup.string().required()).required().meta({
+    permissions: yup.array().of(yup.string().defined()).defined().meta({
       stackFormFieldRender: (innerProps) => (
         <PermissionListField
           {...innerProps}
@@ -142,6 +143,7 @@ export function TeamMemberTable(props: { users: ServerUser[], team: ServerTeam }
         </div>}
       />,
       cell: ({ row }) => <BadgeCell size={120} badges={row.getValue("permissions")} />,
+      enableSorting: false,
     },
     {
       id: "actions",
@@ -173,12 +175,12 @@ export function TeamMemberTable(props: { users: ServerUser[], team: ServerTeam }
       return await Promise.all(promises);
     }
 
-    load().then((data) => {
+    runAsynchronously(load().then((data) => {
       setUserPermissions(new Map(
         props.users.map((user, index) => [user.id, data[index].permissions.map(p => p.id)])
       ));
       setUsers(data.map(d => d.user));
-    }).catch(console.error);
+    }));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.users, props.team, updateCounter]);
 
@@ -187,5 +189,7 @@ export function TeamMemberTable(props: { users: ServerUser[], team: ServerTeam }
     columns={teamMemberColumns}
     toolbarRender={teamMemberToolbarRender}
     defaultVisibility={{ emailVerified: false }}
+    defaultColumnFilters={[]}
+    defaultSorting={[]}
   />;
 }

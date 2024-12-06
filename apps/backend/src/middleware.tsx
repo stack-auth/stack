@@ -3,8 +3,8 @@ import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors'
 import { wait } from '@stackframe/stack-shared/dist/utils/promises';
 import './polyfills';
 
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 const corsAllowedRequestHeaders = [
   // General
@@ -43,7 +43,7 @@ export async function middleware(request: NextRequest) {
   const delay = +getEnvVariable('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS', '0');
   if (delay) {
     if (getNodeEnvironment().includes('production')) {
-      throw new StackAssertionError('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS is only allowed in development');
+      throw new StackAssertionError('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS environment variable is only allowed in development');
     }
     if (!request.headers.get('x-stack-disable-artificial-development-delay')) {
       await wait(delay);
@@ -53,8 +53,14 @@ export async function middleware(request: NextRequest) {
   const url = new URL(request.url);
   const isApiRequest = url.pathname.startsWith('/api/');
 
-  // default headers
-  const responseInit: ResponseInit | undefined = isApiRequest ? {
+  const newRequestHeaders = new Headers(request.headers);
+  // store the direct IP address of the requester or proxy so we can read it with `headers()` later
+  newRequestHeaders.set("x-stack-direct-requester-or-proxy-ip", request.ip ?? '');
+
+  const responseInit = isApiRequest ? {
+    request: {
+      headers: newRequestHeaders,
+    },
     headers: {
       // CORS headers
       "Access-Control-Allow-Origin": "*",
@@ -62,7 +68,7 @@ export async function middleware(request: NextRequest) {
       "Access-Control-Allow-Headers": corsAllowedRequestHeaders.join(', '),
       "Access-Control-Expose-Headers": corsAllowedResponseHeaders.join(', '),
     },
-  } : undefined;
+  } as const : undefined;
 
   // we want to allow preflight requests to pass through
   // even if the API route does not implement OPTIONS

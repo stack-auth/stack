@@ -243,11 +243,20 @@ model ProjectUser {
   contactChannels               ContactChannel[]
   authMethods                   AuthMethod[]
   connectedAccounts             ConnectedAccount[]
+
+  // some backlinks for the unique constraints on some auth methods
   passwordAuthMethod            PasswordAuthMethod[]
+  passkeyAuthMethod             PasskeyAuthMethod[]
   otpAuthMethod                 OtpAuthMethod[]
   oauthAuthMethod               OAuthAuthMethod[]
 
   @@id([projectId, projectUserId])
+
+  // indices for sorting and filtering
+  @@index([projectId, displayName(sort: Asc)], name: "ProjectUser_displayName_asc")
+  @@index([projectId, displayName(sort: Desc)], name: "ProjectUser_displayName_desc")
+  @@index([projectId, createdAt(sort: Asc)], name: "ProjectUser_createdAt_asc")
+  @@index([projectId, createdAt(sort: Desc)], name: "ProjectUser_createdAt_desc")
 }
 
 // This should be renamed to "OAuthAccount" as it is not always bound to a user
@@ -362,6 +371,7 @@ model AuthMethodConfig {
   otpConfig           OtpAuthMethodConfig?
   oauthProviderConfig OAuthProviderConfig?
   passwordConfig      PasswordAuthMethodConfig?
+  passkeyConfig       PasskeyAuthMethodConfig?
 
   projectConfig ProjectConfig @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
   authMethods   AuthMethod[]
@@ -384,6 +394,18 @@ model OtpAuthMethodConfig {
 }
 
 model PasswordAuthMethodConfig {
+  projectConfigId    String @db.Uuid
+  authMethodConfigId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authMethodConfig AuthMethodConfig @relation(fields: [projectConfigId, authMethodConfigId], references: [projectConfigId, id], onDelete: Cascade)
+
+  @@id([projectConfigId, authMethodConfigId])
+}
+
+model PasskeyAuthMethodConfig {
   projectConfigId    String @db.Uuid
   authMethodConfigId String @db.Uuid
 
@@ -483,6 +505,7 @@ model AuthMethod {
   // exactly one of the xyzAuthMethods should be set
   otpAuthMethod      OtpAuthMethod?
   passwordAuthMethod PasswordAuthMethod?
+  passkeyAuthMethod  PasskeyAuthMethod?
   oauthAuthMethod    OAuthAuthMethod?
 
   project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -517,6 +540,30 @@ model PasswordAuthMethod {
   updatedAt DateTime @updatedAt
 
   passwordHash String
+
+  authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
+  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+
+  @@id([projectId, authMethodId])
+  // a user can only have one password auth method
+  @@unique([projectId, projectUserId])
+}
+
+model PasskeyAuthMethod {
+  projectId     String
+  authMethodId  String @db.Uuid
+  projectUserId String @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  credentialId String
+  publicKey String
+  userHandle String 
+  transports String[]
+  credentialDeviceType String
+  counter Int
+
 
   authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
   projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
@@ -660,6 +707,7 @@ model VerificationCode {
 
   @@id([projectId, id])
   @@unique([projectId, code])
+  @@index([data(ops: JsonbPathOps)], type: Gin)
 }
 
 enum VerificationCodeType {
@@ -668,6 +716,8 @@ enum VerificationCodeType {
   CONTACT_CHANNEL_VERIFICATION
   TEAM_INVITATION
   MFA_ATTEMPT
+  PASSKEY_REGISTRATION_CHALLENGE
+  PASSKEY_AUTHENTICATION_CHALLENGE
 }
 
 //#region API keys
@@ -746,6 +796,46 @@ model StandardEmailServiceConfig {
 
 //#endregion
 
+//#region IdP
+model IdPAccountToCdfcResultMapping {
+  idpId String
+  id String
+
+  idpAccountId String @db.Uuid @unique
+  cdfcResult Json
+
+  @@id([idpId, id])
+}
+
+model ProjectWrapperCodes {
+  idpId String
+  id String @default(uuid()) @db.Uuid
+
+  interactionUid String
+  authorizationCode String @unique
+
+  cdfcResult Json
+
+  @@id([idpId, id])
+}
+
+model IdPAdapterData {
+  idpId String
+  model String
+  id String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payload Json
+  expiresAt DateTime
+
+  @@id([idpId, model, id])
+  @@index([payload(ops: JsonbPathOps)], type: Gin)
+  @@index([expiresAt])
+}
+//#endregion
+
 //#region Events
 
 model Event {
@@ -763,7 +853,37 @@ model Event {
   systemEventTypeIds String[]
   data               Json
 
+  // ============================== BEGIN END USER PROPERTIES ==============================
+  // Below are properties describing the end user that caused this event to be logged
+  // This is different from a request IP. See: apps/backend/src/lib/end-users.tsx
+
+  // Note that the IP may have been spoofed, unless isEndUserIpInfoGuessTrusted is true
+  endUserIpInfoGuessId String? @db.Uuid
+  endUserIpInfoGuess EventIpInfo? @relation("EventIpInfo", fields: [endUserIpInfoGuessId], references: [id])
+  // If true, then endUserIpInfoGuess is not spoofed (might still be behind VPNs/proxies). If false, then the values may be spoofed.
+  isEndUserIpInfoGuessTrusted Boolean @default(false)
+  // =============================== END END USER PROPERTIES ===============================
+
   @@index([data(ops: JsonbPathOps)], type: Gin)
+}
+
+// An IP address that was seen in an event. Use the location fields instead of refetching the location from the ip, as the real-world geoip data may have changed since the event was logged.
+model EventIpInfo {
+  id String @id @default(uuid()) @db.Uuid
+
+  ip String
+
+  countryCode String?
+  regionCode String?
+  cityName String?
+  latitude Float?
+  longitude Float?
+  tzIdentifier String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events Event[] @relation("EventIpInfo")
 }
 
 //#endregion

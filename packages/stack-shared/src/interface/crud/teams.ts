@@ -5,37 +5,37 @@ import { WebhookEvent } from "../webhooks";
 
 // Read
 export const teamsCrudClientReadSchema = yupObject({
-  id: fieldSchema.teamIdSchema.required(),
-  display_name: fieldSchema.teamDisplayNameSchema.required(),
+  id: fieldSchema.teamIdSchema.defined(),
+  display_name: fieldSchema.teamDisplayNameSchema.defined(),
   profile_image_url: fieldSchema.teamProfileImageUrlSchema.nullable().defined(),
   client_metadata: fieldSchema.teamClientMetadataSchema.optional(),
   client_read_only_metadata: fieldSchema.teamClientReadOnlyMetadataSchema.optional(),
-}).required();
+}).defined();
 export const teamsCrudServerReadSchema = teamsCrudClientReadSchema.concat(yupObject({
-  created_at_millis: fieldSchema.teamCreatedAtMillisSchema.required(),
+  created_at_millis: fieldSchema.teamCreatedAtMillisSchema.defined(),
   server_metadata: fieldSchema.teamServerMetadataSchema.optional(),
-}).required());
+}).defined());
 
 // Update
 export const teamsCrudClientUpdateSchema = yupObject({
   display_name: fieldSchema.teamDisplayNameSchema.optional(),
   profile_image_url: fieldSchema.teamProfileImageUrlSchema.nullable().optional(),
   client_metadata: fieldSchema.teamClientMetadataSchema.optional(),
-}).required();
+}).defined();
 export const teamsCrudServerUpdateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
   client_read_only_metadata: fieldSchema.teamClientReadOnlyMetadataSchema.optional(),
   server_metadata: fieldSchema.teamServerMetadataSchema.optional(),
-}).required());
+}).defined());
 
 // Create
 export const teamsCrudClientCreateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
-  display_name: fieldSchema.teamDisplayNameSchema.required(),
+  display_name: fieldSchema.teamDisplayNameSchema.defined(),
   creator_user_id: fieldSchema.teamCreatorUserIdSchema.optional(),
-}).required());
+}).defined());
 export const teamsCrudServerCreateSchema = teamsCrudServerUpdateSchema.concat(yupObject({
-  display_name: fieldSchema.teamDisplayNameSchema.required(),
+  display_name: fieldSchema.teamDisplayNameSchema.defined(),
   creator_user_id: fieldSchema.teamCreatorUserIdSchema.optional(),
-}).required());
+}).defined());
 
 // Delete
 export const teamsCrudClientDeleteSchema = fieldSchema.yupMixed();
@@ -128,8 +128,8 @@ export const teamUpdatedWebhookEvent = {
 } satisfies WebhookEvent<typeof teamsCrud.server.readSchema>;
 
 const webhookTeamDeletedSchema = fieldSchema.yupObject({
-  id: fieldSchema.userIdSchema.required(),
-}).required();
+  id: fieldSchema.userIdSchema.defined(),
+}).defined();
 
 export const teamDeletedWebhookEvent = {
   type: "team.deleted",

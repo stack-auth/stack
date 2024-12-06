@@ -1,6 +1,6 @@
-import { OAuthBaseProvider, TokenSet } from "./base";
-import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { OAuthBaseProvider, TokenSet } from "./base";
 
 export class XProvider extends OAuthBaseProvider {
   private constructor(
@@ -15,7 +15,7 @@ export class XProvider extends OAuthBaseProvider {
         issuer: "https://twitter.com",
         authorizationEndpoint: "https://twitter.com/i/oauth2/authorize",
         tokenEndpoint: "https://api.x.com/2/oauth2/token",
-        redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/x",
+        redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_API_URL") + "/api/v1/auth/oauth/callback/x",
         baseScope: "users.read offline.access tweet.read",
         ...options,
       }))

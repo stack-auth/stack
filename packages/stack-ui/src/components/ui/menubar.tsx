@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import {
   CheckIcon,
   ChevronRightIcon,
@@ -10,7 +11,7 @@ import * as MenubarPrimitive from "@radix-ui/react-menubar";
 
 import { cn } from "../../lib/utils";
 
-const MenubarMenu = MenubarPrimitive.Menu;
+const MenubarMenu = MenubarPrimitive.Menu as any;
 
 const MenubarGroup = MenubarPrimitive.Group;
 
@@ -192,7 +193,7 @@ const MenubarLabel = React.forwardRef<
 ));
 MenubarLabel.displayName = MenubarPrimitive.Label.displayName;
 
-const MenubarSeparator = React.forwardRef<
+const MenubarSeparator = forwardRefIfNeeded<
   React.ElementRef<typeof MenubarPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof MenubarPrimitive.Separator>
 >(({ className, ...props }, ref) => (

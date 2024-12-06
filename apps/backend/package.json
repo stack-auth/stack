@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-backend",
-  "version": "2.6.11",
+  "version": "2.6.32",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
@@ -9,6 +9,8 @@
     "with-env:prod": "dotenv -c --",
     "dev": "concurrently -n \"dev,codegen,prisma-studio\" -k \"next dev --port 8102\" \"pnpm run codegen:watch\" \"pnpm run prisma-studio\"",
     "build": "pnpm run codegen && next build",
+    "docker-build": "pnpm run codegen && next build --experimental-build-mode compile",
+    "self-host-seed-script": "tsup --config prisma/tsup.config.ts",
     "analyze-bundle": "ANALYZE_BUNDLE=1 pnpm run build",
     "start": "next start --port 8102",
     "codegen-prisma": "pnpm run prisma generate",
@@ -43,7 +45,8 @@
     "@opentelemetry/semantic-conventions": "^1.27.0",
     "@prisma/client": "^5.9.1",
     "@prisma/instrumentation": "^5.19.1",
-    "@sentry/nextjs": "^7.105.0",
+    "@sentry/nextjs": "^8.40.0",
+    "@simplewebauthn/server": "^11.0.0",
     "@stackframe/stack-emails": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "@vercel/analytics": "^1.2.2",
@@ -54,11 +57,13 @@
     "jose": "^5.2.2",
     "next": "^14.2.5",
     "nodemailer": "^6.9.10",
+    "oidc-provider": "^8.5.1",
     "openid-client": "^5.6.4",
     "oslo": "^1.2.1",
     "pg": "^8.11.3",
     "posthog-node": "^4.1.0",
     "react": "^18.2",
+    "react-dom": "^18.2",
     "semver": "^7.6.3",
     "server-only": "^0.0.1",
     "sharp": "^0.32.6",
@@ -67,14 +72,17 @@
     "yup": "^1.4.0"
   },
   "devDependencies": {
+    "@simplewebauthn/types": "^11.0.0",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
-    "@types/react": "^18.2.66",
+    "@types/oidc-provider": "^8.5.1",
+    "@types/react": "^18.3.12",
     "@types/semver": "^7.5.8",
     "concurrently": "^8.2.2",
     "glob": "^10.4.1",
-    "prisma": "^5.9.1",
+    "prisma": "^5.20.0",
     "rimraf": "^5.0.5",
+    "tsup": "^8.3.0",
     "tsx": "^4.7.2"
   }
 }

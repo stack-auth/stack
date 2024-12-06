@@ -4,13 +4,13 @@ import { PrismaTransaction } from "@/lib/types";
 import { sendTeamMembershipCreatedWebhook, sendTeamMembershipDeletedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
+import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
-import { waitUntil } from "@vercel/functions";
 
 
 export async function addUserToTeam(tx: PrismaTransaction, options: {
@@ -53,8 +53,8 @@ export async function addUserToTeam(tx: PrismaTransaction, options: {
 
 export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamMembershipsCrud, {
   paramsSchema: yupObject({
-    team_id: yupString().uuid().required(),
-    user_id: userIdOrMeSchema.required(),
+    team_id: yupString().uuid().defined(),
+    user_id: userIdOrMeSchema.defined(),
   }),
   onCreate: async ({ auth, params }) => {
     await prismaClient.$transaction(async (tx) => {
@@ -95,7 +95,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       user_id: params.user_id,
     };
 
-    waitUntil(sendTeamMembershipCreatedWebhook({
+    runAsynchronouslyAndWaitUntil(sendTeamMembershipCreatedWebhook({
       projectId: auth.project.id,
       data,
     }));
@@ -138,7 +138,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       });
     });
 
-    waitUntil(sendTeamMembershipDeletedWebhook({
+    runAsynchronouslyAndWaitUntil(sendTeamMembershipDeletedWebhook({
       projectId: auth.project.id,
       data: {
         team_id: params.team_id,

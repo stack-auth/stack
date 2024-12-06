@@ -97,6 +97,16 @@ export function decodeBase64Url(input: string): Uint8Array {
   return decodeBase64(input.replace(/-/g, "+").replace(/_/g, "/") + "====".slice((input.length - 1) % 4 + 1));
 }
 
+export function decodeBase64OrBase64Url(input: string): Uint8Array {
+  if (isBase64Url(input)) {
+    return decodeBase64Url(input);
+  } else if (isBase64(input)) {
+    return decodeBase64(input);
+  } else {
+    throw new StackAssertionError("Invalid base64 or base64url string");
+  }
+}
+
 export function isBase32(input: string): boolean {
   for (const char of input) {
     if (char === " ") continue;

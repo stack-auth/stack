@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NODE_ENV: test
+      STACK_ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING: yes
 
     strategy:
       matrix:
@@ -68,6 +69,8 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          QUETZAL_API_KEY: ${{ secrets.QUETZAL_API_KEY }}
 
       - name: Start Docker Compose
         run: docker compose -f dependencies.compose.yaml up -d

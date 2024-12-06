@@ -6,19 +6,19 @@ export default function EnvKeys(props: {
   secretServerKey?: string,
   superSecretAdminKey?: string,
 }) {
+  const envFileContent = Object.entries({
+    NEXT_PUBLIC_STACK_API_URL: process.env.NEXT_PUBLIC_STACK_API_URL === "https://api.stack-auth.com" ? undefined : process.env.NEXT_PUBLIC_STACK_API_URL,
+    NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
+    NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: props.publishableClientKey,
+    STACK_SECRET_SERVER_KEY: props.secretServerKey,
+    STACK_SUPER_SECRET_ADMIN_KEY: props.superSecretAdminKey,
+  })
+    .filter(([k, v]) => v)
+    .map(([k, v]) => `${k}=${v}`)
+    .join("\n");
 
   const handleDownloadKeys = () => {
-    const content = Object.entries({
-      NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
-      NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY:
-        props.publishableClientKey,
-      STACK_SECRET_SERVER_KEY: props.secretServerKey,
-      STACK_SUPER_SECRET_ADMIN_KEY: props.superSecretAdminKey,
-    })
-      .filter(([k, v]) => v)
-      .map(([k, v]) => `${k}=${v}`)
-      .join("\n");
-    const blob = new Blob([content], { type: "text/plain" });
+    const blob = new Blob([envFileContent], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
@@ -42,16 +42,7 @@ export default function EnvKeys(props: {
         <CopyField
           monospace
           height={160}
-          value={Object.entries({
-            NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
-            NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY:
-              props.publishableClientKey,
-            STACK_SECRET_SERVER_KEY: props.secretServerKey,
-            STACK_SUPER_SECRET_ADMIN_KEY: props.superSecretAdminKey,
-          })
-            .filter(([k, v]) => v)
-            .map(([k, v]) => `${k}=${v}`)
-            .join("\n")}
+          value={envFileContent}
           label="Next.js Environment variables"
         />
       </TabsContent>

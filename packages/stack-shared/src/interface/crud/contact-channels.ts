@@ -1,44 +1,37 @@
 import { CrudTypeOf, createCrud } from "../../crud";
-import { userIdOrMeSchema, userIdSchema, yupBoolean, yupMixed, yupObject, yupString } from "../../schema-fields";
-
-const contactChannelsTypes = ['email'] as const;
-const type = yupString().oneOf(contactChannelsTypes);
-const value = yupString().when('type', {
-  is: 'email',
-  then: (schema) => schema.email(),
-});
+import { contactChannelIdSchema, contactChannelIsPrimarySchema, contactChannelIsVerifiedSchema, contactChannelTypeSchema, contactChannelUsedForAuthSchema, contactChannelValueSchema, userIdOrMeSchema, userIdSchema, yupMixed, yupObject } from "../../schema-fields";
 
 export const contactChannelsClientReadSchema = yupObject({
-  user_id: userIdSchema.required(),
-  id: yupString().required(),
-  value: value.required(),
-  type: type.required(),
-  used_for_auth: yupBoolean().required(),
-  is_verified: yupBoolean().required(),
-  is_primary: yupBoolean().required(),
-}).required();
+  user_id: userIdSchema.defined(),
+  id: contactChannelIdSchema.defined(),
+  value: contactChannelValueSchema.defined(),
+  type: contactChannelTypeSchema.defined(),
+  used_for_auth: contactChannelUsedForAuthSchema.defined(),
+  is_verified: contactChannelIsVerifiedSchema.defined(),
+  is_primary: contactChannelIsPrimarySchema.defined(),
+}).defined();
 
 export const contactChannelsCrudClientUpdateSchema = yupObject({
-  value: value.optional(),
-  type: type.optional(),
-  used_for_auth: yupBoolean().optional(),
-  is_primary: yupBoolean().optional(),
-}).required();
+  value: contactChannelValueSchema.optional(),
+  type: contactChannelTypeSchema.optional(),
+  used_for_auth: contactChannelUsedForAuthSchema.optional(),
+  is_primary: contactChannelIsPrimarySchema.optional(),
+}).defined();
 
 export const contactChannelsCrudServerUpdateSchema = contactChannelsCrudClientUpdateSchema.concat(yupObject({
-  is_verified: yupBoolean().optional(),
+  is_verified: contactChannelIsVerifiedSchema.optional(),
 }));
 
 export const contactChannelsCrudClientCreateSchema = yupObject({
-  user_id: userIdOrMeSchema.required(),
-  value: value.required(),
-  type: type.required(),
-  used_for_auth: yupBoolean().required(),
-  is_primary: yupBoolean().optional(),
-}).required();
+  user_id: userIdOrMeSchema.defined(),
+  value: contactChannelValueSchema.defined(),
+  type: contactChannelTypeSchema.defined(),
+  used_for_auth: contactChannelUsedForAuthSchema.defined(),
+  is_primary: contactChannelIsPrimarySchema.optional(),
+}).defined();
 
 export const contactChannelsCrudServerCreateSchema = contactChannelsCrudClientCreateSchema.concat(yupObject({
-  is_verified: yupBoolean().optional(),
+  is_verified: contactChannelIsVerifiedSchema.optional(),
 }));
 
 export const contactChannelsCrudClientDeleteSchema = yupMixed();
@@ -52,19 +45,29 @@ export const contactChannelsCrud = createCrud({
   serverCreateSchema: contactChannelsCrudServerCreateSchema,
   docs: {
     clientRead: {
-      hidden: true,
+      summary: "Get a contact channel",
+      description: "",
+      tags: ["Contact Channels"],
     },
     clientCreate: {
-      hidden: true,
+      summary: "Create a contact channel",
+      description: "",
+      tags: ["Contact Channels"],
     },
     clientUpdate: {
-      hidden: true,
+      summary: "Update a contact channel",
+      description: "",
+      tags: ["Contact Channels"],
     },
     clientDelete: {
-      hidden: true,
+      summary: "Delete a contact channel",
+      description: "",
+      tags: ["Contact Channels"],
     },
     clientList: {
-      hidden: true,
+      summary: "List contact channels",
+      description: "",
+      tags: ["Contact Channels"],
     }
   }
 });

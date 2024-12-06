@@ -3,31 +3,31 @@ import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { emailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 export const contactChannelVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
     post: {
       summary: "Verify an email",
       description: "Verify an email address of a user",
-      tags: ["Emails"],
+      tags: ["Contact Channels"],
     },
     check: {
       summary: "Check email verification code",
       description: "Check if an email verification code is valid without using it",
-      tags: ["Emails"],
+      tags: ["Contact Channels"],
     },
   },
   type: VerificationCodeType.CONTACT_CHANNEL_VERIFICATION,
   data: yupObject({
-    user_id: yupString().required(),
-  }).required(),
+    user_id: yupString().defined(),
+  }).defined(),
   method: yupObject({
-    email: yupString().email().required(),
+    email: emailSchema.defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["success"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
     await sendEmailFromTemplate({

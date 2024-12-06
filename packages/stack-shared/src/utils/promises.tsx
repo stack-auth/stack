@@ -1,4 +1,4 @@
-import { StackAssertionError, captureError } from "./errors";
+import { StackAssertionError, captureError, concatStacktraces } from "./errors";
 import { DependenciesMap } from "./maps";
 import { Result } from "./results";
 import { generateUuid } from "./uuids";
@@ -122,20 +122,13 @@ export async function waitUntil(date: Date) {
   return await wait(date.getTime() - Date.now());
 }
 
-class ErrorDuringRunAsynchronously extends Error {
-  constructor() {
-    super("The error above originated in a runAsynchronously() call. Here is the stacktrace associated with it.");
-    this.name = "ErrorDuringRunAsynchronously";
-  }
-}
-
 export function runAsynchronouslyWithAlert(...args: Parameters<typeof runAsynchronously>) {
   return runAsynchronously(
     args[0],
     {
       ...args[1],
       onError: error => {
-        alert(`An unhandled error occurred. Please ${process.env.NODE_ENV === "development" ? `check the browser console for the full error. ${error}` : "report this to the developer."}\n\n${error}`);
+        alert(`An unhandled error occurred. Please ${process.env.NODE_ENV === "development" ? `check the browser console for the full error.` : "report this to the developer."}\n\n${error}`);
         args[1]?.onError?.(error);
       },
     },
@@ -153,18 +146,14 @@ export function runAsynchronously(
   if (typeof promiseOrFunc === "function") {
     promiseOrFunc = promiseOrFunc();
   }
-  const duringError = new ErrorDuringRunAsynchronously();
+  const duringError = new Error();
   promiseOrFunc?.catch(error => {
+    options.onError?.(error);
     const newError = new StackAssertionError(
       "Uncaught error in asynchronous function: " + error.toString(),
-      {
-        duringError,
-      },
-      {
-        cause: error,
-      }
+      { cause: error },
     );
-    options.onError?.(newError);
+    concatStacktraces(newError, duringError);
     if (!options.noErrorLogging) {
       captureError("runAsynchronously", newError);
     }

@@ -11,6 +11,6 @@ export default function NotFound() {
     secondaryDescription={<>
       Did you mean to <Link href="/handler/sign-in" className="underline">log in</Link>?
     </>}
-    redirectText="Go to home"
+    redirectText="Go home"
   />;
 }

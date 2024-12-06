@@ -10,7 +10,8 @@ const clientUpdateSchema = usersCrudServerUpdateSchema.pick([
   "selected_team_id",
   "totp_secret_base64",
   "otp_auth_enabled",
-]).required();
+  "passkey_auth_enabled",
+]).defined();
 
 const serverUpdateSchema = usersCrudServerUpdateSchema;
 
@@ -29,6 +30,7 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "selected_team_id",
   "requires_totp_mfa",
   "otp_auth_enabled",
+  "passkey_auth_enabled",
 ]).concat(yupObject({
   selected_team: teamsCrudClientReadSchema.nullable().defined(),
 })).nullable().defined(); // TODO: next-release: make required

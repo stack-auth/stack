@@ -1,7 +1,6 @@
 import { StackAssertionError, StatusError, throwErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
-import { filterUndefined } from "./utils/objects";
 import { deindent } from "./utils/strings";
 
 export type KnownErrorJson = {
@@ -682,6 +681,17 @@ const PasswordAuthenticationNotEnabled = createKnownErrorConstructor(
   () => [] as const,
 );
 
+
+const PasskeyAuthenticationNotEnabled = createKnownErrorConstructor(
+  KnownError,
+  "PASSKEY_AUTHENTICATION_NOT_ENABLED",
+  () => [
+    400,
+    "Passkey authentication is not enabled for this project.",
+  ] as const,
+  () => [] as const,
+);
+
 const EmailPasswordMismatch = createKnownErrorConstructor(
   KnownError,
   "EMAIL_PASSWORD_MISMATCH",
@@ -697,7 +707,7 @@ const RedirectUrlNotWhitelisted = createKnownErrorConstructor(
   "REDIRECT_URL_NOT_WHITELISTED",
   () => [
     400,
-    "Redirect URL not whitelisted.",
+    "Redirect URL not whitelisted. Did you forget to add this domain to the trusted domains list on the Stack Auth dashboard?",
   ] as const,
   () => [] as const,
 );
@@ -839,6 +849,43 @@ const EmailIsNotPrimaryEmail = createKnownErrorConstructor(
   ] as const,
   (json: any) => [json.email, json.primary_email] as const,
 );
+
+
+const PasskeyRegistrationFailed = createKnownErrorConstructor(
+  KnownError,
+  "PASSKEY_REGISTRATION_FAILED",
+  (message: string) => [
+    400,
+    message,
+  ] as const,
+  (json: any) => [json.message] as const,
+);
+
+
+const PasskeyWebAuthnError = createKnownErrorConstructor(
+  KnownError,
+  "PASSKEY_WEBAUTHN_ERROR",
+  (message: string, code: string) => [
+    400,
+    message,
+    {
+      message,
+      code,
+    },
+  ] as const,
+  (json: any) => [json.message, json.code] as const,
+);
+
+const PasskeyAuthenticationFailed = createKnownErrorConstructor(
+  KnownError,
+  "PASSKEY_AUTHENTICATION_FAILED",
+  (message: string) => [
+    400,
+    message,
+  ] as const,
+  (json: any) => [json.message] as const,
+);
+
 
 const PermissionNotFound = createKnownErrorConstructor(
   KnownError,
@@ -1139,6 +1186,17 @@ const OAuthProviderAccessDenied = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const ContactChannelAlreadyUsedForAuthBySomeoneElse = createKnownErrorConstructor(
+  KnownError,
+  "CONTACT_CHANNEL_ALREADY_USED_FOR_AUTH_BY_SOMEONE_ELSE",
+  (type: "email") => [
+    400,
+    `This ${type} is already used for authentication by another account.`,
+    { type },
+  ] as const,
+  (json) => [json.type] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -1191,6 +1249,7 @@ export const KnownErrors = {
   ProjectNotFound,
   SignUpNotEnabled,
   PasswordAuthenticationNotEnabled,
+  PasskeyAuthenticationNotEnabled,
   EmailPasswordMismatch,
   RedirectUrlNotWhitelisted,
   PasswordRequirementsNotMet,
@@ -1206,6 +1265,9 @@ export const KnownErrors = {
   EmailAlreadyVerified,
   EmailNotAssociatedWithUser,
   EmailIsNotPrimaryEmail,
+  PasskeyRegistrationFailed,
+  PasskeyWebAuthnError,
+  PasskeyAuthenticationFailed,
   PermissionNotFound,
   ContainedPermissionNotFound,
   TeamNotFound,
@@ -1231,6 +1293,7 @@ export const KnownErrors = {
   InvalidAuthorizationCode,
   TeamPermissionNotFound,
   OAuthProviderAccessDenied,
+  ContactChannelAlreadyUsedForAuthBySomeoneElse,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

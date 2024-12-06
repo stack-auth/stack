@@ -7,19 +7,23 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.tabSize": 2,
   "cSpell.words": [
+    "Cdfc",
     "cjsx",
     "clsx",
+    "cmdk",
     "codegen",
     "Crudl",
     "ctsx",
     "deindent",
     "Falsey",
     "frontends",
+    "geoip",
     "hookform",
     "hostable",
     "INBUCKET",
     "Jwks",
     "JWTs",
+    "katex",
     "lucide",
     "Luma",
     "midfix",
@@ -38,29 +42,43 @@
     "otlp",
     "pageleave",
     "pageview",
+    "pkcco",
+    "PKCE",
+    "pooler",
     "posthog",
+    "preconfigured",
     "Proxied",
     "psql",
     "qrcode",
     "quetzallabs",
+    "rehype",
     "reqs",
+    "RPID",
+    "simplewebauthn",
+    "spoofable",
+    "stackauth",
     "stackframe",
     "supabase",
     "Svix",
     "tailwindcss",
+    "tanstack",
     "totp",
     "tsup",
     "typecheck",
     "typehack",
     "Uncapitalize",
     "upsert",
+    "webapi",
+    "webauthn",
     "Whitespaces",
-    "wolfgunblood"
+    "wolfgunblood",
+    "zustand"
   ],
-  "[typescript]": {
-      "editor.codeActionsOnSave": {
-          "source.organizeImports": "explicit"
-      }
+  "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
   },
-  "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|"
+  "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|",
+  "editor.formatOnSave": false,
+  "prettier.enable": false
 }

@@ -54,22 +54,24 @@ export function TextAreaField<F extends FieldValues>(props: {
 }
 
 export function InputField<F extends FieldValues>(props: {
+  className?: string,
   control: Control<F>,
   name: Path<F>,
-  label: React.ReactNode,
+  label?: React.ReactNode,
   placeholder?: string,
   required?: boolean,
   type?: string,
   disabled?: boolean,
+  prefixItem?: React.ReactNode,
 }) {
   return (
     <FormField
       control={props.control}
       name={props.name}
       render={({ field }) => (
-        <FormItem>
+        <FormItem className={props.className}>
           <label className="flex flex-col gap-2">
-            <FieldLabel required={props.required}>{props.label}</FieldLabel>
+            {props.label ? <FieldLabel required={props.required}>{props.label}</FieldLabel> : null}
             <FormControl>
               <Input
                 {...field}
@@ -78,6 +80,7 @@ export function InputField<F extends FieldValues>(props: {
                 className="max-w-lg"
                 disabled={props.disabled}
                 type={props.type}
+                prefixItem={props.prefixItem}
               />
             </FormControl>
             <FormMessage />

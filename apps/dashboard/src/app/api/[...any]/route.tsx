@@ -1,10 +1,10 @@
-import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import { NextRequest, NextResponse } from "next/server";
 import '../../../polyfills';
 
 const handler = async (req: NextRequest) => {
   const msg = "Stack Auth's dashboard API is no longer available. Please upgrade the version of your Stack Auth client library, or join our Discord server for assistance: https://discord.stack-auth.com";
-  captureError("old-dashboard-api", new StackAssertionError(msg, { req }));
+  console.warn(`${req.headers.has('x-stack-project-id') ? `Project ${req.headers.get('x-stack-project-id')}` : "A user"} attempted to access the old dashboard API.`, nicify(req));
   return NextResponse.json({
     error: msg,
   }, {

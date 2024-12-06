@@ -8,7 +8,7 @@ import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 export const apiKeyCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers(apiKeysCrud, "apiKeySet", {
   paramsSchema: yupObject({
-    api_key_id: yupString().uuid().required(),
+    api_key_id: yupString().uuid().defined(),
   }),
   baseFields: async () => ({}),
   where: async ({ auth }) => {

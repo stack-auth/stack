@@ -131,9 +131,16 @@ export function createCrudHandlers<
           const output =
             crudOperation === "List"
               ? yupObject({
-                items: yupArray(read).required(),
-                is_paginated: yupBoolean().oneOf([false]).required().meta({ openapiField: { hidden: true } }),
-              }).required()
+                items: yupArray(read).defined(),
+                is_paginated: yupBoolean().defined().meta({ openapiField: { hidden: true } }),
+                pagination: yupObject({
+                  next_cursor: yupString().nullable().defined().meta({ openapiField: { description: "The cursor to fetch the next page of results. null if there is no next page.", exampleValue: 'b3d396b8-c574-4c80-97b3-50031675ceb2' } }),
+                }).when('is_paginated', {
+                  is: true,
+                  then: (schema) => schema.defined(),
+                  otherwise: (schema) => schema.optional(),
+                }),
+              }).defined()
               : crudOperation === "Delete"
                 ? yupMixed<any>().oneOf([undefined])
                 : read;
@@ -186,18 +193,18 @@ export function createCrudHandlers<
             const frw = routeHandlerTypeHelper({
               request: yupObject({
                 auth: yupObject({
-                  type: yupString().oneOf([accessType]).required(),
-                }).required(),
-                url: yupString().required(),
-                method: yupString().oneOf([httpMethod]).required(),
+                  type: yupString().oneOf([accessType]).defined(),
+                }).defined(),
+                url: yupString().defined(),
+                method: yupString().oneOf([httpMethod]).defined(),
                 body: accessSchemas.input,
                 params: typedIncludes(["List", "Create"], crudOperation) ? paramsSchema.partial() : paramsSchema,
                 query: (options.querySchema ?? yupObject({})) as QuerySchema,
               }),
               response: yupObject({
-                statusCode: yupNumber().oneOf([crudOperation === "Create" ? 201 : 200]).required(),
+                statusCode: yupNumber().oneOf([crudOperation === "Create" ? 201 : 200]).defined(),
                 headers: yupObject({}),
-                bodyType: yupString().oneOf([crudOperation === "Delete" ? "success" : "json"]).required(),
+                bodyType: yupString().oneOf([crudOperation === "Delete" ? "success" : "json"]).defined(),
                 body: accessSchemas.output,
               }),
               handler: async (req, fullReq) => {

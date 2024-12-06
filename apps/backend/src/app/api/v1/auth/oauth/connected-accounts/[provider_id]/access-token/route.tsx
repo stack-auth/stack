@@ -10,19 +10,19 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     body: yupObject({
       scope: yupString().optional(),
-    }).required(),
+    }).defined(),
     params: yupObject({
-      provider_id: yupString().required(),
-    }).required(),
+      provider_id: yupString().defined(),
+    }).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().required(),
-    bodyType: yupString().oneOf(["json"]).required(),
-    body: yupMixed().required(),
+    statusCode: yupNumber().defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: yupMixed().defined(),
   }),
   handler: async ({ params, body }, fullReq) => {
     const response = await fetch(
-      `${getEnvVariable('STACK_BASE_URL')}/api/v1/connected-accounts/me/${params.provider_id}/access-token`,
+      `${getEnvVariable('NEXT_PUBLIC_STACK_API_URL')}/api/v1/connected-accounts/me/${params.provider_id}/access-token`,
       {
         method: 'POST',
         headers: Object.fromEntries(Object.entries(fullReq.headers).map(([key, value]) => [key, value?.[0] || ""])),

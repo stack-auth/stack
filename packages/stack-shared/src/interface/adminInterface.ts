@@ -78,7 +78,7 @@ export class StackAdminInterface extends StackServerInterface {
   async createApiKey(
     options: ApiKeyCreateCrudRequest,
   ): Promise<ApiKeyCreateCrudResponse> {
-    const response = await this.sendServerRequest(
+    const response = await this.sendAdminRequest(
       "/internal/api-keys",
       {
         method: "POST",

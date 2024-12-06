@@ -11,7 +11,7 @@ export function SsrScript(props: { script: string, nonce?: string }) {
 
   return (
     <script
-      suppressHydrationWarning
+      suppressHydrationWarning  // the transpiler is setup differently for client/server targets, so if `script` was generated with Function.toString they will differ
       nonce={props.nonce}
       dangerouslySetInnerHTML={{ __html: props.script }}
     />
