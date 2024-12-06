@@ -94,6 +94,18 @@ export class StackClientInterface {
     };
   }
 
+  protected async _createNetworkError(cause: Error, session?: InternalSession | null, requestType?: "client" | "server" | "admin") {
+    return new Error(deindent`
+      Stack Auth is unable to connect to the server. Please check your internet connection and try again.
+      
+      If the problem persists, please contact support and provide a screenshot of your entire browser console.
+
+      ${cause}
+      
+      ${JSON.stringify(await this.runNetworkDiagnostics(session, requestType), null, 2)}
+    `, { cause: cause });
+  }
+
   protected async _networkRetry<T>(cb: () => Promise<Result<T, any>>, session?: InternalSession | null, requestType?: "client" | "server" | "admin"): Promise<T> {
     const retriedResult = await Result.retry(
       cb,
@@ -106,15 +118,7 @@ export class StackClientInterface {
       if (globalVar.navigator && !globalVar.navigator.onLine) {
         throw new Error("Failed to send Stack network request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
       }
-      throw new Error(deindent`
-        Stack Auth is unable to connect to the server. Please check your internet connection and try again.
-        
-        If the problem persists, please contact support and provide a screenshot of your entire browser console.
-
-        ${retriedResult.error}
-        
-        ${JSON.stringify(await this.runNetworkDiagnostics(session, requestType), null, 2)}
-      `, { cause: retriedResult.error });
+      throw this._createNetworkError(retriedResult.error, session, requestType);
     }
     return retriedResult.data;
   }
@@ -306,9 +310,11 @@ export class StackClientInterface {
       rawRes = await fetch(url, params);
     } catch (e) {
       if (e instanceof TypeError) {
-        // Likely to be a network error. Retry if the request is idempotent.
+        // Likely to be a network error. Retry if the request is idempotent, throw network error otherwise.
         if (HTTP_METHODS[(params.method ?? "GET") as HttpMethod].idempotent) {
           return Result.error(e);
+        } else {
+          throw this._createNetworkError(e, session, requestType);
         }
       }
       throw e;
