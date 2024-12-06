@@ -1,5 +1,12 @@
 # @stackframe/oauth-mock-server
 
+## 2.6.32
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.32
+
 ## 2.6.31
 
 ### Patch Changes
