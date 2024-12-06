@@ -288,7 +288,7 @@ const AccessTypeWithoutProjectId = createKnownErrorConstructor(
     deindent`
       The x-stack-access-type header was '${accessType}', but the x-stack-project-id header was not provided.
       
-      For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication
+      For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
     `,
     {
       request_type: accessType,
