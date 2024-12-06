@@ -6,9 +6,11 @@ import { AccessToken, InternalSession, RefreshToken } from '../sessions';
 import { generateSecureRandomString } from '../utils/crypto';
 import { StackAssertionError, throwErr } from '../utils/errors';
 import { globalVar } from '../utils/globals';
+import { HTTP_METHODS, HttpMethod } from '../utils/http';
 import { ReadonlyJson } from '../utils/json';
 import { filterUndefined } from '../utils/objects';
 import { AuthenticationResponseJSON, PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON, RegistrationResponseJSON } from '../utils/passkey';
+import { wait } from '../utils/promises';
 import { Result } from "../utils/results";
 import { deindent } from '../utils/strings';
 import { ContactChannelsCrud } from './crud/contact-channels';
@@ -304,8 +306,10 @@ export class StackClientInterface {
       rawRes = await fetch(url, params);
     } catch (e) {
       if (e instanceof TypeError) {
-        // Network error, retry
-        return Result.error(e);
+        // Likely to be a network error. Retry if the request is idempotent.
+        if (HTTP_METHODS[(params.method ?? "GET") as HttpMethod].idempotent) {
+          return Result.error(e);
+        }
       }
       throw e;
     }
@@ -342,11 +346,27 @@ export class StackClientInterface {
     });
     if (res.ok) {
       return Result.ok(res);
+    } else if (res.status === 429) {
+      // Rate limited, so retry if we can
+      const retryAfter = res.headers.get("Retry-After");
+      if (retryAfter !== null) {
+        await wait(Number(retryAfter) * 1000);
+        return Result.error(new Error(`Rate limited, retrying after ${retryAfter} seconds`));
+      }
+      return Result.error(new Error("Rate limited, no retry-after header received"));
     } else {
       const error = await res.text();
 
+      const errorObj = new StackAssertionError(`Failed to send request to ${url}: ${res.status} ${error}`, { request: params, res });
+
+      if (res.status === 508 && error.includes("INFINITE_LOOP_DETECTED")) {
+        // Some Vercel deployments seem to have an odd infinite loop bug. In that case, retry.
+        // See: https://github.com/stack-auth/stack/issues/319
+        return Result.error(errorObj);
+      }
+
       // Do not retry, throw error instead of returning one
-      throw new StackAssertionError(`Failed to send request to ${url}: ${res.status} ${error}`, { request: params, res });
+      throw errorObj;
     }
   }
 
