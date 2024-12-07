@@ -42,9 +42,9 @@ async function seed() {
           create: [{
             description: "Internal API key set",
             // These keys must match the values used in the Stack dashboard env to be able to login via the UI.
-            publishableClientKey: process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr('NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY is not set'),
-            secretServerKey: process.env.STACK_SECRET_SERVER_KEY || throwErr('STACK_SECRET_SERVER_KEY is not set'),
-            superSecretAdminKey: process.env.STACK_SUPER_SECRET_ADMIN_KEY || throwErr('STACK_SUPER_SECRET_ADMIN_KEY is not set'),
+            publishableClientKey: process.env.STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY is not set'),
+            secretServerKey: process.env.STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY is not set'),
+            superSecretAdminKey: process.env.STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY is not set'),
             expiresAt: new Date('2099-12-31T23:59:59Z'),
           }],
         },
