@@ -27,6 +27,7 @@ export default function PageClient() {
           Congratulations on starting your project! Check the <StyledLink href="https://docs.stack-auth.com">documentation</StyledLink> to add your first users.
         </Alert>
       )}
+
       <UserTable />
     </PageLayout>
   );

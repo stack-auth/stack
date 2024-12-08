@@ -118,7 +118,7 @@ export class StackClientInterface {
       if (globalVar.navigator && !globalVar.navigator.onLine) {
         throw new Error("Failed to send Stack network request. It seems like you are offline. (window.navigator.onLine is falsy)", { cause: retriedResult.error });
       }
-      throw this._createNetworkError(retriedResult.error, session, requestType);
+      throw await this._createNetworkError(retriedResult.error, session, requestType);
     }
     return retriedResult.data;
   }
@@ -179,7 +179,7 @@ export class StackClientInterface {
     return new AccessToken(result.access_token);
   }
 
-  protected async sendClientRequest(
+  public async sendClientRequest(
     path: string,
     requestOptions: RequestInit,
     session: InternalSession | null,

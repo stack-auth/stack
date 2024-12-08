@@ -211,47 +211,35 @@ it(`should exchange the authorization code for an admin API key that works`, asy
   `);
 });
 
+it(`should not exchange the authorization code when the client secret is incorrect`, async ({}) => {
+  await Auth.Otp.signIn();
+  const createdProject = await Project.create();
 
-/*
-(async () => {
-(async () => {
-  const stackApiUrl = "http://localhost:8102";  // or https://api.stack-auth.com
-
-  // Authorize redirect
-  const authorizeUrl = new URL("/api/v1/integrations/neon/oauth/authorize", stackApiUrl);
-  authorizeUrl.searchParams.set("response_type", "code");
-  authorizeUrl.searchParams.set("client_id", "neon-local");
-  authorizeUrl.searchParams.set("redirect_uri", "http://localhost:30000/api/v2/identity/authorize");
-  authorizeUrl.searchParams.set("state", btoa(JSON.stringify({ details: { neon_project_name: 'neon-project' } })));
-  authorizeUrl.searchParams.set("code_challenge", "xf6HY7PIgoaCf_eMniSt-45brYE2J_05C9BnfIbueik");
-  authorizeUrl.searchParams.set("code_challenge_method", "S256");
-  window.open(authorizeUrl.toString(), "_blank");
-  await new Promise(resolve => setTimeout(resolve, 3000));
-
-  // Callback
-  const callbackUrl = prompt("A new window should have opened. Please paste the callback URL back here:");
-  if (!callbackUrl) throw new Error("No callback URL provided");
-  const callbackUrlObj = new URL(callbackUrl);
-  if (callbackUrlObj.searchParams.get("state") !== authorizeUrl.searchParams.get("state")) throw new Error("State mismatch");
-  const code = callbackUrlObj.searchParams.get("code");
-  if (!code) throw new Error("No code provided");
-
-  // Token exchange
-  const tokenUrl = new URL("/api/v1/integrations/neon/oauth/token", stackApiUrl);
-  const tokenResponse = await fetch(tokenUrl.toString(), {
+  const { authorizationCode } = await authorize(createdProject.projectId);
+  const tokenResponse = await niceBackendFetch(`/api/v1/integrations/neon/oauth/token`, {
     method: "POST",
-    body: new URLSearchParams({
+    body: {
       grant_type: "authorization_code",
-      code,
+      code: authorizationCode,
       code_verifier: "W2LPAD4M4ES-3wBjzU6J5ApykmuxQy5VTs3oSmtboDM",
-      redirect_uri: authorizeUrl.searchParams.get("redirect_uri"),
-    }).toString(),
+      redirect_uri: "http://localhost:30000/api/v2/identity/authorize",
+    },
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      "Authorization": "Basic bmVvbi1sb2NhbDpuZW9uLWxvY2FsLXNlY3JldA=="
+      "Authorization": "Basic bmVvbi1sb2NhbDpuZW9uLWxvY2FsLXNlY2JldA=="
     },
   });
-  const tokenData = await tokenResponse.json();
-  return tokenData;  // { access_token: '...', token_type: 'api_key', project_id: '...' }
-})();
-*/
+  expect(tokenResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on POST /api/v1/integrations/neon/oauth/token:\\n  - Invalid client_id:client_secret values; did you use the correct values for the Neon integration?" },
+        "error": "Request validation failed on POST /api/v1/integrations/neon/oauth/token:\\n  - Invalid client_id:client_secret values; did you use the correct values for the Neon integration?",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "SCHEMA_ERROR",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
