@@ -3,7 +3,7 @@ import { createProject } from "@/lib/projects";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { neonAuthorizationHeaderSchema, projectDisplayNameSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
-import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
+import { decodeBasicAuthorizationHeader } from "@stackframe/stack-shared/dist/utils/http";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -26,10 +26,7 @@ export const POST = createSmartRouteHandler({
     }).defined(),
   }),
   handler: async (req) => {
-    const { authorization } = req.headers;
-    const encoded = authorization[0].split(' ')[1];
-    const decoded = new TextDecoder().decode(decodeBase64(encoded));
-    const clientId = decoded.split(':')[0];
+    const [clientId, clientSecret] = decodeBasicAuthorizationHeader(req.headers.authorization[0])!;
 
     const createdProject = await createProject([], {
       display_name: req.body.display_name,

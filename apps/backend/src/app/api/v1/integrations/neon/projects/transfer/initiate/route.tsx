@@ -2,9 +2,9 @@ import { getProject } from "@/lib/projects";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { neonAuthorizationHeaderSchema, urlSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
-import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { decodeBasicAuthorizationHeader } from "@stackframe/stack-shared/dist/utils/http";
 import { neonIntegrationProjectTransferCodeHandler } from "../confirm/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
@@ -28,9 +28,7 @@ export const POST = createSmartRouteHandler({
   }),
   handler: async (req) => {
     const { authorization } = req.headers;
-    const encoded = authorization[0].split(' ')[1];
-    const decoded = new TextDecoder().decode(decodeBase64(encoded));
-    const clientId = decoded.split(':')[0];
+    const [clientId, clientSecret] = decodeBasicAuthorizationHeader(authorization[0])!;
     const internalProject = await getProject("internal") ?? throwErr("Internal project not found");
 
     const neonProvisionedProject = await prismaClient.neonProvisionedProject.findUnique({

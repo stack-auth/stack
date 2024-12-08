@@ -1,7 +1,8 @@
 import * as yup from "yup";
 import { KnownErrors } from ".";
-import { decodeBase64, isBase64 } from "./utils/bytes";
-import { StackAssertionError } from "./utils/errors";
+import { isBase64 } from "./utils/bytes";
+import { StackAssertionError, throwErr } from "./utils/errors";
+import { decodeBasicAuthorizationHeader } from "./utils/http";
 import { allProviders } from "./utils/oauth";
 import { deepPlainClone, omit } from "./utils/objects";
 import { isValidUrl } from "./utils/urls";
@@ -375,21 +376,15 @@ export const contactChannelIsPrimarySchema = yupBoolean().meta({ openapiField: {
 // Headers
 export const basicAuthorizationHeaderSchema = yupString().test('is-basic-authorization-header', 'Authorization header must be in the format "Basic <base64>"', (value) => {
   if (!value) return true;
-  const [type, encoded, ...rest] = value.split(' ');
-  if (rest.length > 0) return false;
-  if (!encoded) return false;
-  if (type !== 'Basic') return false;
-  if (!isBase64(encoded)) return false;
-  const decoded = new TextDecoder().decode(decodeBase64(encoded));
-  return decoded.includes(':');
+  return decodeBasicAuthorizationHeader(value) !== null;
 });
 
 // Neon integration
 export const neonAuthorizationHeaderSchema = basicAuthorizationHeaderSchema.test('is-neon-authorization-header', 'Invalid client_id:client_secret values; did you use the correct values for the Neon integration?', (value) => {
   if (!value) return true;
-  const decoded = new TextDecoder().decode(decodeBase64(value.split(' ')[1]));
+  const [clientId, clientSecret] = decodeBasicAuthorizationHeader(value) ?? throwErr(`Neon authz header invalid? This should've been validated by basicAuthorizationHeaderSchema: ${value}`);
   for (const neonClientConfig of JSON.parse(process.env.STACK_NEON_INTEGRATION_CLIENTS_CONFIG || '[]')) {
-    if (decoded === `${neonClientConfig.client_id}:${neonClientConfig.client_secret}`) return true;
+    if (clientId === neonClientConfig.client_id && clientSecret === neonClientConfig.client_secret) return true;
   }
   return false;
 });
