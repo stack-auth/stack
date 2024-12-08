@@ -26,7 +26,7 @@ export const POST = createSmartRouteHandler({
     }).defined(),
   }),
   handler: async (req) => {
-    const [clientId, clientSecret] = decodeBasicAuthorizationHeader(req.headers.authorization[0])!;
+    const [clientId] = decodeBasicAuthorizationHeader(req.headers.authorization[0])!;
 
     const createdProject = await createProject([], {
       display_name: req.body.display_name,
