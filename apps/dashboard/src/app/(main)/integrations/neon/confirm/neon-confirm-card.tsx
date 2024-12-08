@@ -18,7 +18,7 @@ export default function NeonConfirmCard(props: { onContinue: (options: { project
 
 
   return (
-    <Card className="max-w-lg">
+    <Card className="max-w-lg text-center">
       <CardHeader className="flex-row items-end justify-center gap-4">
         <Image src={NeonLogo} alt="Neon" width={55} />
         <div className="relative self-center w-10 hidden dark:block">

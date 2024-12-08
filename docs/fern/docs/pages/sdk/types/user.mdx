@@ -39,7 +39,7 @@ type CurrentUser = {
   updatePassword(data): Promise<void>; //$stack-link-to:#currentuserupdatepassworddata
   getAuthHeaders(): Promise<Record<string, string>>; //$stack-link-to:#currentusergetauthheaders
   getAuthJson(): Promise<{ accessToken: string | null }>; //$stack-link-to:#currentusergetauthjson
-  signOut(): Promise<void>; //$stack-link-to:#currentusersignout
+  signOut([options]): Promise<void>; //$stack-link-to:#currentusersignoutoptions
   delete(): Promise<void>; //$stack-link-to:#currentuserdelete
 
   getTeam(id): Promise<Team | null>; //$stack-link-to:#currentusergetteamid
@@ -1143,7 +1143,7 @@ function handleRequest(data) {
 <Markdown src="../../snippets/divider.mdx" />
 
 
-## `currentUser.signOut()`
+## `currentUser.signOut(options)`
 </div><div className="stack-content">
 
 Signs out the user and clears the session.
@@ -1151,7 +1151,14 @@ Signs out the user and clears the session.
 ### Parameters
 
 <div className="indented">
-  No parameters.
+  <ParamField path="options" type="object">
+    An object containing multiple properties.
+    <Accordion title={<span className="accordion-show-properties" />}>
+      <ParamField path="redirectUrl" type="string">
+        The URL to redirect to after signing out. Defaults to the `afterSignOut` URL from the Stack app's `urls` object.
+      </ParamField>
+    </Accordion>
+  </ParamField>
 </div>
 
 ### Returns
@@ -1164,7 +1171,7 @@ Signs out the user and clears the session.
 ### Signature
 
 ```typescript
-declare function signOut(): Promise<void>;
+declare function signOut(options?: { redirectUrl?: string }): Promise<void>;
 ```
 
 ### Examples

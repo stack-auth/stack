@@ -1,9 +1,11 @@
 import * as yup from "yup";
 import { KnownErrors } from ".";
 import { isBase64 } from "./utils/bytes";
-import { StackAssertionError } from "./utils/errors";
+import { StackAssertionError, throwErr } from "./utils/errors";
+import { decodeBasicAuthorizationHeader } from "./utils/http";
 import { allProviders } from "./utils/oauth";
 import { deepPlainClone, omit } from "./utils/objects";
+import { isValidUrl } from "./utils/urls";
 import { isUuid } from "./utils/uuids";
 
 declare module "yup" {
@@ -183,16 +185,8 @@ export const adaptSchema = yupMixed<StackAdaptSentinel>();
  */
 export const urlSchema = yupString().test({
   name: 'url',
-  message: 'Invalid URL',
-  test: (value) => {
-    if (!value) return true;
-    try {
-      new URL(value);
-      return true;
-    } catch {
-      return false;
-    }
-  },
+  message: (params) => `${params.path} is not a valid URL`,
+  test: (value) => value == null || isValidUrl(value)
 });
 export const jsonSchema = yupMixed().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value)));
 export const jsonStringSchema = yupString().test("json", (params) => `${params.path} is not valid JSON`, (value) => {
@@ -378,6 +372,22 @@ export const contactChannelValueSchema = yupString().when('type', {
 export const contactChannelUsedForAuthSchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel is used for authentication. If this is set to `true`, the user will be able to sign in with the contact channel with password or OTP.', exampleValue: true } });
 export const contactChannelIsVerifiedSchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel has been verified. If this is set to `true`, the contact channel has been verified to belong to the user.', exampleValue: true } });
 export const contactChannelIsPrimarySchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel is the primary contact channel. If this is set to `true`, it will be used for authentication and notifications by default.', exampleValue: true } });
+
+// Headers
+export const basicAuthorizationHeaderSchema = yupString().test('is-basic-authorization-header', 'Authorization header must be in the format "Basic <base64>"', (value) => {
+  if (!value) return true;
+  return decodeBasicAuthorizationHeader(value) !== null;
+});
+
+// Neon integration
+export const neonAuthorizationHeaderSchema = basicAuthorizationHeaderSchema.test('is-neon-authorization-header', 'Invalid client_id:client_secret values; did you use the correct values for the Neon integration?', (value) => {
+  if (!value) return true;
+  const [clientId, clientSecret] = decodeBasicAuthorizationHeader(value) ?? throwErr(`Neon authz header invalid? This should've been validated by basicAuthorizationHeaderSchema: ${value}`);
+  for (const neonClientConfig of JSON.parse(process.env.STACK_NEON_INTEGRATION_CLIENTS_CONFIG || '[]')) {
+    if (clientId === neonClientConfig.client_id && clientSecret === neonClientConfig.client_secret) return true;
+  }
+  return false;
+});
 
 // Utils
 export function yupDefinedWhen<S extends yup.AnyObject>(

@@ -250,7 +250,7 @@ function useStore<T>(store: Store<T>): T {
   return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
-export const stackAppInternalsSymbol = Symbol.for("StackAppInternals");
+export const stackAppInternalsSymbol = Symbol.for("StackAuth--DO-NOT-USE-OR-YOU-WILL-BE-FIRED--StackAppInternals");
 
 const allClientApps = new Map<string, [checkString: string, app: StackClientApp<any, any>]>();
 
@@ -898,8 +898,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._refreshUser(session);
         return registrationResult;
       },
-      signOut() {
-        return app._signOut(session);
+      signOut(options?: { redirectUrl?: URL | string }) {
+        return app._signOut(session, options);
       },
     };
   }
@@ -1508,9 +1508,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return false;
   }
 
-  protected async _signOut(session: InternalSession): Promise<void> {
+  protected async _signOut(session: InternalSession, options?: { redirectUrl?: URL | string }): Promise<void> {
     await this._interface.signOut(session);
-    await this.redirectToAfterSignOut();
+    if (options?.redirectUrl) {
+      await _redirectTo(options.redirectUrl);
+    } else {
+      await this.redirectToAfterSignOut();
+    }
   }
 
   protected async _sendVerificationEmail(email: string, session: InternalSession): Promise<KnownErrors["EmailAlreadyVerified"] | void> {
@@ -1518,10 +1522,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.sendVerificationEmail(email, emailVerificationRedirectUrl, session);
   }
 
-  async signOut(): Promise<void> {
+  async signOut(options?: { redirectUrl?: URL | string }): Promise<void> {
     const user = await this.getUser();
     if (user) {
-      await user.signOut();
+      await user.signOut(options);
     }
   }
 
@@ -1630,6 +1634,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         runAsynchronously(async () => {
           await this._currentUserCache.forceSetCachedValueAsync([await this._getSession()], Result.fromPromise(userJsonPromise));
         });
+      },
+      sendRequest: async (
+        path: string,
+        requestOptions: RequestInit,
+        requestType: "client" | "server" | "admin" = "client",
+      ) => {
+        return await this._interface.sendClientRequest(path, requestOptions, await this._getSession(), requestType);
       },
     };
   };
@@ -2167,7 +2178,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return teams.map((t) => this._serverTeamFromCrud(t));
   }
 
-  async createTeam(data: ServerTeamCreateOptions) : Promise<ServerTeam> {
+  async createTeam(data: ServerTeamCreateOptions): Promise<ServerTeam> {
     const team = await this._interface.createServerTeam(serverTeamCreateOptionsToCrud(data));
     await this._serverTeamsCache.refresh([undefined]);
     return this._serverTeamFromCrud(team);
@@ -2565,7 +2576,7 @@ type Session = {
 type Auth = {
   readonly _internalSession: InternalSession,
   readonly currentSession: Session,
-  signOut(): Promise<void>,
+  signOut(options?: { redirectUrl?: URL | string }): Promise<void>,
 
   /**
    * Returns headers for sending authenticated HTTP requests to external servers. Most commonly used in cross-origin

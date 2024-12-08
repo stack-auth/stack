@@ -75,8 +75,8 @@ it("should fail if an invalid redirect URL is provided", async ({ expect }) => {
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on GET /api/v1/auth/oauth/authorize/spotify:\\n  - Invalid URL" },
-        "error": "Request validation failed on GET /api/v1/auth/oauth/authorize/spotify:\\n  - Invalid URL",
+        "details": { "message": "Request validation failed on GET /api/v1/auth/oauth/authorize/spotify:\\n  - query.redirect_uri is not a valid URL" },
+        "error": "Request validation failed on GET /api/v1/auth/oauth/authorize/spotify:\\n  - query.redirect_uri is not a valid URL",
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",

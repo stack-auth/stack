@@ -8,6 +8,10 @@ export function createUrlIfValid(...args: ConstructorParameters<typeof URL>) {
   }
 }
 
+export function isValidUrl(url: string) {
+  return !!createUrlIfValid(url);
+}
+
 export function isLocalhost(urlOrString: string | URL) {
   const url = createUrlIfValid(urlOrString);
   if (!url) return false;
