@@ -139,6 +139,7 @@ async function seed() {
       } else {
         const newUser = await tx.projectUser.create({
           data: {
+            displayName: 'Administrator (created by seed script)',
             projectUserId: '33e7c043-d2d1-4187-acd3-f91b5ed64b46',
             projectId: 'internal',
             serverMetadata: adminInternalAccess

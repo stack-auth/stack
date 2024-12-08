@@ -1,6 +1,6 @@
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { yupMixed, yupNumber, yupObject, yupString, yupTuple, yupUnion } from "@stackframe/stack-shared/dist/schema-fields";
+import { neonAuthorizationHeaderSchema, yupMixed, yupNumber, yupObject, yupString, yupTuple, yupUnion } from "@stackframe/stack-shared/dist/schema-fields";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 
@@ -17,7 +17,7 @@ export const POST = createSmartRouteHandler({
       redirect_uri: yupString().defined(),
     }).defined(),
     headers: yupObject({
-      authorization: yupTuple([yupString().defined()]).defined(),
+      authorization: yupTuple([neonAuthorizationHeaderSchema.defined()]).defined(),
     }).defined(),
   }),
   response: yupUnion(

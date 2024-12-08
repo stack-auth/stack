@@ -32,6 +32,8 @@ model Project {
   authMethods       AuthMethod[]
   contactChannels   ContactChannel[]
   connectedAccounts ConnectedAccount[]
+
+  neonProvisionedProject NeonProvisionedProject?
 }
 
 // Contains all the configuration for a project.
@@ -718,6 +720,7 @@ enum VerificationCodeType {
   MFA_ATTEMPT
   PASSKEY_REGISTRATION_CHALLENGE
   PASSKEY_AUTHENTICATION_CHALLENGE
+  NEON_INTEGRATION_PROJECT_TRANSFER
 }
 
 //#region API keys
@@ -833,6 +836,18 @@ model IdPAdapterData {
   @@id([idpId, model, id])
   @@index([payload(ops: JsonbPathOps)], type: Gin)
   @@index([expiresAt])
+}
+//#endregion
+
+//#region Neon integration
+model NeonProvisionedProject {
+  projectId String @id
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  neonClientId String
 }
 //#endregion
 
