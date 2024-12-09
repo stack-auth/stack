@@ -82,8 +82,8 @@ const navigationItems: (Label | Item | Hidden)[] = [
   },
   {
     name: "Metrics",
-    href: "/dashboard",
-    regex: /^\/projects\/[^\/]+\/dashboard$/,
+    href: "/metrics",
+    regex: /^\/projects\/[^\/]+\/metrics$/,
     icon: TrendingUp,
     type: 'item'
   },
