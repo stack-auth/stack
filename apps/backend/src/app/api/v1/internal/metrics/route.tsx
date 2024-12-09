@@ -55,14 +55,30 @@ export const GET = createSmartRouteHandler({
     body: yupMixed().defined(),
   }),
   handler: async (req) => {
-    const projectId = req.auth.project.id;
-    // const users = await prismaClient.projectUser.findMany();
+    const totalUsers = (await prismaClient.$queryRaw<{date: Date, cumUsers: number}[]>`
+      WITH date_series AS (
+          SELECT GENERATE_SERIES(DATE '2024-12-01', DATE '2024-12-31', '1 day')
+          AS registration_day
+      )
+      SELECT 
+        ds.registration_day AS "date",
+        COALESCE(COUNT(pu."projectUserId"), 0) AS "dailyUsers",
+        SUM(COALESCE(COUNT(pu."projectUserId"), 0)) OVER (ORDER BY ds.registration_day) AS "cumUsers"
+      FROM date_series ds
+      LEFT JOIN "ProjectUser" pu
+      ON DATE(pu."createdAt") = ds.registration_day
+      GROUP BY ds.registration_day
+      ORDER BY ds.registration_day;
+    `).map((x) => ({
+      date: x.date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+      activity: Number(x.cumUsers),
+    }));
 
     return {
       statusCode: 200,
       bodyType: "json",
       body: {
-        totalUsers: PLACEHOLDER_DATA,
+        totalUsers,
         dailyActiveUsers: PLACEHOLDER_DATA,
       }
     };
