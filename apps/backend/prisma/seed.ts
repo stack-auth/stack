@@ -18,9 +18,12 @@ async function seed() {
   const dashboardDomain = process.env.NEXT_PUBLIC_STACK_DASHBOARD_URL;
   const oauthProviderIds = process.env.STACK_SEED_INTERNAL_PROJECT_OAUTH_PROVIDERS?.split(',') ?? [];
   const otpEnabled = process.env.STACK_SEED_INTERNAL_PROJECT_OTP_ENABLED === 'true';
-  const signUpEnabled = process.env.STACK_SEED_INTERNAL_PROJECT_SIGN_UP_ENABLED === 'true';
+  const signUpEnabled = process.env.STACK_SEED_INTERNAL_PROJECT_SIGN_UP_DISABLED !== 'true';
   const allowLocalhost = process.env.STACK_SEED_INTERNAL_PROJECT_ALLOW_LOCALHOST === 'true';
   const clientTeamCreation = process.env.STACK_SEED_INTERNAL_PROJECT_CLIENT_TEAM_CREATION === 'true';
+
+  const apiKeyId = '3142e763-b230-44b5-8636-aa62f7489c26';
+  const defaultUserId = '33e7c043-d2d1-4187-acd3-f91b5ed64b46';
 
   let internalProject = await prisma.project.findUnique({
     where: {
@@ -38,20 +41,9 @@ async function seed() {
         displayName: 'Stack Dashboard',
         description: 'Stack\'s admin dashboard',
         isProductionMode: false,
-        apiKeySets: {
-          create: [{
-            description: "Internal API key set",
-            // These keys must match the values used in the Stack dashboard env to be able to login via the UI.
-            publishableClientKey: process.env.STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY is not set'),
-            secretServerKey: process.env.STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY is not set'),
-            superSecretAdminKey: process.env.STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY is not set'),
-            expiresAt: new Date('2099-12-31T23:59:59Z'),
-          }],
-        },
         config: {
           create: {
             allowLocalhost: true,
-            signUpEnabled,
             emailServiceConfig: {
               create: {
                 proxiedEmailServiceConfig: {
@@ -123,6 +115,34 @@ async function seed() {
     console.log('Internal project created');
   }
 
+  if (internalProject.config.signUpEnabled !== signUpEnabled) {
+    await prisma.projectConfig.update({
+      where: {
+        id: internalProject.configId,
+      },
+      data: {
+        signUpEnabled,
+      }
+    });
+
+    console.log(`Updated signUpEnabled for internal project: ${signUpEnabled}`);
+  }
+
+  await prisma.apiKeySet.upsert({
+    where: { projectId_id: { projectId: 'internal', id: apiKeyId } },
+    update: {},
+    create: {
+      id: apiKeyId,
+      projectId: 'internal',
+      description: "Internal API key set",
+      // These keys must match the values used in the Stack dashboard env to be able to login via the UI.
+      publishableClientKey: process.env.STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY is not set'),
+      secretServerKey: process.env.STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY is not set'),
+      superSecretAdminKey: process.env.STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY is not set'),
+      expiresAt: new Date('2099-12-31T23:59:59Z'),
+    }
+  });
+
   // Create optional default admin user if credentials are provided.
   // This user will be able to login to the dashboard with both email/password and magic link.
   if ((adminEmail && adminPassword) || adminGithubId) {
@@ -130,7 +150,7 @@ async function seed() {
       const oldAdminUser = await tx.projectUser.findFirst({
         where: {
           projectId: 'internal',
-          projectUserId: '33e7c043-d2d1-4187-acd3-f91b5ed64b46'
+          projectUserId: defaultUserId
         }
       });
 
@@ -140,7 +160,7 @@ async function seed() {
         const newUser = await tx.projectUser.create({
           data: {
             displayName: 'Administrator (created by seed script)',
-            projectUserId: '33e7c043-d2d1-4187-acd3-f91b5ed64b46',
+            projectUserId: defaultUserId,
             projectId: 'internal',
             serverMetadata: adminInternalAccess
               ? { managedProjectIds: ['internal'] }
