@@ -11,14 +11,14 @@ import NeonLogo from "../../../../../../public/neon.png";
 export default function NeonConfirmCard(props: { onContinue: (options: { projectId: string }) => Promise<{ error: string } | undefined> }) {
   const user = useUser({ or: "redirect", projectIdMustMatch: "internal" });
   const projects = user.useOwnedProjects();
-
-  const [selectedProject, setSelectedProject] = useState<AdminProject | null>(null);
-
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [selectedProject, setSelectedProject] = useState<AdminProject | null>(projects.find((project) => project.id === searchParams.get("default_selected_project_id")) ?? null);
+
+
   return (
-    <Card className="max-w-lg">
+    <Card className="max-w-lg text-center">
       <CardHeader className="flex-row items-end justify-center gap-4">
         <Image src={NeonLogo} alt="Neon" width={55} />
         <div className="relative self-center w-10 hidden dark:block">
@@ -62,12 +62,20 @@ export default function NeonConfirmCard(props: { onContinue: (options: { project
         <Typography className="mb-3">
           Which projects would you like to connect?
         </Typography>
-        <Input type="text" disabled prefixItem={<Image src={NeonLogo} alt="Neon" width={15} />} value={searchParams.get("neon_project_name") || "Neon project connected!"} />
+        <Input type="text" disabled prefixItem={<Image src={NeonLogo} alt="Neon" width={15} />} value={searchParams.get("neon_project_display_name") || "Neon project connected!"} />
         <div className="flex flex-row items-center">
           <div className={'flex self-stretch justify-center items-center text-muted-foreground pl-3 select-none bg-muted/70 pr-3 border-r border-input rounded-l-md'}>
             <Logo noLink width={15} height={15} />
           </div>
-          <Select value={selectedProject?.id ?? ""} onValueChange={(p) => setSelectedProject(projects.find((project) => project.id === p) ?? null)}>
+          <Select value={selectedProject?.id ?? ""} onValueChange={(p) => {
+            if (p === "create-new") {
+              const createSearchParams = new URLSearchParams();
+              createSearchParams.set("redirect_to_neon_confirm_with", searchParams.toString());
+              window.location.href = '/new-project?' + createSearchParams.toString();
+            } else {
+              setSelectedProject(projects.find((project) => project.id === p) ?? null);
+            }
+          }}>
             <SelectTrigger style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeft: "none", }}>
               <SelectValue>
                 {selectedProject && (
@@ -84,6 +92,9 @@ export default function NeonConfirmCard(props: { onContinue: (options: { project
                     {project.displayName} <span className="text-xs text-muted-foreground">{(project.id)}</span>
                   </SelectItem>
                 ))}
+                <SelectItem value="create-new">
+                  Create new Stack project...
+                </SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
@@ -95,7 +106,7 @@ export default function NeonConfirmCard(props: { onContinue: (options: { project
       </CardContent>
       <CardFooter className="flex justify-end mt-4">
         <div className="flex gap-2 justify-center">
-          <Button variant="secondary" onClick={() => { router.back(); }}>
+          <Button variant="secondary" onClick={() => { window.close(); }}>
             Cancel
           </Button>
           <Button disabled={!selectedProject} onClick={async () => {

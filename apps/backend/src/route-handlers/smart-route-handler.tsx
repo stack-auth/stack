@@ -82,6 +82,9 @@ export function handleApiRequest(handler: (req: NextRequest, options: any, reque
       const timeStart = performance.now();
       const res = await handler(req, options, requestId);
       const time = (performance.now() - timeStart);
+      if ([301, 302].includes(res.status)) {
+        throw new StackAssertionError("HTTP status codes 301 and 302 should not be returned by our APIs because the behavior for non-GET methods is inconsistent across implementations. Use 303 (to rewrite method to GET) or 307/308 (to preserve the original method and data) instead.", { status: res.status, url: req.nextUrl, req, res });
+      }
       console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
     } catch (e) {

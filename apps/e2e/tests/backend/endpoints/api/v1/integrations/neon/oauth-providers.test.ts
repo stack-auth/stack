@@ -1,5 +1,5 @@
-import { it } from "../../../../../helpers";
-import { Auth, Project, niceBackendFetch } from "../../../../backend-helpers";
+import { it } from "../../../../../../helpers";
+import { Auth, Project, niceBackendFetch } from "../../../../../backend-helpers";
 
 
 it("creates a new oauth provider", async ({ expect }) => {

@@ -1,5 +1,24 @@
 # @stackframe/example-middleware-demo
 
+## 2.6.34
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.34
+
+## 2.6.33
+
+### Patch Changes
+
+- @stackframe/stack@2.6.33
+
+## 2.6.32
+
+### Patch Changes
+
+- @stackframe/stack@2.6.32
+
 ## 2.6.31
 
 ### Patch Changes

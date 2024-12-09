@@ -6,6 +6,7 @@ import { AuthPage, useUser } from "@stackframe/stack";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronouslyWithAlert, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { BrowserFrame, Button, Form, Separator, Typography } from "@stackframe/stack-ui";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as yup from "yup";
@@ -33,6 +34,7 @@ export default function PageClient () {
     mode: "onChange",
   });
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const mockProject = {
     id: "id",
@@ -63,7 +65,14 @@ export default function PageClient () {
           } as const)).filter(({ enabled }) => enabled),
         }
       });
-      router.push('/projects/' + newProject.id);
+      const redirectToNeonConfirmWith = searchParams.get("redirect_to_neon_confirm_with");
+      if (redirectToNeonConfirmWith) {
+        const confirmSearchParams = new URLSearchParams(redirectToNeonConfirmWith);
+        confirmSearchParams.set("default_selected_project_id", newProject.id);
+        router.push('/integrations/neon/confirm?' + confirmSearchParams.toString());
+      } else {
+        router.push('/projects/' + encodeURIComponent(newProject.id));
+      }
       await wait(2000);
     } finally {
       setLoading(false);

@@ -1,9 +1,11 @@
 import { prismaClient } from '@/prisma-client';
 import { Prisma } from '@prisma/client';
+import { decodeBase64OrBase64Url } from '@stackframe/stack-shared/dist/utils/bytes';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError, captureError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { sha512 } from '@stackframe/stack-shared/dist/utils/hashes';
 import { getPerAudienceSecret, getPrivateJwk, getPublicJwkSet } from '@stackframe/stack-shared/dist/utils/jwt';
+import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 import Provider, { Adapter, AdapterConstructor, AdapterPayload } from 'oidc-provider';
 
@@ -45,17 +47,20 @@ function createAdapter(options: {
 
     constructor(model: string) {
       this.model = model;
+      if (!model) {
+        throw new StackAssertionError(deindent`
+          model must be non-empty.
+          
+          oidc-provider should never call the constructor with an empty string. However, it relies on 'constructor.name' in some locations, causing it to fail when class name minification is enabled. Make sure that server-side class names are not minified, for example by disabling serverMinification in next.config.mjs.
+        `);
+      }
     }
 
     async upsert(id: string, payload: AdapterPayload, expiresInSeconds: number): Promise<void> {
-      try {
-        if (expiresInSeconds < 0) throw new StackAssertionError(`expiresInSeconds of ${this.model}:${id} must be non-negative, got ${expiresInSeconds}`, { expiresInSeconds, model: this.model, id, payload });
-        if (expiresInSeconds > 60 * 60 * 24 * 365 * 100) throw new StackAssertionError(`expiresInSeconds of ${this.model}:${id} must be less than 100 years, got ${expiresInSeconds}`, { expiresInSeconds, model: this.model, id, payload });
-        if (!Number.isFinite(expiresInSeconds)) throw new StackAssertionError(`expiresInSeconds of ${this.model}:${id} must be a finite number, got ${expiresInSeconds}`, { expiresInSeconds, model: this.model, id, payload });
-      } catch (err) {
-        captureError('idp-adapter-upsert-assertion-error', err);
-        expiresInSeconds = 60 * 60 * 60 * 24;
-      }
+      // if one of these assertions is triggered, make sure you're not minifying class names (see the constructor)
+      if (expiresInSeconds < 0) throw new StackAssertionError(`expiresInSeconds of ${this.model}:${id} must be non-negative, got ${expiresInSeconds}`, { expiresInSeconds, model: this.model, id, payload });
+      if (expiresInSeconds > 60 * 60 * 24 * 365 * 100) throw new StackAssertionError(`expiresInSeconds of ${this.model}:${id} must be less than 100 years, got ${expiresInSeconds}`, { expiresInSeconds, model: this.model, id, payload });
+      if (!Number.isFinite(expiresInSeconds)) throw new StackAssertionError(`expiresInSeconds of ${this.model}:${id} must be a finite number, got ${expiresInSeconds}`, { expiresInSeconds, model: this.model, id, payload });
 
       await niceUpdate(this.model, id, () => ({ payload, expiresAt: new Date(Date.now() + expiresInSeconds * 1000) }));
     }
@@ -163,9 +168,6 @@ function createPrismaAdapter(idpId: string) {
   });
 }
 
-// TODO: add stateful session management
-
-
 export async function createOidcProvider(options: { id: string, baseUrl: string }) {
   const privateJwk = await getPrivateJwk(getPerAudienceSecret({
     audience: `https://idp-jwk-audience.stack-auth.com/${encodeURIComponent(options.id)}`,
@@ -181,9 +183,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
   const oidc = new Provider(options.baseUrl, {
     adapter: createPrismaAdapter(options.id),
     clients: JSON.parse(getEnvVariable("STACK_NEON_INTEGRATION_CLIENTS_CONFIG", "[]")),
-    ttl: {
-      Session: 60, // we always want to ask for login again, though the session needs to survive for a bit during the token exchange
-    },
+    ttl: {},
     cookies: {
       keys: [
         await sha512(`oidc-idp-cookie-encryption-key:${getEnvVariable("STACK_SERVER_SECRET")}`),
@@ -236,6 +236,16 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
     });
   }
 
+  // Log all errors
+  middleware(async (ctx, next) => {
+    try {
+      return await next();
+    } catch (e) {
+      console.warn("IdP threw an error. This most likely indicates a misconfigured client, not a server error.", e, { path: ctx.path, ctx });
+      throw e;
+    }
+  });
+
   // .well-known/jwks.json
   middleware(async (ctx, next) => {
     if (ctx.path === '/.well-known/jwks.json') {
@@ -257,6 +267,22 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
           ctx.type = 'text/html';
           ctx.body = `
             <html>
+              <head>
+                <title>Redirecting... — Stack Auth</title>
+                <style id="gradient-style">
+                  body {
+                    color: white;
+                    background-image: linear-gradient(45deg, #000, #444, #000, #444, #000, #444, #000);
+                    background-size: 400% 400%;
+                    background-repeat: no-repeat;
+                    animation: celebrate-gradient 60s linear infinite;
+                  }
+                  @keyframes celebrate-gradient {
+                    0% { background-position: 0% 100%; }
+                    100% { background-position: 100% 0%; }
+                  }
+                </style>
+              </head>
               <body>
                 <form id="continue-form" method="POST">
                   If you are not redirected, please press the button below.<br>
@@ -266,6 +292,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
                   document.getElementById('continue-form').style.visibility = 'hidden';
                   document.getElementById('continue-form').submit();
                   setTimeout(() => {
+                    document.getElementById('gradient-style').remove();
                     document.getElementById('continue-form').style.visibility = 'visible';
                   }, 3000);
                 </script>
@@ -339,9 +366,33 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
         }
       }
     } else if (ctx.method === 'GET' && /^\/interaction\/[^/]+$/.test(ctx.path)) {
+      const details = await oidc.interactionDetails(ctx.req, ctx.res);
+
+      const state = details.params.state || "";
+      if (typeof state !== 'string') {
+        throwErr(`state is not a string`);
+      }
+      let neonProjectDisplayName: string | undefined;
+      try {
+        const base64Decoded = new TextDecoder().decode(decodeBase64OrBase64Url(state));
+        const json = JSON.parse(base64Decoded);
+        neonProjectDisplayName = json?.details?.neon_project_name;
+        if (typeof neonProjectDisplayName !== 'string') {
+          throwErr(`neon_project_name is not a string`, { type: typeof neonProjectDisplayName, neonProjectDisplayName });
+        }
+      } catch (e) {
+        // this probably shouldn't happen, because it means Neon messed up the configuration
+        // (or maybe someone is playing with the API, but in that case it's not a bad idea to notify us either)
+        // either way, let's capture an error and continue without the display name
+        captureError('idp-oidc-provider-interaction-state-decode-error', e);
+      }
+
       const uid = ctx.path.split('/')[2];
       const interactionUrl = new URL(`/integrations/neon/confirm`, getEnvVariable("NEXT_PUBLIC_STACK_DASHBOARD_URL"));
       interactionUrl.searchParams.set("interaction_uid", uid);
+      if (neonProjectDisplayName) {
+        interactionUrl.searchParams.set("neon_project_display_name", neonProjectDisplayName);
+      }
       return ctx.redirect(interactionUrl.toString());
     }
     await next();

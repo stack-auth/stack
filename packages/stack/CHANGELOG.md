@@ -1,5 +1,32 @@
 # @stackframe/stack
 
+## 2.6.34
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.34
+  - @stackframe/stack-ui@2.6.34
+  - @stackframe/stack-sc@2.6.34
+
+## 2.6.33
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.6.33
+- @stackframe/stack-shared@2.6.33
+- @stackframe/stack-ui@2.6.33
+
+## 2.6.32
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.32
+  - @stackframe/stack-ui@2.6.32
+  - @stackframe/stack-sc@2.6.32
+
 ## 2.6.31
 
 ### Patch Changes

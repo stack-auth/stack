@@ -40,7 +40,7 @@ const handler = createSmartRouteHandler({
     body: yupMixed().optional(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([302]).defined(),
+    statusCode: yupNumber().oneOf([307]).defined(),
     bodyType: yupString().oneOf(["json"]).defined(),
     body: yupMixed().defined(),
     headers: yupMixed().defined(),

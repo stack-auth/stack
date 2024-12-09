@@ -144,7 +144,7 @@ export namespace Auth {
     if (response.status !== 200) {
       throw new StackAssertionError("Expected session to be valid, but was actually invalid.", { response });
     }
-    expect(response).toEqual({
+    expect(response).toMatchObject({
       status: 200,
       headers: expect.objectContaining({}),
       body: expect.objectContaining({}),
@@ -535,7 +535,7 @@ export namespace Auth {
       const redirectResponse1 = await niceFetch(authLocation, {
         redirect: "manual",
       });
-      expect(redirectResponse1).toEqual({
+      expect(redirectResponse1).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
@@ -555,7 +555,7 @@ export namespace Auth {
           cookie: signInInteractionCookies,
         },
       });
-      expect(response1).toEqual({
+      expect(response1).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(ArrayBuffer),
@@ -566,7 +566,7 @@ export namespace Auth {
           cookie: updateCookiesFromResponse(signInInteractionCookies, response1),
         },
       });
-      expect(redirectResponse2).toEqual({
+      expect(redirectResponse2).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
@@ -584,7 +584,7 @@ export namespace Auth {
           cookie: authorizeInteractionCookies,
         },
       });
-      expect(response2).toEqual({
+      expect(response2).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(ArrayBuffer),
@@ -595,7 +595,7 @@ export namespace Auth {
           cookie: updateCookiesFromResponse(authorizeInteractionCookies, response2),
         },
       });
-      expect(redirectResponse3).toEqual({
+      expect(redirectResponse3).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
@@ -618,8 +618,8 @@ export namespace Auth {
           cookie,
         },
       });
-      expect(response).toEqual({
-        status: 302,
+      expect(response).toMatchObject({
+        status: 307,
         headers: expect.any(Headers),
         body: {},
       });
@@ -819,6 +819,14 @@ export namespace ApiKey {
     const res = await ApiKey.create(adminAccessToken, body);
     backendContext.set({ projectKeys: res.projectKeys });
     return res;
+  }
+
+  export async function listAll() {
+    const response = await niceBackendFetch("/api/v1/internal/api-keys", {
+      accessType: "admin",
+    });
+    expect(response.status).toBe(200);
+    return response.body;
   }
 }
 

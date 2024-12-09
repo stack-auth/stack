@@ -1,9 +1,10 @@
 {
   "name": "@stackframe/example-supabase",
-  "version": "2.6.31",
+  "version": "2.6.34",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 8115",
+    "dev": "next dev --turbo --port 8103",
+    "clean": "rimraf .next && rimraf node_modules",
     "build": "next build",
     "start": "next start"
   },
@@ -12,7 +13,7 @@
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
     "jose": "^5.2.2",
-    "next": "latest",
+    "next": "^15.0.3",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },

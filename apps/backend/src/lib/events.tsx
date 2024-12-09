@@ -1,14 +1,14 @@
-import { urlSchema, yupMixed, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { HTTP_METHODS } from "@stackframe/stack-shared/dist/utils/http";
-import * as yup from "yup";
-import { UnionToIntersection } from "@stackframe/stack-shared/dist/utils/types";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { prismaClient } from "@/prisma-client";
 import withPostHog from "@/analytics";
-import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { getEndUserInfo, getExactEndUserIp, getSpoofableEndUserIp } from "./end-users";
+import { prismaClient } from "@/prisma-client";
 import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
+import { urlSchema, yupMixed, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { HTTP_METHODS } from "@stackframe/stack-shared/dist/utils/http";
+import { filterUndefined, typedKeys } from "@stackframe/stack-shared/dist/utils/objects";
+import { UnionToIntersection } from "@stackframe/stack-shared/dist/utils/types";
+import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
+import * as yup from "yup";
+import { getEndUserInfo } from "./end-users";
 
 type EventType = {
   id: string,
@@ -51,7 +51,7 @@ const UserActivityEventType = {
 const ApiRequestEventType = {
   id: "$api-request",
   dataSchema: yupObject({
-    method: yupString().oneOf(HTTP_METHODS).defined(),
+    method: yupString().oneOf(typedKeys(HTTP_METHODS)).defined(),
     url: urlSchema.defined(),
     body: yupMixed().nullable().optional(),
     headers: yupObject().defined(),

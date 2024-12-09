@@ -3,8 +3,8 @@ import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors'
 import { wait } from '@stackframe/stack-shared/dist/utils/promises';
 import './polyfills';
 
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 
 const corsAllowedRequestHeaders = [
   // General
@@ -43,7 +43,7 @@ export async function middleware(request: NextRequest) {
   const delay = +getEnvVariable('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS', '0');
   if (delay) {
     if (getNodeEnvironment().includes('production')) {
-      throw new StackAssertionError('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS is only allowed in development');
+      throw new StackAssertionError('STACK_ARTIFICIAL_DEVELOPMENT_DELAY_MS environment variable is only allowed in development');
     }
     if (!request.headers.get('x-stack-disable-artificial-development-delay')) {
       await wait(delay);
