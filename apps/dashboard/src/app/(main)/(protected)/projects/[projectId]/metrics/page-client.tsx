@@ -4,47 +4,10 @@ import { Area, AreaChart, XAxis } from 'recharts';
 import { PageLayout } from "../page-layout";
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import { stackAppInternalsSymbol, useStackApp } from '@stackframe/stack';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@stackframe/stack-ui';
+import { useEffect, useState } from 'react';
 
-const chartConfig = {
-  activity: {
-    label: "Activity",
-    color: "#2563eb",
-  },
-
-} satisfies ChartConfig;
-
-const chartData = [
-  { date: "Dec 01", activity: 186, },
-  { date: "Dec 02", activity: 205, },
-  { date: "Dec 03", activity: 237, },
-  { date: "Dec 04", activity: 303, },
-  { date: "Dec 05", activity: 309, },
-  { date: "Dec 06", activity: 314, },
-  { date: "Dec 07", activity: 314, },
-  { date: "Dec 08", activity: 314, },
-  { date: "Dec 09", activity: 314, },
-  { date: "Dec 10", activity: 186, },
-  { date: "Dec 11", activity: 186, },
-  { date: "Dec 12", activity: 205, },
-  { date: "Dec 13", activity: 237, },
-  { date: "Dec 14", activity: 303, },
-  { date: "Dec 15", activity: 309, },
-  { date: "Dec 16", activity: 314, },
-  { date: "Dec 17", activity: 314, },
-  { date: "Dec 18", activity: 314, },
-  { date: "Dec 19", activity: 314, },
-  { date: "Dec 20", activity: 186, },
-  { date: "Dec 21", activity: 186, },
-  { date: "Dec 22", activity: 205, },
-  { date: "Dec 23", activity: 237, },
-  { date: "Dec 24", activity: 303, },
-  { date: "Dec 25", activity: 309, },
-  { date: "Dec 26", activity: 314, },
-  { date: "Dec 27", activity: 314, },
-  { date: "Dec 28", activity: 314, },
-  { date: "Dec 29", activity: 314, },
-];
 
 interface LineChartDisplayConfig {
   name: string,
@@ -52,10 +15,16 @@ interface LineChartDisplayConfig {
   chart: ChartConfig,
 }
 
+interface DataPoint {
+  date: string,
+  activity: number,
+}
+
 function LineChartDisplay({
-  config
+  config, datapoints
 }: {
   config: LineChartDisplayConfig,
+  datapoints: DataPoint[],
 }) {
   return (
     <Card>
@@ -69,7 +38,7 @@ function LineChartDisplay({
       </CardHeader>
       <CardContent>
         <ChartContainer config={config.chart} className='w-full max-h-[300px] p-4'>
-          <AreaChart accessibilityLayer data={chartData}>
+          <AreaChart accessibilityLayer data={datapoints}>
             <ChartTooltip
               content={<ChartTooltipContent labelKey='date'/>}
             />
@@ -119,13 +88,34 @@ const dauConfig = {
 } satisfies LineChartDisplayConfig;
 
 export default function PageClient() {
+  const app = useStackApp();
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    (app as any)[stackAppInternalsSymbol].sendRequest("/internal/metrics", {
+      method: "GET",
+    })
+      .then((x: any) => x.json())
+      .then((x: any)=> setData(x));
+  }, [app]);
+
+
   return (
     <PageLayout title="User Metric Dashboard">
-      <h2>Key Metrics</h2>
-      <LineChartDisplay config={totalUsersConfig} />
-      <LineChartDisplay config={dauConfig} />
-      <h2>Demographic Breakdown</h2>
-
+      {
+        data !== null && <>
+          <h2>Key Metrics</h2>
+          <LineChartDisplay
+            config={totalUsersConfig}
+            datapoints={data.totalUsers}
+          />
+          <LineChartDisplay
+            config={dauConfig}
+            datapoints={data.dailyActiveUsers}
+          />
+          <h2>Demographic Breakdownz</h2>
+        </>
+      }
     </PageLayout>
   );
 }
