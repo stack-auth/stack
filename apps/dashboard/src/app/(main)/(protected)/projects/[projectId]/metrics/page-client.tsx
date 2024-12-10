@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@stac
 import { useEffect, useState } from 'react';
 
 
-interface LineChartDisplayConfig {
+type LineChartDisplayConfig = {
   name: string,
   description: string,
   chart: ChartConfig,
