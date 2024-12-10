@@ -89,6 +89,8 @@
     "rimraf": "^5.0.10",
     "react": "^18.2",
     "react-dom": "^18.2",
+    "@types/react": "^18.2.12",
+    "@types/react-dom": "^18.2.12",
     "next": "^14.1.0"
   }
 }

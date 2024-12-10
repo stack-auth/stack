@@ -47,8 +47,8 @@ const handler = createSmartRouteHandler({
   }),
   async handler({ params, query, body }, fullReq) {
     const innerState = query.state ?? (body as any)?.state ?? "";
-    const cookieInfo = cookies().get("stack-oauth-inner-" + innerState);
-    cookies().delete("stack-oauth-inner-" + innerState);
+    const cookieInfo = (await cookies()).get("stack-oauth-inner-" + innerState);
+    (await cookies()).delete("stack-oauth-inner-" + innerState);
 
     if (cookieInfo?.value !== 'true') {
       throw new StatusError(StatusError.BadRequest, "OAuth cookie not found. This is likely because you refreshed the page during the OAuth sign in process. Please try signing in again");

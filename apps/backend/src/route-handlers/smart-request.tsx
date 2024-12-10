@@ -257,7 +257,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   };
 }
 
-export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Record<string, string> }): Promise<SmartRequest> {
+export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Promise<Record<string, string>> }): Promise<SmartRequest> {
   const urlObject = new URL(req.url);
   const clientVersionMatch = req.headers.get("x-stack-client-version")?.match(/^(\w+)\s+(@[\w\/]+)@([\d.]+)$/);
 
@@ -270,7 +270,7 @@ export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuff
         .map(([key, values]) => [key, values.map(([_, value]) => value)]),
     ),
     query: Object.fromEntries(urlObject.searchParams.entries()),
-    params: options?.params ?? {},
+    params: await options?.params ?? {},
     auth: await parseAuth(req),
     clientVersion: clientVersionMatch ? {
       platform: clientVersionMatch[1],

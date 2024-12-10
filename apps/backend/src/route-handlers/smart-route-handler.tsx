@@ -98,7 +98,9 @@ export function handleApiRequest(handler: (req: NextRequest, options: any, reque
 
       console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
       if (!commonErrors.some(e => statusError instanceof e)) {
-        console.debug(`For the error above with request ID ${requestId}, the full error is:`, statusError);
+        // HACK: Log statusError.stack instead of statusError to get around buggy Next.js pretty-printing
+        // https://www.reddit.com/r/nextjs/comments/1gkxdqe/comment/m19kxgn/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+        console.debug(`For the error above with request ID ${requestId}, the full error is:`, statusError.stack);
       }
 
       const res = await createResponse(req, requestId, {
