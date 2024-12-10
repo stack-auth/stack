@@ -1,11 +1,11 @@
-import React from "react";
 import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
+import React from "react";
 
 import { cn } from "../../lib/utils";
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+export type InputProps = {
   prefixItem?: React.ReactNode,
-}
+} & React.InputHTMLAttributes<HTMLInputElement>
 
 export const Input = forwardRefIfNeeded<HTMLInputElement, InputProps>(
   ({ className, type, prefixItem, ...props }, ref) => {
@@ -40,9 +40,9 @@ export const Input = forwardRefIfNeeded<HTMLInputElement, InputProps>(
 Input.displayName = "Input";
 
 
-export interface DelayedInputProps extends InputProps {
+export type DelayedInputProps = {
   delay?: number,
-}
+} & InputProps
 
 export const DelayedInput = forwardRefIfNeeded<HTMLInputElement, DelayedInputProps>(
   ({ delay = 500, defaultValue, ...props }, ref) => {

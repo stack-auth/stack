@@ -11,6 +11,7 @@ import { DateField, InputField, TextAreaField } from "./form-fields";
 
 // Used for yup TS support
 declare module 'yup' {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   export interface CustomSchemaMetadata {
     stackFormFieldRender?: (props: { control: ReturnType<typeof useForm>['control'], name: string, label: string, disabled: boolean }) => React.ReactNode,
     stackFormFieldPlaceholder?: string,

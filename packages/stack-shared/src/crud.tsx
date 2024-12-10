@@ -1,6 +1,6 @@
 import * as yup from 'yup';
+import { filterUndefined } from './utils/objects';
 import { NullishCoalesce } from './utils/types';
-import { FilterUndefined, filterUndefined } from './utils/objects';
 
 export type AccessType = "client" | "server" | "admin";
 export type CrudOperation = "create" | "read" | "update" | "delete";
@@ -9,6 +9,7 @@ export type AccessTypeXCrudOperation = `${AccessType}${Capitalize<CrudOperation>
 export type AccessTypeXCrudlOperation = `${AccessType}${Capitalize<CrudlOperation>}`;
 
 declare module 'yup' {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   export interface CustomSchemaMetadata {
     openapiField?: {
       description?: string,
