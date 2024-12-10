@@ -15,6 +15,7 @@ import {
   Button,
   Sheet,
   SheetContent,
+  SheetTitle,
   SheetTrigger,
   Typography,
   buttonVariants
@@ -392,10 +393,15 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
 
           <div className="flex md:hidden items-center">
             <Sheet onOpenChange={(open) => setSidebarOpen(open)} open={sidebarOpen}>
+              <SheetTitle className="hidden">
+                Sidebar Menu
+              </SheetTitle>
               <SheetTrigger>
                 <Menu />
               </SheetTrigger>
-              <SheetContent side='left' className="w-[240px] p-0" hasCloseButton={false}>
+              <SheetContent
+                aria-describedby={undefined}
+                side='left' className="w-[240px] p-0" hasCloseButton={false}>
                 <SidebarContent projectId={props.projectId} onNavigate={() => setSidebarOpen(false)} />
               </SheetContent>
             </Sheet>
