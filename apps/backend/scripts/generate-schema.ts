@@ -4,60 +4,58 @@ import * as prettier from "prettier";
 import * as yup from 'yup';
 
 
+function convertUrlToJSVariable(url: string, method: string) {
+  return 'i' + url.replaceAll('[', '')
+    .replaceAll(']', '')
+    .replaceAll('.', '')
+    .replaceAll('/', '_')
+    .replaceAll('-', '_')
+    .replace(/_[a-z]/g, match => match[1].toUpperCase())
+    .replace(/^[a-z]/, match => match.toUpperCase())
+    + method.slice(0, 1).toUpperCase() + method.slice(1).toLowerCase();
+}
+
+
 async function main() {
   console.log("Started docs schema generator");
 
-  const endpoints = await listEndpoints("api/v1");
-  let schemaContent = 'type EndpointSchema = {';
+  const endpoints = await listEndpoints("api/v1", false);
+
+  // ========== generate schema.ts ==========
+  let schemaContent = 'export type EndpointSchema = {';
 
   endpoints.forEach((handlersByMethod, url) => {
-    let methodContent = '{';
-
-    handlersByMethod.forEach((handler, method) => {
-      const audiences = new Map<string, any>();
-      for (const overload of handler.overloads.values()) {
-        for (const audience of ['client', 'server', 'admin'] as const) {
-          const schemaAudience = overload.request.describe().fields.auth?.fields?.type;
-          if (!schemaAudience) continue;
-          if ("oneOf" in schemaAudience && schemaAudience.oneOf.length > 0 && schemaAudience.oneOf.includes(audience)) {
-            audiences.set(audience, overload);
-          }
-        }
-      }
-
-      if (handler.overloads.size !== 1 && audiences.size !== handler.overloads.size) {
-        throw new Error(`Expected ${handler.overloads.size} audiences, got ${audiences.size}. Multiple audiences other than client, server, and admin is currently not supported. You might need to manually fix this.`);
-      }
-
-      let endpointContent;
-      if (audiences.size === 0) {
-        endpointContent = '{default: ' + schemaToTypeString(handler.overloads.values().next().value.request.describe()) + '}';
-      } else {
-        endpointContent = '{' + Array.from(audiences.entries()).map(([audience, overload]) => {
-          return `${audience}: {` +
-            Object.entries(overload.request.describe().fields)
-              .map(([key, value]): any => `${key}: ${schemaToTypeString(value as any)}`)
-              .join(',') +
-            '}';
-        }).join(',') + '}';
-      }
-
-      methodContent += `${method}: ${endpointContent},`;
-    });
-
-    methodContent += '}';
-    schemaContent += `"${url || '/'}": ${methodContent},`;
+    schemaContent += `"${url || '/'}": {${Array.from(handlersByMethod.keys()).map(method => `${method}: true`).join(',')}},`;
   });
 
   schemaContent += '}';
+  // ========================================
 
-  fs.writeFileSync('schema.ts', await prettier.format(schemaContent, {
+  // ========== generate imports.ts ==========
+  let importHeaders = '';
+  let importBody = 'export const endpoints = {';
+
+  endpoints.forEach((handlersByMethod, url) => {
+    let methodBody = '';
+    for (const method of handlersByMethod.keys()) {
+      importHeaders += `import { ${method} as ${convertUrlToJSVariable(url, method)} } from "../..${url}";\n`;
+      methodBody += `"${method}": ${convertUrlToJSVariable(url, method)},`;
+    }
+    importBody += `"${url || '/'}": {${methodBody}},\n`;
+  });
+
+  importBody += '}';
+  // ========================================
+
+  const prettierConfig = {
     parser: "typescript",
     semi: true,
     singleQuote: true,
     trailingComma: "all",
-  }));
-  console.log(`    Wrote schema to schema.ts`);
+  } as const;
+
+  fs.writeFileSync('schema.ts', await prettier.format(schemaContent, prettierConfig));
+  fs.writeFileSync('imports.ts', await prettier.format(importHeaders + '\n' + importBody, prettierConfig));
 }
 
 function schemaToTypeString(schema: yup.SchemaFieldDescription): string {

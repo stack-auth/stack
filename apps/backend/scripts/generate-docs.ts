@@ -9,7 +9,7 @@ async function main() {
 
   for (const audience of ['client', 'server', 'admin'] as const) {
     const openAPISchema = yaml.stringify(parseOpenAPI({
-      endpoints: await listEndpoints("api/v1"),
+      endpoints: await listEndpoints("api/v1", true, true),
       audience,
     }));
     fs.writeFileSync(`../../docs/fern/openapi/${audience}.yaml`, openAPISchema);

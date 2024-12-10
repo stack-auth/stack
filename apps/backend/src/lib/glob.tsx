@@ -4,7 +4,7 @@ import { typedKeys } from '@stackframe/stack-shared/dist/utils/objects';
 import { glob } from 'glob';
 import path from 'path';
 
-export async function listEndpoints(basePath: string) {
+export async function listEndpoints(basePath: string, onlySmartRouteHandlers: boolean, replaceBracketsWithCurlyBraces: boolean = false) {
   const filePathPrefix = path.resolve(process.platform === "win32" ? `apps/src/app/${basePath}` : `src/app/${basePath}`);
   const importPathPrefix = `@/app/${basePath}`;
   const filePaths = [...await glob(filePathPrefix + "/**/route.{js,jsx,ts,tsx}")];
@@ -15,12 +15,12 @@ export async function listEndpoints(basePath: string) {
     }
     const suffix = filePath.slice(filePathPrefix.length);
     const midfix = suffix.slice(0, suffix.lastIndexOf("/route."));
+    const urlPath = replaceBracketsWithCurlyBraces ? midfix.replaceAll("[", "{").replaceAll("]", "}") : midfix;
     const importPath = `${importPathPrefix}${suffix}`;
-    const urlPath = midfix.replaceAll("[", "{").replaceAll("]", "}");
     const myModule = require(importPath);
     const handlersByMethod = new Map(
       typedKeys(HTTP_METHODS).map(method => [method, myModule[method]] as const)
-        .filter(([_, handler]) => isSmartRouteHandler(handler))
+        .filter(([_, handler]) => isSmartRouteHandler(handler) || (!onlySmartRouteHandlers && handler))
     );
     return [urlPath, handlersByMethod] as const;
   })));
