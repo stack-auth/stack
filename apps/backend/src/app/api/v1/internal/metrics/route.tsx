@@ -65,9 +65,6 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
 export const GET = createSmartRouteHandler({
   metadata: {
     hidden: true,
-    summary: "/api/v1/internal/metrics",
-    description: "Returns metrics for the metrics page",
-    tags: [],
   },
   request: yupObject({
     auth: yupObject({
