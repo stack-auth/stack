@@ -66,8 +66,6 @@ jobs:
 
       - name: Build
         run: pnpm build
-        env:
-          QUETZAL_API_KEY: ${{ secrets.QUETZAL_API_KEY }}
         
       - name: Lint
         run: pnpm lint

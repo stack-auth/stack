@@ -66,11 +66,11 @@ jobs:
 
       - name: Build
         run: pnpm build
-        env:
-          QUETZAL_API_KEY: ${{ secrets.QUETZAL_API_KEY }}
 
       - name: Run code gen
         run: pnpm codegen
+        env:
+          QUETZAL_API_KEY: ${{ secrets.QUETZAL_API_KEY }}
       
       - name: Check for uncommitted changes
         run: |
@@ -109,4 +109,4 @@ jobs:
         run: docker run -d --name postgres-prisma-diff-shadow -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=PLACEHOLDER-PASSWORD--dfaBC1hm1v -e POSTGRES_DB=postgres -p 5432:5432 postgres:latest
       
       - name: Check for differences in Prisma schema and migrations
-        run: pnpm run prisma migrate diff --from-migrations ./prisma/migrations --to-schema-datamodel ./prisma/schema.prisma  --exit-code
+        run: pnpm run prisma migrate diff --from-migrations ./prisma/migrations --to-schema-datamodel ./prisma/schema.prisma --shadow-database-url postgres://postgres:PLACEHOLDER-PASSWORD--dfaBC1hm1v@localhost:5432/postgres --exit-code
