@@ -8,7 +8,9 @@
     "VERCEL_GIT_COMMIT_SHA",
     "NEXT_PUBLIC_POSTHOG_*",
     "POSTHOG_*",
-    "NODE_ENV"
+    "NODE_ENV",
+    "QUETZAL_*",
+    "OTEL_*"
   ],
   "tasks": {
     "build": {
