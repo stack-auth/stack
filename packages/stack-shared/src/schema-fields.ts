@@ -9,6 +9,7 @@ import { isValidUrl } from "./utils/urls";
 import { isUuid } from "./utils/uuids";
 
 declare module "yup" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface StringSchema<TType, TContext, TDefault, TFlags> {
     nonEmpty(message?: string): StringSchema<TType, TContext, TDefault, TFlags>,
   }
