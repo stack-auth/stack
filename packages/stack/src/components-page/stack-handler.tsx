@@ -1,3 +1,5 @@
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { FilterUndefined, filterUndefined, pick } from "@stackframe/stack-shared/dist/utils/objects";
 import { getRelativePart } from "@stackframe/stack-shared/dist/utils/urls";
 import { RedirectType, notFound, redirect } from 'next/navigation';
 import { SignIn, SignUp, StackServerApp } from "..";
@@ -12,7 +14,6 @@ import { OAuthCallback } from "./oauth-callback";
 import { PasswordReset } from "./password-reset";
 import { SignOut } from "./sign-out";
 import { TeamInvitation } from "./team-invitation";
-import { FilterUndefined, filterUndefined, pick } from "@stackframe/stack-shared/dist/utils/objects";
 
 type Components = {
   SignIn: typeof SignIn,
@@ -91,6 +92,13 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
     teamInvitation: 'team-invitation',
     accountSettings: 'account-settings',
     error: 'error',
+  };
+
+  const pathAliases = {
+    // also includes the uppercase and non-dashed versions
+    ...Object.fromEntries(Object.entries(availablePaths).map(([key, value]) => [value, value])),
+    "log-in": availablePaths.signIn,
+    "register": availablePaths.signUp,
   };
 
   const path = params.stack.join('/');
@@ -180,9 +188,12 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
         />;
       }
       default: {
-        for (const [key, value] of Object.entries(availablePaths)) {
-          if (path === value.replaceAll('-', '')) {
-            redirect(`${props.app.urls.handler}/${value}`, RedirectType.replace);
+        if (Object.values(availablePaths).includes(path)) {
+          throw new StackAssertionError(`Path alias ${path} not included in switch statement, but in availablePaths?`, { availablePaths });
+        }
+        for (const [key, value] of Object.entries(pathAliases)) {
+          if (path === key.toLowerCase().replaceAll('-', '')) {
+            redirect(`${props.app.urls.handler}/${value}?${new URLSearchParams(searchParams).toString()}`, RedirectType.replace);
           }
         }
         return notFound();

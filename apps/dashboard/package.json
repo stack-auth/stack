@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/stack-dashboard",
-  "version": "2.6.28",
+  "version": "2.6.34",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
@@ -9,6 +9,7 @@
     "with-env:prod": "dotenv -c --",
     "dev": "next dev --port 8101",
     "build": "next build",
+    "docker-build": "next build --experimental-build-mode compile",
     "analyze-bundle": "ANALYZE_BUNDLE=1 pnpm run build",
     "start": "next start --port 8101",
     "psql": "pnpm run with-env bash -c 'psql $STACK_DATABASE_CONNECTION_STRING'",
@@ -63,7 +64,7 @@
     "@types/canvas-confetti": "^1.6.4",
     "@types/node": "^20.8.10",
     "@types/nodemailer": "^6.4.14",
-    "@types/react": "^18.3.12",
+    "@types/react": "link:@types/react@18.3.12",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.17",
     "glob": "^10.4.1",

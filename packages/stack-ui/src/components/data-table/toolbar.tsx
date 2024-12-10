@@ -8,7 +8,7 @@ import { download, generateCsv, mkConfig } from 'export-to-csv';
 import { DownloadIcon } from "lucide-react";
 import { DataTableViewOptions } from "./view-options";
 
-interface DataTableToolbarProps<TData> {
+type DataTableToolbarProps<TData> = {
   table: Table<TData>,
   toolbarRender?: (table: Table<TData>) => React.ReactNode,
   showDefaultToolbar?: boolean,

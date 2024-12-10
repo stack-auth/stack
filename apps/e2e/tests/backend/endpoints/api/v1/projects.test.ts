@@ -14,7 +14,7 @@ it("should not have have access to the project without project keys", async ({ e
       "body": {
         "code": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
         "details": { "request_type": "client" },
-        "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication",
+        "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
       },
       "headers": Headers {
         "x-stack-known-error": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
@@ -1090,6 +1090,7 @@ it("has a correctly formatted JWKS endpoint", async ({ expect }) => {
   expect(response.body).toEqual({
     keys: [
       {
+        alg: "ES256",
         crv: "P-256",
         kid: expect.any(String),
         kty: "EC",

@@ -71,7 +71,7 @@ module.exports = {
       },
       {
         selector:
-          "MemberExpression:has(Identifier[name='yup']) Identifier[name='url']",
+          "MemberExpression:has(Identifier[name='yupString']) Identifier[name='url']",
         message:
           "Use urlSchema from schema-fields.tsx instead of yupString().url().",
       },
@@ -99,6 +99,7 @@ module.exports = {
         checksConditionals: true,
       },
     ],
+    "@typescript-eslint/consistent-type-definitions": ["error", "type"],
     "no-restricted-imports": [
       "error",
       {

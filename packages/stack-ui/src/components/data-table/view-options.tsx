@@ -12,7 +12,7 @@ import {
 } from "@stackframe/stack-ui";
 import { Table } from "@tanstack/react-table";
 
-interface DataTableViewOptionsProps<TData> {
+type DataTableViewOptionsProps<TData> = {
   table: Table<TData>,
 }
 

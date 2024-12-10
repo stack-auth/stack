@@ -5,6 +5,11 @@ export function isBrowserLike() {
   return typeof window !== "undefined" && typeof document !== "undefined" && typeof document.createElement !== "undefined";
 }
 
+// newName: oldName
+const ENV_VAR_RENAME: Record<string, string[]> = {
+  NEXT_PUBLIC_STACK_API_URL: ['STACK_BASE_URL', 'NEXT_PUBLIC_STACK_URL'],
+};
+
 /**
  * Returns the environment variable with the given name, returning the default (if given) or throwing an error (otherwise) if it's undefined or the empty string.
  */
@@ -24,7 +29,32 @@ export function getEnvVariable(name: string, defaultValue?: string | undefined):
     `);
   }
 
-  return ((process.env[name] || defaultValue) ?? throwErr(`Missing environment variable: ${name}`)) || (defaultValue ?? throwErr(`Empty environment variable: ${name}`));
+  // throw error if the old name is used as the retrieve key
+  for (const [newName, oldNames] of Object.entries(ENV_VAR_RENAME)) {
+    if (oldNames.includes(name)) {
+      throwErr(`Environment variable ${name} has been renamed to ${newName}. Please update your configuration to use the new name.`);
+    }
+  }
+
+  let value = process.env[name];
+
+  // check the key under the old name if the new name is not found
+  if (!value && ENV_VAR_RENAME[name] as any) {
+    for (const oldName of ENV_VAR_RENAME[name]) {
+      value = process.env[oldName];
+      if (value) break;
+    }
+  }
+
+  if (value === undefined) {
+    if (defaultValue !== undefined) {
+      value = defaultValue;
+    } else {
+      throwErr(`Missing environment variable: ${name}`);
+    }
+  }
+
+  return value;
 }
 
 export function getNextRuntime() {

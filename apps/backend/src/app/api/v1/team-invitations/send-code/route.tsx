@@ -2,7 +2,7 @@ import { ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { adaptSchema, clientOrHigherAuthTypeSchema, teamIdSchema, teamInvitationCallbackUrlSchema, teamInvitationEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, clientOrHigherAuthTypeSchema, teamIdSchema, teamInvitationCallbackUrlSchema, teamInvitationEmailSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { teamInvitationCodeHandler } from "../accept/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
@@ -25,7 +25,11 @@ export const POST = createSmartRouteHandler({
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).defined(),
-    bodyType: yupString().oneOf(["success"]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: yupObject({
+      success: yupBoolean().oneOf([true]).defined(),
+      id: yupString().uuid().defined(),
+    }).defined(),
   }),
   async handler({ auth, body }) {
     await prismaClient.$transaction(async (tx) => {
@@ -43,7 +47,7 @@ export const POST = createSmartRouteHandler({
       }
     });
 
-    await teamInvitationCodeHandler.sendCode({
+    const codeObj = await teamInvitationCodeHandler.sendCode({
       project: auth.project,
       data: {
         team_id: body.team_id,
@@ -56,7 +60,11 @@ export const POST = createSmartRouteHandler({
 
     return {
       statusCode: 200,
-      bodyType: "success",
+      bodyType: "json",
+      body: {
+        success: true,
+        id: codeObj.id,
+      },
     };
   },
 });

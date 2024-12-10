@@ -1,5 +1,45 @@
 # @stackframe/e-commerce-demo
 
+## 2.6.34
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.34
+
+## 2.6.33
+
+### Patch Changes
+
+- @stackframe/stack@2.6.33
+
+## 2.6.32
+
+### Patch Changes
+
+- @stackframe/stack@2.6.32
+
+## 2.6.31
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.31
+
+## 2.6.30
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.30
+
+## 2.6.29
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.29
+
 ## 2.6.28
 
 ### Patch Changes

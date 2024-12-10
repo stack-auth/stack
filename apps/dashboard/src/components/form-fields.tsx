@@ -54,9 +54,10 @@ export function TextAreaField<F extends FieldValues>(props: {
 }
 
 export function InputField<F extends FieldValues>(props: {
+  className?: string,
   control: Control<F>,
   name: Path<F>,
-  label: React.ReactNode,
+  label?: React.ReactNode,
   placeholder?: string,
   required?: boolean,
   type?: string,
@@ -68,9 +69,9 @@ export function InputField<F extends FieldValues>(props: {
       control={props.control}
       name={props.name}
       render={({ field }) => (
-        <FormItem>
+        <FormItem className={props.className}>
           <label className="flex flex-col gap-2">
-            <FieldLabel required={props.required}>{props.label}</FieldLabel>
+            {props.label ? <FieldLabel required={props.required}>{props.label}</FieldLabel> : null}
             <FormControl>
               <Input
                 {...field}

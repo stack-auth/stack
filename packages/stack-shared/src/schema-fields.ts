@@ -1,12 +1,15 @@
 import * as yup from "yup";
 import { KnownErrors } from ".";
 import { isBase64 } from "./utils/bytes";
-import { StackAssertionError } from "./utils/errors";
+import { StackAssertionError, throwErr } from "./utils/errors";
+import { decodeBasicAuthorizationHeader } from "./utils/http";
 import { allProviders } from "./utils/oauth";
 import { deepPlainClone, omit } from "./utils/objects";
+import { isValidUrl } from "./utils/urls";
 import { isUuid } from "./utils/uuids";
 
 declare module "yup" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface StringSchema<TType, TContext, TDefault, TFlags> {
     nonEmpty(message?: string): StringSchema<TType, TContext, TDefault, TFlags>,
   }
@@ -145,6 +148,10 @@ export function yupObject<A extends yup.Maybe<yup.AnyObject>, B extends yup.Obje
   return object.default(undefined) as any as typeof object;
 }
 
+export function yupNever(): yup.MixedSchema<never> {
+  return yupMixed().test('never', 'This value should never be reached', () => false) as any;
+}
+
 export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.MixedSchema<yup.InferType<T[number]>> {
   if (args.length === 0) throw new Error('yupUnion must have at least one schema');
 
@@ -179,19 +186,11 @@ export const adaptSchema = yupMixed<StackAdaptSentinel>();
  */
 export const urlSchema = yupString().test({
   name: 'url',
-  message: 'Invalid URL',
-  test: (value) => {
-    if (!value) return true;
-    try {
-      new URL(value);
-      return true;
-    } catch {
-      return false;
-    }
-  },
+  message: (params) => `${params.path} is not a valid URL`,
+  test: (value) => value == null || isValidUrl(value)
 });
 export const jsonSchema = yupMixed().nullable().defined().transform((value) => JSON.parse(JSON.stringify(value)));
-export const jsonStringSchema = yupString().test("json", "Invalid JSON format", (value) => {
+export const jsonStringSchema = yupString().test("json", (params) => `${params.path} is not valid JSON`, (value) => {
   if (value == null) return true;
   try {
     JSON.parse(value);
@@ -200,7 +199,7 @@ export const jsonStringSchema = yupString().test("json", "Invalid JSON format", 
     return false;
   }
 });
-export const jsonStringOrEmptySchema = yupString().test("json", "Invalid JSON format", (value) => {
+export const jsonStringOrEmptySchema = yupString().test("json", (params) => `${params.path} is not valid JSON`, (value) => {
   if (!value) return true;
   try {
     JSON.parse(value);
@@ -209,7 +208,7 @@ export const jsonStringOrEmptySchema = yupString().test("json", "Invalid JSON fo
     return false;
   }
 });
-export const base64Schema = yupString().test("is-base64", "Invalid base64 format", (value) => {
+export const base64Schema = yupString().test("is-base64", (params) => `${params.path} is not valid base64`, (value) => {
   if (value == null) return true;
   return isBase64(value);
 });
@@ -227,9 +226,9 @@ export const strictEmailSchema = (message: string | undefined) => yupString().em
 export const emailSchema = yupString().email();
 
 // Request auth
-export const clientOrHigherAuthTypeSchema = yupString().oneOf(['client', 'server', 'admin']);
-export const serverOrHigherAuthTypeSchema = yupString().oneOf(['server', 'admin']);
-export const adminAuthTypeSchema = yupString().oneOf(['admin']);
+export const clientOrHigherAuthTypeSchema = yupString().oneOf(['client', 'server', 'admin']).defined();
+export const serverOrHigherAuthTypeSchema = yupString().oneOf(['server', 'admin']).defined();
+export const adminAuthTypeSchema = yupString().oneOf(['admin']).defined();
 
 // Projects
 export const projectIdSchema = yupString().test((v) => v === undefined || v === "internal" || isUuid(v)).meta({ openapiField: { description: _idDescription('project'), exampleValue: 'e0b52f4d-dece-408c-af49-d23061bb0f8d' } });
@@ -254,6 +253,8 @@ export const oauthEnabledSchema = yupBoolean().meta({ openapiField: { descriptio
 export const oauthTypeSchema = yupString().oneOf(['shared', 'standard']).meta({ openapiField: { description: 'OAuth provider type, one of shared, standard. "shared" uses Stack shared OAuth keys and it is only meant for development. "standard" uses your own OAuth keys and will show your logo and company name when signing in with the provider.', exampleValue: 'standard' } });
 export const oauthClientIdSchema = yupString().meta({ openapiField: { description: 'OAuth client ID. Needs to be specified when using type="standard"', exampleValue: 'google-oauth-client-id' } });
 export const oauthClientSecretSchema = yupString().meta({ openapiField: { description: 'OAuth client secret. Needs to be specified when using type="standard"', exampleValue: 'google-oauth-client-secret' } });
+export const oauthFacebookConfigIdSchema = yupString().meta({ openapiField: { description: 'The configuration id for Facebook business login (for things like ads and marketing). This is only required if you are using the standard OAuth with Facebook and you are using Facebook business login.' } });
+export const oauthMicrosoftTenantIdSchema = yupString().meta({ openapiField: { description: 'The Microsoft tenant id for Microsoft directory. This is only required if you are using the standard OAuth with Microsoft and you have an Azure AD tenant.' } });
 // Project email config
 export const emailTypeSchema = yupString().oneOf(['shared', 'standard']).meta({ openapiField: { description: 'Email provider type, one of shared, standard. "shared" uses Stack shared email provider and it is only meant for development. "standard" uses your own email server and will have your email address as the sender.', exampleValue: 'standard' } });
 export const emailSenderNameSchema = yupString().meta({ openapiField: { description: 'Email sender name. Needs to be specified when using type="standard"', exampleValue: 'Stack' } });
@@ -372,6 +373,22 @@ export const contactChannelValueSchema = yupString().when('type', {
 export const contactChannelUsedForAuthSchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel is used for authentication. If this is set to `true`, the user will be able to sign in with the contact channel with password or OTP.', exampleValue: true } });
 export const contactChannelIsVerifiedSchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel has been verified. If this is set to `true`, the contact channel has been verified to belong to the user.', exampleValue: true } });
 export const contactChannelIsPrimarySchema = yupBoolean().meta({ openapiField: { description: 'Whether the contact channel is the primary contact channel. If this is set to `true`, it will be used for authentication and notifications by default.', exampleValue: true } });
+
+// Headers
+export const basicAuthorizationHeaderSchema = yupString().test('is-basic-authorization-header', 'Authorization header must be in the format "Basic <base64>"', (value) => {
+  if (!value) return true;
+  return decodeBasicAuthorizationHeader(value) !== null;
+});
+
+// Neon integration
+export const neonAuthorizationHeaderSchema = basicAuthorizationHeaderSchema.test('is-neon-authorization-header', 'Invalid client_id:client_secret values; did you use the correct values for the Neon integration?', (value) => {
+  if (!value) return true;
+  const [clientId, clientSecret] = decodeBasicAuthorizationHeader(value) ?? throwErr(`Neon authz header invalid? This should've been validated by basicAuthorizationHeaderSchema: ${value}`);
+  for (const neonClientConfig of JSON.parse(process.env.STACK_NEON_INTEGRATION_CLIENTS_CONFIG || '[]')) {
+    if (clientId === neonClientConfig.client_id && clientSecret === neonClientConfig.client_secret) return true;
+  }
+  return false;
+});
 
 // Utils
 export function yupDefinedWhen<S extends yup.AnyObject>(

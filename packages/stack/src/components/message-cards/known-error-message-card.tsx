@@ -1,9 +1,9 @@
 "use client";
 
-import { useStackApp } from "../..";
-import { Typography } from "@stackframe/stack-ui";
-import { MessageCard } from "./message-card";
 import { KnownError } from "@stackframe/stack-shared";
+import { Typography } from "@stackframe/stack-ui";
+import { useStackApp } from "../..";
+import { MessageCard } from "./message-card";
 
 export function KnownErrorMessageCard({
   error,
@@ -18,7 +18,7 @@ export function KnownErrorMessageCard({
     <MessageCard
       title={"An error occurred"}
       fullPage={fullPage}
-      primaryButtonText={"Go to Home"}
+      primaryButtonText={"Go Home"}
       primaryAction={() => stackApp.redirectToHome()}
     >
       {<Typography>Error Code: {error.errorCode}</Typography>}

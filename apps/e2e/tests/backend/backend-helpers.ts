@@ -3,6 +3,7 @@ import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import * as jose from "jose";
 import { expect } from "vitest";
 import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
@@ -100,7 +101,7 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
     }),
   });
   if (res.status >= 500 && res.status < 600) {
-    throw new StackAssertionError(`Unexpected internal server error: ${res.status} ${res.body}`);
+    throw new StackAssertionError(`Unexpected internal server error: ${res.status} ${typeof res.body === "string" ? res.body : nicify(res.body)}`);
   }
   if (res.headers.has("x-stack-known-error")) {
     expect(res.status).toBeGreaterThanOrEqual(400);
@@ -144,7 +145,7 @@ export namespace Auth {
     if (response.status !== 200) {
       throw new StackAssertionError("Expected session to be valid, but was actually invalid.", { response });
     }
-    expect(response).toEqual({
+    expect(response).toMatchObject({
       status: 200,
       headers: expect.objectContaining({}),
       body: expect.objectContaining({}),
@@ -535,7 +536,7 @@ export namespace Auth {
       const redirectResponse1 = await niceFetch(authLocation, {
         redirect: "manual",
       });
-      expect(redirectResponse1).toEqual({
+      expect(redirectResponse1).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
@@ -555,7 +556,7 @@ export namespace Auth {
           cookie: signInInteractionCookies,
         },
       });
-      expect(response1).toEqual({
+      expect(response1).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(ArrayBuffer),
@@ -566,7 +567,7 @@ export namespace Auth {
           cookie: updateCookiesFromResponse(signInInteractionCookies, response1),
         },
       });
-      expect(redirectResponse2).toEqual({
+      expect(redirectResponse2).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
@@ -584,7 +585,7 @@ export namespace Auth {
           cookie: authorizeInteractionCookies,
         },
       });
-      expect(response2).toEqual({
+      expect(response2).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(ArrayBuffer),
@@ -595,7 +596,7 @@ export namespace Auth {
           cookie: updateCookiesFromResponse(authorizeInteractionCookies, response2),
         },
       });
-      expect(redirectResponse3).toEqual({
+      expect(redirectResponse3).toMatchObject({
         status: 303,
         headers: expect.any(Headers),
         body: expect.any(String),
@@ -618,8 +619,8 @@ export namespace Auth {
           cookie,
         },
       });
-      expect(response).toEqual({
-        status: 302,
+      expect(response).toMatchObject({
+        status: 307,
         headers: expect.any(Headers),
         body: {},
       });
@@ -820,6 +821,14 @@ export namespace ApiKey {
     backendContext.set({ projectKeys: res.projectKeys });
     return res;
   }
+
+  export async function listAll() {
+    const response = await niceBackendFetch("/api/v1/internal/api-keys", {
+      accessType: "admin",
+    });
+    expect(response.status).toBe(200);
+    return response.body;
+  }
 }
 
 export namespace Project {
@@ -895,32 +904,80 @@ export namespace Project {
 }
 
 export namespace Team {
-  export async function create(options: { accessType?: "client" | "server" } = {}, body?: any) {
+  export async function create(options: { accessType?: "client" | "server", addCurrentUser?: boolean } = {}, body?: any) {
+    const displayName = body?.display_name || 'New Team';
     const response = await niceBackendFetch("/api/v1/teams", {
       accessType: options.accessType ?? "server",
       method: "POST",
       body: {
-        display_name: body?.display_name || 'New Team',
-        creator_user_id: 'me',
+        display_name: displayName,
+        creator_user_id: options.addCurrentUser ? 'me' : undefined,
         ...body,
       },
     });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "display_name": ${JSON.stringify(displayName)},
+          "id": "<stripped UUID>",
+          "profile_image_url": null,
+          "server_metadata": null,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
     return {
       createTeamResponse: response,
       teamId: response.body.id,
     };
   }
 
-  export async function sendInvitation(receiveMailbox: Mailbox, teamId: string) {
+  export async function createAndAddCurrent(options: { accessType?: "client" | "server" } = {}, body?: any) {
+    return await Team.create({ ...options, addCurrentUser: true }, body);
+  }
+
+  export async function addMember(teamId: string, userId: string) {
+    const response = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId}`, {
+      method: "POST",
+      accessType: "server",
+      body: {},
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "team_id": "<stripped UUID>",
+          "user_id": "<stripped UUID>",
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  }
+
+  export async function sendInvitation(mail: string | Mailbox, teamId: string) {
     const response = await niceBackendFetch("/api/v1/team-invitations/send-code", {
       method: "POST",
       accessType: "client",
       body: {
-        email: receiveMailbox.emailAddress,
+        email: typeof mail === 'string' ? mail : mail.emailAddress,
         team_id: teamId,
         callback_url: "http://localhost:12345/some-callback-url",
       },
     });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "id": "<stripped UUID>",
+          "success": true,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
 
     return {
       sendTeamInvitationResponse: response,

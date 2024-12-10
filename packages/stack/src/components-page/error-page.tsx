@@ -1,11 +1,11 @@
 'use client';
 
-import { useStackApp } from "..";
-import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
-import { KnownErrorMessageCard } from "../components/message-cards/known-error-message-card";
 import { Typography } from "@stackframe/stack-ui";
+import { useStackApp } from "..";
+import { KnownErrorMessageCard } from "../components/message-cards/known-error-message-card";
 import { MessageCard } from "../components/message-cards/message-card";
+import { PredefinedMessageCard } from "../components/message-cards/predefined-message-card";
 import { useTranslation } from "../lib/translations";
 
 
@@ -36,7 +36,7 @@ export function ErrorPage(props: { fullPage?: boolean, searchParams: Record<stri
       <MessageCard
         title={t("Failed to connect account")}
         fullPage={!!props.fullPage}
-        primaryButtonText={t("Go to Home")}
+        primaryButtonText={t("Go Home")}
         primaryAction={() => stackApp.redirectToHome()}
       >
         <Typography>
@@ -52,7 +52,7 @@ export function ErrorPage(props: { fullPage?: boolean, searchParams: Record<stri
       <MessageCard
         title={t("Failed to connect account")}
         fullPage={!!props.fullPage}
-        primaryButtonText={t("Go to Home")}
+        primaryButtonText={t("Go Home")}
         primaryAction={() => stackApp.redirectToHome()}
       >
         <Typography>
@@ -69,7 +69,7 @@ export function ErrorPage(props: { fullPage?: boolean, searchParams: Record<stri
         fullPage={!!props.fullPage}
         primaryButtonText={t("Sign in again")}
         primaryAction={() => stackApp.redirectToSignIn()}
-        secondaryButtonText={t("Go to Home")}
+        secondaryButtonText={t("Go Home")}
         secondaryAction={() => stackApp.redirectToHome()}
       >
         <Typography>

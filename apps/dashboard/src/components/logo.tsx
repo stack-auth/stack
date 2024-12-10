@@ -7,21 +7,23 @@ import { Link } from "./link";
 
 type ImageProps = React.ComponentProps<typeof SmartImage>;
 
-export function Logo(props: (ImageProps | Omit<ImageProps, "src" | "alt">) & { full?: boolean, href?: string}) {
-  const { full, ...imageProps } = props;
+export function Logo(props: (ImageProps | Omit<ImageProps, "src" | "alt">) & { full?: boolean, href?: string, noLink?: boolean }) {
+  const { full, noLink, ...imageProps } = props;
   const logos = {
     light: props.full ? logoFullLightMode : logoLightMode,
     dark: props.full ? logoFullDarkMode : logoDarkMode,
   };
 
+  const Component = noLink ? "span" : Link;
+
   return (
     <>
-      <Link href={props.href || "/"} className="block dark:hidden">
+      <Component href={noLink ? undefined as any : props.href || "/"} className="block dark:hidden">
         <SmartImage src={logos.light} alt="Logo" priority {...imageProps} placeholder="empty" />
-      </Link>
-      <Link href={props.href || "/"} className="hidden dark:block">
+      </Component>
+      <Component href={noLink ? undefined as any : props.href || "/"} className="hidden dark:block">
         <SmartImage src={logos.dark} alt="Logo" priority {...imageProps} placeholder="empty" />
-      </Link>
+      </Component>
     </>
   );
 }

@@ -181,7 +181,7 @@ Stack automatically creates a user profile on sign-up. Let's build a page that d
           {user ? (
             <div>
               <UserButton />
-              <p>Welcome, {user.displayName ?? "anonymous user"}</p>
+              <p>Welcome, {user.displayName ?? "unnamed user"}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
               <button onClick={() => user.signOut()}>Sign Out</button>
             </div>
@@ -210,7 +210,7 @@ Stack automatically creates a user profile on sign-up. Let's build a page that d
           {user ? (
             <div>
               <UserButton />
-              <p>Welcome, {user.displayName ?? "anonymous user"}</p>
+              <p>Welcome, {user.displayName ?? "unnamed user"}</p>
               <p>Your e-mail: {user.primaryEmail}</p>
               <p><a href={stackServerApp.urls.signOut}>Sign Out</a></p>
             </div>

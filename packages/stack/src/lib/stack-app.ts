@@ -8,6 +8,7 @@ import { ContactChannelsCrud } from "@stackframe/stack-shared/dist/interface/cru
 import { CurrentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { EmailTemplateCrud, EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { TeamInvitationCrud } from "@stackframe/stack-shared/dist/interface/crud/team-invitation";
 import { TeamMemberProfilesCrud } from "@stackframe/stack-shared/dist/interface/crud/team-member-profiles";
 import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-permissions";
 import { TeamsCrud } from "@stackframe/stack-shared/dist/interface/crud/teams";
@@ -140,7 +141,7 @@ function getDefaultSuperSecretAdminKey() {
 }
 
 function getDefaultBaseUrl() {
-  return process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
+  return process.env.NEXT_PUBLIC_STACK_API_URL || process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
 }
 
 export type StackClientAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = {
@@ -249,7 +250,7 @@ function useStore<T>(store: Store<T>): T {
   return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
-export const stackAppInternalsSymbol = Symbol.for("StackAppInternals");
+export const stackAppInternalsSymbol = Symbol.for("StackAuth--DO-NOT-USE-OR-YOU-WILL-BE-FIRED--StackAppInternals");
 
 const allClientApps = new Map<string, [checkString: string, app: StackClientApp<any, any>]>();
 
@@ -334,6 +335,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _teamMemberProfilesCache = createCacheBySession<[string], TeamMemberProfilesCrud['Client']['Read'][]>(
     async (session, [teamId]) => {
       return await this._interface.listTeamMemberProfiles({ teamId }, session);
+    }
+  );
+  private readonly _teamInvitationsCache = createCacheBySession<[string], TeamInvitationCrud['Client']['Read'][]>(
+    async (session, [teamId]) => {
+      return await this._interface.listTeamInvitations({ teamId }, session);
     }
   );
   private readonly _currentUserTeamProfileCache = createCacheBySession<[string], TeamMemberProfilesCrud['Client']['Read']>(
@@ -753,6 +759,18 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
+  protected _clientTeamInvitationFromCrud(session: InternalSession, crud: TeamInvitationCrud['Client']['Read']): TeamInvitation {
+    return {
+      id: crud.id,
+      recipientEmail: crud.recipient_email,
+      expiresAt: new Date(crud.expires_at_millis),
+      revoke: async () => {
+        await this._interface.revokeTeamInvitation(crud.id, crud.team_id, session);
+        await this._teamInvitationsCache.refresh([session, crud.team_id]);
+      },
+    };
+  }
+
   protected _clientTeamFromCrud(crud: TeamsCrud['Client']['Read'], session: InternalSession): Team {
     const app = this;
     return {
@@ -771,6 +789,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           session,
           callbackUrl: options.callbackUrl ?? constructRedirectUrl(app.urls.teamInvitation),
         });
+        await app._teamInvitationsCache.refresh([session, crud.id]);
       },
       async listUsers() {
         const result = Result.orThrow(await app._teamMemberProfilesCache.getOrWait([session, crud.id], "write-only"));
@@ -780,10 +799,22 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const result = useAsyncCache(app._teamMemberProfilesCache, [session, crud.id] as const, "team.useUsers()");
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
       },
+      async listInvitations() {
+        const result = Result.orThrow(await app._teamInvitationsCache.getOrWait([session, crud.id], "write-only"));
+        return result.map((crud) => app._clientTeamInvitationFromCrud(session, crud));
+      },
+      useInvitations() {
+        const result = useAsyncCache(app._teamInvitationsCache, [session, crud.id] as const, "team.useInvitations()");
+        return result.map((crud) => app._clientTeamInvitationFromCrud(session, crud));
+      },
       async update(data: TeamUpdateOptions){
         await app._interface.updateTeam({ data: teamUpdateOptionsToCrud(data), teamId: crud.id }, session);
         await app._currentUserTeamsCache.refresh([session]);
-      }
+      },
+      async delete() {
+        await app._interface.deleteTeam(crud.id, session);
+        await app._currentUserTeamsCache.refresh([session]);
+      },
     };
   }
 
@@ -867,8 +898,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._refreshUser(session);
         return registrationResult;
       },
-      signOut() {
-        return app._signOut(session);
+      signOut(options?: { redirectUrl?: URL | string }) {
+        return app._signOut(session, options);
       },
     };
   }
@@ -1477,9 +1508,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return false;
   }
 
-  protected async _signOut(session: InternalSession): Promise<void> {
+  protected async _signOut(session: InternalSession, options?: { redirectUrl?: URL | string }): Promise<void> {
     await this._interface.signOut(session);
-    await this.redirectToAfterSignOut();
+    if (options?.redirectUrl) {
+      await _redirectTo(options.redirectUrl);
+    } else {
+      await this.redirectToAfterSignOut();
+    }
   }
 
   protected async _sendVerificationEmail(email: string, session: InternalSession): Promise<KnownErrors["EmailAlreadyVerified"] | void> {
@@ -1487,10 +1522,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return await this._interface.sendVerificationEmail(email, emailVerificationRedirectUrl, session);
   }
 
-  async signOut(): Promise<void> {
+  async signOut(options?: { redirectUrl?: URL | string }): Promise<void> {
     const user = await this.getUser();
     if (user) {
-      await user.signOut();
+      await user.signOut(options);
     }
   }
 
@@ -1600,6 +1635,13 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           await this._currentUserCache.forceSetCachedValueAsync([await this._getSession()], Result.fromPromise(userJsonPromise));
         });
       },
+      sendRequest: async (
+        path: string,
+        requestOptions: RequestInit,
+        requestType: "client" | "server" | "admin" = "client",
+      ) => {
+        return await this._interface.sendClientRequest(path, requestOptions, await this._getSession(), requestType);
+      },
     };
   };
 }
@@ -1663,6 +1705,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _serverTeamMemberProfilesCache = createCache<[string], TeamMemberProfilesCrud['Server']['Read'][]>(
     async ([teamId]) => {
       return await this._interface.listServerTeamMemberProfiles({ teamId });
+    }
+  );
+  private readonly _serverTeamInvitationsCache = createCache<[string], TeamInvitationCrud['Server']['Read'][]>(
+    async ([teamId]) => {
+      return await this._interface.listServerTeamInvitations({ teamId });
     }
   );
   private readonly _serverUserTeamProfileCache = createCache<[string, string], TeamMemberProfilesCrud['Client']['Read']>(
@@ -1918,6 +1965,17 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     };
   }
 
+  protected _serverTeamInvitationFromCrud(crud: TeamInvitationCrud['Server']['Read']): TeamInvitation {
+    return {
+      id: crud.id,
+      recipientEmail: crud.recipient_email,
+      expiresAt: new Date(crud.expires_at_millis),
+      revoke: async () => {
+        await this._interface.revokeServerTeamInvitation(crud.id, crud.team_id);
+      },
+    };
+  }
+
   protected override _currentUserFromCrud(crud: UsersCrud['Server']['Read'], session: InternalSession): ProjectCurrentServerUser<ProjectId> {
     const app = this;
     const currentUser = {
@@ -1980,6 +2038,15 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           email: options.email,
           callbackUrl: options.callbackUrl ?? constructRedirectUrl(app.urls.teamInvitation),
         });
+        await app._serverTeamInvitationsCache.refresh([crud.id]);
+      },
+      async listInvitations() {
+        const result = Result.orThrow(await app._serverTeamInvitationsCache.getOrWait([crud.id], "write-only"));
+        return result.map((crud) => app._serverTeamInvitationFromCrud(crud));
+      },
+      useInvitations() {
+        const result = useAsyncCache(app._serverTeamInvitationsCache, [crud.id] as const, "team.useInvitations()");
+        return useMemo(() => result.map((crud) => app._serverTeamInvitationFromCrud(crud)), [result]);
       },
     };
   }
@@ -2111,7 +2178,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return teams.map((t) => this._serverTeamFromCrud(t));
   }
 
-  async createTeam(data: ServerTeamCreateOptions) : Promise<ServerTeam> {
+  async createTeam(data: ServerTeamCreateOptions): Promise<ServerTeam> {
     const team = await this._interface.createServerTeam(serverTeamCreateOptionsToCrud(data));
     await this._serverTeamsCache.refresh([undefined]);
     return this._serverTeamFromCrud(team);
@@ -2509,7 +2576,7 @@ type Session = {
 type Auth = {
   readonly _internalSession: InternalSession,
   readonly currentSession: Session,
-  signOut(): Promise<void>,
+  signOut(options?: { redirectUrl?: URL | string }): Promise<void>,
 
   /**
    * Returns headers for sending authenticated HTTP requests to external servers. Most commonly used in cross-origin
@@ -3054,6 +3121,13 @@ export type TeamUser = {
   teamProfile: TeamMemberProfile,
 }
 
+export type TeamInvitation = {
+  id: string,
+  recipientEmail: string | null,
+  expiresAt: Date,
+  revoke(): Promise<void>,
+}
+
 export type Team = {
   id: string,
   displayName: string,
@@ -3063,7 +3137,10 @@ export type Team = {
   inviteUser(options: { email: string, callbackUrl?: string }): Promise<void>,
   listUsers(): Promise<TeamUser[]>,
   useUsers(): TeamUser[],
+  listInvitations(): Promise<TeamInvitation[]>,
+  useInvitations(): TeamInvitation[],
   update(update: TeamUpdateOptions): Promise<void>,
+  delete(): Promise<void>,
 };
 
 export type TeamUpdateOptions = {

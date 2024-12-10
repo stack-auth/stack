@@ -3,10 +3,10 @@ import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMe
 import { Column } from "@tanstack/react-table";
 import { LucideIcon, EyeOff, ArrowUp, ArrowDown } from "lucide-react";
 
-interface DataTableColumnHeaderProps<TData, TValue> extends React.HTMLAttributes<HTMLDivElement> {
+type DataTableColumnHeaderProps<TData, TValue> = {
   column: Column<TData, TValue>,
   columnTitle: React.ReactNode,
-}
+} & React.HTMLAttributes<HTMLDivElement>
 
 function Item(props: { icon: LucideIcon, onClick: () => void, children: React.ReactNode }) {
   return (

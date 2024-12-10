@@ -1,6 +1,6 @@
-import { OAuthBaseProvider, TokenSet } from "./base";
-import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { OAuthUserInfo, validateUserInfo } from "../utils";
+import { OAuthBaseProvider, TokenSet } from "./base";
 
 export class BitbucketProvider extends OAuthBaseProvider {
   private constructor(
@@ -15,7 +15,7 @@ export class BitbucketProvider extends OAuthBaseProvider {
         issuer: "https://bitbucket.org",
         authorizationEndpoint: "https://bitbucket.org/site/oauth2/authorize",
         tokenEndpoint: "https://bitbucket.org/site/oauth2/access_token",
-        redirectUri: getEnvVariable("STACK_BASE_URL") + "/api/v1/auth/oauth/callback/bitbucket",
+        redirectUri: getEnvVariable("NEXT_PUBLIC_STACK_API_URL") + "/api/v1/auth/oauth/callback/bitbucket",
         baseScope: "account email",
         ...options,
       }))

@@ -20,7 +20,7 @@ describe("without project access", () => {
         "status": 400,
         "body": {
           "code": "ACCESS_TYPE_REQUIRED",
-          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication",
+          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
@@ -37,7 +37,7 @@ describe("without project access", () => {
         "status": 400,
         "body": {
           "code": "ACCESS_TYPE_REQUIRED",
-          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication",
+          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
@@ -438,8 +438,8 @@ describe("with client access", () => {
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - Invalid base64 format" },
-          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - Invalid base64 format",
+          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.totp_secret_base64 is not valid base64" },
+          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.totp_secret_base64 is not valid base64",
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",

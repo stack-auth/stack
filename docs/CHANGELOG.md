@@ -1,5 +1,33 @@
 # @stackframe/docs
 
+## 2.6.34
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.33
+
+## 2.6.32
+
+## 2.6.31
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.30
+
+### Patch Changes
+
+- Bugfixes
+
+## 2.6.29
+
+### Patch Changes
+
+- Bugfixes
+
 ## 2.6.28
 
 ## 2.6.27

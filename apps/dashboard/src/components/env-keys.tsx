@@ -7,7 +7,7 @@ export default function EnvKeys(props: {
   superSecretAdminKey?: string,
 }) {
   const envFileContent = Object.entries({
-    NEXT_PUBLIC_STACK_URL: process.env.NEXT_PUBLIC_STACK_URL === "https://api.stack-auth.com" ? undefined : process.env.NEXT_PUBLIC_STACK_URL,
+    NEXT_PUBLIC_STACK_API_URL: process.env.NEXT_PUBLIC_STACK_API_URL === "https://api.stack-auth.com" ? undefined : process.env.NEXT_PUBLIC_STACK_API_URL,
     NEXT_PUBLIC_STACK_PROJECT_ID: props.projectId,
     NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: props.publishableClientKey,
     STACK_SECRET_SERVER_KEY: props.secretServerKey,

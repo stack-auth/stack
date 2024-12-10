@@ -32,6 +32,8 @@ model Project {
   authMethods       AuthMethod[]
   contactChannels   ContactChannel[]
   connectedAccounts ConnectedAccount[]
+
+  neonProvisionedProject NeonProvisionedProject?
 }
 
 // Contains all the configuration for a project.
@@ -707,6 +709,7 @@ model VerificationCode {
 
   @@id([projectId, id])
   @@unique([projectId, code])
+  @@index([data(ops: JsonbPathOps)], type: Gin)
 }
 
 enum VerificationCodeType {
@@ -717,6 +720,7 @@ enum VerificationCodeType {
   MFA_ATTEMPT
   PASSKEY_REGISTRATION_CHALLENGE
   PASSKEY_AUTHENTICATION_CHALLENGE
+  NEON_INTEGRATION_PROJECT_TRANSFER
 }
 
 //#region API keys
@@ -793,6 +797,58 @@ model StandardEmailServiceConfig {
   password    String
 }
 
+//#endregion
+
+//#region IdP
+model IdPAccountToCdfcResultMapping {
+  idpId String
+  id String
+
+  idpAccountId String @db.Uuid @unique
+  cdfcResult Json
+
+  @@id([idpId, id])
+}
+
+model ProjectWrapperCodes {
+  idpId String
+  id String @default(uuid()) @db.Uuid
+
+  interactionUid String
+  authorizationCode String @unique
+
+  cdfcResult Json
+
+  @@id([idpId, id])
+}
+
+model IdPAdapterData {
+  idpId String
+  model String
+  id String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payload Json
+  expiresAt DateTime
+
+  @@id([idpId, model, id])
+  @@index([payload(ops: JsonbPathOps)], type: Gin)
+  @@index([expiresAt])
+}
+//#endregion
+
+//#region Neon integration
+model NeonProvisionedProject {
+  projectId String @id
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  neonClientId String
+}
 //#endregion
 
 //#region Events
