@@ -44,6 +44,7 @@
     "@opentelemetry/sdk-trace-node": "^1.26.0",
     "@opentelemetry/semantic-conventions": "^1.27.0",
     "@prisma/client": "^5.9.1",
+    "@prisma/extension-accelerate": "^1.2.1",
     "@prisma/instrumentation": "^5.19.1",
     "@sentry/nextjs": "^8.40.0",
     "@simplewebauthn/server": "^11.0.0",
