@@ -1,14 +1,17 @@
 import { listEndpoints } from '@/lib/glob';
 import fs from 'fs';
+import * as prettier from "prettier";
 import * as yup from 'yup';
+
+
 async function main() {
   console.log("Started docs schema generator");
 
   const endpoints = await listEndpoints("api/v1");
-  let schemaContent = 'type EndpointSchema = {\n';
+  let schemaContent = 'type EndpointSchema = {';
 
   endpoints.forEach((handlersByMethod, url) => {
-    let endpointContent = '';
+    let methodContent = '{';
 
     handlersByMethod.forEach((handler, method) => {
       const audiences = new Map<string, any>();
@@ -26,38 +29,47 @@ async function main() {
         throw new Error(`Expected ${handler.overloads.size} audiences, got ${audiences.size}. Multiple audiences other than client, server, and admin is currently not supported. You might need to manually fix this.`);
       }
 
+      let endpointContent;
       if (audiences.size === 0) {
-        endpointContent = '{\n  default: ' + schemaToTypeString(handler.overloads.values().next().value.request.describe()) + '\n  }';
+        endpointContent = '{default: ' + schemaToTypeString(handler.overloads.values().next().value.request.describe()) + '}';
       } else {
-        endpointContent = '{\n' + Array.from(audiences.entries()).map(([audience, overload]) => {
-          return `  ${audience}: {\n` +
+        endpointContent = '{' + Array.from(audiences.entries()).map(([audience, overload]) => {
+          return `${audience}: {` +
             Object.entries(overload.request.describe().fields)
-              .map(([key, value]): any => `    ${key}: ${schemaToTypeString(value as any, 2)}`)
-              .join(',\n') +
-            '\n  }';
-        }).join(',\n') + '\n  }';
+              .map(([key, value]): any => `${key}: ${schemaToTypeString(value as any)}`)
+              .join(',') +
+            '}';
+        }).join(',') + '}';
       }
+
+      methodContent += `${method}: ${endpointContent},`;
     });
 
-    schemaContent += `"${url || '/'}": ${endpointContent},\n`;
+    methodContent += '}';
+    schemaContent += `"${url || '/'}": ${methodContent},`;
   });
 
   schemaContent += '}';
 
-  fs.writeFileSync('schema.ts', schemaContent);
+  fs.writeFileSync('schema.ts', await prettier.format(schemaContent, {
+    parser: "typescript",
+    semi: true,
+    singleQuote: true,
+    trailingComma: "all",
+  }));
   console.log(`    Wrote schema to schema.ts`);
 }
 
-function schemaToTypeString(schema: yup.SchemaFieldDescription, indent: number = 0): string {
+function schemaToTypeString(schema: yup.SchemaFieldDescription): string {
   switch (schema.type) {
     case 'object': {
-      return '{\n' + Object.entries((schema as any).fields).map(([key, value]): any => `${'  '.repeat(indent + 1)}"${key}": ${schemaToTypeString(value as any, indent + 1)}`).join(',\n') + '\n' + '  '.repeat(indent) + '}';
+      return '{' + Object.entries((schema as any).fields).map(([key, value]): any => `"${key}": ${schemaToTypeString(value as any)}`).join(',') + '}';
     }
     case 'array': {
-      return `${schemaToTypeString((schema as any).innerType, indent + 1)}[]`;
+      return `${schemaToTypeString((schema as any).innerType)}[]`;
     }
     case 'tuple': {
-      return '[\n' + (schema as any).innerType.map((value: any) => `${'  '.repeat(indent + 1)}${schemaToTypeString(value, indent + 1)}`).join(',\n') + '\n' + '  '.repeat(indent) + ']';
+      return '[' + (schema as any).innerType.map((value: any) => `${schemaToTypeString(value)}`).join(',') + ']';
     }
     case 'mixed': {
       return 'any';
