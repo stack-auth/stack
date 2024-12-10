@@ -91,6 +91,7 @@ export default function PageClient() {
   const app = useStackApp();
   const [data, setData] = useState<any>(null);
 
+  // TODO HACK: use Suspense for this instead
   useEffect(() => {
     (app as any)[stackAppInternalsSymbol].sendRequest("/internal/metrics", {
       method: "GET",
