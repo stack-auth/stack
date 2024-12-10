@@ -46,6 +46,8 @@ function EditDialog(props: {
     addWww: yup.boolean(),
   });
 
+  const canAddWww = (domain: string) => isValidUrl('https://' + domain) && !domain.startsWith('www.') && isValidUrl('https://www.' + domain);
+
   return <FormDialog
     open={props.open}
     defaultValues={{
@@ -68,7 +70,7 @@ function EditDialog(props: {
                 domain: values.domain,
                 handlerPath: values.handlerPath,
               },
-              ...(values.addWww ? [{
+              ...(canAddWww(values.domain) && values.addWww ? [{
                 domain: 'https://www.' + values.domain.slice(8),
                 handlerPath: values.handlerPath,
               }] : []),
@@ -105,9 +107,7 @@ function EditDialog(props: {
         />
 
         {props.type === 'create' &&
-          isValidUrl('https://' + form.watch('domain')) &&
-          !((form.watch('domain') as any)?.startsWith('www.')) &&
-          isValidUrl('https://www.' + form.watch('domain')) && (
+          canAddWww(form.watch('domain') as string) && (
           <SwitchField
             label={`Also add www.${form.watch('domain') as any ?? ''} as a trusted domain`}
             name="addWww"
@@ -232,7 +232,7 @@ export default function PageClient() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[200px]">Domain</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead>&nbsp;</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
