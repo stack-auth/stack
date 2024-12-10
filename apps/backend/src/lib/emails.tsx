@@ -8,6 +8,7 @@ import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
+import { wait } from '@stackframe/stack-shared/dist/utils/promises';
 import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
 import nodemailer from 'nodemailer';
 
@@ -88,7 +89,7 @@ export async function sendEmail({
         },
       });
 
-      for (let retries = 0; retries < 2; retries++) {
+      for (let retries = 0; retries < 3; retries++) {
         try {
           return await transporter.sendMail({
             from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
@@ -101,10 +102,16 @@ export async function sendEmail({
           // TODO if using custom email config, we should notify the developer instead of throwing an error
 
           const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject };
-          if (error instanceof Error && error.message === "Client network socket disconnected before secure TLS connection was established") {
+          const temporaryErrorIndicators = [
+            "450 ",
+            "Client network socket disconnected before secure TLS connection was established",
+            "Too many requests",
+          ];
+          if (temporaryErrorIndicators.some(indicator => error instanceof Error && error.message.includes(indicator))) {
             // this can happen occasionally (especially with certain unreliable email providers)
-            // so let's retry one more time
+            // so let's retry
             console.warn("Failed to send email, but error is possibly transient so retrying.", extraData, error);
+            await wait((2 ** retries) * (Math.random() * 1000 + 1500));
             continue;
           }
           throw new StackAssertionError('Failed to send email', extraData, { cause: error });
