@@ -4,9 +4,9 @@ import { Area, AreaChart, XAxis } from 'recharts';
 import { PageLayout } from "../page-layout";
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { stackAppInternalsSymbol, useStackApp } from '@stackframe/stack';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@stackframe/stack-ui';
 import { useEffect, useState } from 'react';
+import { useAdminApp } from '../use-admin-app';
 
 
 type LineChartDisplayConfig = {
@@ -88,17 +88,17 @@ const dauConfig = {
 } satisfies LineChartDisplayConfig;
 
 export default function PageClient() {
-  const app = useStackApp();
   const [data, setData] = useState<any>(null);
+  const adminApp = useAdminApp();
 
   // TODO HACK: use Suspense for this instead
   useEffect(() => {
-    (app as any)[stackAppInternalsSymbol].sendRequest("/internal/metrics", {
+    adminApp.sendAdminRequest("/internal/metrics", {
       method: "GET",
     })
       .then((x: any) => x.json())
       .then((x: any)=> setData(x));
-  }, [app]);
+  }, [adminApp]);
 
 
   return (
@@ -108,11 +108,11 @@ export default function PageClient() {
           <h2>Key Metrics</h2>
           <LineChartDisplay
             config={totalUsersConfig}
-            datapoints={data.totalUsers}
+            datapoints={data.total_users}
           />
           <LineChartDisplay
             config={dauConfig}
-            datapoints={data.dailyActiveUsers}
+            datapoints={data.daily_active_users}
           />
         </>
       }

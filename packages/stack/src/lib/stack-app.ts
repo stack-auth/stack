@@ -2489,6 +2489,13 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   protected async _refreshApiKeys() {
     await this._apiKeysCache.refresh([]);
   }
+
+  async sendAdminRequest(
+    path: string,
+    requestOptions: RequestInit,
+  ) {
+    return await this._interface.sendAdminRequest(path, requestOptions, await this._getSession());
+  }
 }
 
 type _______________CONTACT_CHANNEL_______________ = never;  // this is a marker for VSCode's outline view
@@ -3381,6 +3388,7 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
     deleteTeamPermissionDefinition(permissionId: string): Promise<void>,
 
     useSvixToken(): string,
+    sendAdminRequest(path: string, requestOptions: RequestInit,): ReturnType<StackAdminInterface['sendAdminRequest']>,
   }
   & StackServerApp<HasTokenStore, ProjectId>
 );

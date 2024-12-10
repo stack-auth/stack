@@ -1,6 +1,6 @@
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { adaptSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, adminAuthTypeSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 type DataPoints = { date: string, activity: number }[];
 
@@ -89,8 +89,8 @@ export const GET = createSmartRouteHandler({
       statusCode: 200,
       bodyType: "json",
       body: {
-        totalUsers,
-        dailyActiveUsers,
+        total_users: totalUsers,
+        daily_active_users: dailyActiveUsers,
       }
     };
   },
