@@ -68,9 +68,8 @@ export const GET = createSmartRouteHandler({
   },
   request: yupObject({
     auth: yupObject({
-      type: adaptSchema,
-      user: adaptSchema,
-      project: adaptSchema,
+      type: adminAuthTypeSchema.defined(),
+      project: adaptSchema.defined(),
     }),
   }),
   response: yupObject({
