@@ -5,18 +5,12 @@ async function main() {
   console.log("Started docs schema generator");
 
   const endpoints = await listEndpoints("api/v1");
-  let schemaContent = '';
+  let schemaContent = 'type EndpointSchema = {\n';
 
   endpoints.forEach((handlersByMethod, url) => {
+    let endpointContent = '';
+
     handlersByMethod.forEach((handler, method) => {
-      console.log(`  ${method}`);
-
-      if (handler.overloads.size === 1) {
-        console.log('    overloads: 1');
-      } else {
-        console.log(`    overloads: ${handler.overloads.size}`);
-      }
-
       const audiences = new Map<string, any>();
       for (const overload of handler.overloads.values()) {
         for (const audience of ['client', 'server', 'admin'] as const) {
@@ -33,14 +27,22 @@ async function main() {
       }
 
       if (audiences.size === 0) {
-        schemaContent += schemaToTypeString(handler.overloads.values().next().value.request.describe());
+        endpointContent = '{\n  default: ' + schemaToTypeString(handler.overloads.values().next().value.request.describe()) + '\n  }';
       } else {
-        for (const audience of audiences.values()) {
-          schemaContent += schemaToTypeString(audience.request.describe()) + '\n\n';
-        }
+        endpointContent = '{\n' + Array.from(audiences.entries()).map(([audience, overload]) => {
+          return `  ${audience}: {\n` +
+            Object.entries(overload.request.describe().fields)
+              .map(([key, value]): any => `    ${key}: ${schemaToTypeString(value as any, 2)}`)
+              .join(',\n') +
+            '\n  }';
+        }).join(',\n') + '\n  }';
       }
     });
+
+    schemaContent += `"${url || '/'}": ${endpointContent},\n`;
   });
+
+  schemaContent += '}';
 
   fs.writeFileSync('schema.ts', schemaContent);
   console.log(`    Wrote schema to schema.ts`);
@@ -49,7 +51,7 @@ async function main() {
 function schemaToTypeString(schema: yup.SchemaFieldDescription, indent: number = 0): string {
   switch (schema.type) {
     case 'object': {
-      return '{\n' + Object.entries((schema as any).fields).map(([key, value]): any => `${'  '.repeat(indent + 1)}${key}: ${schemaToTypeString(value as any, indent + 1)}`).join(',\n') + '\n' + '  '.repeat(indent) + '}';
+      return '{\n' + Object.entries((schema as any).fields).map(([key, value]): any => `${'  '.repeat(indent + 1)}"${key}": ${schemaToTypeString(value as any, indent + 1)}`).join(',\n') + '\n' + '  '.repeat(indent) + '}';
     }
     case 'array': {
       return `${schemaToTypeString((schema as any).innerType, indent + 1)}[]`;
