@@ -15,7 +15,7 @@ type LineChartDisplayConfig = {
   chart: ChartConfig,
 }
 
-interface DataPoint {
+type DataPoint = {
   date: string,
   activity: number,
 }
