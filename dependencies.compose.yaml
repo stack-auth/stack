@@ -58,8 +58,6 @@ services:
   svix-redis:
     image: docker.io/redis:7-alpine
     command: --save 60 500 --appendonly yes --appendfsync everysec --requirepass PASSWORD-PLACEHOLDER--oVn8GSD6b9
-    ports:
-      - 6379:6379
     volumes:
       - svix-redis-data:/data
 
