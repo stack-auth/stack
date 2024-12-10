@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Area, AreaChart, XAxis } from 'recharts';
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from '../use-admin-app';
+import { GlobeSection } from './globe';
 
 
 type LineChartDisplayConfig = {
@@ -95,7 +96,8 @@ export default function PageClient() {
       method: "GET",
     })
       .then((x: any) => x.json())
-      .then((x: any)=> setData(x));
+      .then((x: any) => setData(x))
+      .catch((err: any) => { throw err; });
   }, [adminApp]);
 
 
@@ -103,7 +105,7 @@ export default function PageClient() {
     <PageLayout title="User Metric Dashboard">
       {
         data !== null && <>
-          <h2>Key Metrics</h2>
+          <GlobeSection countryData={data.users_by_country} />
           <LineChartDisplay
             config={totalUsersConfig}
             datapoints={data.total_users}

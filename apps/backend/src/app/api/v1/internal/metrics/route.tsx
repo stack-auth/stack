@@ -4,6 +4,33 @@ import { adaptSchema, adminAuthTypeSchema, yupMixed, yupNumber, yupObject, yupSt
 
 type DataPoints = { date: string, activity: number }[];
 
+async function loadUsersByCountry(projectId: string): Promise<Record<string, number>> {
+  const a = await prismaClient.$queryRaw<{countryCode: string|null, userCount: bigint}[]>`
+    WITH LatestEvent AS (
+        SELECT "data"->'userId' AS "userId",
+          "countryCode", MAX("eventStartedAt") AS latest_timestamp
+        FROM "Event"
+        LEFT JOIN "EventIpInfo" eip
+          ON "Event"."endUserIpInfoGuessId" = eip.id
+        WHERE '$user-activity' = ANY("systemEventTypeIds"::text[])
+          AND "data"->>'projectId' = ${projectId}
+        GROUP BY "userId", "countryCode"
+    )
+    SELECT "countryCode", COUNT(DISTINCT "userId") AS "userCount"
+    FROM LatestEvent
+    GROUP BY "countryCode"
+    ORDER BY "userCount" DESC;
+  `;
+
+  const rec: Record<string, number> = {};
+  a.forEach(({ userCount, countryCode }) => {
+    if (countryCode) {
+      rec[countryCode] = Number(userCount);
+    }
+  });
+  return rec;
+}
+
 async function loadTotalUsers(projectId: string, now: Date): Promise<DataPoints> {
   return (await prismaClient.$queryRaw<{date: Date, cumUsers: bigint}[]>`
     WITH date_series AS (
@@ -47,6 +74,7 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
       WHERE "eventStartedAt" >= ${now} - INTERVAL '1 month'
         AND "eventStartedAt" < ${now}
         AND '$user-activity' = ANY("systemEventTypeIds"::text[])
+        AND "data"->>'projectId' = ${projectId}
       GROUP BY DATE_TRUNC('day', "eventStartedAt")
     )
     SELECT ds."day", COALESCE(du.dau, 0) AS dau
@@ -80,9 +108,10 @@ export const GET = createSmartRouteHandler({
   handler: async (req) => {
     const now = new Date();
 
-    const [totalUsers, dailyActiveUsers] = await Promise.all([
+    const [totalUsers, dailyActiveUsers, usersByCountry] = await Promise.all([
       loadTotalUsers(req.auth.project.id, now),
       loadDailyActiveUsers(req.auth.project.id, now),
+      loadUsersByCountry(req.auth.project.id),
     ] as const);
 
     return {
@@ -91,6 +120,7 @@ export const GET = createSmartRouteHandler({
       body: {
         total_users: totalUsers,
         daily_active_users: dailyActiveUsers,
+        users_by_country: usersByCountry,
       }
     };
   },
