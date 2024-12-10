@@ -99,6 +99,7 @@ module.exports = {
         checksConditionals: true,
       },
     ],
+    "@typescript-eslint/consistent-type-definitions": ["error", "type"],
     "no-restricted-imports": [
       "error",
       {
