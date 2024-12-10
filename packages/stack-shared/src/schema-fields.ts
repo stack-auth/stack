@@ -9,6 +9,7 @@ import { isValidUrl } from "./utils/urls";
 import { isUuid } from "./utils/uuids";
 
 declare module "yup" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface StringSchema<TType, TContext, TDefault, TFlags> {
     nonEmpty(message?: string): StringSchema<TType, TContext, TDefault, TFlags>,
   }
@@ -225,9 +226,9 @@ export const strictEmailSchema = (message: string | undefined) => yupString().em
 export const emailSchema = yupString().email();
 
 // Request auth
-export const clientOrHigherAuthTypeSchema = yupString().oneOf(['client', 'server', 'admin']);
-export const serverOrHigherAuthTypeSchema = yupString().oneOf(['server', 'admin']);
-export const adminAuthTypeSchema = yupString().oneOf(['admin']);
+export const clientOrHigherAuthTypeSchema = yupString().oneOf(['client', 'server', 'admin']).defined();
+export const serverOrHigherAuthTypeSchema = yupString().oneOf(['server', 'admin']).defined();
+export const adminAuthTypeSchema = yupString().oneOf(['admin']).defined();
 
 // Projects
 export const projectIdSchema = yupString().test((v) => v === undefined || v === "internal" || isUuid(v)).meta({ openapiField: { description: _idDescription('project'), exampleValue: 'e0b52f4d-dece-408c-af49-d23061bb0f8d' } });

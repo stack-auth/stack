@@ -9,7 +9,7 @@ import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/
 import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
 import { Spinner } from "./spinner";
 
-interface OriginalSwitchProps extends React.ComponentProps<typeof SwitchPrimitives.Root> {}
+type OriginalSwitchProps = {} & React.ComponentProps<typeof SwitchPrimitives.Root>
 
 const OriginalSwitch = forwardRefIfNeeded<
   React.ElementRef<typeof SwitchPrimitives.Root>,
@@ -31,11 +31,11 @@ const OriginalSwitch = forwardRefIfNeeded<
   </SwitchPrimitives.Root>
 ));
 OriginalSwitch.displayName = SwitchPrimitives.Root.displayName;
-interface AsyncSwitchProps extends OriginalSwitchProps {
+type AsyncSwitchProps = {
   onCheckedChange?: (checked: boolean) => Promise<void> | void,
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => Promise<void> | void,
   loading?: boolean,
-}
+} & OriginalSwitchProps
 
 const Switch = forwardRefIfNeeded<
   React.ElementRef<typeof SwitchPrimitives.Root>,

@@ -15,7 +15,7 @@ import { Column } from "@tanstack/react-table";
 import { ListFilter } from "lucide-react";
 import React from "react";
 
-interface DataTableFacetedFilterProps<TData, TValue> {
+type DataTableFacetedFilterProps<TData, TValue> = {
   column?: Column<TData, TValue>,
   title?: string,
   options: {
