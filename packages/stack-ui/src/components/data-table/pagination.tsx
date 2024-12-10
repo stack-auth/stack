@@ -8,7 +8,7 @@ import {
 } from "@stackframe/stack-ui";
 import { Table } from "@tanstack/react-table";
 
-interface DataTablePaginationProps<TData> {
+type DataTablePaginationProps<TData> = {
   table: Table<TData>,
 }
 
