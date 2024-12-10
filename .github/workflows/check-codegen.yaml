@@ -67,10 +67,11 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Store Quetzal API key in packages/stack/.env.local
+        run: echo "QUETZAL_API_KEY=${{ secrets.QUETZAL_API_KEY }}" > packages/stack/.env.local
+
       - name: Run code gen
         run: pnpm codegen
-        env:
-          QUETZAL_API_KEY: ${{ secrets.QUETZAL_API_KEY }}
       
       - name: Check for uncommitted changes
         run: |
