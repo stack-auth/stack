@@ -63,7 +63,10 @@
     "wait-on": "^8.0.1"
   },
   "pnpm": {
-    "overrides": {}
+    "overrides": {
+      "@types/react": "^18.2.0",
+      "@types/react-dom": "^18.2.0"
+    }
   },
   "engines": {
     "npm": ">=10.0.0",

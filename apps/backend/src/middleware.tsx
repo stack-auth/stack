@@ -54,8 +54,7 @@ export async function middleware(request: NextRequest) {
   const isApiRequest = url.pathname.startsWith('/api/');
 
   const newRequestHeaders = new Headers(request.headers);
-  // store the direct IP address of the requester or proxy so we can read it with `headers()` later
-  newRequestHeaders.set("x-stack-direct-requester-or-proxy-ip", request.ip ?? '');
+  // here we could update the request headers (currently we don't)
 
   const responseInit = isApiRequest ? {
     request: {

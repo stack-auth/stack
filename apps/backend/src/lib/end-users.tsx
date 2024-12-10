@@ -1,5 +1,5 @@
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { assertIpAddress, isIpAddress } from "@stackframe/stack-shared/dist/utils/ips";
+import { isIpAddress } from "@stackframe/stack-shared/dist/utils/ips";
 import { pick } from "@stackframe/stack-shared/dist/utils/objects";
 import { headers } from "next/headers";
 
@@ -66,7 +66,7 @@ export async function getEndUserInfo(): Promise<
   | { maybeSpoofed: false, exactInfo: EndUserInfoInner }
   | null
 > {
-  const allHeaders = headers();
+  const allHeaders = await headers();
 
   // note that this is just the requester claiming to be a browser; we can't trust them as they could just fake the
   // headers
@@ -84,7 +84,6 @@ export async function getEndUserInfo(): Promise<
       ?? allHeaders.get("x-vercel-forwarded-for")
       ?? allHeaders.get("x-real-ip")
       ?? allHeaders.get("x-forwarded-for")?.split(",").at(0)
-      ?? allHeaders.get("x-stack-direct-requester-or-proxy-ip")
       ?? undefined;
     if (!ip || !isIpAddress(ip)) {
       console.warn("getEndUserIp() found IP address in headers, but is invalid. This is most likely a misconfigured client", { ip, headers: Object.fromEntries(allHeaders) });

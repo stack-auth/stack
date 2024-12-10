@@ -58,6 +58,8 @@ services:
   svix-redis:
     image: docker.io/redis:7-alpine
     command: --save 60 500 --appendonly yes --appendfsync everysec --requirepass PASSWORD-PLACEHOLDER--oVn8GSD6b9
+    ports:
+      - 6379:6379
     volumes:
       - svix-redis-data:/data
 
@@ -65,7 +67,7 @@ services:
     image: svix/svix-server
     environment:
       WAIT_FOR: 'true'
-      SVIX_REDIS_DSN: redis://placeholder-username:PASSWORD-PLACEHOLDER--oVn8GSD6b9@svix-redis:6379
+      SVIX_REDIS_DSN: redis://:PASSWORD-PLACEHOLDER--oVn8GSD6b9@svix-redis:6379
       SVIX_DB_DSN: postgres://postgres:PASSWORD-PLACEHOLDER--KsoIMcchtp@svix-db:5432/svix
       SVIX_CACHE_TYPE: memory
       SVIX_JWT_SECRET: secret
