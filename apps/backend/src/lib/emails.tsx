@@ -89,7 +89,7 @@ export async function sendEmail({
         },
       });
 
-      for (let retries = 0; retries < 3; retries++) {
+      for (let retry = 0; retry < 3; retry++) {
         try {
           return await transporter.sendMail({
             from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
@@ -111,7 +111,7 @@ export async function sendEmail({
             // this can happen occasionally (especially with certain unreliable email providers)
             // so let's retry
             console.warn("Failed to send email, but error is possibly transient so retrying.", extraData, error);
-            await wait((2 ** retries) * (Math.random() * 1000 + 1500));
+            await wait((2 ** retry) * (Math.random() * 1000 + 1500));
             continue;
           }
           throw new StackAssertionError('Failed to send email', extraData, { cause: error });
