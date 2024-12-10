@@ -24,7 +24,7 @@ const Command: React.FC<React.ComponentPropsWithoutRef<typeof CommandPrimitive>>
 ));
 Command.displayName = CommandPrimitive.displayName;
 
-interface CommandDialogProps extends DialogProps {}
+type CommandDialogProps = {} & DialogProps
 
 const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (

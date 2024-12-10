@@ -61,7 +61,7 @@ export const GET = createSmartRouteHandler({
       throw new KnownErrors.InvalidOAuthClientIdOrSecret(query.client_id);
     }
 
-    if (!await checkApiKeySet(query.client_id, { publishableClientKey: query.client_secret })) {
+    if (!(await checkApiKeySet(query.client_id, { publishableClientKey: query.client_secret }))) {
       throw new KnownErrors.InvalidPublishableClientKey(query.client_id);
     }
 
@@ -124,7 +124,7 @@ export const GET = createSmartRouteHandler({
 
     // prevent CSRF by keeping track of the inner state in cookies
     // the callback route must ensure that the inner state cookie is set
-    cookies().set(
+    (await cookies()).set(
       "stack-oauth-inner-" + innerState,
       "true",
       {
