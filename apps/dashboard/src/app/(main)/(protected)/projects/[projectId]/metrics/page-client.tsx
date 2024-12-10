@@ -113,7 +113,6 @@ export default function PageClient() {
             config={dauConfig}
             datapoints={data.dailyActiveUsers}
           />
-          <h2>Demographic Breakdownz</h2>
         </>
       }
     </PageLayout>
