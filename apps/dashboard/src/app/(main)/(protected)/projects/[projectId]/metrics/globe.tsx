@@ -48,13 +48,19 @@ export function GlobeSection({ countryData }: {countryData: Record<string, numbe
   }, []);
 
   useEffect(() => {
-    if (!globeRef.current) return;
-    globeRef.current.controls().minDistance = globeRef.current.getGlobeRadius();
-    globeRef.current.controls().maxDistance = globeRef.current.getGlobeRadius() * 2;
+    if (globeRef.current) {
+      globeRef.current.pointOfView({ altitude: 1 });
+    }
   }, [globeRef]);
 
-  return <div className='flex w-full gap-4'>
-    <div ref={ref} className='w-8/12 rounded-md h-[500px]'>
+  // useEffect(() => {
+  //   if (!globeRef.current) return;
+  //   globeRef.current.controls().minDistance = globeRef.current.getGlobeRadius();
+  //   globeRef.current.controls().maxDistance = globeRef.current.getGlobeRadius() * 2;
+  // }, [globeRef]);
+
+  return <div className='flex w-full gap-4 flex-col xl:flex-row'>
+    <div ref={ref} className='w-full xl:w-8/12 rounded-lg h-[500px] border border-1 border-border overflow-hidden'>
       <Globe
         ref={globeRef}
         globeImageUrl='/static/globe_background.png'
@@ -88,7 +94,7 @@ export function GlobeSection({ countryData }: {countryData: Record<string, numbe
         ringColor={() => "#7CACFF"}
       />
     </div>
-    <div className='w-4/12'>
+    <div className='w-full xl:w-4/12'>
       {selectedCountry && <Card>
         <CardHeader>
           <CardTitle className='text-2xl'>{selectedCountryName}</CardTitle>
