@@ -24,11 +24,11 @@ function removeStacktraceNameLine(stack: string): string {
 
 
 /**
- * Concatenates the stacktraces of the given errors onto the first.
+ * Concatenates the (original) stacktraces of the given errors onto the first.
  *
  * Useful when you invoke an async function to receive a promise without awaiting it immediately. Browsers are smart
  * enough to keep track of the call stack in async function calls when you invoke `.then` within the same async tick,
- * but if you don't,
+ * but if you don't, the stacktrace will be lost.
  *
  * Here's an example of the unwanted behavior:
  *

@@ -232,8 +232,9 @@ function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, Result<T>>, depe
   const result = React.use(promise);
   if (result.status === "error") {
     const error = result.error;
-    if (error instanceof Error) {
+    if (error instanceof Error && !(error as any).__stackHasConcatenatedStacktraces) {
       concatStacktraces(error, new Error());
+      (error as any).__stackHasConcatenatedStacktraces = true;
     }
     throw error;
   }
@@ -288,6 +289,25 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserCache = createCacheBySession(async (session) => {
     if (this.__DEMO_ENABLE_SLIGHT_FETCH_DELAY) {
       await wait(2000);
+    }
+    if (session.isKnownToBeInvalid()) {
+      // let's save ourselves a network request
+      //
+      // this also makes a certain race condition less likely to happen. particularly, it's quite common for code to
+      // look like this:
+      //
+      //     const user = await useUser({ or: "required" });
+      //     const something = user.useSomething();
+      //
+      // now, let's say the session is invalidated. this will trigger a refresh to refresh both the user and the
+      // something. however, it's not guaranteed that the user will return first, so useUser might still return a
+      // user object while the something request has already completed (and failed, because the session is invalid).
+      // by returning null quickly here without a request, it is very very likely for the user request to complete
+      // first.
+      //
+      // TODO HACK: the above is a bit of a hack, and we should probably think of more consistent ways to handle this.
+      // it also only works for the user endpoint, and only if the session is known to be invalid.
+      return null;
     }
     return await this._interface.getClientUserByToken(session);
   });
@@ -1617,7 +1637,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       toClientJson: (): StackClientAppJson<HasTokenStore, ProjectId> => {
         if (!("publishableClientKey" in this._interface.options)) {
           // TODO find a way to do this
-          throw Error("Cannot serialize to JSON from an application without a publishable client key");
+          throw new StackAssertionError("Cannot serialize to JSON from an application without a publishable client key");
         }
 
         return {
@@ -1652,6 +1672,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   // TODO override the client user cache to use the server user cache, so we save some requests
   private readonly _currentServerUserCache = createCacheBySession(async (session) => {
+    if (session.isKnownToBeInvalid()) {
+      // see comment in _currentUserCache for more details on why we do this
+      return null;
+    }
     return await this._interface.getServerUserByToken(session);
   });
   private readonly _serverUsersCache = createCache<[
