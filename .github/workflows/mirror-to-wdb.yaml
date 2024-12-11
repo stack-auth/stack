@@ -10,7 +10,7 @@ jobs:
     permissions:
       contents: write
 
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-16
 
     steps:
       - uses: actions/checkout@v3
