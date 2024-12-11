@@ -69,6 +69,7 @@ export function GlobeSection({ countryData }: {countryData: Record<string, numbe
         hexPolygonsData={countries.features}
         hexPolygonResolution={3}
         hexPolygonMargin={0.2}
+        hexPolygonAltitude={0.02}
         hexPolygonColor={(d: any) => {
           const count = countryData[d.properties.ISO_A2];
           const clamped = count ? count / maxCountryCount : 0; // 0 for smallest, 1 for biggest
