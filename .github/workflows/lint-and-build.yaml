@@ -12,7 +12,7 @@ on:
 
 jobs:
   lint_and_build:
-    runs-on: ubicloud-standard-16
+    runs-on: ubicloud-standard-30
 
     strategy:
       matrix:
