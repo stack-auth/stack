@@ -3,6 +3,7 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { getBrowserCompatibilityProblems } from "@stackframe/stack-shared/dist/utils/browser-compat";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 
 Sentry.init({
@@ -54,6 +55,7 @@ Sentry.init({
           ...error,
         },
         nicifiedError: nicified,
+        clientBrowserCompatibility: getBrowserCompatibilityProblems(),
       };
     }
     return event;

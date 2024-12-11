@@ -3,7 +3,6 @@
 import { UserTable } from "@/components/data-table/user-table";
 import { StyledLink } from "@/components/link";
 import { UserDialog } from "@/components/user-dialog";
-import { getBrowserCompatibilityProblems } from "@stackframe/stack-shared/dist/utils/browser-compat";
 import { Alert, Button } from "@stackframe/stack-ui";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
@@ -12,9 +11,6 @@ export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
   const firstUser = stackAdminApp.useUsers({ limit: 1 });
-
-  console.log(getBrowserCompatibilityProblems());
-
 
   return (
     <PageLayout
