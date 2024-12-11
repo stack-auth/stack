@@ -12,7 +12,7 @@ on:
 
 jobs:
   check_codegen:
-    runs-on: ubicloud-standard-4
+    runs-on: ubicloud-standard-8
 
     strategy:
       matrix:
@@ -84,7 +84,7 @@ jobs:
 
   
   check_prisma_migrations:
-    runs-on: ubicloud-standard-4
+    runs-on: ubicloud-standard-8
 
     strategy:
       matrix:
