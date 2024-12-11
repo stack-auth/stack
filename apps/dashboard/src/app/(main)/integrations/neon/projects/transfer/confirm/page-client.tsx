@@ -30,14 +30,14 @@ export default function NeonIntegrationProjectTransferConfirmPageClient() {
             position: "absolute",
             width: 40,
             height: 6,
-            backgroundImage: "repeating-linear-gradient(135deg, #00ff00, #ffffff)",
+            backgroundImage: "repeating-linear-gradient(135deg, #ccc, #ccc)",
             transform: "rotate(-45deg)",
           }} />
           <div style={{
             position: "absolute",
             width: 40,
             height: 6,
-            backgroundImage: "repeating-linear-gradient(45deg, #00ff00, #ffffff)",
+            backgroundImage: "repeating-linear-gradient(45deg, #ccc, #ccc)",
             transform: "rotate(45deg)",
           }} />
         </div>
@@ -46,14 +46,14 @@ export default function NeonIntegrationProjectTransferConfirmPageClient() {
             position: "absolute",
             width: 40,
             height: 6,
-            backgroundImage: "repeating-linear-gradient(135deg, #00ff00, #000000)",
+            backgroundImage: "repeating-linear-gradient(135deg, #52525B, #52525B)",
             transform: "rotate(-45deg)",
           }} />
           <div style={{
             position: "absolute",
             width: 40,
             height: 6,
-            backgroundImage: "repeating-linear-gradient(45deg, #00ff00, #000000)",
+            backgroundImage: "repeating-linear-gradient(45deg, #52525B, #52525B)",
             transform: "rotate(45deg)",
           }} />
         </div>
