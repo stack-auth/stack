@@ -3,7 +3,7 @@ name: TOC Generator
 jobs:
   generateTOC:
     name: TOC Generator
-    runs-on: ubicloud-standard-8
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
