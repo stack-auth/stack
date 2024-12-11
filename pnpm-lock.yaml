@@ -1198,9 +1198,6 @@ importers:
       react-dom:
         specifier: ^18.2
         version: 18.2.0(react@18.2.0)
-      recharts:
-        specifier: ^2.14.1
-        version: 2.14.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       rimraf:
         specifier: ^5.0.10
         version: 5.0.10
@@ -20851,14 +20848,6 @@ snapshots:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
-  react-smooth@4.0.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
-    dependencies:
-      fast-equals: 5.0.1
-      prop-types: 15.8.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      react-transition-group: 4.4.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-
   react-smooth@4.0.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       fast-equals: 5.0.1
@@ -20884,15 +20873,6 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 18.3.12
-
-  react-transition-group@4.4.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
-    dependencies:
-      '@babel/runtime': 7.26.0
-      dom-helpers: 5.2.1
-      loose-envify: 1.4.0
-      prop-types: 15.8.1
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
 
   react-transition-group@4.4.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -20964,19 +20944,6 @@ snapshots:
   recharts-scale@0.4.5:
     dependencies:
       decimal.js-light: 2.5.1
-
-  recharts@2.14.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
-    dependencies:
-      clsx: 2.1.1
-      eventemitter3: 4.0.7
-      lodash: 4.17.21
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
-      react-is: 18.3.1
-      react-smooth: 4.0.3(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      recharts-scale: 0.4.5
-      tiny-invariant: 1.3.3
-      victory-vendor: 36.9.2
 
   recharts@2.14.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:

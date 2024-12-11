@@ -1,6 +1,7 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@stackframe/stack-ui';
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@stackframe/stack-ui';
 import { useEffect, useState } from 'react';
 import { Area, AreaChart, XAxis } from 'recharts';
 import { PageLayout } from "../page-layout";
