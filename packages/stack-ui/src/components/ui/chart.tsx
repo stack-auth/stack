@@ -1,14 +1,15 @@
 "use client";
 
 import * as React from "react";
-import * as RechartsPrimitive from "recharts";
-import {
-  NameType,
-  Payload,
-  ValueType,
-} from "recharts/types/component/DefaultTooltipContent";
 
+import dynamic from 'next/dynamic';
 import { cn } from "../../lib/utils";
+
+import type * as RechartsPrimitive from 'recharts';
+
+const RechartsPrimitiveTooltip = dynamic(() => import('recharts').then(x => x.Tooltip) as any);
+const RechartsPrimitiveResponsiveContainer = dynamic(() => import('recharts').then(x => x.ResponsiveContainer));
+const RechartsPrimitiveLegend = dynamic(() => import('recharts').then(x => x.Legend) as any);
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
@@ -63,9 +64,9 @@ const ChartContainer = React.forwardRef<
         {...props}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer>
+        <RechartsPrimitiveResponsiveContainer>
           {children}
-        </RechartsPrimitive.ResponsiveContainer>
+        </RechartsPrimitiveResponsiveContainer>
       </div>
     </ChartContext.Provider>
   );
@@ -105,7 +106,7 @@ ${colorConfig
   );
 };
 
-const ChartTooltip = RechartsPrimitive.Tooltip;
+const ChartTooltip = RechartsPrimitiveTooltip;
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
@@ -261,7 +262,7 @@ const ChartTooltipContent = React.forwardRef<
 );
 ChartTooltipContent.displayName = "ChartTooltip";
 
-const ChartLegend = RechartsPrimitive.Legend;
+const ChartLegend = RechartsPrimitiveLegend;
 
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
@@ -361,10 +362,8 @@ function getPayloadConfigFromPayload(
 }
 
 export {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
+  ChartContainer, ChartLegend,
   ChartLegendContent,
-  ChartStyle,
+  ChartStyle, ChartTooltip,
+  ChartTooltipContent
 };
