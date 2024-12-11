@@ -50,12 +50,16 @@ function urlMatch(url: string, nextPattern: string): Record<string, any> | null 
 export function createMigrationRoute(newEndpoints: Endpoints) {
   return typedFromEntries(HTTP_METHODS.map((method) => {
     return [method, (req: NextRequest) => {
-      for (const url of Object.keys(newEndpoints)) {
+      for (const [url, endpointMethods] of Object.entries(newEndpoints)) {
         const match = urlMatch(new URL(req.url).pathname.replace('v2', 'v1'), url);
         if (!match) {
-          return NextResponse.json({ error: 'Not Found' }, { status: 404 });
+          return new NextResponse(null, { status: 404 });
         } else {
-          return NextResponse.json({ match, url: req.url, nextUrl: url });
+          if (endpointMethods[method]) {
+            return NextResponse.json({ match, url: req.url, nextUrl: url });
+          } else {
+            return new NextResponse(null, { status: 405 });
+          }
         }
       }
     }];
