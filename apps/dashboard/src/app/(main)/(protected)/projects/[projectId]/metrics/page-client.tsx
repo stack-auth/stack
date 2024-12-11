@@ -5,12 +5,12 @@ import { useEffect, useState } from 'react';
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from '../use-admin-app';
 import { GlobeSection } from './globe';
-import { LineChartDisplay, LineChartDisplayConfig, MiniLineChartDisplay } from './line-chart';
+import { LineChartDisplay, LineChartDisplayConfig } from './line-chart';
 
 
-const totalUsersConfig = {
-  name: 'Total Users',
-  description: 'Total number of users across the service',
+const dailyRegistrationsConfig = {
+  name: 'Daily Registrations',
+  description: 'User registration over the last 30 days',
   chart: {
     activity: {
       label: "Activity",
@@ -21,7 +21,7 @@ const totalUsersConfig = {
 
 const dauConfig = {
   name: 'Daily Active Users',
-  description: 'Daily unique user login, over the last 30 days',
+  description: 'Unique daily user activity over the last 30 days',
   chart: {
     activity: {
       label: "Activity",
@@ -53,7 +53,7 @@ export default function PageClient() {
             <Card>
               <CardContent>
                 <CardTitle className='text-2xl'>
-                  {data.total_users[data.total_users.length - 1].activity}
+                  {data.total_users}
                 </CardTitle>
                 <CardDescription className='text-xl'>Total Users</CardDescription>
               </CardContent>
@@ -66,8 +66,8 @@ export default function PageClient() {
             </Card>
           </GlobeSection>
           <LineChartDisplay
-            config={totalUsersConfig}
-            datapoints={data.total_users}
+            config={dailyRegistrationsConfig}
+            datapoints={data.daily_users}
           />
           <LineChartDisplay
             config={dauConfig}

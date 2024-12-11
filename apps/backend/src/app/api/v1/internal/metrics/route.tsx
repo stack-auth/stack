@@ -4,6 +4,7 @@ import { adaptSchema, adminAuthTypeSchema, yupMixed, yupNumber, yupObject, yupSt
 
 type DataPoints = { date: string, activity: number }[];
 
+
 async function loadUsersByCountry(projectId: string): Promise<Record<string, number>> {
   const a = await prismaClient.$queryRaw<{countryCode: string|null, userCount: bigint}[]>`
     WITH LatestEvent AS (
@@ -32,7 +33,7 @@ async function loadUsersByCountry(projectId: string): Promise<Record<string, num
 }
 
 async function loadTotalUsers(projectId: string, now: Date): Promise<DataPoints> {
-  return (await prismaClient.$queryRaw<{date: Date, cumUsers: bigint}[]>`
+  return (await prismaClient.$queryRaw<{date: Date, dailyUsers: bigint, cumUsers: bigint}[]>`
     WITH date_series AS (
         SELECT GENERATE_SERIES(
           ${now}::date - INTERVAL '1 month',
@@ -52,7 +53,7 @@ async function loadTotalUsers(projectId: string, now: Date): Promise<DataPoints>
     ORDER BY ds.registration_day
   `).map((x) => ({
     date: x.date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
-    activity: Number(x.cumUsers),
+    activity: Number(x.dailyUsers),
   }));
 }
 
@@ -108,7 +109,10 @@ export const GET = createSmartRouteHandler({
   handler: async (req) => {
     const now = new Date();
 
-    const [totalUsers, dailyActiveUsers, usersByCountry] = await Promise.all([
+    const [total_users, dailyUsers, dailyActiveUsers, usersByCountry] = await Promise.all([
+      prismaClient.projectUser.count({
+        where: { projectId: req.auth.project.id, },
+      }),
       loadTotalUsers(req.auth.project.id, now),
       loadDailyActiveUsers(req.auth.project.id, now),
       loadUsersByCountry(req.auth.project.id),
@@ -118,7 +122,8 @@ export const GET = createSmartRouteHandler({
       statusCode: 200,
       bodyType: "json",
       body: {
-        total_users: totalUsers,
+        total_users,
+        daily_users: dailyUsers,
         daily_active_users: dailyActiveUsers,
         users_by_country: usersByCountry,
       }

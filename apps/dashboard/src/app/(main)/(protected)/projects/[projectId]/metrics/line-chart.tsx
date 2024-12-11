@@ -37,7 +37,6 @@ export function LineChartDisplay({
             />
             <Area
               dataKey="activity"
-              type="step"
               fill="var(--color-activity)"
               fillOpacity={0.4}
               stroke="var(--color-activity)"
