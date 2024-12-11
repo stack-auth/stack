@@ -28,7 +28,6 @@
     "next": ">=14.1.0 || >=15.0.0-rc.0",
     "react": ">=18.2 || >=19.0.0-rc.0",
     "react-dom": ">=18.2 || >=19.0.0-rc.0",
-    "recharts": "^2.14.1",
     "yup": "^1.4.0"
   },
   "peerDependenciesMeta": {
@@ -84,14 +83,15 @@
     "react-day-picker": "^8.10.1",
     "react-hook-form": "^7.53.1",
     "react-resizable-panels": "^2.1.6",
+    "recharts": "^2.14.1",
     "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
+    "@types/react": "^18.2.12",
+    "@types/react-dom": "^18.2.12",
     "next": "^14.1.0",
     "react": "^18.2",
     "react-dom": "^18.2",
-    "rimraf": "^5.0.10",
-    "@types/react": "^18.2.12",
-    "@types/react-dom": "^18.2.12"
+    "rimraf": "^5.0.10"
   }
 }
