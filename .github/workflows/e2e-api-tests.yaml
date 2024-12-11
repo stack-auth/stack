@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubicloud-standard-2
+    runs-on: ubicloud-standard-4
     env:
       NODE_ENV: test
       STACK_ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING: yes

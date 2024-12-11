@@ -7,7 +7,7 @@ on:
 
 jobs:
   run:
-    runs-on: ubicloud-standard-2
+    runs-on: ubicloud-standard-4
     env:
       NEXT_PUBLIC_STACK_API_URL: http://localhost:8102
       NEXT_PUBLIC_STACK_PROJECT_ID: internal

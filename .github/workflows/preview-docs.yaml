@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   run:
-    runs-on: ubicloud-standard-2
+    runs-on: ubicloud-standard-4
 
     permissions: write-all
 
