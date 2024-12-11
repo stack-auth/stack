@@ -35,6 +35,7 @@ COPY --from=pruner /app/out/pnpm-lock.yaml .
 COPY .gitignore .
 COPY pnpm-workspace.yaml .
 COPY turbo.json .
+RUN cat ./pnpm-lock.yaml
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 # copy over the rest of the code for the build
