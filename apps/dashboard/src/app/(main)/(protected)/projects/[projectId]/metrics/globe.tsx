@@ -1,5 +1,5 @@
 import useResizeObserver from '@react-hook/resize-observer';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@stackframe/stack-ui';
+import { Card, CardContent, CardDescription, CardTitle } from '@stackframe/stack-ui';
 import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Globe, { GlobeMethods } from 'react-globe.gl';
 
@@ -28,7 +28,7 @@ const PLACEHOLDER_COUNTRY_DATA: Record<string, number> = {
   'KR': 89,
 };
 
-export function GlobeSection({ countryData }: {countryData: Record<string, number>}) {
+export function GlobeSection({ countryData, children }: {countryData: Record<string, number>, children?: React.ReactNode}) {
   const globeRef = useRef<GlobeMethods>();
   const ref = useRef<HTMLDivElement>(null);
   const size = useSize(ref);
@@ -60,7 +60,7 @@ export function GlobeSection({ countryData }: {countryData: Record<string, numbe
   // }, [globeRef]);
 
   return <div className='flex w-full gap-4 flex-col xl:flex-row'>
-    <div ref={ref} className='w-full xl:w-8/12 rounded-lg h-[500px] border border-1 border-border overflow-hidden'>
+    <div ref={ref} className='w-full xl:w-8/12 rounded-lg h-[300px] xl:h-[500px] border border-1 border-border overflow-hidden'>
       <Globe
         ref={globeRef}
         globeImageUrl='/static/globe_background.png'
@@ -95,18 +95,18 @@ export function GlobeSection({ countryData }: {countryData: Record<string, numbe
         ringColor={() => "#7CACFF"}
       />
     </div>
-    <div className='w-full xl:w-4/12'>
-      {selectedCountry && <Card>
-        <CardHeader>
-          <CardTitle className='text-2xl'>{selectedCountryName}</CardTitle>
-          <CardDescription className='text-xl'>
-            {countryData[selectedCountry] ?? 0} users
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {/* <p>Card Content</p> */}
-        </CardContent>
-      </Card>}
+    <div className='h-full w-full xl:w-4/12 flex flex-col gap-4'>
+      {children}
+      {selectedCountry &&
+        <Card>
+          <CardContent>
+            <CardTitle className='text-2xl'>{selectedCountryName}</CardTitle>
+            <CardDescription className='text-xl'>
+              {countryData[selectedCountry] ?? 0} users
+            </CardDescription>
+          </CardContent>
+        </Card>
+      }
     </div>
   </div>;
 }

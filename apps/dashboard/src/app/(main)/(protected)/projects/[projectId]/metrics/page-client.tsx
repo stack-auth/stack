@@ -1,10 +1,11 @@
 'use client';
 
+import { Card, CardContent, CardDescription, CardTitle } from '@stackframe/stack-ui';
 import { useEffect, useState } from 'react';
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from '../use-admin-app';
 import { GlobeSection } from './globe';
-import { LineChartDisplay, LineChartDisplayConfig } from './line-chart';
+import { LineChartDisplay, LineChartDisplayConfig, MiniLineChartDisplay } from './line-chart';
 
 
 const totalUsersConfig = {
@@ -48,7 +49,22 @@ export default function PageClient() {
     <PageLayout title="User Metric Dashboard">
       {
         data !== null && <>
-          <GlobeSection countryData={data.users_by_country} />
+          <GlobeSection countryData={data.users_by_country}>
+            <Card>
+              <CardContent>
+                <CardTitle className='text-2xl'>
+                  {data.total_users[data.total_users.length - 1].activity}
+                </CardTitle>
+                <CardDescription className='text-xl'>Total Users</CardDescription>
+              </CardContent>
+              <CardContent>
+                <CardTitle className='text-2xl'>
+                  {data.daily_active_users[data.daily_active_users.length - 1].activity}
+                </CardTitle>
+                <CardDescription className='text-xl'>Active Users Today</CardDescription>
+              </CardContent>
+            </Card>
+          </GlobeSection>
           <LineChartDisplay
             config={totalUsersConfig}
             datapoints={data.total_users}
@@ -57,11 +73,6 @@ export default function PageClient() {
             config={dauConfig}
             datapoints={data.daily_active_users}
           />
-
-          {/* <MiniLineChartDisplay
-            config={totalUsersConfig}
-            datapoints={data.total_users}
-          /> */}
         </>
       }
     </PageLayout>
