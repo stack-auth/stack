@@ -1027,11 +1027,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async update(update) {
         return await app._updateClientUser(update, session);
       },
-      async sendVerificationEmail() {
+      async sendVerificationEmail(options?: { callbackUrl?: string }) {
         if (!crud.primary_email) {
           throw new StackAssertionError("User does not have a primary email");
         }
-        return await app._sendVerificationEmail(crud.primary_email, session);
+        if (!options?.callbackUrl && typeof window === "undefined") {
+          throw new Error("Cannot send verification email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendVerificationEmail({ callbackUrl: ... })`");
+        }
+        return await app._interface.sendVerificationEmail(crud.primary_email, options?.callbackUrl ?? constructRedirectUrl(app.urls.emailVerification), session);
       },
       async updatePassword(options: { oldPassword: string, newPassword: string}) {
         const result = await app._interface.updatePassword(options, session);
@@ -1185,14 +1188,18 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToError(options?: RedirectToOptions) { return await this._redirectToHandler("error", options); }
   async redirectToTeamInvitation(options?: RedirectToOptions) { return await this._redirectToHandler("teamInvitation", options); }
 
-  async sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>> {
-    const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
-    return await this._interface.sendForgotPasswordEmail(email, redirectUrl);
+  async sendForgotPasswordEmail(email: string, options?: { callbackUrl?: string }): Promise<Result<undefined, KnownErrors["UserNotFound"]>> {
+    if (!options?.callbackUrl && typeof window === "undefined") {
+      throw new Error("Cannot send forgot password email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendForgotPasswordEmail({ email, callbackUrl: ... })`");
+    }
+    return await this._interface.sendForgotPasswordEmail(email, options?.callbackUrl ?? constructRedirectUrl(this.urls.passwordReset));
   }
 
-  async sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>> {
-    const magicLinkRedirectUrl = constructRedirectUrl(this.urls.magicLinkCallback);
-    return await this._interface.sendMagicLinkEmail(email, magicLinkRedirectUrl);
+  async sendMagicLinkEmail(email: string, options?: { callbackUrl?: string }): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>> {
+    if (!options?.callbackUrl && typeof window === "undefined") {
+      throw new Error("Cannot send magic link email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendMagicLinkEmail({ email, callbackUrl: ... })`");
+    }
+    return await this._interface.sendMagicLinkEmail(email, options?.callbackUrl ?? constructRedirectUrl(this.urls.magicLinkCallback));
   }
 
   async resetPassword(options: { password: string, code: string }): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
@@ -1517,11 +1524,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  protected async _sendVerificationEmail(email: string, session: InternalSession): Promise<KnownErrors["EmailAlreadyVerified"] | void> {
-    const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
-    return await this._interface.sendVerificationEmail(email, emailVerificationRedirectUrl, session);
-  }
-
   async signOut(options?: { redirectUrl?: URL | string }): Promise<void> {
     const user = await this.getUser();
     if (user) {
@@ -1757,8 +1759,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       isVerified: crud.is_verified,
       isPrimary: crud.is_primary,
       usedForAuth: crud.used_for_auth,
-      async sendVerificationEmail() {
-        await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, constructRedirectUrl(app.urls.emailVerification));
+      async sendVerificationEmail(options?: { callbackUrl?: string }) {
+        if (!options?.callbackUrl && typeof window === "undefined") {
+          throw new Error("Cannot invite user without a callback URL from the server. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
+        }
+
+        await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, options?.callbackUrl ?? constructRedirectUrl(app.urls.emailVerification));
       },
       async update(data: ServerContactChannelUpdateOptions) {
         await app._interface.updateServerContactChannel(userId, crud.id, serverContactChannelUpdateOptionsToCrud(data));
@@ -3286,8 +3292,8 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>,
     signInWithPasskey(): Promise<Result<undefined, KnownErrors["PasskeyAuthenticationFailed"]| KnownErrors["InvalidTotpCode"] | KnownErrors["PasskeyWebAuthnError"]>>,
     callOAuthCallback(): Promise<boolean>,
-    sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>>,
-    sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>,
+    sendForgotPasswordEmail(email: string, options?: { callbackUrl?: string }): Promise<Result<undefined, KnownErrors["UserNotFound"]>>,
+    sendMagicLinkEmail(email: string, options?: { callbackUrl?: string }): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>,
     resetPassword(options: { code: string, password: string }): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     verifyPasswordResetCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
