@@ -1,69 +1,11 @@
 'use client';
 
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@stackframe/stack-ui';
 import { useEffect, useState } from 'react';
-import { Area, AreaChart, XAxis } from 'recharts';
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from '../use-admin-app';
 import { GlobeSection } from './globe';
+import { LineChartDisplay, LineChartDisplayConfig } from './line-chart';
 
-
-type LineChartDisplayConfig = {
-  name: string,
-  description: string,
-  chart: ChartConfig,
-}
-
-type DataPoint = {
-  date: string,
-  activity: number,
-}
-
-function LineChartDisplay({
-  config, datapoints
-}: {
-  config: LineChartDisplayConfig,
-  datapoints: DataPoint[],
-}) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
-          {config.name}
-        </CardTitle>
-        <CardDescription>
-          {config.description}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ChartContainer config={config.chart} className='w-full max-h-[300px] p-4'>
-          <AreaChart accessibilityLayer data={datapoints}>
-            <ChartTooltip
-              content={<ChartTooltipContent labelKey='date'/>}
-            />
-            <Area
-              dataKey="activity"
-              type="step"
-              fill="var(--color-activity)"
-              fillOpacity={0.4}
-              stroke="var(--color-activity)"
-              strokeWidth={2}
-            />
-
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) => value}
-            />
-          </AreaChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
-  );
-}
 
 const totalUsersConfig = {
   name: 'Total Users',
@@ -93,7 +35,7 @@ export default function PageClient() {
 
   // TODO HACK: use Suspense for this instead
   useEffect(() => {
-    adminApp.sendAdminRequest("/internal/metrics", {
+    (adminApp as any).sendAdminRequest("/internal/metrics", {
       method: "GET",
     })
       .then((x: any) => x.json())
@@ -115,6 +57,11 @@ export default function PageClient() {
             config={dauConfig}
             datapoints={data.daily_active_users}
           />
+
+          {/* <MiniLineChartDisplay
+            config={totalUsersConfig}
+            datapoints={data.total_users}
+          /> */}
         </>
       }
     </PageLayout>
