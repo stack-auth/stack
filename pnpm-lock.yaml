@@ -1176,9 +1176,6 @@ importers:
       react-resizable-panels:
         specifier: ^2.1.6
         version: 2.1.6(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      recharts:
-        specifier: ^2.14.1
-        version: 2.14.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       tailwind-merge:
         specifier: ^2.5.4
         version: 2.5.4
@@ -1201,6 +1198,9 @@ importers:
       react-dom:
         specifier: ^18.2
         version: 18.2.0(react@18.2.0)
+      recharts:
+        specifier: ^2.14.1
+        version: 2.14.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       rimraf:
         specifier: ^5.0.10
         version: 5.0.10
