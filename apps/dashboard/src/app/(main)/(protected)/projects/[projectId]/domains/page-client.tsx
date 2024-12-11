@@ -46,7 +46,7 @@ function EditDialog(props: {
     addWww: yup.boolean(),
   });
 
-  const canAddWww = (domain: string) => isValidUrl('https://' + domain) && !domain.startsWith('www.') && isValidUrl('https://www.' + domain);
+  const canAddWww = (domain: string | undefined) => domain && isValidUrl('https://' + domain) && !domain.startsWith('www.') && isValidUrl('https://www.' + domain);
 
   return <FormDialog
     open={props.open}
@@ -107,7 +107,7 @@ function EditDialog(props: {
         />
 
         {props.type === 'create' &&
-          canAddWww(form.watch('domain') as string) && (
+          canAddWww(form.watch('domain')) && (
           <SwitchField
             label={`Also add www.${form.watch('domain') as any ?? ''} as a trusted domain`}
             name="addWww"
