@@ -6,11 +6,11 @@ import { oauthCookieSchema } from "@/lib/tokens";
 import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
+import { InvalidClientError, InvalidScopeError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -322,6 +322,12 @@ const handler = createSmartRouteHandler({
           if (error.message.includes("redirect_uri") || error.message.includes("redirectUri")) {
             throw new KnownErrors.RedirectUrlNotWhitelisted();
           }
+        } else if (error instanceof InvalidScopeError) {
+          // which scopes are being requested, and by whom?
+          // I think this is a bug in the client? But just to be safe, let's log an error to make sure that it is not our fault
+          // TODO: remove the captureError once you see in production that our own clients never trigger this
+          captureError("outer-oauth-callback-invalid-scope", new StackAssertionError("A client requested an invalid scope. Is this a bug in the client, or our fault?", { outerInfo, cause: error }));
+          throw new StatusError(400, "Invalid scope requested. Please check the scopes you are requesting.");
         }
         throw error;
       }
