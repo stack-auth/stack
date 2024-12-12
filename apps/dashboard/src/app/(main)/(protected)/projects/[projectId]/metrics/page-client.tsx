@@ -2,12 +2,13 @@
 
 import { fromNow } from '@stackframe/stack-shared/dist/utils/dates';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@stackframe/stack-ui';
-import { useEffect, useState } from 'react';
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from '../use-admin-app';
 import { GlobeSection } from './globe';
 import { LineChartDisplay, LineChartDisplayConfig } from './line-chart';
 
+
+const stackAppInternalsSymbol = Symbol.for("StackAuth--DO-NOT-USE-OR-YOU-WILL-BE-FIRED--StackAppInternals");
 
 const dailyRegistrationsConfig = {
   name: 'Daily Registrations',
@@ -32,19 +33,10 @@ const dauConfig = {
 } satisfies LineChartDisplayConfig;
 
 export default function PageClient() {
-  const [data, setData] = useState<any>(null);
+  // const [data, setData] = useState<any>(null);
   const adminApp = useAdminApp();
 
-  // TODO HACK: use Suspense for this instead
-  useEffect(() => {
-    (adminApp as any).sendAdminRequest("/internal/metrics", {
-      method: "GET",
-    })
-      .then((x: any) => x.json())
-      .then((x: any) => setData(x))
-      .catch((err: any) => { throw err; });
-  }, [adminApp]);
-
+  const data = (adminApp as any)[stackAppInternalsSymbol].useMetrics();
 
   return (
     <PageLayout title="User Metric Dashboard">

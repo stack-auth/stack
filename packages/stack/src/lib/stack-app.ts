@@ -2237,6 +2237,9 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   private readonly _svixTokenCache = createCache(async () => {
     return await this._interface.getSvixToken();
   });
+  private readonly _metricsCache = createCache(async () => {
+    return await this._interface.getMetrics();
+  });
 
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
@@ -2495,6 +2498,15 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     requestOptions: RequestInit,
   ) {
     return await this._interface.sendAdminRequest(path, requestOptions, await this._getSession());
+  }
+
+  get [stackAppInternalsSymbol]() {
+    return {
+      ...super[stackAppInternalsSymbol],
+      useMetrics: (): any => {
+        return useAsyncCache(this._metricsCache, [], "useMetrics()");
+      }
+    };
   }
 }
 

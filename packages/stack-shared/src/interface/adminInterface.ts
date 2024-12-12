@@ -215,4 +215,15 @@ export class StackAdminInterface extends StackServerInterface {
       null,
     );
   }
+
+  async getMetrics(): Promise<any> {
+    const response = await this.sendAdminRequest(
+      "/internal/metrics",
+      {
+        method: "GET",
+      },
+      null,
+    );
+    return await response.json();
+  }
 }
