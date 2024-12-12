@@ -106,19 +106,32 @@ function endpointSchemaToTypeString(reqSchema: yup.SchemaFieldDescription, resSc
 
   const fields = Object.entries((reqSchema as any).fields);
 
-  const newFields: Record<string, any> = {};
-  for (const key of ['body', 'query', 'body']) {
+  const inputFields: Record<string, any> = {};
+  for (const key of ['body', 'query']) {
     const field = fields.find(([k]) => k === key);
     if (field) {
-      newFields[key] = field[1];
+      inputFields[key] = field[1];
     }
   }
 
-  newFields['response'] = resSchema;
+  const outputFields: Record<string, any> = {};
+  for (const key of ['statusCode', 'headers', 'body']) {
+    const field = fields.find(([k]) => k === key);
+    if (field) {
+      outputFields[key] = field[1];
+    }
+  }
 
-  const copiedSchema = { ...reqSchema };
-  (copiedSchema as any).fields = newFields;
-  return schemaToTypeString(copiedSchema);
+  return `{
+    input: ${schemaToTypeString({
+    type: 'object',
+    fields: inputFields,
+  })},
+    output: ${schemaToTypeString({
+    type: 'object',
+    fields: outputFields,
+  })}
+  }`;
 }
 
 function schemaToTypeString(schema: yup.SchemaFieldDescription): string {

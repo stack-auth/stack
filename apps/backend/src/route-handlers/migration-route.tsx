@@ -24,9 +24,8 @@ type EndpointsSchema = {
   [url: string]: {
     [method in (typeof allowedMethods)[number]]?: {
       [overload: string]: {
-        query: yup.Schema,
-        body: yup.Schema,
-        response: yup.Schema,
+        input: EndpointInputSchema,
+        output: EndpointOutputSchema,
       },
     }
   },
