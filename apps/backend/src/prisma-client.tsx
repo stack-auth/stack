@@ -17,7 +17,7 @@ if (getNodeEnvironment() !== 'production') {
 }
 
 
-export async function maybeTransactionWithRetry<T>(fn: (...args: Parameters<Parameters<typeof prismaClient.$transaction>[0]>) => Promise<T>): Promise<T> {
+export async function retryTransaction<T>(fn: (...args: Parameters<Parameters<typeof prismaClient.$transaction>[0]>) => Promise<T>): Promise<T> {
   const isDev = getNodeEnvironment() === 'development';
 
   const res = await Result.retry(async () => {

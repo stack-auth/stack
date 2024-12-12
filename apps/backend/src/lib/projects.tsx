@@ -1,4 +1,4 @@
-import { maybeTransactionWithRetry, prismaClient } from "@/prisma-client";
+import { prismaClient, retryTransaction } from "@/prisma-client";
 import { Prisma } from "@prisma/client";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
@@ -207,7 +207,7 @@ export async function getProject(projectId: string): Promise<ProjectsCrud["Admin
 }
 
 export async function createProject(ownerIds: string[], data: InternalProjectsCrud["Admin"]["Create"]) {
-  const result = await maybeTransactionWithRetry(async (tx) => {
+  const result = await retryTransaction(async (tx) => {
     const project = await tx.project.create({
       data: {
         id: generateUuid(),

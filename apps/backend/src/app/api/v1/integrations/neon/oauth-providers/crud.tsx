@@ -1,4 +1,4 @@
-import { maybeTransactionWithRetry, prismaClient } from "@/prisma-client";
+import { prismaClient, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
 import { CrudTypeOf, createCrud } from "@stackframe/stack-shared/dist/crud";
@@ -105,7 +105,7 @@ async function createOrUpdateProvider(
     throw new StatusError(StatusError.BadRequest, `${providerId} is not a shared provider`);
   }
 
-  return await maybeTransactionWithRetry(async (tx) => {
+  return await retryTransaction(async (tx) => {
     if (oldProvider) {
       switch (oldProvider.type) {
         case 'shared': {

@@ -1,5 +1,5 @@
 import { ensureUserTeamPermissionExists } from "@/lib/request-checks";
-import { maybeTransactionWithRetry } from "@/prisma-client";
+import { retryTransaction } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, teamIdSchema, teamInvitationCallbackUrlSchema, teamInvitationEmailSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
@@ -32,7 +32,7 @@ export const POST = createSmartRouteHandler({
     }).defined(),
   }),
   async handler({ auth, body }) {
-    await maybeTransactionWithRetry(async (tx) => {
+    await retryTransaction(async (tx) => {
       if (auth.type === "client") {
         if (!auth.user) throw new KnownErrors.UserAuthenticationRequired;
 

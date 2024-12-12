@@ -1,4 +1,4 @@
-import { maybeTransactionWithRetry, prismaClient } from '@/prisma-client';
+import { prismaClient, retryTransaction } from '@/prisma-client';
 import { Prisma } from '@prisma/client';
 import { decodeBase64OrBase64Url } from '@stackframe/stack-shared/dist/utils/bytes';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
@@ -94,7 +94,7 @@ function createAdapter(options: {
 function createPrismaAdapter(idpId: string) {
   return createAdapter({
     async onUpdateUnique(model, idOrWhere, updater) {
-      await maybeTransactionWithRetry(async (tx) => {
+      await retryTransaction(async (tx) => {
         const oldAll = await tx.idPAdapterData.findMany({
           where: typeof idOrWhere === 'string' ? {
             idpId,
