@@ -104,6 +104,10 @@ export async function sendEmail({
             "450 ",
             "Client network socket disconnected before secure TLS connection was established",
             "Too many requests",
+            ...emailConfig.host.includes("resend") ? [
+              // Resend is a bit unreliable, so we'll retry even in some cases where it may send duplicate emails
+              "ECONNRESET",
+            ] : [],
           ];
           if (temporaryErrorIndicators.some(indicator => error instanceof Error && error.message.includes(indicator))) {
             // this can happen occasionally (especially with certain unreliable email providers)
