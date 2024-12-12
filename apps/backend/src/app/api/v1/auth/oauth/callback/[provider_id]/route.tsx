@@ -319,7 +319,7 @@ const handler = createSmartRouteHandler({
         );
       } catch (error) {
         if (error instanceof InvalidClientError) {
-          if (error.message.includes("redirect_uri")) {
+          if (error.message.includes("redirect_uri") || error.message.includes("redirectUri")) {
             throw new KnownErrors.RedirectUrlNotWhitelisted();
           }
         }
