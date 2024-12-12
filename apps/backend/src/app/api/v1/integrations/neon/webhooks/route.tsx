@@ -26,7 +26,7 @@ export const POST = createSmartRouteHandler({
     }).defined(),
   }),
   handler: async ({ auth, body }) => {
-    const svix = getSvixClient(auth.project.id);
+    const svix = getSvixClient();
     await svix.application.getOrCreate({ uid: auth.project.id, name: auth.project.id });
     const endpoint = await svix.endpoint.create(auth.project.id, { url: body.url, description: body.description });
     const secret = await svix.endpoint.getSecret(auth.project.id, endpoint.id);

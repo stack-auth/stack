@@ -7,7 +7,7 @@ import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 const appPortalCrudHandlers = createLazyProxy(() => createCrudHandlers(svixTokenCrud, {
   paramsSchema: yupObject({}),
   onCreate: async ({ auth }) => {
-    const svix = getSvixClient(auth.project.id);
+    const svix = getSvixClient();
     await svix.application.getOrCreate({ uid: auth.project.id, name: auth.project.id });
     const result = await svix.authentication.appPortalAccess(auth.project.id, {});
     return { token: result.token };

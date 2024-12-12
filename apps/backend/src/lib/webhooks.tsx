@@ -8,7 +8,7 @@ import { Result } from "@stackframe/stack-shared/dist/utils/results";
 import { Svix } from "svix";
 import * as yup from "yup";
 
-export function getSvixClient(projectId: string) {
+export function getSvixClient() {
   return new Svix(
     getEnvVariable("STACK_SVIX_API_KEY"),
     { serverUrl: getEnvVariable("STACK_SVIX_SERVER_URL", "") || undefined }
