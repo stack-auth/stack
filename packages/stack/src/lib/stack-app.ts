@@ -1761,7 +1761,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       usedForAuth: crud.used_for_auth,
       async sendVerificationEmail(options?: { callbackUrl?: string }) {
         if (!options?.callbackUrl && typeof window === "undefined") {
-          throw new Error("Cannot invite user without a callback URL from the server. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
+          throw new Error("Cannot send verification email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendVerificationEmail({ callbackUrl: ... })`");
         }
 
         await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, options?.callbackUrl ?? constructRedirectUrl(app.urls.emailVerification));
