@@ -1,8 +1,8 @@
-export function getBrowserCompatibilityProblems() {
+export function getBrowserCompatibilityReport() {
   const test = (snippet: string) => {
     try {
       (0, eval)(snippet);
-      return null;
+      return true;
     } catch (e) {
       return `FAILED: ${e}`;
     }
