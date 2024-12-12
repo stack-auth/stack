@@ -8,14 +8,19 @@ import { Result } from "@stackframe/stack-shared/dist/utils/results";
 import { Svix } from "svix";
 import * as yup from "yup";
 
+export function getSvixClient() {
+  return new Svix(
+    getEnvVariable("STACK_SVIX_API_KEY"),
+    { serverUrl: getEnvVariable("STACK_SVIX_SERVER_URL", "") || undefined }
+  );
+}
+
 async function sendWebhooks(options: {
   type: string,
   projectId: string,
   data: any,
 }) {
-  const apiKey = getEnvVariable("STACK_SVIX_API_KEY");
-  const server = getEnvVariable("STACK_SVIX_SERVER_URL", "") || undefined;
-  const svix = new Svix(apiKey, { serverUrl: server });
+  const svix = getSvixClient();
 
   try {
     await svix.application.getOrCreate({ uid: options.projectId, name: options.projectId });

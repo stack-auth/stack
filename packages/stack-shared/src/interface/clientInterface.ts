@@ -314,7 +314,7 @@ export class StackClientInterface {
         if (HTTP_METHODS[(params.method ?? "GET") as HttpMethod].idempotent) {
           return Result.error(e);
         } else {
-          throw this._createNetworkError(e, session, requestType);
+          throw await this._createNetworkError(e, session, requestType);
         }
       }
       throw e;
