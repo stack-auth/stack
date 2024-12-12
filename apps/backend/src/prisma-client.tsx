@@ -19,6 +19,8 @@ if (getNodeEnvironment() !== 'production') {
 
 
 export async function maybeTransactionWithRetry<T>(fn: (...args: Parameters<Parameters<typeof prismaClient.$transaction>[0]>) => Promise<T>): Promise<T> {
+  const isDev = getNodeEnvironment() === 'development';
+
   const res = await Result.retry(async () => {
     try {
       return Result.ok(await prismaClient.$transaction(fn));
@@ -29,14 +31,17 @@ export async function maybeTransactionWithRetry<T>(fn: (...args: Parameters<Para
       }
       throw e;
     }
-  }, 0);
+  }, isDev ? 1 : 3);
 
   if (res.status === 'ok') {
     return res.data;
   }
 
   const retriesFailedWarning = new StackAssertionError("Failed to execute transaction despite retries! Falling back to non-transactional execution, which may cause data inconsistency.", { cause: res.error });
-  captureError('maybeTransactionWithRetry', retriesFailedWarning);
-
-  return await fn(prismaClient);
+  if (isDev) {
+    throw retriesFailedWarning;
+  } else {
+    captureError('maybeTransactionWithRetry', retriesFailedWarning);
+    return await fn(prismaClient);
+  }
 }
