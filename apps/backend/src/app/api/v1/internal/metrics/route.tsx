@@ -1,5 +1,6 @@
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { ContactChannel, ProjectUser } from "@prisma/client";
 import { adaptSchema, adminAuthTypeSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 type DataPoints = { date: string, activity: number }[];
@@ -91,6 +92,16 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
   }));
 }
 
+function simplifyUsers(users: (ProjectUser & { contactChannels: ContactChannel[] })[]): any {
+  return users.map((user) => ({
+    id: user.projectUserId,
+    display_name: user.displayName,
+    email: user.contactChannels.find(x => x.isPrimary)?.value ?? '-',
+    created_at: user.createdAt.toLocaleString(),
+    updated_at: user.updatedAt.toLocaleString(),
+  }));
+}
+
 export const GET = createSmartRouteHandler({
   metadata: {
     hidden: true,
@@ -109,13 +120,29 @@ export const GET = createSmartRouteHandler({
   handler: async (req) => {
     const now = new Date();
 
-    const [total_users, dailyUsers, dailyActiveUsers, usersByCountry] = await Promise.all([
+    const [total_users, dailyUsers, dailyActiveUsers, usersByCountry, recentlyRegistered, recentlyActive] = await Promise.all([
       prismaClient.projectUser.count({
         where: { projectId: req.auth.project.id, },
       }),
       loadTotalUsers(req.auth.project.id, now),
       loadDailyActiveUsers(req.auth.project.id, now),
       loadUsersByCountry(req.auth.project.id),
+      prismaClient.projectUser.findMany({
+        take: 10,
+        where: { projectId: req.auth.project.id, },
+        include: { contactChannels: true },
+        orderBy: [{
+          createdAt: 'desc'
+        }]
+      }),
+      prismaClient.projectUser.findMany({
+        take: 10,
+        where: { projectId: req.auth.project.id, },
+        include: { contactChannels: true },
+        orderBy: [{
+          updatedAt: 'desc'
+        }]
+      })
     ] as const);
 
     return {
@@ -126,6 +153,8 @@ export const GET = createSmartRouteHandler({
         daily_users: dailyUsers,
         daily_active_users: dailyActiveUsers,
         users_by_country: usersByCountry,
+        recently_registered: simplifyUsers(recentlyRegistered),
+        recently_active: simplifyUsers(recentlyActive),
       }
     };
   },

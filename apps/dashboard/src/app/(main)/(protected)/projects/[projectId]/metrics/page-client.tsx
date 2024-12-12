@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardTitle } from '@stackframe/stack-ui';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@stackframe/stack-ui';
 import { useEffect, useState } from 'react';
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from '../use-admin-app';
@@ -65,14 +65,62 @@ export default function PageClient() {
               </CardContent>
             </Card>
           </GlobeSection>
-          <LineChartDisplay
-            config={dailyRegistrationsConfig}
-            datapoints={data.daily_users}
-          />
-          <LineChartDisplay
-            config={dauConfig}
-            datapoints={data.daily_active_users}
-          />
+          <div className='grid gap-4 lg:grid-cols-2'>
+            <LineChartDisplay
+              config={dailyRegistrationsConfig}
+              datapoints={data.daily_users}
+            />
+            <LineChartDisplay
+              config={dauConfig}
+              datapoints={data.daily_active_users}
+            />
+            <Card>
+              <CardHeader>
+                <CardTitle>Latest Registrations</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Display Name</TableHead>
+                      <TableHead>Registered at</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {
+                data.recently_registered.map((user: any) => <TableRow key={user.id}>
+                  <TableCell>{user.display_name}</TableCell>
+                  <TableCell>{user.created_at}</TableCell>
+                </TableRow>)
+                    }
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Recently Active Users</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Display Name</TableHead>
+                      <TableHead>Registered at</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {
+                data.recently_active.map((user: any) => <TableRow key={user.id}>
+                  <TableCell>{user.display_name}</TableCell>
+                  <TableCell>{user.updated_at}</TableCell>
+                </TableRow>)
+                    }
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </>
       }
     </PageLayout>
