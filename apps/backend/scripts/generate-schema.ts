@@ -114,7 +114,7 @@ function endpointSchemaToTypeString(reqSchema: yup.SchemaFieldDescription, resSc
     }
   }
 
-  // newFields['response'] = resSchema;
+  newFields['response'] = resSchema;
 
   const copiedSchema = { ...reqSchema };
   (copiedSchema as any).fields = newFields;
