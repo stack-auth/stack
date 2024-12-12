@@ -20,9 +20,7 @@ async function sendWebhooks(options: {
   projectId: string,
   data: any,
 }) {
-  const apiKey = getEnvVariable("STACK_SVIX_API_KEY");
-  const server = getEnvVariable("STACK_SVIX_SERVER_URL", "") || undefined;
-  const svix = new Svix(apiKey, { serverUrl: server });
+  const svix = getSvixClient();
 
   try {
     await svix.application.getOrCreate({ uid: options.projectId, name: options.projectId });
