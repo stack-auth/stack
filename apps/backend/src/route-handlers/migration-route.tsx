@@ -1,6 +1,6 @@
 import { yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { pick, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
+import { pick, typedEntries, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
 import { createSmartRequest } from "./smart-request";
@@ -38,6 +38,12 @@ type EndpointHandlers = {
     }
   },
 };
+
+type NewestEndpoints = {
+  [url: string]: {
+    [method in (typeof allowedMethods)[number]]?: (req: NextRequest) => Promise<NextResponse>
+  },
+}
 
 function urlMatch(url: string, nextPattern: string): Record<string, any> | null {
   const keys: string[] = [];
@@ -205,22 +211,56 @@ async function convertRawToParsedResponse(res: NextResponse, schema: EndpointOut
   }
 }
 
-export function createMigrationRoute(versionsSchema: EndpointsSchema[]) {
-  return typedFromEntries(allowedMethods.map((method) => {
-    return [method, async (req: NextRequest) => {
-      for (const [url, endpointMethods] of Object.entries(newEndpoints)) {
-        const match = urlMatch(new URL(req.url).pathname.replace('v2', 'v1'), url);
-        if (!match) {
-          return new NextResponse(null, { status: 404 });
-        } else {
-          if (endpointMethods[method]) {
-            return NextResponse.json({ match, url: req.url, nextUrl: url });
-          } else {
-            return new NextResponse(null, { status: 405 });
-          }
+// export function createMigrationRoute(versionsSchema: EndpointsSchema[]) {
+//   return typedFromEntries(allowedMethods.map((method) => {
+//     return [method, async (req: NextRequest) => {
+//       for (const [url, endpointMethods] of Object.entries(newEndpoints)) {
+//         const match = urlMatch(new URL(req.url).pathname.replace('v2', 'v1'), url);
+//         if (!match) {
+//           return new NextResponse(null, { status: 404 });
+//         } else {
+//           if (endpointMethods[method]) {
+//             return NextResponse.json({ match, url: req.url, nextUrl: url });
+//           } else {
+//             return new NextResponse(null, { status: 405 });
+//           }
+//         }
+//       }
+//     }];
+//   }));
+// }
+
+export function createEndpointHandlersFromNewestEndpoints(newestEndpoints: NewestEndpoints, endpointsSchema: EndpointsSchema) {
+  const endpointHandlers: EndpointHandlers = {};
+
+  for (const [url, endpointMethods] of typedEntries(endpointsSchema)) {
+    const urlHandlers: EndpointHandlers[string] = {};
+
+    for (const [method, overloads] of typedEntries(endpointMethods)) {
+      if (!overloads) continue;
+
+      const methodHandlers: EndpointHandlers[string][typeof allowedMethods[number]] = {};
+
+      for (const [overload, { input, output }] of typedEntries(overloads)) {
+        const endpoint = newestEndpoints[url][method];
+
+        if (!endpoint) {
+          throw new Error(`No endpoint found for ${method} ${url}`);
         }
+
+        methodHandlers[overload] = async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {
+          const rawRequest = await convertParsedRequestToRaw(req);
+          const rawResponse = await endpoint(rawRequest);
+          return await convertRawToParsedResponse(rawResponse, output);
+        };
       }
-    }];
-  }));
+
+      urlHandlers[method] = methodHandlers;
+    }
+
+    endpointHandlers[url] = urlHandlers;
+  }
+
+  return endpointHandlers;
 }
 
