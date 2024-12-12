@@ -6,7 +6,7 @@ import { KnownError, KnownErrors } from "@stackframe/stack-shared/dist/known-err
 import { yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
-import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError, errorToNiceString } from "@stackframe/stack-shared/dist/utils/errors";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { NextRequest } from "next/server";
 import * as yup from "yup";
@@ -109,9 +109,9 @@ export function handleApiRequest(handler: (req: NextRequest, options: any, reque
 
       console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
       if (!commonErrors.some(e => statusError instanceof e)) {
-        // HACK: Log statusError.stack instead of statusError to get around buggy Next.js pretty-printing
+        // HACK: Log a nicified version of the error instead of statusError to get around buggy Next.js pretty-printing
         // https://www.reddit.com/r/nextjs/comments/1gkxdqe/comment/m19kxgn/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
-        console.debug(`For the error above with request ID ${requestId}, the full error is:`, statusError.stack);
+        console.debug(`For the error above with request ID ${requestId}, the full error is:`, errorToNiceString(statusError));
       }
 
       const res = await createResponse(req, requestId, {

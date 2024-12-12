@@ -1,4 +1,4 @@
-import { prismaClient } from "@/prisma-client";
+import { maybeTransactionWithRetry } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
@@ -40,7 +40,7 @@ export const POST = createSmartRouteHandler({
       throw passwordError;
     }
 
-    await prismaClient.$transaction(async (tx) => {
+    await maybeTransactionWithRetry(async (tx) => {
       const authMethods = await tx.passwordAuthMethod.findMany({
         where: {
           projectId: project.id,

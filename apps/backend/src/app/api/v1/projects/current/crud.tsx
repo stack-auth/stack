@@ -1,7 +1,7 @@
 import { isTeamSystemPermission, listTeamPermissionDefinitions, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { fullProjectInclude, projectPrismaToCrud } from "@/lib/projects";
 import { ensureSharedProvider } from "@/lib/request-checks";
-import { prismaClient } from "@/prisma-client";
+import { maybeTransactionWithRetry } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
@@ -15,7 +15,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
   onUpdate: async ({ auth, data }) => {
     const oldProject = auth.project;
 
-    const result = await prismaClient.$transaction(async (tx) => {
+    const result = await maybeTransactionWithRetry(async (tx) => {
       // ======================= update default team permissions =======================
 
       const dbParams = [
@@ -479,7 +479,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
     return auth.project;
   },
   onDelete: async ({ auth }) => {
-    await prismaClient.$transaction(async (tx) => {
+    await maybeTransactionWithRetry(async (tx) => {
       const configs = await tx.projectConfig.findMany({
         where: {
           id: auth.project.config.id
