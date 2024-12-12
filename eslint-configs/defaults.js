@@ -71,7 +71,7 @@ module.exports = {
       },
       {
         selector:
-          "MemberExpression:has(Identifier[name='yupString']) Identifier[name='url']",
+          "MemberExpression:has(Identifier[name='yupString']) > Identifier[name='url']",
         message:
           "Use urlSchema from schema-fields.tsx instead of yupString().url().",
       },
