@@ -152,7 +152,7 @@ RetryError.prototype.name = "RetryError";
 async function retry<T>(
   fn: (attempt: number) => Result<T> | Promise<Result<T>>,
   retries: number,
-  { exponentialDelayBase = 2000 },
+  { exponentialDelayBase = 1000 } = {},
 ): Promise<Result<T, RetryError>> {
   const errors: unknown[] = [];
   for (let i = 0; i < retries; i++) {
