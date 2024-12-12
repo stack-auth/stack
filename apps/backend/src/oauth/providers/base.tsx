@@ -152,8 +152,9 @@ export abstract class OAuthBaseProvider {
         // while this is technically a "user" error, it would only be caused by a client that is not properly implemented
         // to catch the case where our own client is not properly implemented, we capture the error here
         // TODO is the comment above actually true? This is inner OAuth, not outer OAuth, so why does the client implementation matter?
+        // Though a reasonable scenario where this might happen is eg. if the authorization code expires before we can exchange it, or the page is reloaded so we try to reuse a code that was already used
         captureError("inner-oauth-callback", error);
-        throw new StatusError(400, "Inner OAuth callback failed due to invalid grant; something went wrong with authorization code exchange");
+        throw new StatusError(400, "Inner OAuth callback failed due to invalid grant. Please try again.");
       }
       if (error?.error === 'access_denied') {
         throw new KnownErrors.OAuthProviderAccessDenied();
