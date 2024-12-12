@@ -2,7 +2,7 @@ import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/li
 import { ensureTeamExists, ensureTeamMembershipDoesNotExist, ensureTeamMembershipExists, ensureUserExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { PrismaTransaction } from "@/lib/types";
 import { sendTeamMembershipCreatedWebhook, sendTeamMembershipDeletedWebhook } from "@/lib/webhooks";
-import { prismaClient } from "@/prisma-client";
+import { maybeTransactionWithRetry } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -57,7 +57,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
     user_id: userIdOrMeSchema.defined(),
   }),
   onCreate: async ({ auth, params }) => {
-    await prismaClient.$transaction(async (tx) => {
+    await maybeTransactionWithRetry(async (tx) => {
       await ensureUserExists(tx, {
         projectId: auth.project.id,
         userId: params.user_id,
@@ -108,7 +108,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
     return data;
   },
   onDelete: async ({ auth, params }) => {
-    await prismaClient.$transaction(async (tx) => {
+    await maybeTransactionWithRetry(async (tx) => {
       // Users are always allowed to remove themselves from a team
       // Only users with the $remove_members permission can remove other users
       if (auth.type === 'client') {

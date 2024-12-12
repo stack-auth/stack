@@ -78,6 +78,16 @@ export class StackAssertionError extends Error {
 }
 StackAssertionError.prototype.name = "StackAssertionError";
 
+
+export function errorToNiceString(error: unknown): string {
+  if (!(error instanceof Error)) return `${typeof error}<${error}>`;
+  const stack = error.stack ?? "";
+  const toString = error.toString();
+  if (stack.startsWith(toString)) return stack;
+  return `${toString}\n${stack}`;
+}
+
+
 const errorSinks = new Set<(location: string, error: unknown, ...extraArgs: unknown[]) => void>();
 export function registerErrorSink(sink: (location: string, error: unknown) => void): void {
   if (errorSinks.has(sink)) {
@@ -97,7 +107,9 @@ export function captureError(location: string, error: unknown): void {
   for (const sink of errorSinks) {
     sink(
       location,
-      error,
+      // HACK: Log a nicified version of the error instead of statusError to get around buggy Next.js pretty-printing
+      // https://www.reddit.com/r/nextjs/comments/1gkxdqe/comment/m19kxgn/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+      errorToNiceString(error),
       ...error && (typeof error === 'object' || typeof error === 'function') && "customCaptureExtraArgs" in error && Array.isArray(error.customCaptureExtraArgs) ? (error.customCaptureExtraArgs as any[]) : [],
     );
   }
