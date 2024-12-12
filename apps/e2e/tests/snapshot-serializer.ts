@@ -42,6 +42,7 @@ const stripFields = [
   "attempt_code",
   "nonce",
   "authorization_code",
+  "secret",
 ] as const;
 
 const stripFieldsIfString = [
