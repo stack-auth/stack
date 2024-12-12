@@ -1,5 +1,6 @@
 'use client';
 
+import { fromNow } from '@stackframe/stack-shared/dist/utils/dates';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@stackframe/stack-ui';
 import { useEffect, useState } from 'react';
 import { PageLayout } from "../page-layout";
@@ -90,7 +91,7 @@ export default function PageClient() {
                     {
                 data.recently_registered.map((user: any) => <TableRow key={user.id}>
                   <TableCell>{user.display_name}</TableCell>
-                  <TableCell>{user.created_at}</TableCell>
+                  <TableCell>{fromNow(new Date(user.created_at))}</TableCell>
                 </TableRow>)
                     }
                   </TableBody>
@@ -113,7 +114,7 @@ export default function PageClient() {
                     {
                 data.recently_active.map((user: any) => <TableRow key={user.id}>
                   <TableCell>{user.display_name}</TableCell>
-                  <TableCell>{user.updated_at}</TableCell>
+                  <TableCell>{fromNow(new Date(user.updated_at))}</TableCell>
                 </TableRow>)
                     }
                   </TableBody>
