@@ -1,4 +1,5 @@
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { OAuthUserInfo, validateUserInfo } from "../utils";
 import { OAuthBaseProvider, TokenSet } from "./base";
 
@@ -23,20 +24,29 @@ export class XProvider extends OAuthBaseProvider {
   }
 
   async postProcessUserInfo(tokenSet: TokenSet): Promise<OAuthUserInfo> {
-    const { data: userInfo } = await fetch(
+    const fetchRes = await fetch(
       "https://api.x.com/2/users/me?user.fields=id,name,profile_image_url",
       {
         headers: {
           Authorization: `Bearer ${tokenSet.accessToken}`,
         },
       }
-    ).then((res) => res.json());
+    );
+    if (!fetchRes.ok) {
+      const text = await fetchRes.text();
+      throw new StackAssertionError(`Failed to fetch user info from X: ${fetchRes.status} ${text}`, {
+        status: fetchRes.status,
+        text,
+      });
+    }
+    const json = await fetchRes.json();
+    const userInfo = json.data;
 
     return validateUserInfo({
       accountId: userInfo?.id?.toString(),
-      displayName: userInfo.name || userInfo.username,
-      email: null, // There is no way of getting email from X Oauth2.0 API
-      profileImageUrl: userInfo.profile_image_url as any,
+      displayName: userInfo?.name || userInfo?.username,
+      email: null, // There is no way of getting email from X OAuth2.0 API
+      profileImageUrl: userInfo?.profile_image_url as any,
       emailVerified: false,
     }, { expectNoEmail: true });
   }

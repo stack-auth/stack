@@ -232,8 +232,9 @@ function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, Result<T>>, depe
   const result = React.use(promise);
   if (result.status === "error") {
     const error = result.error;
-    if (error instanceof Error) {
+    if (error instanceof Error && !(error as any).__stackHasConcatenatedStacktraces) {
       concatStacktraces(error, new Error());
+      (error as any).__stackHasConcatenatedStacktraces = true;
     }
     throw error;
   }
@@ -288,6 +289,25 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   private readonly _currentUserCache = createCacheBySession(async (session) => {
     if (this.__DEMO_ENABLE_SLIGHT_FETCH_DELAY) {
       await wait(2000);
+    }
+    if (session.isKnownToBeInvalid()) {
+      // let's save ourselves a network request
+      //
+      // this also makes a certain race condition less likely to happen. particularly, it's quite common for code to
+      // look like this:
+      //
+      //     const user = await useUser({ or: "required" });
+      //     const something = user.useSomething();
+      //
+      // now, let's say the session is invalidated. this will trigger a refresh to refresh both the user and the
+      // something. however, it's not guaranteed that the user will return first, so useUser might still return a
+      // user object while the something request has already completed (and failed, because the session is invalid).
+      // by returning null quickly here without a request, it is very very likely for the user request to complete
+      // first.
+      //
+      // TODO HACK: the above is a bit of a hack, and we should probably think of more consistent ways to handle this.
+      // it also only works for the user endpoint, and only if the session is known to be invalid.
+      return null;
     }
     return await this._interface.getClientUserByToken(session);
   });
@@ -1027,11 +1047,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       async update(update) {
         return await app._updateClientUser(update, session);
       },
-      async sendVerificationEmail() {
+      async sendVerificationEmail(options?: { callbackUrl?: string }) {
         if (!crud.primary_email) {
           throw new StackAssertionError("User does not have a primary email");
         }
-        return await app._sendVerificationEmail(crud.primary_email, session);
+        if (!options?.callbackUrl && typeof window === "undefined") {
+          throw new Error("Cannot send verification email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendVerificationEmail({ callbackUrl: ... })`");
+        }
+        return await app._interface.sendVerificationEmail(crud.primary_email, options?.callbackUrl ?? constructRedirectUrl(app.urls.emailVerification), session);
       },
       async updatePassword(options: { oldPassword: string, newPassword: string}) {
         const result = await app._interface.updatePassword(options, session);
@@ -1185,14 +1208,18 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToError(options?: RedirectToOptions) { return await this._redirectToHandler("error", options); }
   async redirectToTeamInvitation(options?: RedirectToOptions) { return await this._redirectToHandler("teamInvitation", options); }
 
-  async sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>> {
-    const redirectUrl = constructRedirectUrl(this.urls.passwordReset);
-    return await this._interface.sendForgotPasswordEmail(email, redirectUrl);
+  async sendForgotPasswordEmail(email: string, options?: { callbackUrl?: string }): Promise<Result<undefined, KnownErrors["UserNotFound"]>> {
+    if (!options?.callbackUrl && typeof window === "undefined") {
+      throw new Error("Cannot send forgot password email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendForgotPasswordEmail({ email, callbackUrl: ... })`");
+    }
+    return await this._interface.sendForgotPasswordEmail(email, options?.callbackUrl ?? constructRedirectUrl(this.urls.passwordReset));
   }
 
-  async sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>> {
-    const magicLinkRedirectUrl = constructRedirectUrl(this.urls.magicLinkCallback);
-    return await this._interface.sendMagicLinkEmail(email, magicLinkRedirectUrl);
+  async sendMagicLinkEmail(email: string, options?: { callbackUrl?: string }): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>> {
+    if (!options?.callbackUrl && typeof window === "undefined") {
+      throw new Error("Cannot send magic link email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendMagicLinkEmail({ email, callbackUrl: ... })`");
+    }
+    return await this._interface.sendMagicLinkEmail(email, options?.callbackUrl ?? constructRedirectUrl(this.urls.magicLinkCallback));
   }
 
   async resetPassword(options: { password: string, code: string }): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>> {
@@ -1517,11 +1544,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
-  protected async _sendVerificationEmail(email: string, session: InternalSession): Promise<KnownErrors["EmailAlreadyVerified"] | void> {
-    const emailVerificationRedirectUrl = constructRedirectUrl(this.urls.emailVerification);
-    return await this._interface.sendVerificationEmail(email, emailVerificationRedirectUrl, session);
-  }
-
   async signOut(options?: { redirectUrl?: URL | string }): Promise<void> {
     const user = await this.getUser();
     if (user) {
@@ -1617,7 +1639,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       toClientJson: (): StackClientAppJson<HasTokenStore, ProjectId> => {
         if (!("publishableClientKey" in this._interface.options)) {
           // TODO find a way to do this
-          throw Error("Cannot serialize to JSON from an application without a publishable client key");
+          throw new StackAssertionError("Cannot serialize to JSON from an application without a publishable client key");
         }
 
         return {
@@ -1652,6 +1674,10 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
   // TODO override the client user cache to use the server user cache, so we save some requests
   private readonly _currentServerUserCache = createCacheBySession(async (session) => {
+    if (session.isKnownToBeInvalid()) {
+      // see comment in _currentUserCache for more details on why we do this
+      return null;
+    }
     return await this._interface.getServerUserByToken(session);
   });
   private readonly _serverUsersCache = createCache<[
@@ -1757,8 +1783,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       isVerified: crud.is_verified,
       isPrimary: crud.is_primary,
       usedForAuth: crud.used_for_auth,
-      async sendVerificationEmail() {
-        await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, constructRedirectUrl(app.urls.emailVerification));
+      async sendVerificationEmail(options?: { callbackUrl?: string }) {
+        if (!options?.callbackUrl && typeof window === "undefined") {
+          throw new Error("Cannot send verification email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendVerificationEmail({ callbackUrl: ... })`");
+        }
+
+        await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, options?.callbackUrl ?? constructRedirectUrl(app.urls.emailVerification));
       },
       async update(data: ServerContactChannelUpdateOptions) {
         await app._interface.updateServerContactChannel(userId, crud.id, serverContactChannelUpdateOptionsToCrud(data));
@@ -2056,7 +2086,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     await this._refreshUsers();
     return this._serverUserFromCrud(crud);
   }
-
 
   async getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentServerUser<ProjectId>>;
   async getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>;
@@ -3305,8 +3334,8 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
     signUpWithCredential(options: { email: string, password: string, noRedirect?: boolean }): Promise<Result<undefined, KnownErrors["UserEmailAlreadyExists"] | KnownErrors["PasswordRequirementsNotMet"]>>,
     signInWithPasskey(): Promise<Result<undefined, KnownErrors["PasskeyAuthenticationFailed"]| KnownErrors["InvalidTotpCode"] | KnownErrors["PasskeyWebAuthnError"]>>,
     callOAuthCallback(): Promise<boolean>,
-    sendForgotPasswordEmail(email: string): Promise<Result<undefined, KnownErrors["UserNotFound"]>>,
-    sendMagicLinkEmail(email: string): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>,
+    sendForgotPasswordEmail(email: string, options?: { callbackUrl?: string }): Promise<Result<undefined, KnownErrors["UserNotFound"]>>,
+    sendMagicLinkEmail(email: string, options?: { callbackUrl?: string }): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>>,
     resetPassword(options: { code: string, password: string }): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     verifyPasswordResetCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,
     verifyTeamInvitationCode(code: string): Promise<Result<undefined, KnownErrors["VerificationCodeError"]>>,

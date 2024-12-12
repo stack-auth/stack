@@ -1,5 +1,6 @@
 import "../polyfills";
 
+import * as Sentry from "@sentry/nextjs";
 import { EndpointDocumentation } from "@stackframe/stack-shared/dist/crud";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
@@ -58,6 +59,16 @@ function catchError(error: unknown): StatusError {
 export function handleApiRequest(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
     const requestId = generateSecureRandomString(80);
+
+    // Set Sentry scope to include request details
+    Sentry.setContext("stack-request", {
+      requestId: requestId,
+      method: req.method,
+      url: req.url,
+      query: Object.fromEntries(req.nextUrl.searchParams),
+      headers: Object.fromEntries(req.headers),
+    });
+
     let hasRequestFinished = false;
     try {
       // censor long query parameters because they might contain sensitive data
@@ -208,6 +219,8 @@ export function createSmartRouteHandler<
     const fullReq = reqsParsed[0][0][1];
     const handler = reqsParsed[0][1];
 
+    Sentry.setContext("stack-parsed-smart-request", smartReq as any);
+
     let smartRes = await handler.handler(smartReq as any, fullReq);
 
     return await createResponse(nextRequest, requestId, smartRes, handler.response);
@@ -216,6 +229,9 @@ export function createSmartRouteHandler<
   return Object.assign(handleApiRequest(async (req, options, requestId) => {
     const bodyBuffer = await req.arrayBuffer();
     const smartRequest = await createSmartRequest(req, bodyBuffer, options);
+
+    Sentry.setContext("stack-full-smart-request", smartRequest);
+
     return await invoke(req, requestId, smartRequest);
   }), {
     [getSmartRouteHandlerSymbol()]: true,

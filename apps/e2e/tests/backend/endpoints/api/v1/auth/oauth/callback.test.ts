@@ -28,7 +28,7 @@ it("should fail when inner callback has invalid provider ID", async ({ expect })
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 400,
-      "body": "Inner OAuth callback failed due to invalid grant; something went wrong with authorization code exchange",
+      "body": "Inner OAuth callback failed due to invalid grant. Please try again.",
       "headers": Headers {
         "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
         <some fields may have been hidden>,
@@ -95,7 +95,7 @@ it("should fail when inner callback has invalid authorization code", async ({ ex
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 400,
-      "body": "Inner OAuth callback failed due to invalid grant; something went wrong with authorization code exchange",
+      "body": "Inner OAuth callback failed due to invalid grant. Please try again.",
       "headers": Headers {
         "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
         <some fields may have been hidden>,
@@ -119,7 +119,7 @@ it("should redirect to error callback url when inner callback has invalid author
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 400,
-      "body": "Inner OAuth callback failed due to invalid grant; something went wrong with authorization code exchange",
+      "body": "Inner OAuth callback failed due to invalid grant. Please try again.",
       "headers": Headers {
         "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
         <some fields may have been hidden>,
@@ -143,7 +143,7 @@ it("should fail when inner callback has invalid authorization code and when an i
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 400,
-      "body": "Inner OAuth callback failed due to invalid grant; something went wrong with authorization code exchange",
+      "body": "Inner OAuth callback failed due to invalid grant. Please try again.",
       "headers": Headers {
         "set-cookie": <deleting cookie 'stack-oauth-inner-<stripped cookie name key>' at path '/'>,
         <some fields may have been hidden>,

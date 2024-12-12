@@ -3,7 +3,7 @@ import elliptic from "elliptic";
 import * as jose from "jose";
 import { JOSEError } from "jose/errors";
 import { encodeBase64Url } from "./bytes";
-import { getEnvVariable } from "./env";
+import { StackAssertionError } from "./errors";
 import { globalVar } from "./globals";
 import { pick } from "./objects";
 
@@ -112,6 +112,9 @@ export function getPerAudienceSecret(options: {
   audience: string,
   secret: string,
 }) {
+  if (options.audience === "kid") {
+    throw new StackAssertionError("You cannot use the 'kid' audience for a per-audience secret, see comment below in jwt.tsx");
+  }
   return jose.base64url.encode(
     crypto
       .createHash('sha256')

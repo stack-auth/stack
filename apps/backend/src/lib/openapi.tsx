@@ -367,10 +367,10 @@ export function parseOverload(options: {
   if (!isSchemaNumberDescription(options.statusCodeDesc)) {
     throw new StackAssertionError('Expected status code to be a number', { actual: options.statusCodeDesc, options });
   }
-  if (options.statusCodeDesc.oneOf.length !== 1) {
-    throw new StackAssertionError('Expected status code to have exactly one value', { actual: options.statusCodeDesc.oneOf, options });
+  if (options.statusCodeDesc.oneOf.length > 1) {
+    throw new StackAssertionError('Expected status code to have zero or one values', { actual: options.statusCodeDesc.oneOf, options });
   }
-  const status = options.statusCodeDesc.oneOf[0] as number;
+  const status: number = options.statusCodeDesc.oneOf[0] ?? 200 as any;  // TODO HACK hardcoded, the default 200 value (which is used in case all status codes may be returned) should be configurable
 
   switch (bodyType) {
     case 'json': {

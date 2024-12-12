@@ -8,7 +8,7 @@ import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
-import { wait } from '@stackframe/stack-shared/dist/utils/promises';
+import { Result } from '@stackframe/stack-shared/dist/utils/results';
 import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
 import nodemailer from 'nodemailer';
 
@@ -89,34 +89,37 @@ export async function sendEmail({
         },
       });
 
-      for (let retry = 0; retry < 3; retry++) {
+      return Result.orThrow(await Result.retry(async (attempt) => {
         try {
-          return await transporter.sendMail({
+          return Result.ok(await transporter.sendMail({
             from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
             to,
             subject,
             text,
             html
-          });
+          }));
         } catch (error) {
-          // TODO if using custom email config, we should notify the developer instead of throwing an error
-
-          const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject };
+          const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject, cause: error };
           const temporaryErrorIndicators = [
             "450 ",
             "Client network socket disconnected before secure TLS connection was established",
             "Too many requests",
+            ...emailConfig.host.includes("resend") ? [
+              // Resend is a bit unreliable, so we'll retry even in some cases where it may send duplicate emails
+              "ECONNRESET",
+            ] : [],
           ];
           if (temporaryErrorIndicators.some(indicator => error instanceof Error && error.message.includes(indicator))) {
             // this can happen occasionally (especially with certain unreliable email providers)
             // so let's retry
             console.warn("Failed to send email, but error is possibly transient so retrying.", extraData, error);
-            await wait((2 ** retry) * (Math.random() * 1000 + 1500));
-            continue;
+            return Result.error(error);
           }
-          throw new StackAssertionError('Failed to send email', extraData, { cause: error });
+
+          // TODO if using custom email config, we should notify the developer instead of throwing an error
+          throw new StackAssertionError('Failed to send email', extraData);
         }
-      }
+      }, 3, { exponentialDelayBase: 2000 }));
     } finally {
       span.end();
     }

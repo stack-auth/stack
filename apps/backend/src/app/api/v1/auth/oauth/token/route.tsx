@@ -17,7 +17,7 @@ export const POST = createSmartRouteHandler({
     }).unknown().defined(),
   }).defined(),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).defined(),
+    statusCode: yupNumber().defined(),
     bodyType: yupString().oneOf(["json"]).defined(),
     body: yupMixed().defined(),
     headers: yupMixed().defined(),
