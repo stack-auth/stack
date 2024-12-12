@@ -1,7 +1,7 @@
 import { ensureTeamMembershipExists, ensureUserExists } from "@/lib/request-checks";
 import { PrismaTransaction } from "@/lib/types";
 import { sendTeamMembershipDeletedWebhook, sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
-import { maybeTransactionWithRetry, prismaClient } from "@/prisma-client";
+import { prismaClient, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 import { BooleanTrue, Prisma } from "@prisma/client";
@@ -347,7 +347,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     };
   },
   onCreate: async ({ auth, data }) => {
-    const result = await maybeTransactionWithRetry(async (tx) => {
+    const result = await retryTransaction(async (tx) => {
       const passwordHash = await getPasswordHashFromData(data);
       await checkAuthData(tx, {
         projectId: auth.project.id,
@@ -543,7 +543,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   },
   onUpdate: async ({ auth, data, params }) => {
     const passwordHash = await getPasswordHashFromData(data);
-    const result = await maybeTransactionWithRetry(async (tx) => {
+    const result = await retryTransaction(async (tx) => {
       await ensureUserExists(tx, { projectId: auth.project.id, userId: params.user_id });
 
       if (data.selected_team_id !== undefined) {
@@ -840,7 +840,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     return result;
   },
   onDelete: async ({ auth, params }) => {
-    const { teams } = await maybeTransactionWithRetry(async (tx) => {
+    const { teams } = await retryTransaction(async (tx) => {
       await ensureUserExists(tx, { projectId: auth.project.id, userId: params.user_id });
 
       const teams = await tx.team.findMany({
