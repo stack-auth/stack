@@ -9,29 +9,29 @@ import { createResponse } from "./smart-response";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
-type EndpointInputSchema = {
-  query: yup.Schema,
-  body: yup.Schema,
+export type EndpointInputSchema<Query extends yup.Schema, Body extends yup.Schema> = {
+  query: Query,
+  body: Body,
 };
 
-type EndpointOutputSchema = {
-  statusCode: yup.Schema,
-  headers: yup.Schema,
-  body: yup.Schema,
+export type EndpointOutputSchema<StatusCode extends yup.Schema, Headers extends yup.Schema, Body extends yup.Schema> = {
+  statusCode: StatusCode,
+  headers: Headers,
+  body: Body,
 };
 
-type EndpointsSchema = {
+export type EndpointsSchema = {
   [url: string]: {
     [method in (typeof allowedMethods)[number]]?: {
       [overload: string]: {
-        input: EndpointInputSchema,
-        output: EndpointOutputSchema,
+        input: EndpointInputSchema<any, any>,
+        output: EndpointOutputSchema<any, any, any>,
       },
     }
   },
 };
 
-type EndpointHandlers = {
+export type EndpointHandlers = {
   [url: string]: {
     [method in (typeof allowedMethods)[number]]?: {
       [overload: string]: (req: ParsedRequest<any, any>, options?: { params: Promise<Record<string, string>> }) => Promise<ParsedResponse<any>>,
@@ -39,7 +39,7 @@ type EndpointHandlers = {
   },
 };
 
-type NewestEndpoints = {
+export type RawEndpointsHandlers = {
   [url: string]: {
     [method in (typeof allowedMethods)[number]]?: (req: NextRequest) => Promise<NextResponse>
   },
@@ -121,13 +121,13 @@ type ParsedResponse<Body> = {
   }
 )
 
-async function convertRawToParsedRequest(
+async function convertRawToParsedRequest<Body extends yup.Schema, Query extends yup.Schema>(
   req: NextRequest,
-  schema: EndpointInputSchema,
+  schema: EndpointInputSchema<Query, Body>,
   options?: { params: Promise<Record<string, string>> }
 ): Promise<ParsedRequest<
-  yup.InferType<EndpointInputSchema["body"]>,
-  yup.InferType<EndpointInputSchema["query"]>
+  yup.InferType<Body>,
+  yup.InferType<Query>
 >> {
   const bodyBuffer = await req.arrayBuffer();
   const smartRequest = await createSmartRequest(req, bodyBuffer, options);
@@ -162,7 +162,10 @@ async function convertParsedResponseToRaw(req: NextRequest, response: ParsedResp
   return await createResponse(req, requestId, response, schema);
 }
 
-async function convertRawToParsedResponse(res: NextResponse, schema: EndpointOutputSchema): Promise<ParsedResponse<yup.InferType<typeof schema.body>>> {
+async function convertRawToParsedResponse<Body extends yup.Schema, StatusCode extends yup.Schema, Headers extends yup.Schema>(
+  res: NextResponse,
+  schema: EndpointOutputSchema<StatusCode, Headers, Body>
+): Promise<ParsedResponse<yup.InferType<Body>>> {
   // TODO validate schema
   let contentType = res.headers.get("content-type");
   if (contentType) {
@@ -230,37 +233,51 @@ async function convertRawToParsedResponse(res: NextResponse, schema: EndpointOut
 //   }));
 // }
 
-export function createEndpointHandlersFromNewestEndpoints(newestEndpoints: NewestEndpoints, endpointsSchema: EndpointsSchema) {
-  const endpointHandlers: EndpointHandlers = {};
+type ExtractSchema<S extends EndpointsSchema, U extends keyof S, M extends typeof allowedMethods[number], O extends keyof S[U][M], T extends 'input' | 'output'> = NonNullable<S[U][M]>[O][T]
+
+export function createEndpointHandlersFromRawEndpoints<H extends RawEndpointsHandlers, S extends EndpointsSchema>(rawEndpointHandlers: H, endpointsSchema: S): {
+  [url in keyof S]: {
+    [method in (typeof allowedMethods)[number]]: {
+      [overload in keyof S[url][method]]: (
+        req: ParsedRequest<
+          yup.InferType<ExtractSchema<S, url, method, overload, 'input'>['body']>,
+          yup.InferType<ExtractSchema<S, url, method, overload, 'input'>['query']>
+        >,
+        options?: { params: Promise<Record<string, string>> }
+      ) => Promise<ParsedResponse<yup.InferType<ExtractSchema<S, url, method, overload, 'output'>['body']>>>
+    }
+  }
+} {
+  const endpointHandlers = {};
 
   for (const [url, endpointMethods] of typedEntries(endpointsSchema)) {
-    const urlHandlers: EndpointHandlers[string] = {};
+    const urlHandlers = {};
 
     for (const [method, overloads] of typedEntries(endpointMethods)) {
       if (!overloads) continue;
 
-      const methodHandlers: EndpointHandlers[string][typeof allowedMethods[number]] = {};
+      const methodHandlers = {};
 
-      for (const [overload, { input, output }] of typedEntries(overloads)) {
-        const endpoint = newestEndpoints[url][method];
+      for (const [overload, endpointSchema] of typedEntries(overloads)) {
+        const endpoint = (rawEndpointHandlers as any)[url]?.[method];
 
         if (!endpoint) {
-          throw new Error(`No endpoint found for ${method} ${url}`);
+          throw new Error(`No endpoint found for ${method.toString()} ${url.toString()}`);
         }
 
-        methodHandlers[overload] = async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {
+        (methodHandlers as any)[overload] = async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {
+          // TODO: validate input and output
           const rawRequest = await convertParsedRequestToRaw(req);
-          const rawResponse = await endpoint(rawRequest);
-          return await convertRawToParsedResponse(rawResponse, output);
+          const rawResponse = await (endpoint as any)(rawRequest);
+          return await convertRawToParsedResponse(rawResponse, (endpointSchema as any).output);
         };
       }
 
-      urlHandlers[method] = methodHandlers;
+      (urlHandlers as any)[method] = methodHandlers;
     }
 
-    endpointHandlers[url] = urlHandlers;
+    (endpointHandlers as any)[url] = urlHandlers;
   }
 
-  return endpointHandlers;
+  return endpointHandlers as any;
 }
-
