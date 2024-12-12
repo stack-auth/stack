@@ -2063,7 +2063,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._serverUserFromCrud(crud);
   }
 
-
   async getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentServerUser<ProjectId>>;
   async getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>;
   async getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>;
