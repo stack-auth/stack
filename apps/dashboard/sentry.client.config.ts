@@ -15,6 +15,8 @@ Sentry.init({
 		"NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.",
 	],
 
+  normalizeDepth: 5,
+
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 1,
 
@@ -25,8 +27,6 @@ Sentry.init({
 
   replaysOnErrorSampleRate: 1.0,
 
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
   replaysSessionSampleRate: 1.0,
 
   // You can remove this option if you're not planning to use the Sentry Session Replay feature:

@@ -21,6 +21,8 @@ export function register() {
         "NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.",
       ],
 
+      normalizeDepth: 5,
+
       // Adjust this value in production, or use tracesSampler for greater control
       tracesSampleRate: 1,
 
