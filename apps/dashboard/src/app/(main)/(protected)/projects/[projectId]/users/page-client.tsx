@@ -7,7 +7,6 @@ import { Alert, Button } from "@stackframe/stack-ui";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
 
-
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();

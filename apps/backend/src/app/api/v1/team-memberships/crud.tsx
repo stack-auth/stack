@@ -1,5 +1,5 @@
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
-import { ensureTeamExists, ensureTeamMembershipDoesNotExist, ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
+import { ensureTeamExists, ensureTeamMembershipDoesNotExist, ensureTeamMembershipExists, ensureUserExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { PrismaTransaction } from "@/lib/types";
 import { sendTeamMembershipCreatedWebhook, sendTeamMembershipDeletedWebhook } from "@/lib/webhooks";
 import { prismaClient } from "@/prisma-client";
@@ -58,6 +58,11 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
   }),
   onCreate: async ({ auth, params }) => {
     await prismaClient.$transaction(async (tx) => {
+      await ensureUserExists(tx, {
+        projectId: auth.project.id,
+        userId: params.user_id,
+      });
+
       await ensureTeamExists(tx, {
         projectId: auth.project.id,
         teamId: params.team_id,

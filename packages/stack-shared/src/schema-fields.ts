@@ -215,13 +215,14 @@ export const base64Schema = yupString().test("is-base64", (params) => `${params.
 export const passwordSchema = yupString().max(70);
 
 /**
- * A stricter email schema that does some additional checks for UX input.
+ * A stricter email schema that does some additional checks for UX input. (Some emails are allowed by the spec, for
+ * example `test@localhost` or `abc@gmail`, but almost certainly a user input error.)
  *
  * Note that some users in the DB have an email that doesn't match this regex, so most of the time you should use
  * `emailSchema` instead until we do the DB migration.
  */
 // eslint-disable-next-line no-restricted-syntax
-export const strictEmailSchema = (message: string | undefined) => yupString().email(message).matches(/^.*@.*\..*$/, message);
+export const strictEmailSchema = (message: string | undefined) => yupString().email(message).matches(/^.*@.*\.[^.][^.]+$/, message);
 // eslint-disable-next-line no-restricted-syntax
 export const emailSchema = yupString().email();
 

@@ -158,7 +158,7 @@ export abstract class OAuthBaseProvider {
       if (error?.error === 'access_denied') {
         throw new KnownErrors.OAuthProviderAccessDenied();
       }
-      throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, undefined, { cause: error });
+      throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, { cause: error });
     }
 
     tokenSet = processTokenSet(this.constructor.name, tokenSet, this.defaultAccessTokenExpiresInMillis);

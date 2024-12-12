@@ -1,7 +1,7 @@
-import * as util from "util";
-import { captureError, registerErrorSink } from "@stackframe/stack-shared/dist/utils/errors";
 import * as Sentry from "@sentry/nextjs";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { captureError, registerErrorSink } from "@stackframe/stack-shared/dist/utils/errors";
+import * as util from "util";
 
 const sentryErrorSink = (location: string, error: unknown) => {
   Sentry.captureException(error, { extra: { location } });
@@ -9,6 +9,14 @@ const sentryErrorSink = (location: string, error: unknown) => {
 
 export function ensurePolyfilled() {
   registerErrorSink(sentryErrorSink);
+
+  if ("addEventListener" in globalThis) {
+    globalThis.addEventListener("unhandledrejection", (event) => {
+      captureError("unhandled-browser-promise-rejection", event.reason);
+      console.error("Unhandled promise rejection", event.reason);
+    });
+  }
+
   // not all environments have default options for util.inspect
   if ("inspect" in util && "defaultOptions" in util.inspect) {
     util.inspect.defaultOptions.depth = 8;

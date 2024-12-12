@@ -43,9 +43,12 @@ export class InternalSession {
   private readonly _refreshToken: RefreshToken | null;
 
   /**
-   * Whether the session as a whole is known to be invalid. Used as a cache to avoid making multiple requests to the server (sessions never go back to being valid after being invalidated).
+   * Whether the session as a whole is known to be invalid (ie. both access and refresh tokens are invalid). Used as a cache to avoid making multiple requests to the server (sessions never go back to being valid after being invalidated).
    *
-   * Applies to both the access token and the refresh token (it is possible for the access token to be invalid but the refresh token to be valid, in which case the session is still valid).
+   * It is possible for the access token to be invalid but the refresh token to be valid, in which case the session is
+   * still valid (just needs a refresh). It is also possible for the access token to be valid but the refresh token to
+   * be invalid, in which case the session is also valid (eg. if the refresh token is null because the user only passed
+   * in an access token, eg. in a server-side request handler).
    */
   private _knownToBeInvalid = new Store<boolean>(false);
 
@@ -58,6 +61,10 @@ export class InternalSession {
   }) {
     this._accessToken = new Store(_options.accessToken ? new AccessToken(_options.accessToken) : null);
     this._refreshToken = _options.refreshToken ? new RefreshToken(_options.refreshToken) : null;
+    if (_options.accessToken === null && _options.refreshToken === null) {
+      // this session is already invalid
+      this._knownToBeInvalid.set(true);
+    }
     this.sessionKey = InternalSession.calculateSessionKey({ accessToken: _options.accessToken ?? null, refreshToken: _options.refreshToken });
   }
 
