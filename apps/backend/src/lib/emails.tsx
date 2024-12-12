@@ -99,7 +99,7 @@ export async function sendEmail({
             html
           }));
         } catch (error) {
-          const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject };
+          const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject, cause: error };
           const temporaryErrorIndicators = [
             "450 ",
             "Client network socket disconnected before secure TLS connection was established",
@@ -113,7 +113,7 @@ export async function sendEmail({
           }
 
           // TODO if using custom email config, we should notify the developer instead of throwing an error
-          throw new StackAssertionError('Failed to send email', extraData, { cause: error });
+          throw new StackAssertionError('Failed to send email', extraData);
         }
       }, 3, { exponentialDelayBase: 2000 }));
     } finally {
