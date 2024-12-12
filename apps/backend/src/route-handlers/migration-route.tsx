@@ -3,15 +3,40 @@ import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/
 import { pick, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { SmartRequest, createSmartRequest } from "./smart-request";
-import { SmartResponse, createResponse } from "./smart-response";
+import { createSmartRequest } from "./smart-request";
+import { createResponse } from "./smart-response";
 
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
-type Endpoints = {
-  [key: string]: {
-    [key in (typeof allowedMethods)[number]]?: (req: NextRequest) => Promise<NextResponse>
+type EndpointInputSchema = {
+  query: yup.Schema,
+  body: yup.Schema,
+};
+
+type EndpointOutputSchema = {
+  statusCode: yup.Schema,
+  headers: yup.Schema,
+  body: yup.Schema,
+};
+
+type EndpointsSchema = {
+  [url: string]: {
+    [method in (typeof allowedMethods)[number]]?: {
+      [overload: string]: {
+        query: yup.Schema,
+        body: yup.Schema,
+        response: yup.Schema,
+      },
+    }
+  },
+};
+
+type EndpointHandlers = {
+  [url: string]: {
+    [method in (typeof allowedMethods)[number]]?: {
+      [overload: string]: (req: ParsedRequest<any, any>, options?: { params: Promise<Record<string, string>> }) => Promise<ParsedResponse<any>>,
+    }
   },
 };
 
@@ -54,17 +79,62 @@ function urlMatch(url: string, nextPattern: string): Record<string, any> | null 
   return result;
 }
 
-type ParsedRequest = Pick<SmartRequest, "url" | "method" | "body" | "headers" | "query" | "params">;
-type ParsedResponse = SmartResponse;
+type ParsedRequest<Body, Query extends Record<string, string | undefined>> = {
+  url: string,
+  method: typeof allowedMethods[number],
+  headers: Record<string, string[] | undefined>,
+  body: Body,
+  query: Query,
+};
+type ParsedResponse<Body> = {
+  statusCode: number,
+  headers?: Record<string, string[]>,
+} & (
+  | {
+    bodyType?: undefined,
+    body?: Body,
+  }
+  | {
+    bodyType: "empty",
+    body?: undefined,
+  }
+  | {
+    bodyType: "text",
+    body: string,
+  }
+  | {
+    bodyType: "json",
+    body: Body,
+  }
+  | {
+    bodyType: "binary",
+    body: ArrayBuffer,
+  }
+  | {
+    bodyType: "success",
+    body?: undefined,
+  }
+)
 
-async function convertRawToParsedRequest(req: NextRequest, schema: yup.Schema, options?: { params: Promise<Record<string, string>> }): Promise<ParsedRequest> {
+async function convertRawToParsedRequest(
+  req: NextRequest,
+  schema: EndpointInputSchema,
+  options?: { params: Promise<Record<string, string>> }
+): Promise<ParsedRequest<
+  yup.InferType<EndpointInputSchema["body"]>,
+  yup.InferType<EndpointInputSchema["query"]>
+>> {
   const bodyBuffer = await req.arrayBuffer();
   const smartRequest = await createSmartRequest(req, bodyBuffer, options);
-  const parsedRequest = pick(smartRequest, ["url", "method", "body", "headers", "query", "params"]);
-  return await yupValidate(schema, parsedRequest);
+  const parsedRequest = pick(smartRequest, ["url", "method", "body", "headers", "query"]);
+  return {
+    ...parsedRequest,
+    body: await yupValidate(schema.body, parsedRequest.body),
+    query: await yupValidate(schema.query, parsedRequest.query),
+  };
 }
 
-async function convertParsedRequestToRaw(req: ParsedRequest): Promise<NextRequest> {
+async function convertParsedRequestToRaw(req: ParsedRequest<any, Record<string, string | undefined>>): Promise<NextRequest> {
   const url = new URL(req.url);
 
   for (const [key, value] of Object.entries(req.query)) {
@@ -82,12 +152,12 @@ async function convertParsedRequestToRaw(req: ParsedRequest): Promise<NextReques
   });
 }
 
-async function convertParsedResponseToRaw(req: NextRequest, response: ParsedResponse, schema: yup.Schema): Promise<Response> {
+async function convertParsedResponseToRaw(req: NextRequest, response: ParsedResponse<any>, schema: yup.Schema): Promise<Response> {
   const requestId = generateSecureRandomString(80);
   return await createResponse(req, requestId, response, schema);
 }
 
-async function convertRawToParsedResponse(res: NextResponse, schema: yup.Schema): Promise<ParsedResponse> {
+async function convertRawToParsedResponse(res: NextResponse, schema: EndpointOutputSchema): Promise<ParsedResponse<yup.InferType<typeof schema.body>>> {
   // TODO validate schema
   let contentType = res.headers.get("content-type");
   if (contentType) {
@@ -136,9 +206,9 @@ async function convertRawToParsedResponse(res: NextResponse, schema: yup.Schema)
   }
 }
 
-export function createMigrationRoute(newEndpoints: Endpoints) {
+export function createMigrationRoute(versionsSchema: EndpointsSchema[]) {
   return typedFromEntries(allowedMethods.map((method) => {
-    return [method, (req: NextRequest) => {
+    return [method, async (req: NextRequest) => {
       for (const [url, endpointMethods] of Object.entries(newEndpoints)) {
         const match = urlMatch(new URL(req.url).pathname.replace('v2', 'v1'), url);
         if (!match) {

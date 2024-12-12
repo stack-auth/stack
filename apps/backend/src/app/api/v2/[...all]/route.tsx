@@ -3,7 +3,7 @@ import { createMigrationRoute } from '../../../../route-handlers/migration-route
 
 const route = createMigrationRoute({
   '/api/v1/users': {
-    POST: async (req) => {
+    GET: async (req) => {
       return NextResponse.json({ 'hi': 'asdf' });
     },
   },
