@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, Table, Table
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from '../use-admin-app';
 import { GlobeSection } from './globe';
-import { LineChartDisplay, LineChartDisplayConfig } from './line-chart';
+import { DonutChartDisplay, LineChartDisplay, LineChartDisplayConfig } from './line-chart';
 
 
 const stackAppInternalsSymbol = Symbol.for("StackAuth--DO-NOT-USE-OR-YOU-WILL-BE-FIRED--StackAppInternals");
@@ -113,6 +113,9 @@ export default function PageClient() {
                 </Table>
               </CardContent>
             </Card>
+            <DonutChartDisplay
+              datapoints={data.login_methods}
+            />
           </div>
         </>
       }

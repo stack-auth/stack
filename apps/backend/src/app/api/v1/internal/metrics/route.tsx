@@ -92,6 +92,23 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
   }));
 }
 
+async function loadLoginMethods(projectId: string): Promise<any> {
+  return await prismaClient.$queryRaw<{ method: string, count: number }[]>`
+    WITH tab AS (
+      SELECT COALESCE(soapc."type"::text, poapc."type"::text, 'other') AS "method", method.id AS id FROM "AuthMethod" method
+      LEFT JOIN "OAuthAuthMethod" oaam ON method.id = oaam."authMethodId"
+      LEFT JOIN "OAuthProviderConfig" oapc
+        ON oaam."projectConfigId" = oapc."projectConfigId" AND oaam."oauthProviderConfigId" = oapc.id
+      LEFT JOIN "StandardOAuthProviderConfig" soapc
+        ON oapc."projectConfigId" = soapc."projectConfigId" AND oapc.id = soapc.id
+        LEFT JOIN "ProxiedOAuthProviderConfig" poapc
+        ON oapc."projectConfigId" = poapc."projectConfigId" AND oapc.id = poapc.id
+      WHERE method."projectId" = ${projectId})
+    SELECT LOWER("method") AS method, COUNT(id)::int AS "count" FROM tab
+    GROUP BY "method"
+  `;
+}
+
 function simplifyUsers(users: (ProjectUser & { contactChannels: ContactChannel[] })[]): any {
   return users.map((user) => ({
     id: user.projectUserId,
@@ -120,7 +137,15 @@ export const GET = createSmartRouteHandler({
   handler: async (req) => {
     const now = new Date();
 
-    const [total_users, dailyUsers, dailyActiveUsers, usersByCountry, recentlyRegistered, recentlyActive] = await Promise.all([
+    const [
+      totalUsers,
+      dailyUsers,
+      dailyActiveUsers,
+      usersByCountry,
+      recentlyRegistered,
+      recentlyActive,
+      loginMethods
+    ] = await Promise.all([
       prismaClient.projectUser.count({
         where: { projectId: req.auth.project.id, },
       }),
@@ -142,19 +167,21 @@ export const GET = createSmartRouteHandler({
         orderBy: [{
           updatedAt: 'desc'
         }]
-      })
+      }),
+      loadLoginMethods(req.auth.project.id),
     ] as const);
 
     return {
       statusCode: 200,
       bodyType: "json",
       body: {
-        total_users,
+        total_users: totalUsers,
         daily_users: dailyUsers,
         daily_active_users: dailyActiveUsers,
         users_by_country: usersByCountry,
         recently_registered: simplifyUsers(recentlyRegistered),
         recently_active: simplifyUsers(recentlyActive),
+        login_methods: loginMethods,
       }
     };
   },
