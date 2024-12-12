@@ -57,8 +57,8 @@ function isBinaryBody(body: unknown): body is BodyInit {
     || ArrayBuffer.isView(body);
 }
 
-export async function createResponse<T extends SmartResponse>(req: NextRequest | null, requestId: string, obj: T, schema?: yup.Schema<T>): Promise<Response> {
-  const validated = schema ? await validate(req, obj, schema) : obj;
+export async function createResponse<T extends SmartResponse>(req: NextRequest | null, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
+  const validated = await validate(req, obj, schema);
 
   let status = validated.statusCode;
   const headers = new Map<string, string[]>();

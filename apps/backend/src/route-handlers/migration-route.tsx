@@ -1,8 +1,11 @@
+import { yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
+import { pick, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import { NextRequest, NextResponse } from "next/server";
-import { SmartRequest } from "./smart-request";
-import { SmartResponse, createResponse as createResponseFromSmartResponse } from "./smart-response";
+import * as yup from "yup";
+import { SmartRequest, createSmartRequest } from "./smart-request";
+import { SmartResponse, createResponse } from "./smart-response";
+
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
@@ -54,19 +57,34 @@ function urlMatch(url: string, nextPattern: string): Record<string, any> | null 
 type ParsedRequest = Pick<SmartRequest, "url" | "method" | "body" | "headers" | "query" | "params">;
 type ParsedResponse = SmartResponse;
 
-// async function convertRawToParsedRequest(req: NextRequest, options?: { params: Promise<Record<string, string>> }): Promise<ParsedRequest> {
-//   const bodyBuffer = await req.arrayBuffer();
-//   const smartRequest = await createSmartRequest(req, bodyBuffer, options);
-//   return pick(smartRequest, ["url", "method", "body", "headers", "query", "params"]);
-// }
+async function convertRawToParsedRequest(req: NextRequest, schema: yup.Schema, options?: { params: Promise<Record<string, string>> }): Promise<ParsedRequest> {
+  const bodyBuffer = await req.arrayBuffer();
+  const smartRequest = await createSmartRequest(req, bodyBuffer, options);
+  const parsedRequest = pick(smartRequest, ["url", "method", "body", "headers", "query", "params"]);
+  return await yupValidate(schema, parsedRequest);
+}
 
-// async function convertParsedRequestToRaw(req: ParsedRequest, ): Promise<SmartRequest> {
+async function convertParsedRequestToRaw(req: ParsedRequest): Promise<NextRequest> {
+  const url = new URL(req.url);
 
-// }
+  for (const [key, value] of Object.entries(req.query)) {
+    if (value !== undefined) {
+      url.searchParams.set(key, value);
+    }
+  }
 
-async function createResponseFromParsedRequest(req: NextRequest, response: SmartResponse): Promise<Response> {
+  return new NextRequest(url.toString(), {
+    body: JSON.stringify(req.body),
+    method: req.method,
+    headers: typedFromEntries(Object.entries(req.headers)
+      .map(([key, value]): [string, string | undefined] => [key, (value?.constructor === Array ? value.join(',') : value) as string | undefined])
+      .filter(([_, value]) => value !== undefined)) as HeadersInit,
+  });
+}
+
+async function convertParsedResponseToRaw(req: NextRequest, response: ParsedResponse, schema: yup.Schema): Promise<Response> {
   const requestId = generateSecureRandomString(80);
-  return await createResponseFromSmartResponse(req, requestId, response);
+  return await createResponse(req, requestId, response, schema);
 }
 
 // async function createSmartResponseFromResponse
