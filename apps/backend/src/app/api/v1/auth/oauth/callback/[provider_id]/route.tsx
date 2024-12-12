@@ -270,8 +270,10 @@ const handler = createSmartRouteHandler({
                     throw new KnownErrors.SignUpNotEnabled();
                   }
 
-                  let primaryEmailAuthEnabled = true;
+                  let primaryEmailAuthEnabled = false;
                   if (userInfo.email) {
+                    primaryEmailAuthEnabled = true;
+
                     const oldContactChannel = await getAuthContactChannel(
                       prismaClient,
                       {
@@ -280,11 +282,12 @@ const handler = createSmartRouteHandler({
                         value: userInfo.email,
                       }
                     );
-
                     if (oldContactChannel && oldContactChannel.usedForAuth) {
+                      // if the email is already used for auth by another account, still create an account but don't
+                      // enable auth on it
                       primaryEmailAuthEnabled = false;
                     }
-                    // TODO: check whether this OAuth account can be used to login to another existing account instead
+                    // TODO: check whether this OAuth account can be used to login to an existing non-OAuth account instead
                   }
 
                   const newAccount = await usersCrudHandlers.adminCreate({
