@@ -87,7 +87,54 @@ async function convertParsedResponseToRaw(req: NextRequest, response: ParsedResp
   return await createResponse(req, requestId, response, schema);
 }
 
-// async function createSmartResponseFromResponse
+async function convertRawToParsedResponse(res: NextResponse, schema: yup.Schema): Promise<ParsedResponse> {
+  // TODO validate schema
+  let contentType = res.headers.get("content-type");
+  if (contentType) {
+    contentType = contentType.split(";")[0];
+  }
+
+  switch (contentType) {
+    case "application/json": {
+      return {
+        statusCode: res.status,
+        body: await res.json(),
+        bodyType: "json",
+      };
+    }
+    case "text/plain": {
+      return {
+        statusCode: res.status,
+        body: await res.text(),
+        bodyType: "text",
+      };
+    }
+    case "binary": {
+      return {
+        statusCode: res.status,
+        body: await res.arrayBuffer(),
+        bodyType: "binary",
+      };
+    }
+    case "success": {
+      return {
+        statusCode: res.status,
+        body: undefined,
+        bodyType: "success",
+      };
+    }
+    case undefined: {
+      return {
+        statusCode: res.status,
+        body: undefined,
+        bodyType: "empty",
+      };
+    }
+    default: {
+      throw new Error(`Unsupported content type: ${contentType}`);
+    }
+  }
+}
 
 export function createMigrationRoute(newEndpoints: Endpoints) {
   return typedFromEntries(allowedMethods.map((method) => {
