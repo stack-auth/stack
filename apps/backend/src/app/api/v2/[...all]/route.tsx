@@ -1,16 +1,5 @@
-import { NextResponse } from 'next/server';
-import { createMigrationRoute } from '../../../../route-handlers/migration-route';
+import { NextRequest, NextResponse } from "next/server";
 
-const route = createMigrationRoute({
-  '/api/v1/users': {
-    GET: async (req) => {
-      return NextResponse.json({ 'hi': 'asdf' });
-    },
-  },
-});
-
-export const GET = route.GET;
-export const POST = route.POST;
-export const PUT = route.PUT;
-export const DELETE = route.DELETE;
-export const PATCH = route.PATCH;
+export const GET = async (req: NextRequest) => {
+  return NextResponse.json({ 'hi': 'asdf' });
+};
