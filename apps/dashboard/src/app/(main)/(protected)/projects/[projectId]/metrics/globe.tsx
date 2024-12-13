@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardTitle } from '@stackframe/stack
 import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Globe, { GlobeMethods } from 'react-globe.gl';
 
+import countries from './country-data.geo.json';
+
 function useSize(target: RefObject<HTMLDivElement>) {
   const [size, setSize] = useState<DOMRectReadOnly>();
 
@@ -21,22 +23,9 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
   const ref = useRef<HTMLDivElement>(null);
   const size = useSize(ref);
 
-  const [countries, setCountries] = useState<any>({ features: [] });
   const [selectedCountry, setSelectedCountry] = useState<{ code: string, name: string } | null>(null);
 
   const maxCountryCount = Math.max(0, ...Object.values(countryData));
-
-  useEffect(() => {
-    let cancelled = false;
-    
-    runAsynchronously(async () => {
-      const fetchRes = await fetch('/static/country-data.geojson');
-      const json = fetchRes.json();
-      if (!cancelled) setCountries(json);
-    });
-    
-    return () => cancelled = true;
-  }, []);
 
   useEffect(() => {
     if (globeRef.current) {
@@ -82,9 +71,9 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
       {selectedCountry &&
         <Card>
           <CardContent>
-            <CardTitle className='text-2xl'>{selectedCountryName}</CardTitle>
+            <CardTitle className='text-2xl'>{selectedCountry.name}</CardTitle>
             <CardDescription className='text-xl'>
-              {countryData[selectedCountry] ?? 0} users
+              {countryData[selectedCountry.code] ?? 0} users
             </CardDescription>
           </CardContent>
         </Card>

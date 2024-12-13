@@ -59,7 +59,7 @@ export default function PageClient() {
           </GlobeSection>
           <div className='grid gap-4 lg:grid-cols-2'>
             <LineChartDisplay
-              config={dailyRegistrationsConfig}
+              config={dailySignupsConfig}
               datapoints={data.daily_users}
             />
             <LineChartDisplay
