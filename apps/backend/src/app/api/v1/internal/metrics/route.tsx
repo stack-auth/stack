@@ -24,12 +24,10 @@ async function loadUsersByCountry(projectId: string): Promise<Record<string, num
     ORDER BY "userCount" DESC;
   `;
 
-  const rec: Record<string, number> = {};
-  a.forEach(({ userCount, countryCode }) => {
-    if (countryCode) {
-      rec[countryCode] = Number(userCount);
-    }
-  });
+  const rec = Object.fromEntries(
+    a.map(({ userCount, countryCode }) => [countryCode, Number(userCount)])
+      .filter(([countryCode, userCount]) => countryCode)
+  );
   return rec;
 }
 

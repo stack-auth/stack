@@ -10,8 +10,8 @@ import { DonutChartDisplay, LineChartDisplay, LineChartDisplayConfig } from './l
 
 const stackAppInternalsSymbol = Symbol.for("StackAuth--DO-NOT-USE-OR-YOU-WILL-BE-FIRED--StackAppInternals");
 
-const dailyRegistrationsConfig = {
-  name: 'Daily Registrations',
+const dailySignupsConfig = {
+  name: 'Daily Signups',
   description: 'User registration over the last 30 days',
   chart: {
     activity: {
@@ -23,7 +23,7 @@ const dailyRegistrationsConfig = {
 
 const dauConfig = {
   name: 'Daily Active Users',
-  description: 'Unique daily user activity over the last 30 days',
+  description: 'Number of unique users that were active over the last 30 days',
   chart: {
     activity: {
       label: "Activity",
@@ -33,7 +33,6 @@ const dauConfig = {
 } satisfies LineChartDisplayConfig;
 
 export default function PageClient() {
-  // const [data, setData] = useState<any>(null);
   const adminApp = useAdminApp();
 
   const data = (adminApp as any)[stackAppInternalsSymbol].useMetrics();
@@ -69,7 +68,7 @@ export default function PageClient() {
             />
             <Card>
               <CardHeader>
-                <CardTitle>Latest Registrations</CardTitle>
+                <CardTitle>Recent Signups</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -99,7 +98,7 @@ export default function PageClient() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Display Name</TableHead>
-                      <TableHead>Registered at</TableHead>
+                      <TableHead>Last Active at</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
