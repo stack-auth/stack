@@ -9,12 +9,19 @@ import { createResponse } from "./smart-response";
 
 const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
-export type EndpointInputSchema<Query extends yup.Schema, Body extends yup.Schema> = {
+export type EndpointInputSchema<
+  Query extends yup.Schema,
+  Body extends yup.Schema
+> = {
   query: Query,
   body: Body,
 };
 
-export type EndpointOutputSchema<StatusCode extends yup.Schema, Headers extends yup.Schema, Body extends yup.Schema> = {
+export type EndpointOutputSchema<
+  StatusCode extends yup.Schema,
+  Headers extends yup.Schema,
+  Body extends yup.Schema
+> = {
   statusCode: StatusCode,
   headers: Headers,
   body: Body,
@@ -171,12 +178,20 @@ async function convertParsedRequestToRaw(req: ParsedRequest<any, Record<string, 
   });
 }
 
-async function convertParsedResponseToRaw(req: NextRequest, response: ParsedResponse<any>, schema: yup.Schema): Promise<Response> {
+async function convertParsedResponseToRaw(
+  req: NextRequest,
+  response: ParsedResponse<any>,
+  schema: yup.Schema
+): Promise<Response> {
   const requestId = generateSecureRandomString(80);
   return await createResponse(req, requestId, response, schema);
 }
 
-async function convertRawToParsedResponse<Body extends yup.Schema, StatusCode extends yup.Schema, Headers extends yup.Schema>(
+async function convertRawToParsedResponse<
+  Body extends yup.Schema,
+  StatusCode extends yup.Schema,
+  Headers extends yup.Schema
+>(
   res: NextResponse,
   schema: EndpointOutputSchema<StatusCode, Headers, Body>
 ): Promise<ParsedResponse<yup.InferType<Body>>> {
@@ -254,9 +269,19 @@ export function createMigrationRoute(endpointHandlers: EndpointHandlers) {
   }));
 }
 
-type ExtractSchema<S extends EndpointsSchema, U extends keyof S, M extends typeof allowedMethods[number], O extends keyof S[U][M], T extends 'input' | 'output'> = NonNullable<S[U][M]>[O][T]
+type ExtractSchema<
+S extends EndpointsSchema,
+U extends keyof S,
+M extends typeof allowedMethods[number],
+O extends keyof S[U][M],
+T extends 'input' | 'output'
+> = NonNullable<S[U][M]>[O][T]
 
-export function createEndpointHandlersFromRawEndpoints<H extends RawEndpointsHandlers, S extends EndpointsSchema>(rawEndpointHandlers: H, endpointsSchema: S): EndpointHandlersFromSchema<S> {
+export function createEndpointHandlersFromRawEndpoints<
+  H extends RawEndpointsHandlers,
+  S extends EndpointsSchema,
+  E extends EndpointHandlersFromSchema<S>
+>(rawEndpointHandlers: H, endpointsSchema: S): E {
   const endpointHandlers = {};
 
   for (const [url, endpointMethods] of typedEntries(endpointsSchema)) {
