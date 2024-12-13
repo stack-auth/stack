@@ -352,7 +352,20 @@ export function createMigrationEndpointHandlers<
   return createEndpointHandlers(
     oldEndpointsSchema,
     (url, method, overload, endpointSchema) => async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {
-      return null as any;
+      // TODO add validation
+      let transformedRequest = req;
+      const transform = (transforms as any)[url]?.[method]?.[overload];
+      if (transform) {
+        return transform({ req, newEndpointHandlers: newEndpointsHandlers });
+      } else {
+        const endpoint = (newEndpointsHandlers as any)[url]?.[method];
+
+        if (!endpoint) {
+          throw new Error(`No endpoint found for ${method.toString()} ${url.toString()}`);
+        }
+
+        return endpoint(transformedRequest);
+      }
     }
   );
 }
