@@ -1,9 +1,14 @@
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { ContactChannel, ProjectUser } from "@prisma/client";
-import { adaptSchema, adminAuthTypeSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, adminAuthTypeSchema, yupArray, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
 type DataPoints = { date: string, activity: number }[];
+
+const DataPointsSchema = yupArray(yupObject({
+  date: yupString().defined(),
+  activity: yupNumber().defined(),
+}).defined()).defined();
 
 
 async function loadUsersByCountry(projectId: string): Promise<Record<string, number>> {
@@ -90,7 +95,7 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
   }));
 }
 
-async function loadLoginMethods(projectId: string): Promise<any> {
+async function loadLoginMethods(projectId: string): Promise<{method: string, count: number }[]> {
   return await prismaClient.$queryRaw<{ method: string, count: number }[]>`
     WITH tab AS (
       SELECT COALESCE(soapc."type"::text, poapc."type"::text, 'other') AS "method", method.id AS id FROM "AuthMethod" method
@@ -130,7 +135,16 @@ export const GET = createSmartRouteHandler({
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).defined(),
     bodyType: yupString().oneOf(["json"]).defined(),
-    body: yupMixed().defined(),
+    body: yupObject({
+      total_users: yupNumber().integer().defined(),
+      daily_users: DataPointsSchema,
+      daily_active_users: DataPointsSchema,
+      // TODO: Narrow down the types further
+      users_by_country: yupMixed().defined(),
+      recently_registered: yupMixed().defined(),
+      recently_active: yupMixed().defined(),
+      login_methods: yupMixed().defined(),
+    }).defined(),
   }),
   handler: async (req) => {
     const now = new Date();
