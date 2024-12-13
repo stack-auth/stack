@@ -45,6 +45,20 @@ export type RawEndpointsHandlers = {
   },
 }
 
+type EndpointHandlersFromSchema<S extends EndpointsSchema> = {
+  [url in keyof S]: {
+    [method in (typeof allowedMethods)[number]]: {
+      [overload in keyof S[url][method]]: (
+        req: ParsedRequest<
+          yup.InferType<ExtractSchema<S, url, method, overload, 'input'>['body']>,
+          yup.InferType<ExtractSchema<S, url, method, overload, 'input'>['query']>
+        >,
+        options?: { params: Promise<Record<string, string>> }
+      ) => Promise<ParsedResponse<yup.InferType<ExtractSchema<S, url, method, overload, 'output'>['body']>>>
+    }
+  }
+}
+
 function urlMatch(url: string, nextPattern: string): Record<string, any> | null {
   const keys: string[] = [];
 
@@ -214,40 +228,35 @@ async function convertRawToParsedResponse<Body extends yup.Schema, StatusCode ex
   }
 }
 
-// export function createMigrationRoute(versionsSchema: EndpointsSchema[]) {
-//   return typedFromEntries(allowedMethods.map((method) => {
-//     return [method, async (req: NextRequest) => {
-//       for (const [url, endpointMethods] of Object.entries(newEndpoints)) {
-//         const match = urlMatch(new URL(req.url).pathname.replace('v2', 'v1'), url);
-//         if (!match) {
-//           return new NextResponse(null, { status: 404 });
-//         } else {
-//           if (endpointMethods[method]) {
-//             return NextResponse.json({ match, url: req.url, nextUrl: url });
-//           } else {
-//             return new NextResponse(null, { status: 405 });
-//           }
-//         }
-//       }
-//     }];
-//   }));
-// }
+export function createMigrationEndpointHandlers<S extends EndpointsSchema, E extends EndpointHandlers>(
+  oldEndpointsSchema: S,
+  newEndpointsHandlers: E,
+): EndpointHandlersFromSchema<S> {
+  return null as any;
+}
+
+export function createMigrationRoute(endpointHandlers: EndpointHandlers) {
+  return typedFromEntries(allowedMethods.map((method) => {
+    return [method, async (req: NextRequest) => {
+      for (const [url, endpointMethods] of Object.entries(endpointHandlers)) {
+        const match = urlMatch(new URL(req.url).pathname.replace('v2', 'v1'), url);
+        if (!match) {
+          return new NextResponse(null, { status: 404 });
+        } else {
+          if (endpointMethods[method]) {
+            return NextResponse.json({ match, url: req.url, nextUrl: url });
+          } else {
+            return new NextResponse(null, { status: 405 });
+          }
+        }
+      }
+    }];
+  }));
+}
 
 type ExtractSchema<S extends EndpointsSchema, U extends keyof S, M extends typeof allowedMethods[number], O extends keyof S[U][M], T extends 'input' | 'output'> = NonNullable<S[U][M]>[O][T]
 
-export function createEndpointHandlersFromRawEndpoints<H extends RawEndpointsHandlers, S extends EndpointsSchema>(rawEndpointHandlers: H, endpointsSchema: S): {
-  [url in keyof S]: {
-    [method in (typeof allowedMethods)[number]]: {
-      [overload in keyof S[url][method]]: (
-        req: ParsedRequest<
-          yup.InferType<ExtractSchema<S, url, method, overload, 'input'>['body']>,
-          yup.InferType<ExtractSchema<S, url, method, overload, 'input'>['query']>
-        >,
-        options?: { params: Promise<Record<string, string>> }
-      ) => Promise<ParsedResponse<yup.InferType<ExtractSchema<S, url, method, overload, 'output'>['body']>>>
-    }
-  }
-} {
+export function createEndpointHandlersFromRawEndpoints<H extends RawEndpointsHandlers, S extends EndpointsSchema>(rawEndpointHandlers: H, endpointsSchema: S): EndpointHandlersFromSchema<S> {
   const endpointHandlers = {};
 
   for (const [url, endpointMethods] of typedEntries(endpointsSchema)) {
