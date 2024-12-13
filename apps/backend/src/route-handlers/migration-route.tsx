@@ -270,11 +270,11 @@ export function createMigrationRoute(endpointHandlers: EndpointHandlers) {
 }
 
 type ExtractSchema<
-S extends EndpointsSchema,
-U extends keyof S,
-M extends typeof allowedMethods[number],
-O extends keyof S[U][M],
-T extends 'input' | 'output'
+  S extends EndpointsSchema,
+  U extends keyof S,
+  M extends typeof allowedMethods[number],
+  O extends keyof S[U][M],
+  T extends 'input' | 'output'
 > = NonNullable<S[U][M]>[O][T]
 
 export function createEndpointHandlersFromRawEndpoints<

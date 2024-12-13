@@ -45,7 +45,7 @@ exampleEndpointHandlers['/asdf']['GET']['asdf']({
     abc: 'asdf',
   },
 }).then((res) => {
-  console.log(res, '!!!!!!!!!!!!');
+  console.log(res);
 }).catch((err) => {
   console.error(err);
 });
