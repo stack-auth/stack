@@ -16,18 +16,6 @@ function useSize(target: RefObject<HTMLDivElement>) {
   return size;
 }
 
-const ringData = [
-  { lat: 37.792080, lng: -122.432361 }
-];
-
-
-const PLACEHOLDER_COUNTRY_DATA: Record<string, number> = {
-  'US': 123,
-  'CA': 45,
-  'JP': 67,
-  'KR': 89,
-};
-
 export function GlobeSection({ countryData, children }: {countryData: Record<string, number>, children?: React.ReactNode}) {
   const globeRef = useRef<GlobeMethods>();
   const ref = useRef<HTMLDivElement>(null);
