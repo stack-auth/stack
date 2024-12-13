@@ -1,4 +1,4 @@
-import { EndpointsSchema, RawEndpointsHandlers, createEndpointHandlersFromRawEndpoints } from "@/route-handlers/migration-route";
+import { EndpointsSchema, RawEndpointsHandlers, createEndpointHandlersFromRawEndpoints } from "@/route-handlers/migration-handler";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { NextRequest, NextResponse } from "next/server";
 
