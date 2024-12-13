@@ -52,16 +52,55 @@ export type RawEndpointsHandlers = {
   },
 }
 
+type ExtractInputOutputFromEndpointsSchema<
+  S extends EndpointsSchema,
+  U extends keyof S,
+  M extends typeof allowedMethods[number],
+  O extends keyof S[U][M],
+> = NonNullable<S[U][M]>[O]
+
+type ParsedRequestFromSchema<
+  S extends EndpointsSchema,
+  url extends keyof S,
+  method extends (typeof allowedMethods)[number],
+  overload extends keyof S[url][method]
+> = ParsedRequest<
+  yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['input']['body']>,
+  yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['input']['query']>
+>
+
+type ParsedResponseFromSchema<
+  S extends EndpointsSchema,
+  url extends keyof S,
+  method extends (typeof allowedMethods)[number],
+  overload extends keyof S[url][method]
+> = ParsedResponse<yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['output']['body']>>
+
 type EndpointHandlersFromSchema<S extends EndpointsSchema> = {
   [url in keyof S]: {
     [method in (typeof allowedMethods)[number]]: {
       [overload in keyof S[url][method]]: (
-        req: ParsedRequest<
-          yup.InferType<ExtractSchema<S, url, method, overload, 'input'>['body']>,
-          yup.InferType<ExtractSchema<S, url, method, overload, 'input'>['query']>
-        >,
+        req: ParsedRequestFromSchema<S, url, method, overload>,
         options?: { params: Promise<Record<string, string>> }
-      ) => Promise<ParsedResponse<yup.InferType<ExtractSchema<S, url, method, overload, 'output'>['body']>>>
+      ) => Promise<ParsedResponseFromSchema<S, url, method, overload>>
+    }
+  }
+}
+
+type EndpointTransforms<
+  S extends EndpointsSchema, // old endpoints schema
+  N extends EndpointsSchema & { [K in keyof S]: any }, // new endpoints schema
+  H extends EndpointHandlers, // new endpoints handlers
+> = {
+  [url in keyof S]: {
+    [method in (typeof allowedMethods)[number]]: {
+      [overload in keyof S[url][method]]: S[url][method][overload] extends N[url][method][overload]
+        ? never
+        : (options: {
+            req: ParsedRequestFromSchema<S, url, method, overload>,
+            options?: { params: Promise<Record<string, string>> },
+            newEndpointHandlers: H,
+          }) => Promise<ParsedResponseFromSchema<S, url, method, overload>>
     }
   }
 }
@@ -243,17 +282,11 @@ async function convertRawToParsedResponse<
   }
 }
 
-export function createMigrationEndpointHandlers<S extends EndpointsSchema, E extends EndpointHandlers>(
-  oldEndpointsSchema: S,
-  newEndpointsHandlers: E,
-): EndpointHandlersFromSchema<S> {
-  return null as any;
-}
-
 export function createMigrationRoute(endpointHandlers: EndpointHandlers) {
   return typedFromEntries(allowedMethods.map((method) => {
     return [method, async (req: NextRequest) => {
       for (const [url, endpointMethods] of Object.entries(endpointHandlers)) {
+        // TODO fix this
         const match = urlMatch(new URL(req.url).pathname.replace('v2', 'v1'), url);
         if (!match) {
           return new NextResponse(null, { status: 404 });
@@ -269,49 +302,78 @@ export function createMigrationRoute(endpointHandlers: EndpointHandlers) {
   }));
 }
 
-type ExtractSchema<
+function createEndpointHandlers<
   S extends EndpointsSchema,
-  U extends keyof S,
-  M extends typeof allowedMethods[number],
-  O extends keyof S[U][M],
-  T extends 'input' | 'output'
-> = NonNullable<S[U][M]>[O][T]
+>(
+  oldEndpointsSchema: S,
+  getHandler: (
+    url: string,
+    method: typeof allowedMethods[number],
+    overload: string,
+    endpointSchema: EndpointInputSchema<any, any>
+  ) => (
+    req: ParsedRequest<any, any>,
+    options?: { params: Promise<Record<string, string>> }
+  ) => Promise<ParsedResponse<any>>,
+) {
+  const endpointHandlers = {};
+  for (const [url, endpointMethods] of typedEntries(oldEndpointsSchema)) {
+    const urlHandlers = {};
+    for (const [method, overloads] of typedEntries(endpointMethods)) {
+      if (!overloads) continue;
+
+      const methodHandlers = {};
+      for (const [overload, endpointSchema] of typedEntries(overloads)) {
+        (methodHandlers as any)[overload] = getHandler(
+          url as string,
+          method as typeof allowedMethods[number],
+          overload as string,
+          endpointSchema as EndpointInputSchema<any, any>
+        );
+      }
+      (urlHandlers as any)[method] = methodHandlers;
+    }
+    (endpointHandlers as any)[url] = urlHandlers;
+  }
+
+  return endpointHandlers as any;
+}
+
+export function createMigrationEndpointHandlers<
+  S extends EndpointsSchema,
+  N extends EndpointsSchema,
+  E extends EndpointHandlers,
+>(
+  oldEndpointsSchema: S,
+  newEndpointsSchema: N,
+  newEndpointsHandlers: E,
+  transforms: EndpointTransforms<S, N & { [K in keyof S]: any }, E>,
+): EndpointHandlersFromSchema<S> {
+  return createEndpointHandlers(
+    oldEndpointsSchema,
+    (url, method, overload, endpointSchema) => async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {
+      return null as any;
+    }
+  );
+}
 
 export function createEndpointHandlersFromRawEndpoints<
   H extends RawEndpointsHandlers,
   S extends EndpointsSchema,
   E extends EndpointHandlersFromSchema<S>
 >(rawEndpointHandlers: H, endpointsSchema: S): E {
-  const endpointHandlers = {};
+  return createEndpointHandlers(
+    endpointsSchema,
+    (url, method, overload, endpointSchema) => async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {
+      const endpoint = (rawEndpointHandlers as any)[url]?.[method];
 
-  for (const [url, endpointMethods] of typedEntries(endpointsSchema)) {
-    const urlHandlers = {};
-
-    for (const [method, overloads] of typedEntries(endpointMethods)) {
-      if (!overloads) continue;
-
-      const methodHandlers = {};
-
-      for (const [overload, endpointSchema] of typedEntries(overloads)) {
-        const endpoint = (rawEndpointHandlers as any)[url]?.[method];
-
-        if (!endpoint) {
-          throw new Error(`No endpoint found for ${method.toString()} ${url.toString()}`);
-        }
-
-        (methodHandlers as any)[overload] = async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {
-          // TODO: validate input and output
-          const rawRequest = await convertParsedRequestToRaw(req);
-          const rawResponse = await (endpoint as any)(rawRequest);
-          return await convertRawToParsedResponse(rawResponse, (endpointSchema as any).output);
-        };
+      if (!endpoint) {
+        throw new Error(`No endpoint found for ${method.toString()} ${url.toString()}`);
       }
 
-      (urlHandlers as any)[method] = methodHandlers;
+      const rawRequest = await convertParsedRequestToRaw(req);
+      const rawResponse = await endpoint(rawRequest);
+      return await convertRawToParsedResponse(rawResponse, (endpointSchema as any).output);
     }
-
-    (endpointHandlers as any)[url] = urlHandlers;
-  }
-
-  return endpointHandlers as any;
+  );
 }
