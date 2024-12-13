@@ -29,7 +29,7 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
     () => {
       return Math.max(...countries.features.map(x =>
         (countryData[x.properties.ISO_A2] ?? 0) / (x.properties.POP_EST)
-      ), 1);
+      ), 0);
     },
     [countryData]
   );
