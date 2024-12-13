@@ -1,6 +1,6 @@
 import useResizeObserver from '@react-hook/resize-observer';
 import { Card, CardContent, CardDescription, CardTitle } from '@stackframe/stack-ui';
-import { RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Globe, { GlobeMethods } from 'react-globe.gl';
 
 import countries from './country-data.geo.json';
@@ -25,7 +25,14 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
 
   const [selectedCountry, setSelectedCountry] = useState<{ code: string, name: string } | null>(null);
 
-  const maxCountryCount = Math.max(0, ...Object.values(countryData));
+  const maxUserRatio = useMemo(
+    () => {
+      return Math.max(...countries.features.map(x =>
+        (countryData[x.properties.ISO_A2] ?? 0) / (x.properties.POP_EST)
+      ), 1);
+    },
+    [countryData]
+  );
 
   useEffect(() => {
     if (globeRef.current) {
@@ -46,8 +53,10 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
         hexPolygonMargin={0.2}
         hexPolygonAltitude={0.02}
         hexPolygonColor={(d: any) => {
-          const count = countryData[d.properties.ISO_A2];
-          const clamped = count ? count / maxCountryCount : 0; // 0 for smallest, 1 for biggest
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+          const userRatio = (countryData[d.properties.ISO_A2] ?? 0) / d.properties.POP_EST;
+          // 0 for smallest, 1 for biggest
+          const clamped = userRatio / maxUserRatio;
 
           return `hsl(271, 84%, ${20 + 40 * clamped + 4}%)`;
         }}
