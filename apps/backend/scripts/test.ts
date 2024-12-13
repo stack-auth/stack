@@ -1,23 +1,47 @@
-import { EndpointsSchema, RawEndpointsHandlers, createEndpointHandlersFromRawEndpoints } from "@/route-handlers/migration-handler";
+import { EndpointsSchema, RawEndpointsHandlers, createEndpointHandlersFromRawEndpoints, createMigrationEndpointHandlers } from "@/route-handlers/migration-handler";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { NextRequest, NextResponse } from "next/server";
 
-const exampleSchema = {
-  '/asdf': {
-    'GET': {
-      'asdf': {
+const schema1 = {
+  '/users': {
+    'POST': {
+      'default': {
         input: {
-          query: yupObject({
-            abc: yupString(),
-          }),
+          query: yupObject({}),
           body: yupObject({
-            def: yupString(),
+            fullName: yupString(),
           }),
         },
         output: {
           statusCode: yupNumber(),
           headers: yupObject({}),
-          body: yupObject({}),
+          body: yupObject({
+            fullName: yupString(),
+          }),
+        },
+      },
+    },
+  },
+} as const satisfies EndpointsSchema;
+
+
+const schema2 = {
+  '/users': {
+    'POST': {
+      'default': {
+        input: {
+          query: yupObject({}),
+          body: yupObject({
+            firstName: yupString(),
+            lastName: yupString(),
+          }),
+        },
+        output: {
+          statusCode: yupNumber(),
+          headers: yupObject({}),
+          body: yupObject({
+            id: yupString(),
+          }),
         },
       },
     },
@@ -25,25 +49,33 @@ const exampleSchema = {
 } as const satisfies EndpointsSchema;
 
 const exampleRawEndpointHandlers = {
-  '/asdf': {
-    'GET': async (req: NextRequest) => {
-      return NextResponse.json({ 'hi': 'asdf' });
+  '/users': {
+    'POST': async (req: NextRequest) => {
+      return NextResponse.json({ id: 'example-id' });
     },
   },
 } satisfies RawEndpointsHandlers;
 
-const exampleEndpointHandlers = createEndpointHandlersFromRawEndpoints(exampleRawEndpointHandlers, exampleSchema);
+const endpointHandlers1 = createEndpointHandlersFromRawEndpoints(exampleRawEndpointHandlers, schema1);
+const endpointHandlers2 = createMigrationEndpointHandlers(schema1, schema2, endpointHandlers1, {
+  '/users': {
+    'POST': {
+      default: (options) => {
+        return endpointHandlers1['/users']['POST']['default'](options);
+      },
+    },
+  },
+});
 
-exampleEndpointHandlers['/asdf']['GET']['asdf']({
-  url: 'http://localhost:3000/asdf',
+
+endpointHandlers1['/users']['POST']['default']({
+  url: 'http://localhost:3000/users',
   method: 'POST',
   headers: {},
   body: {
-    def: 'asdf',
+    fullName: 'Full Name',
   },
-  query: {
-    abc: 'asdf',
-  },
+  query: {},
 }).then((res) => {
   console.log(res);
 }).catch((err) => {
