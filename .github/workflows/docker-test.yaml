@@ -22,11 +22,15 @@ jobs:
       - name: Run Docker container
         run: docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -d server
 
-      - name: Wait for server to start
-        run: sleep 10
-
       - name: Log container status
         run: docker ps -a
+      
+      - name: Check container logs
+        run: docker logs $(docker ps -q)
+      
+
+      - name: Wait for server to start
+        run: sleep 10
 
       - name: Check server health
         run: |
