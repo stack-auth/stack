@@ -23,11 +23,17 @@ jobs:
         run: docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -d server
 
       - name: Wait for server to start
-        run: sleep 30
+        run: sleep 10
+
+      - name: Log container status
+        run: docker ps -a
 
       - name: Check server health
         run: |
+          echo "Attempting to connect to server..."
+          curl -v http://localhost:8101
           response_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8101)
+          echo "Response code: $response_code"
           if [ $response_code -ne 200 ]; then
             echo "Server health check failed with status code: $response_code"
             exit 1
