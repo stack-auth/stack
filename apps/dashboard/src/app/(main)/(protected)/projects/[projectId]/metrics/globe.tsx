@@ -58,7 +58,7 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
           // 0 for smallest, 1 for biggest
           const clamped = userRatio / maxUserRatio;
 
-          return `hsl(271, 84%, ${20 + 40 * clamped + 4}%)`;
+          return `hsl(271, 84%, ${20 + 40 * (isNaN(clamped) ? 0 : clamped) + 4}%)`;
         }}
         onHexPolygonHover={(d: any) => {
           if (d) {

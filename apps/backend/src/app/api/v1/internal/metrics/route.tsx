@@ -117,8 +117,8 @@ function simplifyUsers(users: (ProjectUser & { contactChannels: ContactChannel[]
     id: user.projectUserId,
     display_name: user.displayName,
     email: user.contactChannels.find(x => x.isPrimary)?.value ?? '-',
-    created_at: user.createdAt.getTime(),
-    updated_at: user.updatedAt.getTime(),
+    created_at_millis: user.createdAt.getTime(),
+    updated_at_millis: user.updatedAt.getTime(),
   }));
 }
 
