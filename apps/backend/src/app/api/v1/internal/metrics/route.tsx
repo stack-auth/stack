@@ -2,6 +2,7 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { ContactChannel, ProjectUser } from "@prisma/client";
 import { adaptSchema, adminAuthTypeSchema, yupArray, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import yup from 'yup';
 
 type DataPoints = yup.InferType<typeof DataPointsSchema>;
 
