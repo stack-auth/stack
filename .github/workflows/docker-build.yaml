@@ -1,4 +1,4 @@
-name: Docker Build and Push
+name: Docker Build, Push and Test
 
 on:
   push:
@@ -63,7 +63,10 @@ jobs:
         run: |
           cp docker/server/.env.example docker/server/.env
           docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
-          docker run -d --name server --env-file docker/server/.env -p 8101:8101 -p 8102:8102 ${{ steps.meta.outputs.tags }}
+          
+          # Get the first tag from meta.outputs.tags since it's a multiline string
+          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" | head -n 1)
+          docker run -d --name server --env-file docker/server/.env -p 8101:8101 -p 8102:8102 $IMAGE_TAG
           
           # Wait for the server to start up
           sleep 10
