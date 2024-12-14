@@ -3,7 +3,7 @@ import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { ContactChannel, ProjectUser } from "@prisma/client";
 import { adaptSchema, adminAuthTypeSchema, yupArray, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 
-type DataPoints = { date: string, activity: number }[];
+type DataPoints = yup.InferType<typeof DataPointsSchema>;
 
 const DataPointsSchema = yupArray(yupObject({
   date: yupString().defined(),
