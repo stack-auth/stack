@@ -22,19 +22,14 @@ jobs:
       - name: Run Docker container
         run: docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -d server
         
-      - name: Log container status
-        run: docker ps -a
-
-      - name: Log container ids
+      - name: Check container logs and wait for server
         run: |
           container_id=$(docker ps -q)
           echo "Container ID: $container_id"
-
-      - name: Wait for server to start
-        run: sleep 10
-
-      - name: Check container logs
-        run: docker logs $container_id
+          echo "Waiting for server to start..."
+          sleep 10
+          echo "Checking container logs..."
+          docker logs $container_id
 
       - name: Check server health
         run: |
