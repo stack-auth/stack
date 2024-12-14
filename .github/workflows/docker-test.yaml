@@ -17,19 +17,19 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Setup postgres
-        run: docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+        run: |
+          docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+          sleep 5
+          docker logs db
 
       - name: Build Docker image
         run: docker build -f docker/server/Dockerfile -t server .
 
       - name: Run Docker container and check logs
         run: |
-          container_id=$(docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -d server)
-          echo "Container ID: $container_id"
-          echo "Waiting for server to start..."
+          docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -d --name stackframe-server server
           sleep 10
-          echo "Checking container logs..."
-          docker logs $container_id
+          docker logs stackframe-server
 
       - name: Check server health
         run: |
