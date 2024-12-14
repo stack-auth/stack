@@ -1,0 +1,34 @@
+name: Docker Test
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build Docker image
+        run: docker build -f docker/server/Dockerfile -t server .
+
+      - name: Run Docker container
+        run: docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -d server
+
+      - name: Wait for server to start
+        run: sleep 30
+
+      - name: Check server health
+        run: |
+          response_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8101)
+          if [ $response_code -ne 200 ]; then
+            echo "Server health check failed with status code: $response_code"
+            exit 1
+          fi
