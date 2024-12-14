@@ -95,8 +95,15 @@ export function registerErrorSink(sink: (location: string, error: unknown) => vo
   }
   errorSinks.add(sink);
 }
-registerErrorSink((location, ...args) => {
-  console.error(`\x1b[41mCaptured error in ${location}:`, ...args, "\x1b[0m");
+registerErrorSink((location, error, ...extraArgs) => {
+  console.error(
+    `\x1b[41mCaptured error in ${location}:`,
+    // HACK: Log a nicified version of the error to get around buggy Next.js pretty-printing
+    // https://www.reddit.com/r/nextjs/comments/1gkxdqe/comment/m19kxgn/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+    errorToNiceString(error),
+    ...extraArgs,
+    "\x1b[0m",
+  );
 });
 registerErrorSink((location, error, ...extraArgs) => {
   globalVar.stackCapturedErrors = globalVar.stackCapturedErrors ?? [];
@@ -107,9 +114,7 @@ export function captureError(location: string, error: unknown): void {
   for (const sink of errorSinks) {
     sink(
       location,
-      // HACK: Log a nicified version of the error instead of statusError to get around buggy Next.js pretty-printing
-      // https://www.reddit.com/r/nextjs/comments/1gkxdqe/comment/m19kxgn/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
-      errorToNiceString(error),
+      error,
       ...error && (typeof error === 'object' || typeof error === 'function') && "customCaptureExtraArgs" in error && Array.isArray(error.customCaptureExtraArgs) ? (error.customCaptureExtraArgs as any[]) : [],
     );
   }
