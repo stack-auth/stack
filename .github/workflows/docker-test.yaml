@@ -22,12 +22,9 @@ jobs:
       - name: Build Docker image
         run: docker build -f docker/server/Dockerfile -t server .
 
-      - name: Run Docker container
-        run: docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -d server
-        
-      - name: Check container logs and wait for server
+      - name: Run Docker container and check logs
         run: |
-          container_id=$(docker ps -q)
+          container_id=$(docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -d server)
           echo "Container ID: $container_id"
           echo "Waiting for server to start..."
           sleep 10
