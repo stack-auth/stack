@@ -131,10 +131,12 @@ async function loadRecentlyActiveUsers(projectId: string):
     take: 10,
     where: {
       AND: [
-        {data: {
-          path: ['projectId'],
-          equals: projectId,
-        }},
+        {
+          data: {
+            path: ['projectId'],
+            equals: projectId,
+          }
+        },
         {
           systemEventTypeIds: {
             has: '$user-activity',
