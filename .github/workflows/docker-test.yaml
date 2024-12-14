@@ -24,13 +24,12 @@ jobs:
 
       - name: Log container status
         run: docker ps -a
-      
-      - name: Check container logs
-        run: docker logs $(docker ps -q)
-      
 
       - name: Wait for server to start
         run: sleep 10
+
+      - name: Check container logs
+        run: docker logs $(docker ps -q)
 
       - name: Check server health
         run: |
