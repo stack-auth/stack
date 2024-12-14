@@ -122,6 +122,39 @@ function simplifyUsers(users: (ProjectUser & { contactChannels: ContactChannel[]
   }));
 }
 
+async function loadRecentlyActiveUsers(projectId: string):
+  Promise<(ProjectUser & { contactChannels: ContactChannel[] })[]> {
+
+  // use the Events table to get the most recent activity
+  const events = await prismaClient.event.findMany({
+    take: 10,
+    where: {
+      AND: [
+        {data: {
+          path: ['projectId'],
+          equals: projectId,
+        }},
+        {
+          systemEventTypeIds: {
+            has: '$user-activity',
+          }
+        }
+      ]
+    },
+    orderBy: [{
+      eventStartedAt: 'desc'
+    }],
+  });
+  return await prismaClient.projectUser.findMany({
+    take: 10,
+    where: { projectId, projectUserId: { in: events.map(x => (x.data as any).userId) } },
+    include: { contactChannels: true },
+    orderBy: [{
+      updatedAt: 'desc'
+    }]
+  });
+}
+
 export const GET = createSmartRouteHandler({
   metadata: {
     hidden: true,
@@ -172,14 +205,7 @@ export const GET = createSmartRouteHandler({
           createdAt: 'desc'
         }]
       }),
-      prismaClient.projectUser.findMany({
-        take: 10,
-        where: { projectId: req.auth.project.id, },
-        include: { contactChannels: true },
-        orderBy: [{
-          updatedAt: 'desc'
-        }]
-      }),
+      loadRecentlyActiveUsers(req.auth.project.id),
       loadLoginMethods(req.auth.project.id),
     ] as const);
 
