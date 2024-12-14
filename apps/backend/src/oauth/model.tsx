@@ -1,15 +1,14 @@
-import { fullProjectInclude, projectPrismaToCrud } from "@/lib/projects";
+import { createMfaRequiredError } from "@/app/api/v1/auth/mfa/sign-in/verification-code-handler";
+import { checkApiKeySet } from "@/lib/api-keys";
+import { fullProjectInclude, getProject, projectPrismaToCrud } from "@/lib/projects";
+import { validateRedirectUrl } from "@/lib/redirect-urls";
+import { decodeAccessToken, generateAccessToken } from "@/lib/tokens";
+import { prismaClient } from "@/prisma-client";
 import { AuthorizationCode, AuthorizationCodeModel, Client, Falsey, RefreshToken, Token, User } from "@node-oauth/oauth2-server";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { prismaClient } from "@/prisma-client";
-import { decodeAccessToken, generateAccessToken } from "@/lib/tokens";
-import { validateRedirectUrl } from "@/lib/redirect-urls";
-import { checkApiKeySet } from "@/lib/api-keys";
-import { getProject } from "@/lib/projects";
-import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { createMfaRequiredError } from "@/app/api/v1/auth/mfa/sign-in/verification-code-handler";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 
 const enabledScopes = ["legacy"];
 
@@ -45,9 +44,19 @@ export class OAuthModel implements AuthorizationCodeModel {
       return false;
     }
 
-    const redirectUris = project.config.domains.map(
-      ({ domain, handler_path }) => new URL(handler_path, domain).toString()
-    );
+    let redirectUris: string[] = [];
+    try {
+      redirectUris = project.config.domains.map(
+        ({ domain, handler_path }) => new URL(handler_path, domain).toString()
+      );
+    } catch (e) {
+      captureError("get redirect uris", {
+        error: e,
+        projectId: clientId,
+        domains: project.config.domains,
+      });
+      throw e;
+    }
 
     if (redirectUris.length === 0 && project.config.allow_localhost) {
       redirectUris.push("http://localhost");
