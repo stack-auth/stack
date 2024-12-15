@@ -18,31 +18,16 @@ jobs:
 
       - name: Setup postgres
         run: |
-          docker run --add-host=host.docker.internal:host-gateway --net="host" -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+          docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
           sleep 5
           docker logs db
-
-      - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-          
-      - name: Test PostgreSQL connection
-        run: |
-          PGPASSWORD=password psql -h localhost -U postgres -d stackframe -c "\l"
-          if [ $? -eq 0 ]; then
-            echo "Successfully connected to PostgreSQL"
-          else
-            echo "Failed to connect to PostgreSQL"
-            exit 1
-          fi
 
       - name: Build Docker image
         run: docker build -f docker/server/Dockerfile -t server .
 
       - name: Run Docker container and check logs
         run: |
-          docker run --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -d --name stackframe-server server
+          docker run --add-host=host.docker.internal:host-gateway --env-file docker/server/.env.example -p 8101:8101 -p 8102:8102 -d --name stackframe-server server
           sleep 10
           docker logs stackframe-server
 
