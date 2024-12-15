@@ -18,7 +18,7 @@ jobs:
 
       - name: Setup postgres
         run: |
-          docker run --add-host=host.docker.internal:host-gateway -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+          docker run --add-host=host.docker.internal:host-gateway --net="host" -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
           sleep 5
           docker logs db
 
