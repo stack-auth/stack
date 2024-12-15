@@ -152,6 +152,7 @@ async function seed() {
 
   // Create optional default admin user if credentials are provided.
   // This user will be able to login to the dashboard with both email/password and magic link.
+
   if ((adminEmail && adminPassword) || adminGithubId) {
     await prisma.$transaction(async (tx) => {
       const oldAdminUser = await tx.projectUser.findFirst({
@@ -162,7 +163,7 @@ async function seed() {
       });
 
       if (oldAdminUser) {
-        console.log(`User with email ${adminEmail} already exists, skipping creation`);
+        console.log(`Admin user already exists, skipping creation`);
       } else {
         const newUser = await tx.projectUser.create({
           data: {
@@ -236,6 +237,23 @@ async function seed() {
               projectUserId: newUser.projectUserId,
               oauthProviderConfigId: 'github',
               providerAccountId: adminGithubId
+            }
+          });
+
+          await tx.authMethod.create({
+            data: {
+              projectId: 'internal',
+              projectConfigId: (internalProject as any).configId,
+              projectUserId: newUser.projectUserId,
+              authMethodConfigId: githubConfig.authMethodConfigId || throwErr('GitHub OAuth provider config not found'),
+              oauthAuthMethod: {
+                create: {
+                  projectUserId: newUser.projectUserId,
+                  oauthProviderConfigId: 'github',
+                  providerAccountId: adminGithubId,
+                  projectConfigId: (internalProject as any).configId,
+                }
+              }
             }
           });
 
