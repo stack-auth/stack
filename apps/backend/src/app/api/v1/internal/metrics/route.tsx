@@ -127,10 +127,10 @@ async function loadRecentlyActiveUsers(projectId: string):
   Promise<(ProjectUser & { contactChannels: ContactChannel[] })[]> {
 
   // use the Events table to get the most recent activity
-  const events = await prismaClient.$queryRaw<{ data: any }[]>`
+  const events = await prismaClient.$queryRaw<{ data: any, eventStartedAt: Date }[]>`
     WITH RankedEvents AS (
       SELECT 
-        "data",
+        "data", "eventStartedAt",
         ROW_NUMBER() OVER (
           PARTITION BY "data"->>'userId' 
           ORDER BY "eventStartedAt" DESC
@@ -139,12 +139,12 @@ async function loadRecentlyActiveUsers(projectId: string):
       WHERE "data"->>'projectId' = ${projectId}
         AND '$user-activity' = ANY("systemEventTypeIds"::text[])
     )
-    SELECT "data"
+    SELECT "data", "eventStartedAt"
     FROM RankedEvents
     WHERE rn = 1
     LIMIT 10
   `;
-  return await prismaClient.projectUser.findMany({
+  const res = await prismaClient.projectUser.findMany({
     take: 10,
     where: { projectId, projectUserId: { in: events.map(x => (x.data as any).userId) } },
     include: { contactChannels: true },
@@ -152,6 +152,15 @@ async function loadRecentlyActiveUsers(projectId: string):
       updatedAt: 'desc'
     }]
   });
+
+  // Create a map of userId to eventStartedAt for quick lookup
+  const eventDates = new Map(events.map(x => [(x.data as any).userId, x.eventStartedAt]));
+
+  // Replace updatedAt with eventStartedAt
+  return res.map(user => ({
+    ...user,
+    updatedAt: eventDates.get(user.projectUserId) || user.updatedAt
+  }));
 }
 
 export const GET = createSmartRouteHandler({
