@@ -19,11 +19,11 @@ export type EndpointInputSchema<
 
 export type EndpointOutputSchema<
   StatusCode extends yup.Schema,
-  Headers extends yup.Schema,
+  BodyType extends yup.Schema,
   Body extends yup.Schema
 > = {
   statusCode: StatusCode,
-  headers: Headers,
+  bodyType: BodyType,
   body: Body,
 };
 
@@ -87,20 +87,20 @@ type EndpointHandlersFromSchema<S extends EndpointsSchema> = {
   }
 }
 
-type EndpointTransforms<
-  S extends EndpointsSchema, // old endpoints schema
-  N extends EndpointsSchema & { [K in keyof S]: any }, // new endpoints schema
+export type EndpointTransforms<
+  O extends EndpointsSchema, // old endpoints schema
+  N extends EndpointsSchema, // new endpoints schema
   H extends EndpointHandlers, // new endpoints handlers
 > = {
-  [url in keyof S]: {
+  [url in keyof O & keyof N]: {
     [method in (typeof allowedMethods)[number]]: {
-      [overload in keyof S[url][method]]: S[url][method][overload] extends N[url][method][overload]
-        ? never
+      [overload in keyof O[url][method]]: O[url][method][overload] extends N[url][method][overload]
+        ? undefined
         : (options: {
-            req: ParsedRequestFromSchema<S, url, method, overload>,
+            req: ParsedRequestFromSchema<O, url, method, overload>,
             options?: { params: Promise<Record<string, string>> },
             newEndpointHandlers: H,
-          }) => Promise<ParsedResponseFromSchema<S, url, method, overload>>
+          }) => Promise<ParsedResponseFromSchema<O, url, method, overload>>
     }
   }
 }
@@ -340,15 +340,15 @@ function createEndpointHandlers<
 }
 
 export function createMigrationEndpointHandlers<
-  S extends EndpointsSchema,
+  O extends EndpointsSchema,
   N extends EndpointsSchema,
-  E extends EndpointHandlers,
+  H extends EndpointHandlers,
 >(
-  oldEndpointsSchema: S,
+  oldEndpointsSchema: O,
   newEndpointsSchema: N,
-  newEndpointsHandlers: E,
-  transforms: EndpointTransforms<S, N & { [K in keyof S]: any }, E>,
-): EndpointHandlersFromSchema<S> {
+  newEndpointsHandlers: H,
+  transforms: EndpointTransforms<O, N, H>,
+): EndpointHandlersFromSchema<O> {
   return createEndpointHandlers(
     oldEndpointsSchema,
     (url, method, overload, endpointSchema) => async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {

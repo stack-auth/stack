@@ -9,14 +9,15 @@ const schema1 = {
         input: {
           query: yupObject({}),
           body: yupObject({
-            fullName: yupString(),
+            fullName: yupString().defined(),
           }),
         },
         output: {
           statusCode: yupNumber(),
-          headers: yupObject({}),
+          bodyType: yupString().oneOf(['json']),
           body: yupObject({
-            fullName: yupString(),
+            id: yupString().defined(),
+            fullName: yupString().defined(),
           }),
         },
       },
@@ -32,15 +33,15 @@ const schema2 = {
         input: {
           query: yupObject({}),
           body: yupObject({
-            firstName: yupString(),
-            lastName: yupString(),
+            firstName: yupString().defined(),
+            lastName: yupString().defined(),
           }),
         },
         output: {
           statusCode: yupNumber(),
-          headers: yupObject({}),
+          bodyType: yupString().oneOf(['json']),
           body: yupObject({
-            id: yupString(),
+            id: yupString().defined(),
           }),
         },
       },
@@ -56,16 +57,43 @@ const exampleRawEndpointHandlers = {
   },
 } satisfies RawEndpointsHandlers;
 
-const endpointHandlers1 = createEndpointHandlersFromRawEndpoints(exampleRawEndpointHandlers, schema1);
-const endpointHandlers2 = createMigrationEndpointHandlers(schema1, schema2, endpointHandlers1, {
+const endpointHandlers2 = createEndpointHandlersFromRawEndpoints(exampleRawEndpointHandlers, schema2);
+const endpointHandlers1 = createMigrationEndpointHandlers(schema1, schema2, endpointHandlers2, {
   '/users': {
     'POST': {
-      default: (options) => {
-        return endpointHandlers1['/users']['POST']['default'](options);
+      'default': async ({ req, newEndpointHandlers }) => {
+        const result = await newEndpointHandlers['/users']['POST']['default']({
+          body: {
+            firstName: req.body.fullName.split(' ')[0],
+            lastName: req.body.fullName.split(' ')[1],
+          },
+          query: {},
+          headers: {},
+          method: 'POST',
+          url: 'http://localhost:3000/users',
+        });
+
+        return {
+          statusCode: 200,
+          headers: {},
+          body: {
+            id: (result.body as any).id,
+            fullName: req.body.fullName,
+          },
+        };
       },
     },
+    'GET': {},
+    'DELETE': {},
+    'PATCH': {},
+    'PUT': {},
+    'OPTIONS': {},
   },
 });
+
+// type x = EndpointTransforms<typeof schema1, typeof schema2, typeof endpointHandlers1>;
+
+// const y = null as unknown as x;
 
 
 endpointHandlers1['/users']['POST']['default']({
