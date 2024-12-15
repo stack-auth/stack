@@ -127,27 +127,23 @@ async function loadRecentlyActiveUsers(projectId: string):
   Promise<(ProjectUser & { contactChannels: ContactChannel[] })[]> {
 
   // use the Events table to get the most recent activity
-  const events = await prismaClient.event.findMany({
-    take: 10,
-    where: {
-      AND: [
-        {
-          data: {
-            path: ['projectId'],
-            equals: projectId,
-          }
-        },
-        {
-          systemEventTypeIds: {
-            has: '$user-activity',
-          }
-        }
-      ]
-    },
-    orderBy: [{
-      eventStartedAt: 'desc'
-    }],
-  });
+  const events = await prismaClient.$queryRaw<{ data: any }[]>`
+    WITH RankedEvents AS (
+      SELECT 
+        "data",
+        ROW_NUMBER() OVER (
+          PARTITION BY "data"->>'userId' 
+          ORDER BY "eventStartedAt" DESC
+        ) as rn
+      FROM "Event"
+      WHERE "data"->>'projectId' = ${projectId}
+        AND '$user-activity' = ANY("systemEventTypeIds"::text[])
+    )
+    SELECT "data"
+    FROM RankedEvents
+    WHERE rn = 1
+    LIMIT 10
+  `;
   return await prismaClient.projectUser.findMany({
     take: 10,
     where: { projectId, projectUserId: { in: events.map(x => (x.data as any).userId) } },
