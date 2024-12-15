@@ -1,6 +1,6 @@
 import { ensureTeamExists, ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { sendTeamCreatedWebhook, sendTeamDeletedWebhook, sendTeamUpdatedWebhook } from "@/lib/webhooks";
-import { prismaClient } from "@/prisma-client";
+import { prismaClient, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 import { Prisma } from "@prisma/client";
@@ -51,7 +51,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
       throw new StatusError(400, "Invalid profile image URL");
     }
 
-    const db = await prismaClient.$transaction(async (tx) => {
+    const db = await retryTransaction(async (tx) => {
       const db = await tx.team.create({
         data: {
           displayName: data.display_name,
@@ -101,7 +101,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     return result;
   },
   onRead: async ({ params, auth }) => {
-    const db = await prismaClient.$transaction(async (tx) => {
+    const db = await retryTransaction(async (tx) => {
       if (auth.type === 'client') {
         await ensureTeamMembershipExists(tx, {
           projectId: auth.project.id,
@@ -129,7 +129,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     return teamPrismaToCrud(db);
   },
   onUpdate: async ({ params, auth, data }) => {
-    const db = await prismaClient.$transaction(async (tx) => {
+    const db = await retryTransaction(async (tx) => {
       if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
         throw new StatusError(400, "Invalid profile image URL");
       }
@@ -174,7 +174,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     return result;
   },
   onDelete: async ({ params, auth }) => {
-    await prismaClient.$transaction(async (tx) => {
+    await retryTransaction(async (tx) => {
       if (auth.type === 'client') {
         await ensureUserTeamPermissionExists(tx, {
           project: auth.project,

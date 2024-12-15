@@ -30,15 +30,24 @@ On a high level, Stack Auth is composed of the following services:
 
 Stack Auth provides a pre-configured Docker image that bundles the dashboard and API backend into a single container. To complete the setup, you'll need to provide your own PostgreSQL database, and optionally configure an email server and Svix instance for webhooks.
 
-First, you need to get the [example environment file](https://github.com/stack-auth/stack/tree/main/docker/server/.env.example) and modify it to your needs. See the [full template here](https://github.com/stack-auth/stack/blob/dev/docker/server/.env).
+1. Use a cloud hosted Postgres or start a example Postgres database. Don't use this setting in production:
+  ```sh
+  docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+  ```
 
-```sh
-# Start a example Postgres database, don't use this setting in production
-docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+2. Get the [example environment file](https://github.com/stack-auth/stack/tree/main/docker/server/.env.example) and modify it to your needs. See the [full template here](https://github.com/stack-auth/stack/blob/dev/docker/server/.env).
 
-# Run the Docker container
-docker run --env-file your-env-file.env -p 8101:8101 -p 8102:8102 stackauth/server:latest
-```
+3. Run the Docker container:
+  ```sh
+  docker run --env-file <your-env-file.env> -p 8101:8101 -p 8102:8102 stackauth/server:latest
+  ```
+
+  <Info>
+  For M1 Mac users, you might need to add `--platform linux/x86_64` to the `docker run` command.  
+  </Info>
+  <Info>
+  For Linux users, you might need to add `--add-host=host.docker.internal:host-gateway` to the `docker run` command in order to connect to the local Postgres database.
+  </Info>
 
 Now you can open the dashboard at [http://localhost:8101](http://localhost:8101) and the API backend on port 8102.
 

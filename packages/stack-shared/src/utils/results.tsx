@@ -128,7 +128,7 @@ class RetryError extends AggregateError {
     super(
       errors,
       deindent`
-      Error after retrying ${errors.length} times.
+      Error after ${errors.length} attempts.
       
       ${isAllSame ? deindent`
         Attempts 1-${errors.length}:
@@ -151,17 +151,17 @@ RetryError.prototype.name = "RetryError";
 
 async function retry<T>(
   fn: (attempt: number) => Result<T> | Promise<Result<T>>,
-  retries: number,
+  totalAttempts: number,
   { exponentialDelayBase = 1000 } = {},
 ): Promise<Result<T, RetryError>> {
   const errors: unknown[] = [];
-  for (let i = 0; i < retries; i++) {
+  for (let i = 0; i < totalAttempts; i++) {
     const res = await fn(i);
     if (res.status === "ok") {
       return Result.ok(res.data);
     } else {
       errors.push(res.error);
-      if (i < retries - 1) {
+      if (i < totalAttempts - 1) {
         await wait((Math.random() + 0.5) * exponentialDelayBase * (2 ** i));
       }
     }

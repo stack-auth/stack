@@ -128,23 +128,31 @@ async function seed() {
     console.log(`Updated signUpEnabled for internal project: ${signUpEnabled}`);
   }
 
+  const keySet = {
+    publishableClientKey: process.env.STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY is not set'),
+    secretServerKey: process.env.STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY is not set'),
+    superSecretAdminKey: process.env.STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY is not set'),
+  };
+
   await prisma.apiKeySet.upsert({
     where: { projectId_id: { projectId: 'internal', id: apiKeyId } },
-    update: {},
+    update: {
+      ...keySet,
+    },
     create: {
       id: apiKeyId,
       projectId: 'internal',
       description: "Internal API key set",
-      // These keys must match the values used in the Stack dashboard env to be able to login via the UI.
-      publishableClientKey: process.env.STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY is not set'),
-      secretServerKey: process.env.STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY is not set'),
-      superSecretAdminKey: process.env.STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY || throwErr('STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY is not set'),
       expiresAt: new Date('2099-12-31T23:59:59Z'),
+      ...keySet,
     }
   });
 
+  console.log('Updated internal API key set');
+
   // Create optional default admin user if credentials are provided.
   // This user will be able to login to the dashboard with both email/password and magic link.
+
   if ((adminEmail && adminPassword) || adminGithubId) {
     await prisma.$transaction(async (tx) => {
       const oldAdminUser = await tx.projectUser.findFirst({
@@ -155,7 +163,7 @@ async function seed() {
       });
 
       if (oldAdminUser) {
-        console.log(`User with email ${adminEmail} already exists, skipping creation`);
+        console.log(`Admin user already exists, skipping creation`);
       } else {
         const newUser = await tx.projectUser.create({
           data: {
@@ -229,6 +237,23 @@ async function seed() {
               projectUserId: newUser.projectUserId,
               oauthProviderConfigId: 'github',
               providerAccountId: adminGithubId
+            }
+          });
+
+          await tx.authMethod.create({
+            data: {
+              projectId: 'internal',
+              projectConfigId: (internalProject as any).configId,
+              projectUserId: newUser.projectUserId,
+              authMethodConfigId: githubConfig.authMethodConfigId || throwErr('GitHub OAuth provider config not found'),
+              oauthAuthMethod: {
+                create: {
+                  projectUserId: newUser.projectUserId,
+                  oauthProviderConfigId: 'github',
+                  providerAccountId: adminGithubId,
+                  projectConfigId: (internalProject as any).configId,
+                }
+              }
             }
           });
 

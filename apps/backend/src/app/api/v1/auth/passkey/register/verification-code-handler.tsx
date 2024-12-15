@@ -1,12 +1,12 @@
-import { prismaClient } from "@/prisma-client";
+import { retryTransaction } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
 import { verifyRegistrationResponse } from "@simplewebauthn/server";
+import { decodeClientDataJSON } from "@simplewebauthn/server/helpers";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { captureError, StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { RegistrationResponseJSON } from "@stackframe/stack-shared/dist/utils/passkey";
-import {decodeClientDataJSON} from "@simplewebauthn/server/helpers";
 
 export const registerVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -96,7 +96,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
 
     const registrationInfo = verification.registrationInfo;
 
-    await prismaClient.$transaction(async (tx) => {
+    await retryTransaction(async (tx) => {
       const authMethodConfig = await tx.passkeyAuthMethodConfig.findMany({
         where: {
           projectConfigId: project.config.id,

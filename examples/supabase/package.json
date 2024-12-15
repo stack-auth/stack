@@ -1,9 +1,9 @@
 {
   "name": "@stackframe/example-supabase",
-  "version": "2.6.35",
+  "version": "2.6.37",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo --port 8103",
+    "dev": "next dev --turbo --port 8115",
     "clean": "rimraf .next && rimraf node_modules",
     "build": "next build",
     "start": "next start"
