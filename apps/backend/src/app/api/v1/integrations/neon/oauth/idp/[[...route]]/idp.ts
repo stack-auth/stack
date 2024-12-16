@@ -294,7 +294,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
                   setTimeout(() => {
                     document.getElementById('gradient-style').remove();
                     document.getElementById('continue-form').style.visibility = 'visible';
-                  }, 3000);
+                  }, 12000);
                 </script>
               </body>
             </html>
