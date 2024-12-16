@@ -4,18 +4,20 @@ import { Logo } from "@/components/logo";
 import { AdminProject, useUser } from "@stackframe/stack";
 import { Button, Card, CardContent, CardFooter, CardHeader, Input, Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue, Typography } from "@stackframe/stack-ui";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import NeonLogo from "../../../../../../public/neon.png";
 
 export default function NeonConfirmCard(props: { onContinue: (options: { projectId: string }) => Promise<{ error: string } | undefined> }) {
   const user = useUser({ or: "redirect", projectIdMustMatch: "internal" });
   const projects = user.useOwnedProjects();
-  const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [selectedProject, setSelectedProject] = useState<AdminProject | null>(projects.find((project) => project.id === searchParams.get("default_selected_project_id")) ?? null);
-
+  const [selectedProject, setSelectedProject] = useState<AdminProject | null>(
+    projects.find((project) => project.id === searchParams.get("default_selected_project_id"))
+    ?? projects.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0] as any
+    ?? null
+  );
 
   return (
     <Card className="max-w-lg text-center">
@@ -67,17 +69,19 @@ export default function NeonConfirmCard(props: { onContinue: (options: { project
           <div className={'flex self-stretch justify-center items-center text-muted-foreground pl-3 select-none bg-muted/70 pr-3 border-r border-input rounded-l-md'}>
             <Logo noLink width={15} height={15} />
           </div>
-          <Select value={selectedProject?.id ?? ""} onValueChange={(p) => {
-            if (p === "create-new") {
-              const createSearchParams = new URLSearchParams();
-              createSearchParams.set("redirect_to_neon_confirm_with", searchParams.toString());
-              window.location.href = '/new-project?' + createSearchParams.toString();
-            } else {
-              setSelectedProject(projects.find((project) => project.id === p) ?? null);
-            }
-          }}>
+          <Select
+            value={selectedProject?.id ?? ""}
+            onValueChange={(p) => {
+              if (p === "create-new") {
+                const createSearchParams = new URLSearchParams();
+                createSearchParams.set("redirect_to_neon_confirm_with", searchParams.toString());
+                window.location.href = '/new-project?' + createSearchParams.toString();
+              } else {
+                setSelectedProject(projects.find((project) => project.id === p) ?? null);
+              }
+            }}>
             <SelectTrigger style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeft: "none", }}>
-              <SelectValue>
+              <SelectValue placeholder="Select Project">
                 {selectedProject && (
                   <>
                     {selectedProject.displayName} <span className="text-xs text-muted-foreground">{(selectedProject.id)}</span>
@@ -109,12 +113,15 @@ export default function NeonConfirmCard(props: { onContinue: (options: { project
           <Button variant="secondary" onClick={() => { window.close(); }}>
             Cancel
           </Button>
-          <Button disabled={!selectedProject} onClick={async () => {
-            const error = await props.onContinue({ projectId: selectedProject!.id });
-            if (error) {
-              throw new Error(error.error);
-            }
-          }}>
+          <Button
+            disabled={!selectedProject}
+            onClick={async () => {
+              const error = await props.onContinue({ projectId: selectedProject!.id });
+              if (error) {
+                throw new Error(error.error);
+              }
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+            }}>
             Connect
           </Button>
         </div>
