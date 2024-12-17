@@ -1,5 +1,4 @@
 import { EndpointTransforms, EndpointsSchema, RawEndpointsHandlers, TransformFn, createEndpointHandlersFromRawEndpoints, createMigrationEndpointHandlers } from "@/route-handlers/migration-handler";
-import { allowedMethods } from "@/route-handlers/smart-request";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -83,6 +82,19 @@ const schema2 = {
         },
       },
     },
+    'GET': {
+      'default': {
+        input: {
+          query: yupObject({}),
+          body: yupObject({}),
+        },
+        output: {
+          statusCode: yupNumber(),
+          bodyType: yupString().oneOf(['json']),
+          body: yupObject({}),
+        },
+      },
+    },
   },
   '/same': {
     'POST': {
@@ -116,12 +128,9 @@ const exampleRawEndpointHandlers = {
 } satisfies RawEndpointsHandlers;
 
 
-const x = {} as { [key in (typeof allowedMethods)[number]]: undefined };
-
 const endpointHandlers2 = createEndpointHandlersFromRawEndpoints(exampleRawEndpointHandlers, schema2);
 const endpointHandlers1 = createMigrationEndpointHandlers(schema1, schema2, endpointHandlers2, {
   '/users': {
-    ...x,
     'POST': {
       'default': async ({ req, newEndpointHandlers }) => {
         const result = await newEndpointHandlers['/users']['POST']['default']({
@@ -147,7 +156,6 @@ const endpointHandlers1 = createMigrationEndpointHandlers(schema1, schema2, endp
     },
   },
   '/tokens': {
-    ...x,
     'POST': {
       'default': async ({ req, newEndpointHandlers }) => {
         return {

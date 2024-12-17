@@ -15,7 +15,6 @@ function convertUrlToJSVariable(url: string, method: string) {
     + method.slice(0, 1).toUpperCase() + method.slice(1).toLowerCase();
 }
 
-
 async function main() {
   console.log("Started docs schema generator");
 
@@ -103,34 +102,30 @@ function endpointSchemaToTypeString(reqSchema: yup.SchemaFieldDescription, resSc
   if (reqSchema.type !== 'object') {
     throw new Error(`Unsupported schema type: ${reqSchema.type}`);
   }
-
-  const fields = Object.entries((reqSchema as any).fields);
-
-  const inputFields: Record<string, any> = {};
-  for (const key of ['body', 'query']) {
-    const field = fields.find(([k]) => k === key);
-    if (field) {
-      inputFields[key] = field[1];
+  let inputFields = "{";
+  for (const key of ['body', 'query', 'params']) {
+    const field = Object.entries((reqSchema as any).fields).find(([k]) => k === key);
+    if (field && (field[1] as any).fields?.length) {
+      inputFields += `${key}: ${schemaToTypeString(field[1] as any)},`;
     }
   }
+  inputFields += "}";
 
-  const outputFields: Record<string, any> = {};
-  for (const key of ['statusCode', 'headers', 'body']) {
-    const field = fields.find(([k]) => k === key);
-    if (field) {
-      outputFields[key] = field[1];
+  let outputFields = "{";
+  const rawOutputFields = (resSchema as any).fields;
+  if (rawOutputFields) {
+    for (const key of ['statusCode', 'headers', 'body']) {
+      const field = Object.entries(rawOutputFields).find(([k]) => k === key);
+      if (field) {
+        outputFields += `${key}: ${schemaToTypeString(field[1] as any)},`;
+      }
     }
   }
+  outputFields += "}";
 
-  return `{
-    input: ${schemaToTypeString({
-    type: 'object',
-    fields: inputFields,
-  })},
-    output: ${schemaToTypeString({
-    type: 'object',
-    fields: outputFields,
-  })}
+  return `{ 
+    input: ${inputFields},
+    output: ${outputFields},
   }`;
 }
 
