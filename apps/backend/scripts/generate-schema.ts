@@ -21,9 +21,8 @@ async function main() {
   const endpoints = await listEndpoints("api/v1", false);
 
   // ========== generate schema.ts ==========
-  let schemaContent = '/* eslint-disable no-restricted-syntax */\n';
-  schemaContent += 'import { yupObject, yupArray, yupTuple, yupString, yupNumber, yupBoolean, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";\n\n';
-  schemaContent += 'const endpointSchema = {';
+  let schemaContent = 'import { yupObject, yupArray, yupString, yupNumber, yupBoolean, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";\n\n';
+  schemaContent += 'export const endpointSchema = {';
 
   endpoints.forEach((handlersByMethod, url) => {
     let methodContent = '{';
