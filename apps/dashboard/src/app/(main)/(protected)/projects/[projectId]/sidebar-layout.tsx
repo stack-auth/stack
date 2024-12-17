@@ -31,6 +31,7 @@ import {
   Settings,
   Settings2,
   ShieldEllipsis,
+  TrendingUp,
   User,
   Users,
   Webhook,
@@ -78,6 +79,13 @@ const navigationItems: (Label | Item | Hidden)[] = [
     href: "/auth-methods",
     regex: /^\/projects\/[^\/]+\/auth-methods$/,
     icon: ShieldEllipsis,
+    type: 'item'
+  },
+  {
+    name: "Metrics",
+    href: "/metrics",
+    regex: /^\/projects\/[^\/]+\/metrics$/,
+    icon: TrendingUp,
     type: 'item'
   },
   {
