@@ -1,12 +1,14 @@
-import { urlSchema, yupMixed, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { HTTP_METHODS } from "@stackframe/stack-shared/dist/utils/http";
-import * as yup from "yup";
-import { UnionToIntersection } from "@stackframe/stack-shared/dist/utils/types";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { prismaClient } from "@/prisma-client";
 import withPostHog from "@/analytics";
+import { prismaClient } from "@/prisma-client";
+import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
+import { urlSchema, yupMixed, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { HTTP_METHODS } from "@stackframe/stack-shared/dist/utils/http";
+import { filterUndefined, typedKeys } from "@stackframe/stack-shared/dist/utils/objects";
+import { UnionToIntersection } from "@stackframe/stack-shared/dist/utils/types";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import * as yup from "yup";
+import { getEndUserInfo } from "./end-users";
 
 type EventType = {
   id: string,
@@ -27,7 +29,7 @@ const LegacyApiEventType = {
 const ProjectEventType = {
   id: "$project",
   dataSchema: yupObject({
-    projectId: yupString().required(),
+    projectId: yupString().defined(),
   }),
   inherits: [],
 } as const satisfies SystemEventTypeBase;
@@ -41,7 +43,7 @@ const ProjectActivityEventType = {
 const UserActivityEventType = {
   id: "$user-activity",
   dataSchema: yupObject({
-    userId: yupString().uuid().required(),
+    userId: yupString().uuid().defined(),
   }),
   inherits: [ProjectActivityEventType],
 } as const satisfies SystemEventTypeBase;
@@ -49,10 +51,10 @@ const UserActivityEventType = {
 const ApiRequestEventType = {
   id: "$api-request",
   dataSchema: yupObject({
-    method: yupString().oneOf(HTTP_METHODS).required(),
-    url: urlSchema.required(),
+    method: yupString().oneOf(typedKeys(HTTP_METHODS)).defined(),
+    url: urlSchema.defined(),
     body: yupMixed().nullable().optional(),
-    headers: yupObject().required(),
+    headers: yupObject().defined(),
   }),
   inherits: [
     ProjectEventType,
@@ -78,6 +80,9 @@ type DataOf<T extends EventType> =
   & yup.InferType<T["dataSchema"]>
   & DataOfMany<T["inherits"]>;
 
+/**
+ * Do not wrap this function in waitUntil or runAsynchronously as it may use dynamic APIs
+ */
 export async function logEvent<T extends EventType[]>(
   eventTypes: T,
   data: DataOfMany<T>,
@@ -101,7 +106,7 @@ export async function logEvent<T extends EventType[]>(
   }
 
 
-  // select all events in the inheritance chain
+  // traverse and list all events in the inheritance chain
   const allEventTypes = new Set<EventType>();
   const addEventType = (eventType: EventType) => {
     if (allEventTypes.has(eventType)) {
@@ -120,43 +125,63 @@ export async function logEvent<T extends EventType[]>(
       data = await eventType.dataSchema.validate(data, { strict: true, stripUnknown: false });
     } catch (error) {
       if (error instanceof yup.ValidationError) {
-        throw new StackAssertionError(`Invalid event data for event type: ${eventType.id}`, { eventType, data, error, originalData, originalEventTypes: eventTypes }, { cause: error });
+        throw new StackAssertionError(`Invalid event data for event type: ${eventType.id}`, { eventType, data, error, originalData, originalEventTypes: eventTypes, cause: error });
       }
       throw error;
     }
   }
 
 
-  // log event in DB
-  await prismaClient.event.create({
-    data: {
-      systemEventTypeIds: [...allEventTypes].map(eventType => eventType.id),
-      data: data as any,
-      isWide,
-      eventStartedAt: timeRange.start,
-      eventEndedAt: timeRange.end,
-    },
-  });
+  // get end user information
+  const endUserInfo = await getEndUserInfo();  // this is a dynamic API, can't run it asynchronously
+  const endUserInfoInner = endUserInfo?.maybeSpoofed ? endUserInfo.spoofedInfo : endUserInfo?.exactInfo;
 
-  // log event in PostHog
-  await withPostHog(async posthog => {
-    const distinctId = typeof data === "object" && data && "userId" in data ? (data.userId as string) : `backend-anon-${generateUuid()}`;
-    for (const eventType of allEventTypes) {
-      const postHogEventName = `stack_${eventType.id.replace(/^\$/, "system_").replace(/-/g, "_")}`;
-      posthog.capture({
-        event: postHogEventName,
-        distinctId,
-        groups: filterUndefined({
-          projectId: typeof data === "object" && data && "projectId" in data ? (typeof data.projectId === "string" ? data.projectId : throwErr("Project ID is not a string for some reason?", { data })) : undefined,
-        }),
-        timestamp: timeRange.end,
-        properties: {
-          data,
-          is_wide: isWide,
-          event_started_at: timeRange.start,
-          event_ended_at: timeRange.end,
-        },
-      });
-    }
-  });
+
+  // rest is no more dynamic APIs so we can run it asynchronously
+  runAsynchronouslyAndWaitUntil((async () => {
+    // log event in DB
+    await prismaClient.event.create({
+      data: {
+        systemEventTypeIds: [...allEventTypes].map(eventType => eventType.id),
+        data: data as any,
+        isEndUserIpInfoGuessTrusted: !endUserInfo?.maybeSpoofed,
+        endUserIpInfoGuess: endUserInfoInner ? {
+          create: {
+            ip: endUserInfoInner.ip,
+            countryCode: endUserInfoInner.countryCode,
+            regionCode: endUserInfoInner.regionCode,
+            cityName: endUserInfoInner.cityName,
+            tzIdentifier: endUserInfoInner.tzIdentifier,
+            latitude: endUserInfoInner.latitude,
+            longitude: endUserInfoInner.longitude,
+          },
+        } : undefined,
+        isWide,
+        eventStartedAt: timeRange.start,
+        eventEndedAt: timeRange.end,
+      },
+    });
+
+    // log event in PostHog
+    await withPostHog(async posthog => {
+      const distinctId = typeof data === "object" && data && "userId" in data ? (data.userId as string) : `backend-anon-${generateUuid()}`;
+      for (const eventType of allEventTypes) {
+        const postHogEventName = `stack_${eventType.id.replace(/^\$/, "system_").replace(/-/g, "_")}`;
+        posthog.capture({
+          event: postHogEventName,
+          distinctId,
+          groups: filterUndefined({
+            projectId: typeof data === "object" && data && "projectId" in data ? (typeof data.projectId === "string" ? data.projectId : throwErr("Project ID is not a string for some reason?", { data })) : undefined,
+          }),
+          timestamp: timeRange.end,
+          properties: {
+            data,
+            is_wide: isWide,
+            event_started_at: timeRange.start,
+            event_ended_at: timeRange.end,
+          },
+        });
+      }
+    });
+  })());
 }

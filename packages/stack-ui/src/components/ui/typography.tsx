@@ -27,9 +27,7 @@ const typographyVariants = cva("text-md", {
   },
 });
 
-interface TypographyProps
-  extends React.HTMLAttributes<HTMLHeadingElement>,
-    VariantProps<typeof typographyVariants> {}
+type TypographyProps = {} & React.HTMLAttributes<HTMLHeadingElement> & VariantProps<typeof typographyVariants>
 
 const Typography = forwardRefIfNeeded<HTMLHeadingElement, TypographyProps>(
   ({ className, type, variant, ...props }, ref) => {

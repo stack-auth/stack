@@ -71,13 +71,25 @@ module.exports = {
       },
       {
         selector:
-          "MemberExpression:has(Identifier[name='yup']) Identifier[name='url']",
+          "MemberExpression:has(Identifier[name='yupString']) > Identifier[name='url']",
         message:
           "Use urlSchema from schema-fields.tsx instead of yupString().url().",
       },
       {
         selector:
-          "MemberExpression:has(Identifier[name='yup']):has(Identifier[name='string'], Identifier[name='number'], Identifier[name='boolean'], Identifier[name='array'], Identifier[name='object'], Identifier[name='date'], Identifier[name='mixed'])",
+          "CallExpression > MemberExpression > Identifier[name='required']",
+        message:
+          `Use .defined(), .nonNullable(), or .nonEmpty() instead of .required(), as the latter has inconsistent/unexpected behavior on strings.`,
+      },
+      {
+        selector:
+          "CallExpression > MemberExpression:has(Identifier[name='yupString']) > Identifier[name='email']",
+        message:
+          `Use emailSchema instead of yupString().email().`,
+      },
+      {
+        selector:
+          "MemberExpression:has(Identifier[name='yup']):has(Identifier[name='string'], Identifier[name='number'], Identifier[name='boolean'], Identifier[name='array'], Identifier[name='object'], Identifier[name='tuple'], Identifier[name='date'], Identifier[name='mixed'])",
         message: "Use yupXyz() from schema-fields.tsx instead of yup.xyz().",
       },
     ],
@@ -87,6 +99,7 @@ module.exports = {
         checksConditionals: true,
       },
     ],
+    "@typescript-eslint/consistent-type-definitions": ["error", "type"],
     "no-restricted-imports": [
       "error",
       {
@@ -96,6 +109,14 @@ module.exports = {
             importNames: ["use"],
             message:
               'Directly importing "use" from react will cause next.js middlewares to break on compile time. do import React from "react" and use React.use instead.',
+          },
+        ],
+        patterns: [
+          {
+            group: ["@vercel/functions"],
+            importNames: ["waitUntil"],
+            message:
+              'Use runAsynchronouslyAndWaitUntil instead.',
           },
         ],
       },

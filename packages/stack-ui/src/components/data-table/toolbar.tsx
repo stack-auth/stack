@@ -1,25 +1,30 @@
 "use client";
 
 import { Cross2Icon } from "@radix-ui/react-icons";
+import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 import { Button } from "@stackframe/stack-ui";
-import { Cell, Table } from "@tanstack/react-table";
-import { DataTableViewOptions } from "./view-options";
+import { Cell, ColumnFiltersState, SortingState, Table } from "@tanstack/react-table";
+import { download, generateCsv, mkConfig } from 'export-to-csv';
 import { DownloadIcon } from "lucide-react";
-import { mkConfig, generateCsv, download } from 'export-to-csv';
+import { DataTableViewOptions } from "./view-options";
 
-interface DataTableToolbarProps<TData> {
+type DataTableToolbarProps<TData> = {
   table: Table<TData>,
   toolbarRender?: (table: Table<TData>) => React.ReactNode,
   showDefaultToolbar?: boolean,
+  defaultColumnFilters: ColumnFiltersState,
+  defaultSorting: SortingState,
 }
 
 export function DataTableToolbar<TData>({
   table,
   toolbarRender,
-  showDefaultToolbar
+  showDefaultToolbar,
+  defaultColumnFilters,
+  defaultSorting,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0;
-  const isSorted = table.getState().sorting.length > 0;
+  const isFiltered = !deepPlainEquals(table.getState().columnFilters, defaultColumnFilters);
+  const isSorted = !deepPlainEquals(table.getState().sorting, defaultSorting);
 
   return (
     <div className="flex items-center justify-between">
@@ -29,12 +34,12 @@ export function DataTableToolbar<TData>({
           <Button
             variant="ghost"
             onClick={() => {
-              table.resetColumnFilters();
-              table.resetSorting();
+              table.setColumnFilters(defaultColumnFilters);
+              table.setSorting(defaultSorting);
             }}
             className="h-8 px-2 lg:px-3"
           >
-            Reset
+            Reset filters
             <Cross2Icon className="ml-2 h-4 w-4" />
           </Button>
         )}

@@ -8,10 +8,35 @@
     "VERCEL_GIT_COMMIT_SHA",
     "NEXT_PUBLIC_POSTHOG_*",
     "POSTHOG_*",
-    "NODE_ENV"
+    "NODE_ENV",
+    "QUETZAL_*",
+    "OTEL_*"
   ],
   "tasks": {
     "build": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env",
+        ".env.local",
+        ".env.development",
+        ".env.development.local",
+        ".env.production",
+        ".env.production.local"
+      ],
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        ".next",
+        "dist/**",
+        "lib/**",
+        "*.js",
+        "*.d.ts",
+        "*.d.ts.map"
+      ],
+      "outputLogs": "new-only"
+    },
+    "docker-build": {
       "inputs": [
         "$TURBO_DEFAULT$",
         ".env",

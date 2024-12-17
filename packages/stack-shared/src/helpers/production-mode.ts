@@ -1,5 +1,5 @@
 import { ProjectsCrud } from "../interface/crud/projects";
-import { StackAssertionError } from "../utils/errors";
+import { StackAssertionError, captureError } from "../utils/errors";
 import { isLocalhost } from "../utils/urls";
 
 export type ProductionModeError = {
@@ -23,10 +23,15 @@ export function getProductionModeErrors(project: ProjectsCrud["Admin"]["Read"]):
     try {
       url = new URL(domain);
     } catch (e) {
-      throw new StackAssertionError("Domain was somehow not a valid URL; we should've caught this when setting the domain in the first place", {
+      captureError("production-mode-domain-not-valid", new StackAssertionError("Domain was somehow not a valid URL; we should've caught this when setting the domain in the first place", {
         domain,
         projectId: project
+      }));
+      errors.push({
+        message: "Trusted domain is not a valid URL: " + domain,
+        relativeFixUrl: domainsFixUrl,
       });
+      continue;
     }
 
     if (isLocalhost(url)) {

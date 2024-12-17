@@ -1,11 +1,11 @@
 import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-admin-app";
 import { ServerUser } from "@stackframe/stack";
-import { jsonStringOrEmptySchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { emailSchema, jsonStringOrEmptySchema, passwordSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Typography, useToast } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { FormDialog } from "./form-dialog";
 import { DateField, InputField, SwitchField, TextAreaField } from "./form-fields";
-import { KnownErrors } from "@stackframe/stack-shared";
 
 export function UserDialog(props: {
   open?: boolean,
@@ -41,14 +41,14 @@ export function UserDialog(props: {
   }
 
   const formSchema = yup.object({
-    primaryEmail: yup.string().email("Primary Email must be a valid email address").required("Primary email is required"),
+    primaryEmail: emailSchema.label("Primary email").defined().nonEmpty(),
     displayName: yup.string().optional(),
-    signedUpAt: yup.date().required(),
+    signedUpAt: yup.date().defined(),
     clientMetadata: jsonStringOrEmptySchema.default("null"),
     clientReadOnlyMetadata: jsonStringOrEmptySchema.default("null"),
     serverMetadata: jsonStringOrEmptySchema.default("null"),
     primaryEmailVerified: yup.boolean().optional(),
-    password: yup.string().optional(),
+    password: passwordSchema.optional(),
     otpAuthEnabled: yup.boolean().test({
       name: 'otp-verified',
       message: "Primary email must be verified if OTP/magic link sign-in is enabled",

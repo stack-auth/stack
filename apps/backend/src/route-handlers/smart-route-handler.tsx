@@ -1,16 +1,17 @@
 import "../polyfills";
 
-import { NextRequest } from "next/server";
-import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
-import * as yup from "yup";
-import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { KnownError, KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
-import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { MergeSmartRequest, SmartRequest, DeepPartialSmartRequestWithSentinel, createSmartRequest, validateSmartRequest } from "./smart-request";
-import { SmartResponse, createResponse } from "./smart-response";
+import * as Sentry from "@sentry/nextjs";
 import { EndpointDocumentation } from "@stackframe/stack-shared/dist/crud";
-import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { KnownError, KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
 import { yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
+import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
+import { StackAssertionError, StatusError, captureError, errorToNiceString } from "@stackframe/stack-shared/dist/utils/errors";
+import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { NextRequest } from "next/server";
+import * as yup from "yup";
+import { DeepPartialSmartRequestWithSentinel, MergeSmartRequest, SmartRequest, createSmartRequest, validateSmartRequest } from "./smart-request";
+import { SmartResponse, createResponse } from "./smart-response";
 
 class InternalServerError extends StatusError {
   constructor(error: unknown) {
@@ -55,9 +56,19 @@ function catchError(error: unknown): StatusError {
  * Catches any errors thrown in the handler and returns a 500 response with the thrown error message. Also logs the
  * request details.
  */
-function handleApiRequest(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
+export function handleApiRequest(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
     const requestId = generateSecureRandomString(80);
+
+    // Set Sentry scope to include request details
+    Sentry.setContext("stack-request", {
+      requestId: requestId,
+      method: req.method,
+      url: req.url,
+      query: Object.fromEntries(req.nextUrl.searchParams),
+      headers: Object.fromEntries(req.headers),
+    });
+
     let hasRequestFinished = false;
     try {
       // censor long query parameters because they might contain sensitive data
@@ -82,6 +93,9 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
       const timeStart = performance.now();
       const res = await handler(req, options, requestId);
       const time = (performance.now() - timeStart);
+      if ([301, 302].includes(res.status)) {
+        throw new StackAssertionError("HTTP status codes 301 and 302 should not be returned by our APIs because the behavior for non-GET methods is inconsistent across implementations. Use 303 (to rewrite method to GET) or 307/308 (to preserve the original method and data) instead.", { status: res.status, url: req.nextUrl, req, res });
+      }
       console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
     } catch (e) {
@@ -95,7 +109,9 @@ function handleApiRequest(handler: (req: NextRequest, options: any, requestId: s
 
       console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
       if (!commonErrors.some(e => statusError instanceof e)) {
-        console.debug(`For the error above with request ID ${requestId}, the full error is:`, statusError);
+        // HACK: Log a nicified version of the error instead of statusError to get around buggy Next.js pretty-printing
+        // https://www.reddit.com/r/nextjs/comments/1gkxdqe/comment/m19kxgn/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+        console.debug(`For the error above with request ID ${requestId}, the full error is:`, errorToNiceString(statusError));
       }
 
       const res = await createResponse(req, requestId, {
@@ -203,6 +219,8 @@ export function createSmartRouteHandler<
     const fullReq = reqsParsed[0][0][1];
     const handler = reqsParsed[0][1];
 
+    Sentry.setContext("stack-parsed-smart-request", smartReq as any);
+
     let smartRes = await handler.handler(smartReq as any, fullReq);
 
     return await createResponse(nextRequest, requestId, smartRes, handler.response);
@@ -211,6 +229,9 @@ export function createSmartRouteHandler<
   return Object.assign(handleApiRequest(async (req, options, requestId) => {
     const bodyBuffer = await req.arrayBuffer();
     const smartRequest = await createSmartRequest(req, bodyBuffer, options);
+
+    Sentry.setContext("stack-full-smart-request", smartRequest);
+
     return await invoke(req, requestId, smartRequest);
   }), {
     [getSmartRouteHandlerSymbol()]: true,

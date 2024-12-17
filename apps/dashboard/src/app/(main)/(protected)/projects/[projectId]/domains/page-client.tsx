@@ -4,6 +4,7 @@ import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { AdminDomainConfig, AdminProject } from "@stackframe/stack";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { isValidUrl } from "@stackframe/stack-shared/dist/utils/urls";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import React from "react";
 import * as yup from "yup";
@@ -38,12 +39,14 @@ function EditDialog(props: {
           .map(({ domain }) => domain),
         "Domain already exists"
       )
-      .required(),
+      .defined(),
     handlerPath: yup.string()
       .matches(/^\//, "Handler path must start with /")
-      .required(),
+      .defined(),
     addWww: yup.boolean(),
   });
+
+  const canAddWww = (domain: string | undefined) => domain && isValidUrl('https://' + domain) && !domain.startsWith('www.') && isValidUrl('https://www.' + domain);
 
   return <FormDialog
     open={props.open}
@@ -67,7 +70,7 @@ function EditDialog(props: {
                 domain: values.domain,
                 handlerPath: values.handlerPath,
               },
-              ...(values.addWww ? [{
+              ...(canAddWww(values.domain) && values.addWww ? [{
                 domain: 'https://www.' + values.domain.slice(8),
                 handlerPath: values.handlerPath,
               }] : []),
@@ -104,10 +107,9 @@ function EditDialog(props: {
         />
 
         {props.type === 'create' &&
-          urlSchema.url().required().isValidSync('https://' + form.watch('domain')) &&
-          !((form.watch('domain') as any)?.startsWith('www.')) && (
+          canAddWww(form.watch('domain')) && (
           <SwitchField
-            label={`Also add www.${form.watch('domain') as any ?? ''} to the trusted domains`}
+            label={`Also add www.${form.watch('domain') as any ?? ''} as a trusted domain`}
             name="addWww"
             control={form.control}
           />
@@ -230,7 +232,7 @@ export default function PageClient() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[200px]">Domain</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead>&nbsp;</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

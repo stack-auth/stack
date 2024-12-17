@@ -1,1 +1,1 @@
-import type {} from "react/canary";
+import type { } from "react/canary";

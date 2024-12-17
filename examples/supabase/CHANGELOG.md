@@ -1,5 +1,111 @@
 # @stackframe/example-supabase
 
+## 2.6.37
+
+### Patch Changes
+
+- Various changes
+  - @stackframe/stack@2.6.37
+
+## 2.6.36
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.36
+
+## 2.6.35
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.6.35
+
+## 2.6.34
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.34
+
+## 2.6.33
+
+### Patch Changes
+
+- @stackframe/stack@2.6.33
+
+## 2.6.32
+
+### Patch Changes
+
+- @stackframe/stack@2.6.32
+
+## 2.6.31
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.31
+
+## 2.6.30
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.30
+
+## 2.6.29
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.29
+
+## 2.6.28
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.28
+
+## 2.6.27
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.27
+
+## 2.6.26
+
+### Patch Changes
+
+- Various bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.6.26
+
+## 2.6.25
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.25
+
+## 2.6.24
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.6.24
+
+## 2.6.23
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack@2.6.23
+
 ## 2.6.22
 
 ### Patch Changes

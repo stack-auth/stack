@@ -14,7 +14,7 @@ it("should not have have access to the project without project keys", async ({ e
       "body": {
         "code": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
         "details": { "request_type": "client" },
-        "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication",
+        "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
       },
       "headers": Headers {
         "x-stack-known-error": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
@@ -559,8 +559,8 @@ it("updates the project email configuration with invalid parameters", async ({ e
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.sender_email is a required field" },
-          "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host is a required field\\n  - body.config.email_config.port is a required field\\n  - body.config.email_config.username is a required field\\n  - body.config.email_config.password is a required field\\n  - body.config.email_config.sender_name is a required field\\n  - body.config.email_config.sender_email is a required field",
+          "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host must be defined\\n  - body.config.email_config.port must be defined\\n  - body.config.email_config.username must be defined\\n  - body.config.email_config.password must be defined\\n  - body.config.email_config.sender_name must be defined\\n  - body.config.email_config.sender_email must be defined" },
+          "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host must be defined\\n  - body.config.email_config.port must be defined\\n  - body.config.email_config.username must be defined\\n  - body.config.email_config.password must be defined\\n  - body.config.email_config.sender_name must be defined\\n  - body.config.email_config.sender_email must be defined",
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",
@@ -1090,6 +1090,7 @@ it("has a correctly formatted JWKS endpoint", async ({ expect }) => {
   expect(response.body).toEqual({
     keys: [
       {
+        alg: "ES256",
         crv: "P-256",
         kid: expect.any(String),
         kty: "EC",

@@ -23,8 +23,8 @@ export const GET = createSmartRouteHandler({
   },
   request: yupObject({
     params: yupObject({
-      provider_id: yupString().required(),
-    }).required(),
+      provider_id: yupString().defined(),
+    }).defined(),
     query: yupObject({
       // custom parameters
       type: yupString().oneOf(["authenticate", "link"]).default("authenticate"),
@@ -38,21 +38,21 @@ export const GET = createSmartRouteHandler({
       after_callback_redirect_url: yupString().optional(),
 
       // oauth parameters
-      client_id: yupString().required(),
-      client_secret: yupString().required(),
-      redirect_uri: urlSchema.required(),
-      scope: yupString().required(),
-      state: yupString().required(),
-      grant_type: yupString().oneOf(["authorization_code"]).required(),
-      code_challenge: yupString().required(),
-      code_challenge_method: yupString().required(),
-      response_type: yupString().required(),
-    }).required(),
+      client_id: yupString().defined(),
+      client_secret: yupString().defined(),
+      redirect_uri: urlSchema.defined(),
+      scope: yupString().defined(),
+      state: yupString().defined(),
+      grant_type: yupString().oneOf(["authorization_code"]).defined(),
+      code_challenge: yupString().defined(),
+      code_challenge_method: yupString().defined(),
+      response_type: yupString().defined(),
+    }).defined(),
   }),
   response: yupObject({
     // we never return as we always redirect
-    statusCode: yupNumber().oneOf([302]).required(),
-    bodyType: yupString().oneOf(["empty"]).required(),
+    statusCode: yupNumber().oneOf([302]).defined(),
+    bodyType: yupString().oneOf(["empty"]).defined(),
   }),
   async handler({ params, query }, fullReq) {
     const project = await getProject(query.client_id);
@@ -61,7 +61,7 @@ export const GET = createSmartRouteHandler({
       throw new KnownErrors.InvalidOAuthClientIdOrSecret(query.client_id);
     }
 
-    if (!await checkApiKeySet(query.client_id, { publishableClientKey: query.client_secret })) {
+    if (!(await checkApiKeySet(query.client_id, { publishableClientKey: query.client_secret }))) {
       throw new KnownErrors.InvalidPublishableClientKey(query.client_id);
     }
 
@@ -124,7 +124,7 @@ export const GET = createSmartRouteHandler({
 
     // prevent CSRF by keeping track of the inner state in cookies
     // the callback route must ensure that the inner state cookie is set
-    cookies().set(
+    (await cookies()).set(
       "stack-oauth-inner-" + innerState,
       "true",
       {

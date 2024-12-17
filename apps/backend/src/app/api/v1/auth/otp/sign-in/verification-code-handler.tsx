@@ -3,7 +3,7 @@ import { createAuthTokens } from "@/lib/tokens";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { emailSchema, signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { usersCrudHandlers } from "../../../users/crud";
 import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
@@ -24,16 +24,16 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
   type: VerificationCodeType.ONE_TIME_PASSWORD,
   data: yupObject({
     user_id: yupString().uuid().optional(),
-    is_new_user: yupBoolean().required(),
+    is_new_user: yupBoolean().defined(),
   }),
   method: yupObject({
-    email: yupString().email().required(),
-    type: yupString().oneOf(["legacy", "standard"]).required(),
+    email: emailSchema.defined(),
+    type: yupString().oneOf(["legacy", "standard"]).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
-    body: signInResponseSchema.required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: signInResponseSchema.defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { email: string }) {
     await sendEmailFromTemplate({

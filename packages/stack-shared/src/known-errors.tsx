@@ -1,7 +1,6 @@
 import { StackAssertionError, StatusError, throwErr } from "./utils/errors";
 import { identityArgs } from "./utils/functions";
 import { Json } from "./utils/json";
-import { filterUndefined } from "./utils/objects";
 import { deindent } from "./utils/strings";
 
 export type KnownErrorJson = {
@@ -289,7 +288,7 @@ const AccessTypeWithoutProjectId = createKnownErrorConstructor(
     deindent`
       The x-stack-access-type header was '${accessType}', but the x-stack-project-id header was not provided.
       
-      For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication
+      For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
     `,
     {
       request_type: accessType,
@@ -306,7 +305,7 @@ const AccessTypeRequired = createKnownErrorConstructor(
     deindent`
       You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.
       
-      For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication
+      For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
     `,
   ] as const,
   () => [] as const,
@@ -1187,6 +1186,17 @@ const OAuthProviderAccessDenied = createKnownErrorConstructor(
   () => [] as const,
 );
 
+const ContactChannelAlreadyUsedForAuthBySomeoneElse = createKnownErrorConstructor(
+  KnownError,
+  "CONTACT_CHANNEL_ALREADY_USED_FOR_AUTH_BY_SOMEONE_ELSE",
+  (type: "email") => [
+    400,
+    `This ${type} is already used for authentication by another account.`,
+    { type },
+  ] as const,
+  (json) => [json.type] as const,
+);
+
 export type KnownErrors = {
   [K in keyof typeof KnownErrors]: InstanceType<typeof KnownErrors[K]>;
 };
@@ -1283,6 +1293,7 @@ export const KnownErrors = {
   InvalidAuthorizationCode,
   TeamPermissionNotFound,
   OAuthProviderAccessDenied,
+  ContactChannelAlreadyUsedForAuthBySomeoneElse,
 } satisfies Record<string, KnownErrorConstructor<any, any>>;
 
 

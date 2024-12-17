@@ -35,7 +35,7 @@ async function signInAndCreateTeam() {
     },
   });
 
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   // Add members to team
   await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, {

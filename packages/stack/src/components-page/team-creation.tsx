@@ -17,7 +17,7 @@ export function TeamCreation(props: { fullPage?: boolean }) {
   const { t } = useTranslation();
 
   const schema = yupObject({
-    displayName: yupString().required(t('Please enter a team name')),
+    displayName: yupString().defined().nonEmpty(t('Please enter a team name')),
   });
 
   const { register, handleSubmit, formState: { errors } } = useForm({

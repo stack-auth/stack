@@ -23,7 +23,7 @@ function prismaToCrud(prisma: Prisma.EmailTemplateGetPayload<{}>, isDefault: boo
 
 export const emailTemplateCrudHandlers = createLazyProxy(() => createCrudHandlers(emailTemplateCrud, {
   paramsSchema: yupObject({
-    type: yupString().oneOf(emailTemplateTypes).required(),
+    type: yupString().oneOf(emailTemplateTypes).defined(),
   }),
   async onRead({ params, auth }) {
     const dbType = typedToUppercase(params.type);

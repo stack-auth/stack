@@ -7,6 +7,7 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.tabSize": 2,
   "cSpell.words": [
+    "Cdfc",
     "cjsx",
     "clsx",
     "cmdk",
@@ -16,6 +17,7 @@
     "deindent",
     "Falsey",
     "frontends",
+    "geoip",
     "hookform",
     "hostable",
     "INBUCKET",
@@ -42,7 +44,9 @@
     "pageview",
     "pkcco",
     "PKCE",
+    "pooler",
     "posthog",
+    "preconfigured",
     "Proxied",
     "psql",
     "qrcode",
@@ -51,6 +55,8 @@
     "reqs",
     "RPID",
     "simplewebauthn",
+    "spoofable",
+    "stackauth",
     "stackframe",
     "supabase",
     "Svix",
@@ -68,13 +74,9 @@
     "wolfgunblood",
     "zustand"
   ],
-  "[typescript]": {
-      "editor.codeActionsOnSave": {
-          "source.organizeImports": "explicit"
-      }
-  },
   "editor.codeActionsOnSave": {
-      "source.fixAll.eslint": "explicit"
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
   },
   "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|",
   "editor.formatOnSave": false,

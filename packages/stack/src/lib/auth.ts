@@ -1,6 +1,6 @@
 import { KnownError, StackClientInterface } from "@stackframe/stack-shared";
 import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
-import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { neverResolve } from "@stackframe/stack-shared/dist/utils/promises";
 import { Result } from "@stackframe/stack-shared/dist/utils/results";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
@@ -66,7 +66,7 @@ function consumeOAuthCallbackQueryParams() {
   const originalUrl = new URL(window.location.href);
   for (const param of requiredParams) {
     if (!originalUrl.searchParams.has(param)) {
-      captureError("consumeOAuthCallbackQueryParams", new Error(`Missing required query parameter on OAuth callback: ${param}`));
+      console.warn(new Error(`Missing required query parameter on OAuth callback: ${param}. Maybe you opened or reloaded the oauth-callback page from your history?`));
       return null;
     }
   }
@@ -77,7 +77,7 @@ function consumeOAuthCallbackQueryParams() {
   if (!cookieResult) {
     // If the state can't be found in the cookies, then the callback wasn't meant for us.
     // Maybe the website uses another OAuth library?
-    captureError("consumeOAuthCallbackQueryParams", new Error(deindent`
+    console.warn(deindent`
       Stack found an outer OAuth callback state in the query parameters, but not in cookies.
       
       This could have multiple reasons:
@@ -85,7 +85,10 @@ function consumeOAuthCallbackQueryParams() {
         - The user's browser deleted the cookie, either manually or because of a very strict cookie policy.
         - The cookie was already consumed by this page, and the user already logged in.
         - You are using another OAuth client library with the same callback URL as Stack.
-    `));
+        - The user opened the OAuth callback page from their history.
+
+      Either way, it is probably safe to ignore this warning unless you are debugging an OAuth issue.
+    `);
     return null;
   }
 

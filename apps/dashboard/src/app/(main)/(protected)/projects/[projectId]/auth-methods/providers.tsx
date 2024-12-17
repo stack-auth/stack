@@ -33,17 +33,17 @@ function toTitle(id: string) {
 }
 
 export const providerFormSchema = yup.object({
-  shared: yup.boolean().required(),
+  shared: yup.boolean().defined(),
   clientId: yup.string()
     .when('shared', {
       is: false,
-      then: (schema) => schema.required(),
+      then: (schema) => schema.defined(),
       otherwise: (schema) => schema.optional()
     }),
   clientSecret: yup.string()
     .when('shared', {
       is: false,
-      then: (schema) => schema.required(),
+      then: (schema) => schema.defined(),
       otherwise: (schema) => schema.optional()
     }),
   facebookConfigId: yup.string().optional(),
@@ -108,7 +108,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
               <Label>Redirect URL for the OAuth provider settings
               </Label>
               <Typography type="footnote">
-                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_URL}/api/v1/auth/oauth/callback/${props.id}`}</InlineCode>
+                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_API_URL}/api/v1/auth/oauth/callback/${props.id}`}</InlineCode>
               </Typography>
             </div>}
 

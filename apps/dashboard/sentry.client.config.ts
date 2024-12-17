@@ -3,24 +3,16 @@
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 import * as Sentry from "@sentry/nextjs";
+import { getBrowserCompatibilityReport } from "@stackframe/stack-shared/dist/utils/browser-compat";
+import { sentryBaseConfig } from "@stackframe/stack-shared/dist/utils/sentry";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 
 Sentry.init({
-  dsn: "https://6e618f142965a385267f1030793e0400@o4507084192022528.ingest.us.sentry.io/4507084192219136",
+  ...sentryBaseConfig,
 
-  // Adjust this value in production, or use tracesSampler for greater control
-  tracesSampleRate: 1,
-
-  // Setting this option to true will print useful information to the console while you're setting up Sentry.
-  debug: false,
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   enabled: process.env.NODE_ENV !== "development" && !process.env.CI,
-
-  replaysOnErrorSampleRate: 1.0,
-
-  // This sets the sample rate to be 10%. You may want this to be 100% while
-  // in development and sample at a lower rate in production
-  replaysSessionSampleRate: 1.0,
 
   // You can remove this option if you're not planning to use the Sentry Session Replay feature:
   integrations: [
@@ -36,7 +28,7 @@ Sentry.init({
     const error = hint.originalException;
     let nicified;
     try {
-      nicified = nicify(error);
+      nicified = nicify(error, { maxDepth: 8 });
     } catch (e) {
       nicified = `Error occurred during nicification: ${e}`;
     }
@@ -47,7 +39,8 @@ Sentry.init({
         errorProps: {
           ...error,
         },
-        nicifiedError: nicify(error),
+        nicifiedError: nicified,
+        clientBrowserCompatibility: getBrowserCompatibilityReport(),
       };
     }
     return event;

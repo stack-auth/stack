@@ -4,7 +4,7 @@ on: pull_request
 
 jobs:
   run:
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-8
 
     permissions: write-all
 
@@ -69,9 +69,9 @@ jobs:
           echo "$OUTPUT"
           URL=$(echo "$OUTPUT" | grep -oP 'Published docs to \K.*(?= \()')
           echo "Preview URL: $URL"
-          echo "🌿 Preview your docs: $URL" > docs_preview_url.untracked.txt
+      #     echo "🌿 Preview your docs: $URL" > docs_preview_url.untracked.txt
 
-      - name: Comment URL in PR
-        uses: thollander/actions-comment-pull-request@v2.4.3
-        with:
-          filePath: docs_preview_url.untracked.txt
+      # - name: Comment URL in PR
+      #   uses: thollander/actions-comment-pull-request@v2.4.3
+      #   with:
+      #     filePath: docs_preview_url.untracked.txt

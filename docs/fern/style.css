@@ -137,3 +137,7 @@ tr.stack-clickable-row-missing {
 .stack-dim-text {
   opacity: 0.5;
 }
+
+.fern-sidebar-link-content > svg:last-child {
+  display: none;
+}

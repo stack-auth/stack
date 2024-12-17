@@ -2,7 +2,6 @@
 
 import { SsrScript } from "../components/elements/ssr-layout-effect";
 
-// Also please note that there might be hydration issues with this script, always check the browser console for errors after changing this script.
 const script = () => {
   const attributes = ['data-joy-color-scheme', 'data-mui-color-scheme', 'data-theme', 'data-color-scheme', 'class'];
 

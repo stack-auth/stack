@@ -1,12 +1,12 @@
-import React from "react";
-import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import { Slot } from "@radix-ui/react-slot";
+import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 import { cva, type VariantProps } from "class-variance-authority";
+import React from "react";
 
-import { cn } from "../../lib/utils";
-import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
-import { Spinner } from "./spinner";
 import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
+import { cn } from "../../lib/utils";
+import { Spinner } from "./spinner";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
@@ -38,11 +38,9 @@ const buttonVariants = cva(
   }
 );
 
-export interface OriginalButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+export type OriginalButtonProps = {
   asChild?: boolean,
-}
+} & React.ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof buttonVariants>
 
 const OriginalButton = forwardRefIfNeeded<HTMLButtonElement, OriginalButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
@@ -58,10 +56,10 @@ const OriginalButton = forwardRefIfNeeded<HTMLButtonElement, OriginalButtonProps
 );
 OriginalButton.displayName = "Button";
 
-interface ButtonProps extends OriginalButtonProps {
+type ButtonProps = {
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<void>,
   loading?: boolean,
-}
+} & OriginalButtonProps
 
 const Button = forwardRefIfNeeded<HTMLButtonElement, ButtonProps>(
   ({ onClick, loading: loadingProp, children, ...props }, ref) => {
@@ -86,4 +84,5 @@ const Button = forwardRefIfNeeded<HTMLButtonElement, ButtonProps>(
 );
 Button.displayName = "Button";
 
-export { Button, buttonVariants, ButtonProps };
+export { Button, ButtonProps, buttonVariants };
+

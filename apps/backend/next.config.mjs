@@ -1,5 +1,5 @@
-import { withSentryConfig } from "@sentry/nextjs";
 import createBundleAnalyzer from "@next/bundle-analyzer";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const withBundleAnalyzer = createBundleAnalyzer({
   enabled: !!process.env.ANALYZE_BUNDLE,
@@ -12,8 +12,6 @@ const withConfiguredSentryConfig = (nextConfig) =>
       // For all available options, see:
       // https://github.com/getsentry/sentry-webpack-plugin#options
 
-      // Suppresses source map uploading logs during build
-      silent: true,
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,
     },
@@ -49,12 +47,17 @@ const withConfiguredSentryConfig = (nextConfig) =>
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // optionally set output to "standalone" for Docker builds
+  // https://nextjs.org/docs/pages/api-reference/next-config-js/output
+  output: process.env.NEXT_CONFIG_OUTPUT,
+
   // we're open-source, so we can provide source maps
   productionBrowserSourceMaps: true,
   poweredByHeader: false,
 
   experimental: {
     instrumentationHook: true,
+    serverMinification: false,  // needs to be disabled for oidc-provider to work, which relies on the original constructor names
   },
 
   async headers() {

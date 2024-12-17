@@ -1,5 +1,5 @@
 import { ensureContactChannelDoesNotExists, ensureContactChannelExists } from "@/lib/request-checks";
-import { prismaClient } from "@/prisma-client";
+import { prismaClient, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -27,8 +27,8 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
     contact_channel_id: yupString().uuid().optional(),
   }),
   paramsSchema: yupObject({
-    user_id: userIdOrMeSchema.required().meta({ openapiField: { description: "the user that the contact channel belongs to", exampleValue: 'me', onlyShowInOperations: ["Read", "Update", "Delete"] } }),
-    contact_channel_id: yupString().uuid().required().meta({ openapiField: { description: "the target contact channel", exampleValue: 'b3d396b8-c574-4c80-97b3-50031675ceb2', onlyShowInOperations: ["Read", "Update", "Delete"] } }),
+    user_id: userIdOrMeSchema.defined().meta({ openapiField: { description: "the user that the contact channel belongs to", exampleValue: 'me', onlyShowInOperations: ["Read", "Update", "Delete"] } }),
+    contact_channel_id: yupString().uuid().defined().meta({ openapiField: { description: "the target contact channel", exampleValue: 'b3d396b8-c574-4c80-97b3-50031675ceb2', onlyShowInOperations: ["Read", "Update", "Delete"] } }),
   }),
   onRead: async ({ params, auth }) => {
     if (auth.type === 'client') {
@@ -62,13 +62,30 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       }
     }
 
-    const contactChannel = await prismaClient.$transaction(async (tx) => {
+    const contactChannel = await retryTransaction(async (tx) => {
       await ensureContactChannelDoesNotExists(tx, {
         projectId: auth.project.id,
         userId: data.user_id,
         type: data.type,
         value: data.value,
       });
+
+      // if usedForAuth is set to true, make sure no other account uses this channel for auth
+      if (data.used_for_auth) {
+        const existingWithSameChannel = await tx.contactChannel.findUnique({
+          where: {
+            projectId_type_value_usedForAuth: {
+              projectId: auth.project.id,
+              type: crudContactChannelTypeToPrisma(data.type),
+              value: data.value,
+              usedForAuth: 'TRUE',
+            },
+          },
+        });
+        if (existingWithSameChannel) {
+          throw new KnownErrors.ContactChannelAlreadyUsedForAuthBySomeoneElse(data.type);
+        }
+      }
 
       const createdContactChannel = await tx.contactChannel.create({
         data: {
@@ -128,12 +145,29 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       }
     }
 
-    const updatedContactChannel = await prismaClient.$transaction(async (tx) => {
-      await ensureContactChannelExists(tx, {
+    const updatedContactChannel = await retryTransaction(async (tx) => {
+      const existingContactChannel = await ensureContactChannelExists(tx, {
         projectId: auth.project.id,
         userId: params.user_id,
         contactChannelId: params.contact_channel_id || throwErr("Missing contact channel id"),
       });
+
+      // if usedForAuth is set to true, make sure no other account uses this channel for auth
+      if (data.used_for_auth) {
+        const existingWithSameChannel = await tx.contactChannel.findUnique({
+          where: {
+            projectId_type_value_usedForAuth: {
+              projectId: auth.project.id,
+              type: data.type !== undefined ? crudContactChannelTypeToPrisma(data.type) : existingContactChannel.type,
+              value: data.value !== undefined ? data.value : existingContactChannel.value,
+              usedForAuth: 'TRUE',
+            },
+          },
+        });
+        if (existingWithSameChannel && existingWithSameChannel.id !== existingContactChannel.id) {
+          throw new KnownErrors.ContactChannelAlreadyUsedForAuthBySomeoneElse(data.type ?? prismaContactChannelTypeToCrud(existingContactChannel.type));
+        }
+      }
 
       if (data.is_primary) {
         // mark all other channels as not primary
@@ -175,7 +209,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       }
     }
 
-    await prismaClient.$transaction(async (tx) => {
+    await retryTransaction(async (tx) => {
       await ensureContactChannelExists(tx, {
         projectId: auth.project.id,
         userId: params.user_id,
@@ -215,3 +249,12 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
     };
   }
 }));
+
+
+function crudContactChannelTypeToPrisma(type: "email") {
+  return typedToUppercase(type);
+}
+
+function prismaContactChannelTypeToCrud(type: "EMAIL") {
+  return typedToLowercase(type);
+}

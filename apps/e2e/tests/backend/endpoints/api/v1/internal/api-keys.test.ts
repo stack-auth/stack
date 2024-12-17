@@ -8,7 +8,7 @@ describe("without project access", () => {
     projectKeys: 'no-project'
   });
 
-  it("should not have have access to api keys", async ({ expect }) => {
+  it("should not have access to api keys", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1/internal/api-keys", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
@@ -16,10 +16,33 @@ describe("without project access", () => {
         "body": {
           "code": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
           "details": { "request_type": "client" },
-          "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication",
+          "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+});
+
+describe("with server access", () => {
+  it("should not have access to api keys", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/internal/api-keys", { accessType: "server" });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "INSUFFICIENT_ACCESS_TYPE",
+          "details": {
+            "actual_access_type": "server",
+            "allowed_access_types": ["admin"],
+          },
+          "error": "The x-stack-access-type header must be 'admin', but was 'server'.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "INSUFFICIENT_ACCESS_TYPE",
           <some fields may have been hidden>,
         },
       }
@@ -164,9 +187,9 @@ describe("with admin access to a non-internal project", () => {
           "description": "new description",
           "expires_at_millis": <stripped field 'expires_at_millis'>,
           "id": "<stripped UUID>",
-          "publishable_client_key": <stripped field 'publishable_client_key'>,
-          "secret_server_key": <stripped field 'secret_server_key'>,
-          "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
+          "publishable_client_key": { "last_four": <stripped field 'last_four'> },
+          "secret_server_key": { "last_four": <stripped field 'last_four'> },
+          "super_secret_admin_key": { "last_four": <stripped field 'last_four'> },
         },
         "headers": Headers { <some fields may have been hidden> },
       }
@@ -198,16 +221,16 @@ describe("with admin access to a non-internal project", () => {
               "description": "key2",
               "expires_at_millis": <stripped field 'expires_at_millis'>,
               "id": "<stripped UUID>",
-              "secret_server_key": <stripped field 'secret_server_key'>,
+              "secret_server_key": { "last_four": <stripped field 'last_four'> },
             },
             {
               "created_at_millis": <stripped field 'created_at_millis'>,
               "description": "new description",
               "expires_at_millis": <stripped field 'expires_at_millis'>,
               "id": "<stripped UUID>",
-              "publishable_client_key": <stripped field 'publishable_client_key'>,
-              "secret_server_key": <stripped field 'secret_server_key'>,
-              "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
+              "publishable_client_key": { "last_four": <stripped field 'last_four'> },
+              "secret_server_key": { "last_four": <stripped field 'last_four'> },
+              "super_secret_admin_key": { "last_four": <stripped field 'last_four'> },
             },
           ],
         },
@@ -235,9 +258,9 @@ describe("with admin access to a non-internal project", () => {
           "expires_at_millis": <stripped field 'expires_at_millis'>,
           "id": "<stripped UUID>",
           "manually_revoked_at_millis": <stripped field 'manually_revoked_at_millis'>,
-          "publishable_client_key": <stripped field 'publishable_client_key'>,
-          "secret_server_key": <stripped field 'secret_server_key'>,
-          "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
+          "publishable_client_key": { "last_four": <stripped field 'last_four'> },
+          "secret_server_key": { "last_four": <stripped field 'last_four'> },
+          "super_secret_admin_key": { "last_four": <stripped field 'last_four'> },
         },
         "headers": Headers { <some fields may have been hidden> },
       }

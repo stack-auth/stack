@@ -1,0 +1,139 @@
+# Git ignore rules
+*.untracked
+*.untracked.*
+
+.vercel
+
+# Misc
+.DS_Store
+.eslintcache
+.env.local
+.env.*.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+firebase-debug.log
+ui-debug.log
+.pnpm-debug.log
+.husky
+tmp
+
+vitest.config.ts.timestamp-*
+tsup.config.bundled_*
+
+# Dependencies
+node_modules
+
+# Build dirs
+.next
+build
+dist
+
+# Generated files
+.docusaurus
+.cache-loader
+**.tsbuildinfo
+
+.xata*
+
+# VS
+/.vs/slnx.sqlite-journal
+/.vs/slnx.sqlite
+/.vs
+.vscode/generated*
+
+# Jetbrains
+.idea
+
+# GitHub Actions runner
+/actions-runner
+/_work
+
+# DB
+dev.db*
+packages/adapter-prisma/prisma/dev.db
+packages/adapter-prisma/prisma/migrations
+db.sqlite
+packages/adapter-supabase/supabase/.branches
+packages/adapter-drizzle/.drizzle
+
+# Tests
+coverage
+dynamodblocal-bin
+firestore-debug.log
+test.schema.gql
+test-results
+playwright-report
+blob-report
+playwright/.cache
+
+# Turborepo
+.turbo
+
+# docusaurus
+docs/.docusaurus
+docs/manifest.mjs
+
+# Core
+packages/core/src/providers/oauth-types.ts
+packages/core/lib
+packages/core/providers
+docs/docs/reference/core
+
+# Next.js
+docs/docs/reference/nextjs
+next-env.d.ts
+
+# SvelteKit
+packages/frameworks-sveltekit/index.*
+packages/frameworks-sveltekit/client.*
+packages/frameworks-sveltekit/.svelte-kit
+packages/frameworks-sveltekit/package
+packages/frameworks-sveltekit/vite.config.js.timestamp-*
+packages/frameworks-sveltekit/vite.config.ts.timestamp-*
+docs/docs/reference/sveltekit
+
+# SolidStart
+docs/docs/reference/solidstart
+
+# Express
+docs/docs/reference/express
+
+# Adapters
+docs/docs/reference/adapter
+
+## Drizzle migration folder
+.drizzle
+
+# Sentry Config File
+.sentryclirc
+
+# Python
+__pycache__/
+.venv/
+
+# Docker ignore rules
+.changeset
+.git
+.github
+.turbo
+**/.turbo
+.vscode
+
+.env
+.env.*
+**/.env
+**/.env.*
+**/.next
+
+**/dist
+
+examples
+
+node_modules
+**/node_modules
+
+deploy
+!deploy/docker/**/entrypoint.sh
+docker-compose.yaml

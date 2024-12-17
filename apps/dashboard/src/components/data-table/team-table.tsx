@@ -125,6 +125,7 @@ export function TeamTable(props: { teams: ServerTeam[] }) {
     data={props.teams}
     columns={columns}
     toolbarRender={toolbarRender}
+    defaultColumnFilters={[]}
     defaultSorting={[{ id: 'createdAt', desc: true }]}
   />;
 }

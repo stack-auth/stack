@@ -377,6 +377,68 @@ it("creates a new account when login with a contact channel that is not used for
   `);
 });
 
+it("should update contact channel used for auth to true even if that contact channel is already a primary channel", async ({ expect }) => {
+  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
+  await Auth.Otp.signIn();
+  const newMailbox = createMailbox();
+
+  // Create a new contact channel
+  const createResponse = await niceBackendFetch("/api/v1/contact-channels", {
+    accessType: "client",
+    method: "POST",
+    body: {
+      value: newMailbox.emailAddress,
+      type: "email",
+      used_for_auth: false,
+      user_id: "me",
+    }
+  });
+  const newChannelId = createResponse.body.id;
+
+  // Verify the new contact channel is not used for auth
+  const response1 = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
+    accessType: "client",
+    method: "GET",
+  });
+  expect(response1.body.items.find((cc: any) => cc.id === newChannelId)).toMatchInlineSnapshot(`
+    {
+      "id": "<stripped UUID>",
+      "is_primary": false,
+      "is_verified": false,
+      "type": "email",
+      "used_for_auth": false,
+      "user_id": "<stripped UUID>",
+      "value": "<stripped UUID>@stack-generated.example.com",
+    }
+  `);
+
+  // Update the contact channel to be used for auth
+  await niceBackendFetch(`/api/v1/contact-channels/me/${newChannelId}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      used_for_auth: true,
+    }
+  });
+
+  // Verify the contact channel is now used for auth
+  const response2 = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
+    accessType: "client",
+    method: "GET",
+  });
+  expect(response2.body.items.find((cc: any) => cc.id === newChannelId)).toMatchInlineSnapshot(`
+    {
+      "id": "<stripped UUID>",
+      "is_primary": false,
+      "is_verified": false,
+      "type": "email",
+      "used_for_auth": true,
+      "user_id": "<stripped UUID>",
+      "value": "<stripped UUID>@stack-generated.example.com",
+    }
+  `);
+});
+
 it("updates contact channel used for auth", async ({ expect }) => {
   await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();

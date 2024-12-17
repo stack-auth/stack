@@ -2,6 +2,7 @@ import { parseOpenAPI, parseWebhookOpenAPI } from '@/lib/openapi';
 import { isSmartRouteHandler } from '@/route-handlers/smart-route-handler';
 import { webhookEvents } from '@stackframe/stack-shared/dist/interface/webhooks';
 import { HTTP_METHODS } from '@stackframe/stack-shared/dist/utils/http';
+import { typedKeys } from '@stackframe/stack-shared/dist/utils/objects';
 import fs from 'fs';
 import { glob } from 'glob';
 import path from 'path';
@@ -25,7 +26,7 @@ async function main() {
         const urlPath = midfix.replaceAll("[", "{").replaceAll("]", "}");
         const myModule = require(importPath);
         const handlersByMethod = new Map(
-          HTTP_METHODS.map(method => [method, myModule[method]] as const)
+          typedKeys(HTTP_METHODS).map(method => [method, myModule[method]] as const)
             .filter(([_, handler]) => isSmartRouteHandler(handler))
         );
         return [urlPath, handlersByMethod] as const;

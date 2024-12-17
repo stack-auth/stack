@@ -25,7 +25,37 @@ const response = await fetch('/api/users/me', {
 
 ## Authenticating the user on the server endpoints
 
-On the server side, you can extract the access token from the headers of the request and use it to [authenticate the user with the REST API](../rest-api/overview.mdx).
+Stack Auth provides two methods for authenticating users on your server endpoints:
+
+1. **JWT Verification**: A fast, lightweight approach that validates the user's token locally without making external requests. While efficient, it provides only essential user information encoded in the JWT.
+2. **REST API Verification**: Makes a request to Stack Auth's servers to validate the token and retrieve comprehensive user information. This method provides access to the complete, up-to-date user profile.
+
+### Using JWT
+
+<Tabs>
+  <Tab title="Node.js">
+    ```javascript
+    // you need to install the jose library if it's not already installed
+    import * as jose from 'jose';
+
+    // you can cache this and refresh it with a low frequency
+    const jwks = jose.createRemoteJWKSet(new URL("https://api.stack-auth.com/api/v1/projects/<your-project-id>/.well-known/jwks.json"));
+
+    const accessToken = 'access token from the headers';
+
+    try {
+      const { payload } = await jose.jwtVerify(accessToken, jwks);
+      console.log('Authenticated user with ID:', payload.sub);
+    } catch (error) {
+      console.error(error);
+      console.log('Invalid user');
+    }
+    ```
+  </Tab>
+</Tabs>
+
+
+### Using the REST API
 
 <Tabs>
   <Tab title="Node.js">
@@ -63,7 +93,7 @@ On the server side, you can extract the access token from the headers of the req
     }
 
     response = requests.get(url, headers=headers)
-    if (response.json()['id'] is not None):
+    if ('id' in response.json()):
       print('User is authenticated')
     else:
       print('User is not authenticated')

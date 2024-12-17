@@ -4,7 +4,7 @@ import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
-import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, clientOrHigherAuthTypeSchema, emailVerificationCallbackUrlSchema, passwordSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { contactChannelVerificationCodeHandler } from "../../../contact-channels/verify/verification-code-handler";
 import { usersCrudHandlers } from "../../../users/crud";
@@ -20,21 +20,21 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
       project: adaptSchema,
-    }).required(),
+    }).defined(),
     body: yupObject({
-      email: signInEmailSchema.required(),
-      password: yupString().required(),
-      verification_callback_url: emailVerificationCallbackUrlSchema.required(),
-    }).required(),
+      email: signInEmailSchema.defined(),
+      password: passwordSchema.defined(),
+      verification_callback_url: emailVerificationCallbackUrlSchema.defined(),
+    }).defined(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
     body: yupObject({
-      access_token: yupString().required(),
-      refresh_token: yupString().required(),
-      user_id: yupString().required(),
-    }).required(),
+      access_token: yupString().defined(),
+      refresh_token: yupString().defined(),
+      user_id: yupString().defined(),
+    }).defined(),
   }),
   async handler({ auth: { project }, body: { email, password, verification_callback_url: verificationCallbackUrl } }, fullReq) {
     if (!project.config.credential_enabled) {

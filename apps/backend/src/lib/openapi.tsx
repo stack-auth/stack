@@ -58,8 +58,8 @@ export function parseWebhookOpenAPI(options: {
               method: 'POST',
               path: webhook.type,
               requestBodyDesc: undefinedIfMixed(yupObject({
-                type: yupString().required().meta({ openapiField: { description: webhook.type, exampleValue: webhook.type }}),
-                data: webhook.schema.required(),
+                type: yupString().defined().meta({ openapiField: { description: webhook.type, exampleValue: webhook.type }}),
+                data: webhook.schema.defined(),
               }).describe()) || yupObject().describe(),
               responseTypeDesc: yupString().oneOf(['json']).describe(),
               statusCodeDesc: yupNumber().oneOf([200]).describe(),
@@ -127,6 +127,8 @@ function parseRouteHandler(options: {
   let result: any = undefined;
 
   for (const overload of options.handler.overloads.values()) {
+    if (overload.metadata?.hidden) continue;
+
     const requestDescribe = overload.request.describe();
     const responseDescribe = overload.response.describe();
     if (!isSchemaObjectDescription(requestDescribe)) throw new Error('Request schema must be a yup.ObjectSchema');
@@ -228,7 +230,7 @@ function toParameters(description: yup.SchemaFieldDescription, crudOperation?: C
       in: path ? 'path' : 'query',
       schema,
       description: meta?.openapiField?.description,
-      required: !(field as any).optional && !(field as any).nullable && schema,
+      required: !(field as any).optional && !!schema,
     };
   }).filter((x) => x.schema !== undefined);
 }
@@ -365,10 +367,10 @@ export function parseOverload(options: {
   if (!isSchemaNumberDescription(options.statusCodeDesc)) {
     throw new StackAssertionError('Expected status code to be a number', { actual: options.statusCodeDesc, options });
   }
-  if (options.statusCodeDesc.oneOf.length !== 1) {
-    throw new StackAssertionError('Expected status code to have exactly one value', { actual: options.statusCodeDesc.oneOf, options });
+  if (options.statusCodeDesc.oneOf.length > 1) {
+    throw new StackAssertionError('Expected status code to have zero or one values', { actual: options.statusCodeDesc.oneOf, options });
   }
-  const status = options.statusCodeDesc.oneOf[0] as number;
+  const status: number = options.statusCodeDesc.oneOf[0] ?? 200 as any;  // TODO HACK hardcoded, the default 200 value (which is used in case all status codes may be returned) should be configurable
 
   switch (bodyType) {
     case 'json': {

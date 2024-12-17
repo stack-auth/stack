@@ -1,14 +1,16 @@
 import { ReloadIcon } from "@radix-ui/react-icons";
-import React from "react";
 import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
+import React from "react";
 
 export const Spinner = forwardRefIfNeeded<
   HTMLSpanElement,
-  React.ComponentPropsWithoutRef<'span'>
->((props, ref) => {
+  React.ComponentPropsWithoutRef<'span'> & {
+    size?: number,
+  }
+>(({ size = 15, ...props }, ref) => {
   return (
     <span ref={ref} {...props}>
-      <ReloadIcon className="animate-spin" />
+      <ReloadIcon className="animate-spin" width={size} height={size} />
     </span>
   );
 });

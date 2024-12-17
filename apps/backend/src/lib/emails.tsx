@@ -1,5 +1,6 @@
 import { getProject } from '@/lib/projects';
 import { prismaClient } from '@/prisma-client';
+import { trace } from '@opentelemetry/api';
 import { TEditorConfiguration } from '@stackframe/stack-emails/dist/editor/documents/editor/core';
 import { EMAIL_TEMPLATES_METADATA, renderEmailTemplate } from '@stackframe/stack-emails/dist/utils';
 import { ProjectsCrud } from '@stackframe/stack-shared/dist/interface/crud/projects';
@@ -7,10 +8,9 @@ import { UsersCrud } from '@stackframe/stack-shared/dist/interface/crud/users';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import { filterUndefined } from '@stackframe/stack-shared/dist/utils/objects';
+import { Result } from '@stackframe/stack-shared/dist/utils/results';
 import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
 import nodemailer from 'nodemailer';
-import { trace } from '@opentelemetry/api';
-import { wait } from '@stackframe/stack-shared/dist/utils/promises';
 
 export async function getEmailTemplate(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
   const project = await getProject(projectId);
@@ -89,17 +89,37 @@ export async function sendEmail({
         },
       });
 
-      try {
-        return await transporter.sendMail({
-          from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
-          to,
-          subject,
-          text,
-          html
-        });
-      } catch (error) {
-        throw new StackAssertionError('Failed to send email', { error, host: emailConfig.host, from: emailConfig.senderEmail, to, subject });
-      }
+      return Result.orThrow(await Result.retry(async (attempt) => {
+        try {
+          return Result.ok(await transporter.sendMail({
+            from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
+            to,
+            subject,
+            text,
+            html
+          }));
+        } catch (error) {
+          const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject, cause: error };
+          const temporaryErrorIndicators = [
+            "450 ",
+            "Client network socket disconnected before secure TLS connection was established",
+            "Too many requests",
+            ...emailConfig.host.includes("resend") ? [
+              // Resend is a bit unreliable, so we'll retry even in some cases where it may send duplicate emails
+              "ECONNRESET",
+            ] : [],
+          ];
+          if (temporaryErrorIndicators.some(indicator => error instanceof Error && error.message.includes(indicator))) {
+            // this can happen occasionally (especially with certain unreliable email providers)
+            // so let's retry
+            console.warn("Failed to send email, but error is possibly transient so retrying.", extraData, error);
+            return Result.error(error);
+          }
+
+          // TODO if using custom email config, we should notify the developer instead of throwing an error
+          throw new StackAssertionError('Failed to send email', extraData);
+        }
+      }, 3, { exponentialDelayBase: 2000 }));
     } finally {
       span.end();
     }

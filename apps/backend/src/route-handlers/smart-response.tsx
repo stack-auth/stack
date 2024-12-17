@@ -1,11 +1,10 @@
 import "../polyfills";
 
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { Json } from "@stackframe/stack-shared/dist/utils/json";
+import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 import { NextRequest } from "next/server";
 import * as yup from "yup";
-import { Json } from "@stackframe/stack-shared/dist/utils/json";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
-import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 
 export type SmartResponse = {
   statusCode: number,
@@ -46,7 +45,7 @@ async function validate<T>(req: NextRequest | null, obj: unknown, schema: yup.Sc
       },
     });
   } catch (error) {
-    throw new StackAssertionError(`Error occurred during ${req ? `${req.method} ${req.url}` : "a custom endpoint invocation's"} response validation: ${error}`, { obj, schema, error }, { cause: error });
+    throw new StackAssertionError(`Error occurred during ${req ? `${req.method} ${req.url}` : "a custom endpoint invocation's"} response validation: ${error}`, { obj, schema, cause: error });
   }
 }
 

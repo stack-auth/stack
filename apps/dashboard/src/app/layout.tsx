@@ -8,21 +8,21 @@ import { StackProvider, StackTheme } from '@stackframe/stack';
 import { getEnvVariable, getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
 import { Toaster } from '@stackframe/stack-ui';
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import { Inter as FontSans } from "next/font/google";
 import React from 'react';
+import { VersionAlerter } from '../components/version-alerter';
 import '../polyfills';
 import { ClientPolyfill } from './client-polyfill';
 import './globals.css';
 import { CSPostHogProvider, UserIdentity } from './providers';
-import dynamic from 'next/dynamic';
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { VersionAlerter } from '../components/version-alerter';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_URL || ''),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_API_URL || ''),
   title: {
     default: 'Stack Auth Dashboard',
     template: '%s | Stack Auth',
@@ -31,12 +31,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Stack Auth Dashboard',
     description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
-    images: [`${process.env.NEXT_PUBLIC_STACK_URL}/open-graph-image.png`]
+    images: [`${process.env.NEXT_PUBLIC_STACK_API_URL}/open-graph-image.png`]
   },
   twitter: {
     title: 'Stack Auth Dashboard',
     description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
-    images: [`${process.env.NEXT_PUBLIC_STACK_URL}/open-graph-image.png`]
+    images: [`${process.env.NEXT_PUBLIC_STACK_API_URL}/open-graph-image.png`]
   },
 };
 
@@ -60,14 +60,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode,
 }) {
-  const headTags: TagConfigJson[] = JSON.parse(getEnvVariable('NEXT_PUBLIC_STACK_HEAD_TAGS'));
+  const headTags: TagConfigJson[] = JSON.parse(getEnvVariable('NEXT_PUBLIC_STACK_HEAD_TAGS', '[]'));
   const translationLocale = getEnvVariable('STACK_DEVELOPMENT_TRANSLATION_LOCALE', "") || undefined;
   if (translationLocale !== undefined && getNodeEnvironment() !== 'development') {
     throw new Error(`STACK_DEVELOPMENT_TRANSLATION_LOCALE can only be used in development mode (found: ${JSON.stringify(translationLocale)})`);
   }
 
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html suppressHydrationWarning lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.gstatic.com" />
         <StyleLink href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded&display=block" />

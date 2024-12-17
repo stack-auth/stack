@@ -7,10 +7,9 @@ import { decodeAccessToken } from "@/lib/tokens";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
-import { ReplaceFieldWithOwnUserId, StackAdaptSentinel, yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
+import { StackAdaptSentinel, yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { deepPlainClone } from "@stackframe/stack-shared/dist/utils/objects";
 import { ignoreUnhandledRejection } from "@stackframe/stack-shared/dist/utils/promises";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { NextRequest } from "next/server";
@@ -62,14 +61,14 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
     if (error instanceof yup.ValidationError) {
       if (req === null) {
         // we weren't called by a HTTP request, so it must be a logical error in a manual invocation
-        throw new StackAssertionError("Request validation failed", {}, { cause: error });
+        throw new StackAssertionError("Request validation failed", { cause: error });
       } else {
         const inners = error.inner.length ? error.inner : [error];
         const description = schema.describe();
 
         for (const inner of inners) {
           if (inner.path === "auth" && inner.type === "nullable" && inner.value === null) {
-            throw new KnownErrors.AccessTypeRequired();
+            throw new KnownErrors.AccessTypeRequired;
           }
           if (inner.path === "auth.type" && inner.type === "oneOf") {
             // Project access type not sufficient
@@ -236,7 +235,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
         break;
       }
       case "admin": {
-        if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired();
+        if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired;
         if (!await queries.isAdminKeyValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
         break;
       }
@@ -258,7 +257,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   };
 }
 
-export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Record<string, string> }): Promise<SmartRequest> {
+export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuffer, options?: { params: Promise<Record<string, string>> }): Promise<SmartRequest> {
   const urlObject = new URL(req.url);
   const clientVersionMatch = req.headers.get("x-stack-client-version")?.match(/^(\w+)\s+(@[\w\/]+)@([\d.]+)$/);
 
@@ -271,7 +270,7 @@ export async function createSmartRequest(req: NextRequest, bodyBuffer: ArrayBuff
         .map(([key, values]) => [key, values.map(([_, value]) => value)]),
     ),
     query: Object.fromEntries(urlObject.searchParams.entries()),
-    params: options?.params ?? {},
+    params: await options?.params ?? {},
     auth: await parseAuth(req),
     clientVersion: clientVersionMatch ? {
       platform: clientVersionMatch[1],

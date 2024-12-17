@@ -20,7 +20,7 @@ describe("without project access", () => {
         "status": 400,
         "body": {
           "code": "ACCESS_TYPE_REQUIRED",
-          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication",
+          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
@@ -37,7 +37,7 @@ describe("without project access", () => {
         "status": 400,
         "body": {
           "code": "ACCESS_TYPE_REQUIRED",
-          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/auth#authentication",
+          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
@@ -438,8 +438,8 @@ describe("with client access", () => {
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - Invalid base64 format" },
-          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - Invalid base64 format",
+          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.totp_secret_base64 is not valid base64" },
+          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.totp_secret_base64 is not valid base64",
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",
@@ -890,6 +890,47 @@ describe("with server access", () => {
     `);
   });
 
+  it("should be able to create a user with an email that doesn't match the strict email schema", async ({ expect }) => {
+    // This test is to ensure that we don't break existing users who have an email that doesn't match the strict email
+    // schema.
+    // The frontend no longer allows those emails, but some users may still have them in their accounts and we should
+    // continue to support them.
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: "invalid_email@gmai"
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_with_email": false,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+          "oauth_providers": [],
+          "otp_auth_enabled": false,
+          "passkey_auth_enabled": false,
+          "primary_email": "invalid_email@gmai",
+          "primary_email_auth_enabled": false,
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
   it("should be able to create a user with a password and sign in with it", async ({ expect }) => {
     const password = generateSecureRandomString();
     const response = await niceBackendFetch("/api/v1/users", {
@@ -937,6 +978,97 @@ describe("with server access", () => {
           "refresh_token": <stripped field 'refresh_token'>,
           "user_id": "<stripped UUID>",
         },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should be able to create a user with a password hash and sign in with it", async ({ expect }) => {
+    const password = "hello-world";
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+        password_hash: "$2a$13$TVyY/gpw9Db/w1fBeJkCgeNg2Rae2JfNqrPnSAKtj.ufAO5cVF13.",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 201,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "display_name": null,
+          "has_password": true,
+          "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+          "oauth_providers": [],
+          "otp_auth_enabled": false,
+          "passkey_auth_enabled": false,
+          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email_auth_enabled": true,
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+    const signInResponse = await Auth.Password.signInWithEmail({ password });
+    expect(signInResponse.signInResponse).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "access_token": <stripped field 'access_token'>,
+          "refresh_token": <stripped field 'refresh_token'>,
+          "user_id": "<stripped UUID>",
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should not be able to create a user when both password and password hash are provided", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+        password: "hello-world",
+        password_hash: "$2a$13$TVyY/gpw9Db/w1fBeJkCgeNg2Rae2JfNqrPnSAKtj.ufAO5cVF13.",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": "Cannot set both password and password_hash at the same time.",
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
+  it("should not be able to create a user with a password hash that has too many rounds", async ({ expect }) => {
+    const response = await niceBackendFetch("/api/v1/users", {
+      accessType: "server",
+      method: "POST",
+      body: {
+        primary_email: backendContext.value.mailbox.emailAddress,
+        primary_email_auth_enabled: true,
+        password_hash: "$2a$17$VIhIOofSMqGdGlL4wzE//e.77dAQGqNtF/1dT7bqCrVtQuInWy2qi",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": "Invalid password hash. Make sure it's a supported algorithm in Modular Crypt Format.",
         "headers": Headers { <some fields may have been hidden> },
       }
     `);

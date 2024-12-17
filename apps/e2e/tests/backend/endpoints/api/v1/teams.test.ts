@@ -83,7 +83,7 @@ it("lists all the teams the current user has on the server", async ({ expect }) 
 
 it("creates a team on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { createTeamResponse: response } = await Team.create();
+  const { createTeamResponse: response } = await Team.createAndAddCurrent();
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
@@ -103,7 +103,7 @@ it("creates a team on the client", async ({ expect }) => {
 
 it("creates a team on the server", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { createTeamResponse: response } = await Team.create({ accessType: "server" });
+  const { createTeamResponse: response } = await Team.createAndAddCurrent({ accessType: "server" });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
@@ -123,7 +123,7 @@ it("creates a team on the server", async ({ expect }) => {
 
 it("gets a specific team on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { createTeamResponse: response, teamId } = await Team.create();
+  const { createTeamResponse: response, teamId } = await Team.createAndAddCurrent();
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
@@ -158,7 +158,7 @@ it("gets a specific team on the client", async ({ expect }) => {
 
 it("gets a specific team that the user is not part of on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { createTeamResponse: response, teamId } = await Team.create();
+  const { createTeamResponse: response, teamId } = await Team.createAndAddCurrent();
 
   backendContext.set({
     mailbox: createMailbox()
@@ -187,14 +187,14 @@ it("gets a specific team that the user is not part of on the client", async ({ e
 
 it("gets a team that the user is not part of on the server", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   backendContext.set({
     mailbox: createMailbox()
   });
 
   await Auth.Otp.signIn();
-  const { createTeamResponse: response } = await Team.create();
+  const { createTeamResponse: response } = await Team.createAndAddCurrent();
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
@@ -231,14 +231,14 @@ it("gets a team that the user is not part of on the server", async ({ expect }) 
 
 it("should not be allowed to get a team that the user is not part of on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   backendContext.set({
     mailbox: createMailbox()
   });
 
   await Auth.Otp.signIn();
-  const { createTeamResponse: response } = await Team.create();
+  const { createTeamResponse: response } = await Team.createAndAddCurrent();
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 201,
@@ -277,7 +277,7 @@ it("should not be allowed to get a team that the user is not part of on the clie
 
 it("updates a team on the client", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   // grant permission to update a team
   await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
@@ -309,9 +309,43 @@ it("updates a team on the client", async ({ expect }) => {
   `);
 });
 
+it("can set a team's display name to the empty string", async ({ expect }) => {
+  const { userId } = await Auth.Otp.signIn();
+  const { teamId } = await Team.createAndAddCurrent();
+
+  // grant permission to update a team
+  await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  // Has permission to update a team
+  const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    accessType: "client",
+    method: "PATCH",
+    body: {
+      display_name: "",
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
+        "display_name": "",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
 it("updates team client metadata on the client", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   // grant permission to update a team
   await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
@@ -347,7 +381,7 @@ it("updates team client metadata on the client", async ({ expect }) => {
 
 it("should not be able to update team client read only metadata on the client", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   // grant permission to update a team
   await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$update_team`, {
@@ -384,7 +418,7 @@ it("should not be able to update team client read only metadata on the client", 
 
 it("should not update a team without permission on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   // Does not have permission to update a team
   const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
@@ -416,7 +450,7 @@ it("should not update a team without permission on the client", async ({ expect 
 
 it("updates a team on the server", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { teamId } = await Team.create({ accessType: "server" });
+  const { teamId } = await Team.createAndAddCurrent({ accessType: "server" });
 
   const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
     accessType: "server",
@@ -470,7 +504,7 @@ it("updates a team on the server", async ({ expect }) => {
 
 it("updates team client read only metadata on the server", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { teamId } = await Team.create({ accessType: "server" });
+  const { teamId } = await Team.createAndAddCurrent({ accessType: "server" });
 
   const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
     accessType: "server",
@@ -516,7 +550,7 @@ it("updates team client read only metadata on the server", async ({ expect }) =>
 
 it("deletes a team on the client", async ({ expect }) => {
   const { userId } = await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   // grant permission to delete a team
   await niceBackendFetch(`/api/v1/team-permissions/${teamId}/${userId}/$delete_team`, {
@@ -544,7 +578,7 @@ it("deletes a team on the client", async ({ expect }) => {
 
 it("should not update a team without permission on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { teamId } = await Team.create();
+  const { teamId } = await Team.createAndAddCurrent();
 
   // Does not have permission to delete a team
   const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
@@ -576,7 +610,7 @@ it("should not update a team without permission on the client", async ({ expect 
 
 it("deletes a team on the server", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { teamId } = await Team.create({ accessType: "server" });
+  const { teamId } = await Team.createAndAddCurrent({ accessType: "server" });
 
   const response1 = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
     accessType: "server",

@@ -5,13 +5,13 @@ import { yupMixed, yupObject } from "../../schema-fields";
 // =============== Team permissions =================
 
 export const teamPermissionsCrudClientReadSchema = yupObject({
-  id: schemaFields.teamPermissionDefinitionIdSchema.required(),
-  user_id: schemaFields.userIdSchema.required(),
-  team_id: schemaFields.teamIdSchema.required(),
-}).required();
+  id: schemaFields.teamPermissionDefinitionIdSchema.defined(),
+  user_id: schemaFields.userIdSchema.defined(),
+  team_id: schemaFields.teamIdSchema.defined(),
+}).defined();
 
 export const teamPermissionsCrudServerCreateSchema = yupObject({
-}).required();
+}).defined();
 
 export const teamPermissionsCrudServerDeleteSchema = yupMixed();
 
@@ -47,22 +47,22 @@ export type TeamPermissionsCrud = CrudTypeOf<typeof teamPermissionsCrud>;
 // =============== Team permission definitions =================
 
 export const teamPermissionDefinitionsCrudAdminReadSchema = yupObject({
-  id: schemaFields.teamPermissionDefinitionIdSchema.required(),
+  id: schemaFields.teamPermissionDefinitionIdSchema.defined(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
-  contained_permission_ids: schemaFields.containedPermissionIdsSchema.required()
-}).required();
+  contained_permission_ids: schemaFields.containedPermissionIdsSchema.defined()
+}).defined();
 
 export const teamPermissionDefinitionsCrudAdminCreateSchema = yupObject({
-  id: schemaFields.customTeamPermissionDefinitionIdSchema.required(),
+  id: schemaFields.customTeamPermissionDefinitionIdSchema.defined(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
   contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
-}).required();
+}).defined();
 
 export const teamPermissionDefinitionsCrudAdminUpdateSchema = yupObject({
   id: schemaFields.customTeamPermissionDefinitionIdSchema.optional(),
   description: schemaFields.teamPermissionDescriptionSchema.optional(),
   contained_permission_ids: schemaFields.containedPermissionIdsSchema.optional()
-}).required();
+}).defined();
 
 export const teamPermissionDefinitionsCrudAdminDeleteSchema = yupMixed();
 

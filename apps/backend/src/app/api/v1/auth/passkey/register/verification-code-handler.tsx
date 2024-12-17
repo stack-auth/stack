@@ -1,12 +1,12 @@
-import { prismaClient } from "@/prisma-client";
+import { retryTransaction } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
 import { verifyRegistrationResponse } from "@simplewebauthn/server";
+import { decodeClientDataJSON } from "@simplewebauthn/server/helpers";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { captureError, StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { RegistrationResponseJSON } from "@stackframe/stack-shared/dist/utils/passkey";
-import {decodeClientDataJSON} from "@simplewebauthn/server/helpers";
 
 export const registerVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -19,20 +19,20 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
   },
   type: VerificationCodeType.PASSKEY_REGISTRATION_CHALLENGE,
   requestBody: yupObject({
-    credential: yupMixed<RegistrationResponseJSON>().required(),
-    code: yupString().required(),
+    credential: yupMixed<RegistrationResponseJSON>().defined(),
+    code: yupString().defined(),
   }),
   data: yupObject({
-    challenge: yupString().required(),
-    userHandle: yupString().required(),
+    challenge: yupString().defined(),
+    userHandle: yupString().defined(),
   }),
   method: yupObject({
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([200]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
+    statusCode: yupNumber().oneOf([200]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
     body: yupObject({
-      user_handle: yupString().required(),
+      user_handle: yupString().defined(),
     }),
   }),
   async send() {
@@ -96,7 +96,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
 
     const registrationInfo = verification.registrationInfo;
 
-    await prismaClient.$transaction(async (tx) => {
+    await retryTransaction(async (tx) => {
       const authMethodConfig = await tx.passkeyAuthMethodConfig.findMany({
         where: {
           projectConfigId: project.config.id,

@@ -129,6 +129,7 @@ export class NiceResponse implements Nicifiable {
     public readonly status: number,
     public readonly headers: Headers,
     public readonly body: any,
+    public readonly fromRequestInit?: NiceRequestInit,
   ) {}
 
   getNicifiableKeys(): string[] {
@@ -138,6 +139,25 @@ export class NiceResponse implements Nicifiable {
       ...this.body instanceof ArrayBuffer && this.body.byteLength === 0 ? [] : ["body"],
       "headers",
     ];
+  }
+
+  async follow(options?: NiceRequestInit) {
+    if (![301, 302, 303, 307, 308].includes(this.status)) {
+      throw new StackAssertionError(`Cannot follow non-redirect response: ${this.status}`);
+    }
+    const location = this.headers.get("Location");
+    if (!location) {
+      throw new StackAssertionError(`Redirect response has no Location header: ${this.status}`);
+    }
+    const followRes = await niceFetch(location, {
+      ...[301, 302, 303].includes(this.status) ? { method: "GET" } : {
+        body: this.fromRequestInit?.body,
+        method: this.fromRequestInit?.method,
+        headers: this.fromRequestInit?.headers,
+      },
+      ...options,
+    });
+    return followRes;
   }
 };
 
@@ -161,7 +181,7 @@ export async function niceFetch(url: string | URL, options?: NiceRequestInit): P
   } else {
     body = await fetchRes.arrayBuffer();
   }
-  return new NiceResponse(fetchRes.status, fetchRes.headers, body);
+  return new NiceResponse(fetchRes.status, fetchRes.headers, body, options);
 }
 
 export const localRedirectUrl = "http://stack-test.localhost/some-callback-url";

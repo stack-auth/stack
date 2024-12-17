@@ -6,11 +6,11 @@ import { oauthCookieSchema } from "@/lib/tokens";
 import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { InvalidClientError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
+import { InvalidClientError, InvalidScopeError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -34,21 +34,21 @@ const handler = createSmartRouteHandler({
   },
   request: yupObject({
     params: yupObject({
-      provider_id: yupString().required(),
-    }).required(),
+      provider_id: yupString().defined(),
+    }).defined(),
     query: yupMixed().optional(),
     body: yupMixed().optional(),
   }),
   response: yupObject({
-    statusCode: yupNumber().oneOf([302]).required(),
-    bodyType: yupString().oneOf(["json"]).required(),
-    body: yupMixed().required(),
-    headers: yupMixed().required(),
+    statusCode: yupNumber().oneOf([307]).defined(),
+    bodyType: yupString().oneOf(["json"]).defined(),
+    body: yupMixed().defined(),
+    headers: yupMixed().defined(),
   }),
   async handler({ params, query, body }, fullReq) {
     const innerState = query.state ?? (body as any)?.state ?? "";
-    const cookieInfo = cookies().get("stack-oauth-inner-" + innerState);
-    cookies().delete("stack-oauth-inner-" + innerState);
+    const cookieInfo = (await cookies()).get("stack-oauth-inner-" + innerState);
+    (await cookies()).delete("stack-oauth-inner-" + innerState);
 
     if (cookieInfo?.value !== 'true') {
       throw new StatusError(StatusError.BadRequest, "OAuth cookie not found. This is likely because you refreshed the page during the OAuth sign in process. Please try signing in again");
@@ -270,8 +270,10 @@ const handler = createSmartRouteHandler({
                     throw new KnownErrors.SignUpNotEnabled();
                   }
 
-                  let primaryEmailAuthEnabled = true;
+                  let primaryEmailAuthEnabled = false;
                   if (userInfo.email) {
+                    primaryEmailAuthEnabled = true;
+
                     const oldContactChannel = await getAuthContactChannel(
                       prismaClient,
                       {
@@ -280,11 +282,12 @@ const handler = createSmartRouteHandler({
                         value: userInfo.email,
                       }
                     );
-
                     if (oldContactChannel && oldContactChannel.usedForAuth) {
+                      // if the email is already used for auth by another account, still create an account but don't
+                      // enable auth on it
                       primaryEmailAuthEnabled = false;
                     }
-                    // TODO: check whether this OAuth account can be used to login to another existing account instead
+                    // TODO: check whether this OAuth account can be used to login to an existing non-OAuth account instead
                   }
 
                   const newAccount = await usersCrudHandlers.adminCreate({
@@ -316,9 +319,15 @@ const handler = createSmartRouteHandler({
         );
       } catch (error) {
         if (error instanceof InvalidClientError) {
-          if (error.message.includes("redirect_uri")) {
+          if (error.message.includes("redirect_uri") || error.message.includes("redirectUri")) {
             throw new KnownErrors.RedirectUrlNotWhitelisted();
           }
+        } else if (error instanceof InvalidScopeError) {
+          // which scopes are being requested, and by whom?
+          // I think this is a bug in the client? But just to be safe, let's log an error to make sure that it is not our fault
+          // TODO: remove the captureError once you see in production that our own clients never trigger this
+          captureError("outer-oauth-callback-invalid-scope", new StackAssertionError("A client requested an invalid scope. Is this a bug in the client, or our fault?", { outerInfo, cause: error }));
+          throw new StatusError(400, "Invalid scope requested. Please check the scopes you are requesting.");
         }
         throw error;
       }
