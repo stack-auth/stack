@@ -1,4 +1,5 @@
-import { EndpointTransforms, EndpointsSchema, RawEndpointsHandlers, createEndpointHandlersFromRawEndpoints, createMigrationEndpointHandlers } from "@/route-handlers/migration-handler";
+import { EndpointTransforms, EndpointsSchema, RawEndpointsHandlers, TransformFn, createEndpointHandlersFromRawEndpoints, createMigrationEndpointHandlers } from "@/route-handlers/migration-handler";
+import { allowedMethods } from "@/route-handlers/smart-request";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -114,9 +115,13 @@ const exampleRawEndpointHandlers = {
   },
 } satisfies RawEndpointsHandlers;
 
+
+const x = {} as { [key in (typeof allowedMethods)[number]]: undefined };
+
 const endpointHandlers2 = createEndpointHandlersFromRawEndpoints(exampleRawEndpointHandlers, schema2);
 const endpointHandlers1 = createMigrationEndpointHandlers(schema1, schema2, endpointHandlers2, {
   '/users': {
+    ...x,
     'POST': {
       'default': async ({ req, newEndpointHandlers }) => {
         const result = await newEndpointHandlers['/users']['POST']['default']({
@@ -142,6 +147,7 @@ const endpointHandlers1 = createMigrationEndpointHandlers(schema1, schema2, endp
     },
   },
   '/tokens': {
+    ...x,
     'POST': {
       'default': async ({ req, newEndpointHandlers }) => {
         return {
@@ -152,16 +158,15 @@ const endpointHandlers1 = createMigrationEndpointHandlers(schema1, schema2, endp
       },
     },
   },
-  '/same': {
-    'POST': {
-      default: undefined,
-    },
-  },
 });
 
 type x = EndpointTransforms<typeof schema1, typeof schema2, typeof endpointHandlers1>;
 
 const y = null as unknown as x;
+
+const z = null as unknown as x['/users']['POST']['default'];
+
+type a = TransformFn<typeof schema1, typeof endpointHandlers1, '/users', 'POST', 'default'>;
 
 
 endpointHandlers1['/users']['POST']['default']({

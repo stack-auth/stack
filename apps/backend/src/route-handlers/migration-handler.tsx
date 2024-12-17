@@ -1,13 +1,10 @@
 import { yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
-import { pick, typedEntries, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
+import { FilterUndefined, pick, typedEntries, typedFromEntries } from "@stackframe/stack-shared/dist/utils/objects";
 import { NextRequest, NextResponse } from "next/server";
 import * as yup from "yup";
-import { createSmartRequest } from "./smart-request";
+import { allowedMethods, createSmartRequest } from "./smart-request";
 import { createResponse } from "./smart-response";
-
-
-const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as const;
 
 export type EndpointInputSchema<
   Query extends yup.Schema,
@@ -87,36 +84,40 @@ type EndpointHandlersFromSchema<S extends EndpointsSchema> = {
   }
 }
 
-type Transform<
-  O extends EndpointsSchema,
-  H extends EndpointHandlers,
-  url extends keyof O,
+// given an object, return the object it self if at least one key exists, otherwise return undefined
+type UndefinedIfNoKey<T> = keyof T extends never ? undefined : T;
+type FilterUndefinedAndEmpty<T> = UndefinedIfNoKey<FilterUndefined<T>>;
+
+export type TransformFn<
+  Old extends EndpointsSchema,
+  Handlers extends EndpointHandlers,
+  url extends keyof Old,
   method extends (typeof allowedMethods)[number],
-  overload extends keyof O[url][method]
+  overload extends keyof Old[url][method]
 > = (options: {
-  req: ParsedRequestFromSchema<O, url, method, overload>,
+  req: ParsedRequestFromSchema<Old, url, method, overload>,
   options?: { params: Promise<Record<string, string>> },
-  newEndpointHandlers: H,
-}) => Promise<ParsedResponseFromSchema<O, url, method, overload>>
+  newEndpointHandlers: Handlers,
+}) => Promise<ParsedResponseFromSchema<Old, url, method, overload>>
 
 export type EndpointTransforms<
-  O extends EndpointsSchema, // old endpoints schema
-  N extends EndpointsSchema, // new endpoints schema
-  H extends EndpointHandlers, // new endpoints handlers
-> = {
-  [url in keyof O]: {
-    [method in (typeof allowedMethods)[number]]: method extends keyof O[url]
-      ? {
-        [overload in keyof O[url][method]]:
-        url extends keyof N
-          ? O[url][method][overload] extends N[url][method][overload]
-          ? undefined
-          : Transform<O, H, url, method, overload>
-        : Transform<O, H, url, method, overload>
-      }
+  Old extends EndpointsSchema,
+  New extends EndpointsSchema,
+  Handlers extends EndpointHandlers,
+> = FilterUndefinedAndEmpty<{
+  [url in keyof Old]: FilterUndefinedAndEmpty<{
+    [method in (typeof allowedMethods)[number]]: method extends keyof Old[url] ?
+      FilterUndefinedAndEmpty<{
+        [overload in keyof Old[url][method]]:
+          url extends keyof New
+            ? Old[url][method][overload] extends New[url][method][overload]
+              ? undefined
+              : TransformFn<Old, Handlers, url, method, overload>
+            : TransformFn<Old, Handlers, url, method, overload>
+      }>
       : undefined
-  }
-}
+  }>
+}>
 
 function urlMatch(url: string, nextPattern: string): Record<string, any> | null {
   const keys: string[] = [];
@@ -353,15 +354,15 @@ function createEndpointHandlers<
 }
 
 export function createMigrationEndpointHandlers<
-  O extends EndpointsSchema,
-  N extends EndpointsSchema,
-  H extends EndpointHandlers,
+  Old extends EndpointsSchema,
+  New extends EndpointsSchema,
+  Handlers extends EndpointHandlers,
 >(
-  oldEndpointsSchema: O,
-  newEndpointsSchema: N,
-  newEndpointsHandlers: H,
-  transforms: EndpointTransforms<O, N, H>,
-): EndpointHandlersFromSchema<O> {
+  oldEndpointsSchema: Old,
+  newEndpointsSchema: New,
+  newEndpointsHandlers: Handlers,
+  transforms: EndpointTransforms<Old, New, Handlers>,
+): EndpointHandlersFromSchema<Old> {
   return createEndpointHandlers(
     oldEndpointsSchema,
     (url, method, overload, endpointSchema) => async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {
