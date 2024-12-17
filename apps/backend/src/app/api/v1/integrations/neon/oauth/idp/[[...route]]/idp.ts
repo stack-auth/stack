@@ -276,6 +276,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
                     background-size: 400% 400%;
                     background-repeat: no-repeat;
                     animation: celebrate-gradient 60s linear infinite;
+                    min-height: 100vh;
                   }
                   @keyframes celebrate-gradient {
                     0% { background-position: 0% 100%; }
@@ -294,7 +295,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
                   setTimeout(() => {
                     document.getElementById('gradient-style').remove();
                     document.getElementById('continue-form').style.visibility = 'visible';
-                  }, 3000);
+                  }, 12000);
                 </script>
               </body>
             </html>
