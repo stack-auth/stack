@@ -468,6 +468,7 @@ enum ProxiedOAuthProviderType {
   GITHUB
   GOOGLE
   MICROSOFT
+  EARTHO
   SPOTIFY
 }
 

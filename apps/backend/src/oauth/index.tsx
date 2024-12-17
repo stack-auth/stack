@@ -16,12 +16,14 @@ import { MicrosoftProvider } from "./providers/microsoft";
 import { MockProvider } from "./providers/mock";
 import { SpotifyProvider } from "./providers/spotify";
 import { XProvider } from "./providers/x";
+import { EarthoProvider } from "./providers/eartho";
 
 const _providers = {
   github: GithubProvider,
   google: GoogleProvider,
   facebook: FacebookProvider,
   microsoft: MicrosoftProvider,
+  eartho: EarthoProvider,
   spotify: SpotifyProvider,
   discord: DiscordProvider,
   gitlab: GitlabProvider,
