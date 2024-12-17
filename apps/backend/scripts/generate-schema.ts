@@ -105,7 +105,7 @@ function endpointSchemaToTypeString(reqSchema: yup.SchemaFieldDescription, resSc
   let inputFields = "{";
   for (const key of ['body', 'query', 'params']) {
     const field = Object.entries((reqSchema as any).fields).find(([k]) => k === key);
-    if (field && (field[1] as any).fields?.length) {
+    if (field && Object.keys((field[1] as any).fields || {}).length > 0) {
       inputFields += `${key}: ${schemaToTypeString(field[1] as any)},`;
     }
   }
@@ -114,10 +114,20 @@ function endpointSchemaToTypeString(reqSchema: yup.SchemaFieldDescription, resSc
   let outputFields = "{";
   const rawOutputFields = (resSchema as any).fields;
   if (rawOutputFields) {
-    for (const key of ['statusCode', 'headers', 'body']) {
+    for (const key of ['statusCode', 'bodyType', 'headers', 'body']) {
       const field = Object.entries(rawOutputFields).find(([k]) => k === key);
       if (field) {
-        outputFields += `${key}: ${schemaToTypeString(field[1] as any)},`;
+        if (key === 'statusCode') {
+          outputFields += `statusCode: [${(field[1] as any).oneOf.join(',')}],`;
+        } else if (key === 'bodyType') {
+          const bodyType = (field[1] as any).oneOf;
+          if (bodyType.length !== 1) {
+            throw new Error(`Unsupported body type: ${bodyType}`);
+          }
+          outputFields += `bodyType: "${bodyType[0]}",`;
+        } else {
+          outputFields += `${key}: ${schemaToTypeString(field[1] as any)},`;
+        }
       }
     }
   }
