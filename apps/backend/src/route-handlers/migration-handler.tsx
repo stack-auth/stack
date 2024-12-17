@@ -87,21 +87,34 @@ type EndpointHandlersFromSchema<S extends EndpointsSchema> = {
   }
 }
 
+type Transform<
+  O extends EndpointsSchema,
+  H extends EndpointHandlers,
+  url extends keyof O,
+  method extends (typeof allowedMethods)[number],
+  overload extends keyof O[url][method]
+> = (options: {
+  req: ParsedRequestFromSchema<O, url, method, overload>,
+  options?: { params: Promise<Record<string, string>> },
+  newEndpointHandlers: H,
+}) => Promise<ParsedResponseFromSchema<O, url, method, overload>>
+
 export type EndpointTransforms<
   O extends EndpointsSchema, // old endpoints schema
   N extends EndpointsSchema, // new endpoints schema
   H extends EndpointHandlers, // new endpoints handlers
 > = {
-  [url in keyof O & keyof N]: {
-    [method in (typeof allowedMethods)[number]]: {
-      [overload in keyof O[url][method]]: O[url][method][overload] extends N[url][method][overload]
-        ? undefined
-        : (options: {
-            req: ParsedRequestFromSchema<O, url, method, overload>,
-            options?: { params: Promise<Record<string, string>> },
-            newEndpointHandlers: H,
-          }) => Promise<ParsedResponseFromSchema<O, url, method, overload>>
-    }
+  [url in keyof O]: {
+    [method in (typeof allowedMethods)[number]]: method extends keyof O[url]
+      ? {
+        [overload in keyof O[url][method]]:
+        url extends keyof N
+          ? O[url][method][overload] extends N[url][method][overload]
+          ? undefined
+          : Transform<O, H, url, method, overload>
+        : Transform<O, H, url, method, overload>
+      }
+      : undefined
   }
 }
 

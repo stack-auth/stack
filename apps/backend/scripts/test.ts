@@ -1,4 +1,4 @@
-import { EndpointsSchema, RawEndpointsHandlers, createEndpointHandlersFromRawEndpoints, createMigrationEndpointHandlers } from "@/route-handlers/migration-handler";
+import { EndpointTransforms, EndpointsSchema, RawEndpointsHandlers, createEndpointHandlersFromRawEndpoints, createMigrationEndpointHandlers } from "@/route-handlers/migration-handler";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -23,6 +23,42 @@ const schema1 = {
       },
     },
   },
+  '/tokens': {
+    'POST': {
+      'default': {
+        input: {
+          query: yupObject({}),
+          body: yupObject({}),
+        },
+        output: {
+          statusCode: yupNumber(),
+          bodyType: yupString().oneOf(['json']),
+          body: yupObject({}),
+        },
+      },
+    },
+  },
+  '/same': {
+    'POST': {
+      'default': {
+        input: {
+          query: yupObject({
+            same: yupString().defined(),
+          }),
+          body: yupObject({
+            same: yupString().defined(),
+          }),
+        },
+        output: {
+          statusCode: yupNumber(),
+          bodyType: yupString().oneOf(['json']),
+          body: yupObject({
+            same: yupString().defined(),
+          }),
+        },
+      },
+    },
+  },
 } as const satisfies EndpointsSchema;
 
 
@@ -42,6 +78,27 @@ const schema2 = {
           bodyType: yupString().oneOf(['json']),
           body: yupObject({
             id: yupString().defined(),
+          }),
+        },
+      },
+    },
+  },
+  '/same': {
+    'POST': {
+      'default': {
+        input: {
+          query: yupObject({
+            same: yupString().defined(),
+          }),
+          body: yupObject({
+            same: yupString().defined(),
+          }),
+        },
+        output: {
+          statusCode: yupNumber(),
+          bodyType: yupString().oneOf(['json']),
+          body: yupObject({
+            same: yupString().defined(),
           }),
         },
       },
@@ -83,17 +140,28 @@ const endpointHandlers1 = createMigrationEndpointHandlers(schema1, schema2, endp
         };
       },
     },
-    'GET': {},
-    'DELETE': {},
-    'PATCH': {},
-    'PUT': {},
-    'OPTIONS': {},
+  },
+  '/tokens': {
+    'POST': {
+      'default': async ({ req, newEndpointHandlers }) => {
+        return {
+          statusCode: 200,
+          headers: {},
+          body: {},
+        };
+      },
+    },
+  },
+  '/same': {
+    'POST': {
+      default: undefined,
+    },
   },
 });
 
-// type x = EndpointTransforms<typeof schema1, typeof schema2, typeof endpointHandlers1>;
+type x = EndpointTransforms<typeof schema1, typeof schema2, typeof endpointHandlers1>;
 
-// const y = null as unknown as x;
+const y = null as unknown as x;
 
 
 endpointHandlers1['/users']['POST']['default']({
