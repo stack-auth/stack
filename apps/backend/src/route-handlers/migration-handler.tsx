@@ -6,6 +6,8 @@ import * as yup from "yup";
 import { allowedMethods, createSmartRequest } from "./smart-request";
 import { createResponse } from "./smart-response";
 
+type BodyType = 'json' | 'text' | 'binary' | 'success' | 'empty';
+
 export type EndpointInputSchema<
   Query extends yup.Schema,
   Body extends yup.Schema
@@ -15,12 +17,12 @@ export type EndpointInputSchema<
 };
 
 export type EndpointOutputSchema<
-  StatusCode extends yup.Schema,
-  BodyType extends yup.Schema,
-  Body extends yup.Schema
+  StatusCode extends number,
+  T extends BodyType,
+  Body extends yup.Schema | undefined
 > = {
   statusCode: StatusCode,
-  bodyType: BodyType,
+  bodyType: T,
   body: Body,
 };
 
@@ -242,11 +244,12 @@ async function convertParsedResponseToRaw(
 
 async function convertRawToParsedResponse<
   Body extends yup.Schema,
-  StatusCode extends yup.Schema,
+  StatusCode extends number,
+  T extends BodyType,
   Headers extends yup.Schema
 >(
   res: NextResponse,
-  schema: EndpointOutputSchema<StatusCode, Headers, Body>
+  schema: EndpointOutputSchema<StatusCode, T, Body>
 ): Promise<ParsedResponse<yup.InferType<Body>>> {
   // TODO validate schema
   let contentType = res.headers.get("content-type");
