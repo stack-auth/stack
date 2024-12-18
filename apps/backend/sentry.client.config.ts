@@ -14,6 +14,13 @@ Sentry.init({
 
   enabled: process.env.NODE_ENV !== "development" && !process.env.CI,
 
+  // https://forum.sentry.io/t/unhandledrejection-non-error-promise-rejection-captured-with-value/14062/13
+  // https://github.com/getsentry/sentry-javascript/issues/3440#issuecomment-865857552
+  ignoreErrors:[
+    "Non-Error exception captured",
+    "Non-Error promise rejection captured"
+  ],
+
   // You can remove this option if you're not planning to use the Sentry Session Replay feature:
   integrations: [
     Sentry.replayIntegration({
