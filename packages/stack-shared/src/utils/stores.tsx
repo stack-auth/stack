@@ -1,6 +1,6 @@
+import { ReactPromise, pending, rejected, resolved } from "./promises";
 import { AsyncResult, Result } from "./results";
 import { generateUuid } from "./uuids";
-import { ReactPromise, pending, rejected, resolved } from "./promises";
 
 export type ReadonlyStore<T> = {
   get(): T,
@@ -61,6 +61,48 @@ export class Store<T> implements ReadonlyStore<T> {
     return { unsubscribe };
   }
 }
+
+export class AsyncLock {
+  private _isLocked = false;
+  private readonly _waitingResolves = new Map<string, () => void>();
+
+  async lock(): Promise<void> {
+    if (this._isLocked) {
+      const uuid = generateUuid();
+      await new Promise<void>((resolve) => {
+        this._waitingResolves.set(uuid, resolve);
+      });
+    }
+    this._isLocked = true;
+  }
+
+  unlock(): void {
+    if (!this._isLocked) {
+      return;
+    }
+    this._isLocked = false;
+    const nextResolve = this._waitingResolves.entries().next().value;
+    if (nextResolve) {
+      const [uuid, resolve] = nextResolve;
+      this._waitingResolves.delete(uuid);
+      resolve();
+    }
+  }
+
+  async waitUntilUnlocked(): Promise<void> {
+    if (!this._isLocked) {
+      return;
+    }
+    const uuid = generateUuid();
+    await new Promise<void>((resolve) => {
+      this._waitingResolves.set(uuid, resolve);
+    });
+  }
+
+}
+
+export const storeLock = new AsyncLock();
+
 
 export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
   private _isAvailable: boolean;
@@ -173,6 +215,7 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
   async setAsync(promise: Promise<T>): Promise<boolean> {
     const curCounter = ++this._updateCounter;
     const result = await Result.fromPromise(promise);
+    await storeLock.waitUntilUnlocked();
     return this._setIfLatest(result, curCounter);
   }
 

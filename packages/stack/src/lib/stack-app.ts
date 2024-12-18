@@ -26,7 +26,7 @@ import { deepPlainEquals, filterUndefined, omit } from "@stackframe/stack-shared
 import { ReactPromise, neverResolve, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { suspend, suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { Result } from "@stackframe/stack-shared/dist/utils/results";
-import { Store } from "@stackframe/stack-shared/dist/utils/stores";
+import { Store, storeLock } from "@stackframe/stack-shared/dist/utils/stores";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 import { getRelativePart, isRelative } from "@stackframe/stack-shared/dist/utils/urls";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
@@ -1536,11 +1536,16 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected async _signOut(session: InternalSession, options?: { redirectUrl?: URL | string }): Promise<void> {
-    await this._interface.signOut(session);
-    if (options?.redirectUrl) {
-      await _redirectTo(options.redirectUrl);
-    } else {
-      await this.redirectToAfterSignOut();
+    try {
+      await storeLock.lock();
+      await this._interface.signOut(session);
+      if (options?.redirectUrl) {
+        await _redirectTo(options.redirectUrl);
+      } else {
+        await this.redirectToAfterSignOut();
+      }
+    } finally {
+      await storeLock.unlock();
     }
   }
 
