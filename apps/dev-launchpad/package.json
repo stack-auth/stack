@@ -1,8 +1,7 @@
 {
-  "name": "@stackframe/oauth-mock-server",
+  "name": "@stackframe/dev-launchpad",
   "version": "2.6.37",
   "private": true,
-  "main": "index.js",
   "scripts": {
     "dev": "serve -p 8100 -s public"
   },
