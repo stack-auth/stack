@@ -176,6 +176,7 @@ export async function niceFetch(url: string | URL, options?: NiceRequestInit): P
     ...options,
     headers: {
       "x-stack-disable-artificial-development-delay": "yes",
+      "x-stack-development-disable-extended-logging": "yes",
       ...filterUndefined(options?.headers ?? {}),
     },
   });

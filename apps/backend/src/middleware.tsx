@@ -64,6 +64,7 @@ export async function middleware(request: NextRequest) {
       // CORS headers
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+      "Access-Control-Max-Age": "86400",  // 1 day (capped to lower values, eg. 10min, by some browsers)
       "Access-Control-Allow-Headers": corsAllowedRequestHeaders.join(', '),
       "Access-Control-Expose-Headers": corsAllowedResponseHeaders.join(', '),
     },
