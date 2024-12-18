@@ -46,10 +46,9 @@ export async function getEmailTemplateWithDefault(projectId: string, type: keyof
   };
 }
 
-function getPortConfig(port: number | string) {
+export function isSecureEmailPort(port: number | string) {
   let parsedPort = parseInt(port.toString());
-  const secure = parsedPort === 465;
-  return { secure };
+  return parsedPort === 465;
 }
 
 export type EmailConfig = {
@@ -73,7 +72,7 @@ export async function sendEmail({
   emailConfig: EmailConfig,
   to: string | string[],
   subject: string,
-  html: string,
+  html?: string,
   text?: string,
 }) {
   await trace.getTracer('stackframe').startActiveSpan('sendEmail', async (span) => {
@@ -163,7 +162,7 @@ async function getEmailConfig(project: ProjectsCrud["Admin"]["Read"]): Promise<E
       password: getEnvVariable('STACK_EMAIL_PASSWORD'),
       senderEmail: getEnvVariable('STACK_EMAIL_SENDER'),
       senderName: project.display_name,
-      secure: getPortConfig(getEnvVariable('STACK_EMAIL_PORT')).secure,
+      secure: isSecureEmailPort(getEnvVariable('STACK_EMAIL_PORT')),
       type: 'shared',
     };
   } else {
@@ -177,7 +176,7 @@ async function getEmailConfig(project: ProjectsCrud["Admin"]["Read"]): Promise<E
       password: projectEmailConfig.password,
       senderEmail: projectEmailConfig.sender_email,
       senderName: projectEmailConfig.sender_name,
-      secure: getPortConfig(projectEmailConfig.port).secure,
+      secure: isSecureEmailPort(projectEmailConfig.port),
       type: 'standard',
     };
   }

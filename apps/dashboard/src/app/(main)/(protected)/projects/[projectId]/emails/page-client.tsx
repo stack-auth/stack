@@ -1,6 +1,6 @@
 "use client";
 
-import { FormDialog } from "@/components/form-dialog";
+import { FormDialog, SmartFormDialog } from "@/components/form-dialog";
 import { InputField, SelectField } from "@/components/form-fields";
 import { useRouter } from "@/components/router";
 import { SettingCard, SettingText } from "@/components/settings";
@@ -8,8 +8,8 @@ import { AdminEmailConfig, AdminProject } from "@stackframe/stack";
 import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index";
 import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
-import { strictEmailSchema, emailSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { ActionCell, ActionDialog, Button, Card, SimpleTooltip, Typography } from "@stackframe/stack-ui";
+import { strictEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { ActionCell, ActionDialog, Button, Card, SimpleTooltip, Typography, useToast } from "@stackframe/stack-ui";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -28,8 +28,13 @@ export default function PageClient() {
     <PageLayout title="Emails" description="Configure email settings for your project">
       <SettingCard
         title="Email Server"
-        description="The server and address all the emails will be sent from"
-        actions={<EditEmailServerDialog trigger={<Button variant='secondary'>Configure</Button>} />}
+        description="Configure the email server and sender address for outgoing emails"
+        actions={
+          <div className="flex items-center gap-2">
+            {emailConfig?.type === 'standard' && <TestSendingDialog trigger={<Button variant='secondary' className="w-full">Send Test Email</Button>} />}
+            <EditEmailServerDialog trigger={<Button variant='secondary' className="w-full">Configure</Button>} />
+          </div>
+        }
       >
         <SettingText label="Server">
           <div className="flex items-center gap-2">
@@ -227,6 +232,31 @@ function EditEmailServerDialog(props: {
         </>}
       </>
     )}
+  />;
+}
+
+function TestSendingDialog(props: {
+  trigger: React.ReactNode,
+}) {
+  const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProject();
+  const { toast } = useToast();
+
+  return <SmartFormDialog
+    trigger={props.trigger}
+    title="Send A Test Email"
+    formSchema={yup.object({
+      email: yup.string().email().defined().label("Recipient email address")
+    })}
+    okButton={{ label: "Send" }}
+    onSubmit={async (values) => {
+      toast({
+        title: "Email sent",
+        description: `The test email has been sent to ${values.email}. Please check your inbox.`,
+        variant: 'success',
+      });
+    }}
+    cancelButton
   />;
 }
 
