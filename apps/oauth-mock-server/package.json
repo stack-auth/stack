@@ -1,17 +1,15 @@
 {
-  "name": "@stackframe/oauth-mock-server",
+  "name": "@stackframe/dev-launchpad",
   "version": "2.6.37",
   "private": true,
-  "main": "index.js",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "serve",
     "dev": "tsx watch --clear-screen=false src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "@types/oidc-provider": "^8.5.1",
-    "@stackframe/stack-shared": "workspace:*",
-    "oidc-provider": "^8.5.1"
+    "serve": "^14.2.4"
   },
   "devDependencies": {
     "tsx": "^4.16.2"
