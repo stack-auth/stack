@@ -164,6 +164,7 @@ pnpm run prisma studio
 `8113`: Svix server (for webhooks)  
 `8114`: OAuth mock server  
 `8115`: `examples/supabase`  
+`8116`: PgHero (for database monitoring)
 
 
 ### Database migrations
