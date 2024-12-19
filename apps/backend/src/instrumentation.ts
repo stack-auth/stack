@@ -12,6 +12,10 @@ export function register() {
     instrumentations: [new PrismaInstrumentation()],
   });
 
+  if (getNextRuntime() === "nodejs") {
+    process.title = "stack-backend (nextjs)";
+  }
+
   if (getNextRuntime() === "nodejs" || getNextRuntime() === "edge") {
     Sentry.init({
       ...sentryBaseConfig,
