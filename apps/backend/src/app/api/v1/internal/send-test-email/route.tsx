@@ -2,6 +2,7 @@ import { isSecureEmailPort, sendEmailWithKnownErrorTypes } from "@/lib/emails";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import * as schemaFields from "@stackframe/stack-shared/dist/schema-fields";
 import { adaptSchema, adminAuthTypeSchema, emailSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -49,6 +50,10 @@ export const POST = createSmartRouteHandler({
       subject: "Test Email from Stack Auth",
       text: "This is a test email from Stack Auth. If you successfully received this email, your email server configuration is working correctly.",
     });
+
+    if (result.status === 'error' && result.error.errorType === 'UNKNOWN') {
+      captureError("Unknown error sending test email", result.error);
+    }
 
     return {
       statusCode: 200,
