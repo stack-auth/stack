@@ -102,7 +102,7 @@ function isSchemaNumberDescription(value: yup.SchemaFieldDescription): value is 
   return value.type === 'number';
 }
 
-function isMaybeRequestSchemaForAudience(requestDescribe: yup.SchemaObjectDescription, audience: 'client' | 'server' | 'admin') {
+export function isMaybeRequestSchemaForAudience(requestDescribe: yup.SchemaObjectDescription, audience: 'client' | 'server' | 'admin') {
   const schemaAuth = requestDescribe.fields.auth;
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- yup types are wrong and claim that fields always exist
   if (!schemaAuth) return true;
