@@ -1,6 +1,6 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { omit } from "@stackframe/stack-shared/dist/utils/objects";
+import { filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomUUID } from "node:crypto";
@@ -172,7 +172,14 @@ export async function niceFetch(url: string | URL, options?: NiceRequestInit): P
       url.searchParams.append(key, value);
     }
   }
-  const fetchRes = await fetch(url, options);
+  const fetchRes = await fetch(url, {
+    ...options,
+    headers: {
+      "x-stack-disable-artificial-development-delay": "yes",
+      "x-stack-development-disable-extended-logging": "yes",
+      ...filterUndefined(options?.headers ?? {}),
+    },
+  });
   let body;
   if (fetchRes.headers.get("content-type")?.includes("application/json")) {
     body = await fetchRes.json();
