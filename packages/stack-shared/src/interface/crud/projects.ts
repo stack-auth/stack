@@ -22,7 +22,7 @@ const enabledOAuthProviderSchema = yupObject({
   id: schemaFields.oauthIdSchema.defined(),
 });
 
-const emailConfigSchema = yupObject({
+export const emailConfigSchema = yupObject({
   type: schemaFields.emailTypeSchema.defined(),
   host: yupDefinedWhen(schemaFields.emailHostSchema, 'type', 'standard'),
   port: yupDefinedWhen(schemaFields.emailPortSchema, 'type', 'standard'),
