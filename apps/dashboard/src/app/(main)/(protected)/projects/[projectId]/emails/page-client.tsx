@@ -174,6 +174,7 @@ function EditEmailServerDialog(props: {
   const [error, setError] = useState<string | null>(null);
   const [formValues, setFormValues] = useState<any>(null);
   const defaultValues = useMemo(() => getDefaultValues(project.config.emailConfig, project), [project]);
+  const { toast } = useToast();
 
   return <FormDialog
     trigger={props.trigger}
@@ -203,7 +204,7 @@ function EditEmailServerDialog(props: {
         };
 
         const testResult = await stackAdminApp.sendTestEmail({
-          recipientEmail: values.senderEmail,
+          recipientEmail: 'test-email-recipient@stackframe.co',
           emailConfig: emailConfig,
         });
 
@@ -221,6 +222,12 @@ function EditEmailServerDialog(props: {
               ...emailConfig,
             }
           }
+        });
+
+        toast({
+          title: "Email server updated",
+          description: "The email server has been updated. You can now send test emails to verify the configuration.",
+          variant: 'success',
         });
       }
     }}
