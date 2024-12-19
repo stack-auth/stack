@@ -56,6 +56,7 @@ export function FormDialog<F extends FieldValues>(
     onSubmit: (values: F) => Promise<void | 'prevent-close'> | void | 'prevent-close',
     render: (form: ReturnType<typeof useForm<F>>) => React.ReactNode,
     formSchema: yup.ObjectSchema<F>,
+    onFormChange?: (form: ReturnType<typeof useForm<F>>) => void,
   }
 ) {
   const formId = useId();
@@ -86,6 +87,10 @@ export function FormDialog<F extends FieldValues>(
   useEffect(() => {
     form.reset(props.defaultValues);
   }, [props.defaultValues, form]);
+
+  useEffect(() => {
+    props.onFormChange?.(form);
+  }, [form, props, form.watch]);
 
   return (
     <ActionDialog

@@ -1,6 +1,6 @@
 "use client";
 
-import { FormDialog, SmartFormDialog } from "@/components/form-dialog";
+import { FormDialog } from "@/components/form-dialog";
 import { InputField, SelectField } from "@/components/form-fields";
 import { useRouter } from "@/components/router";
 import { SettingCard, SettingText } from "@/components/settings";
@@ -9,7 +9,8 @@ import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index
 import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { strictEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { ActionCell, ActionDialog, Button, Card, SimpleTooltip, Typography, useToast } from "@stackframe/stack-ui";
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { ActionCell, ActionDialog, Alert, Button, Card, SimpleTooltip, Typography, useToast } from "@stackframe/stack-ui";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -241,8 +242,9 @@ function TestSendingDialog(props: {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
   const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
 
-  return <SmartFormDialog
+  return <FormDialog
     trigger={props.trigger}
     title="Send A Test Email"
     formSchema={yup.object({
@@ -250,13 +252,37 @@ function TestSendingDialog(props: {
     })}
     okButton={{ label: "Send" }}
     onSubmit={async (values) => {
-      toast({
-        title: "Email sent",
-        description: `The test email has been sent to ${values.email}. Please check your inbox.`,
-        variant: 'success',
+      const emailConfig = project.config.emailConfig || throwErr("Email config is not set");
+      if (emailConfig.type === 'shared') throwErr("Shared email server cannot be used for testing");
+
+      const result = await stackAdminApp.sendTestEmail({
+        recipientEmail: values.email,
+        emailConfig: emailConfig,
       });
+
+      if (result.status === 'ok') {
+        toast({
+          title: "Email sent",
+          description: `The test email has been sent to ${values.email}. Please check your inbox.`,
+          variant: 'success',
+        });
+      } else {
+        setError(result.error.errorMessage);
+        return 'prevent-close';
+      }
     }}
     cancelButton
+    onFormChange={(form) => {
+      if (form.getValues('email')) {
+        setError(null);
+      }
+    }}
+    render={(form) => (
+      <>
+        <InputField label="Email" name="email" control={form.control} type="email" required/>
+        {error && <Alert variant="destructive">{error}</Alert>}
+      </>
+    )}
   />;
 }
 

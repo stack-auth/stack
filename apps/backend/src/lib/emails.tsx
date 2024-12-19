@@ -111,7 +111,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
           rawError: error,
           errorType: 'HOST_NOT_FOUND',
           retryable: false,
-          message: 'The email host is not found. Please make sure the host exists.'
+          message: 'The email host is not found. Please make sure the email host configuration is correct.'
         });
       }
 
@@ -120,7 +120,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
           rawError: error,
           errorType: 'AUTH_FAILED',
           retryable: false,
-          message: 'The email server authentication failed. Please check your email credentials.',
+          message: 'The email server authentication failed. Please check your email credentials configuration.',
         });
       }
 
@@ -138,7 +138,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
           rawError: error,
           errorType: 'INVALID_EMAIL_ADDRESS',
           retryable: false,
-          message: 'The email address provided is invalid. Please verify both the recipient and sender email addresses are correct.' + getServerResponse(error),
+          message: 'The email address provided is invalid. Please verify both the recipient and sender email addresses configuration are correct.' + getServerResponse(error),
         });
       }
 
@@ -147,7 +147,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
           rawError: error,
           errorType: 'SOCKET_CLOSED',
           retryable: false,
-          message: 'Connection to email server was lost unexpectedly. This could be due to incorrect port configuration or a temporary network issue. Please verify your email settings and try again.',
+          message: 'Connection to email server was lost unexpectedly. This could be due to incorrect email server port configuration or a temporary network issue. Please verify your configuration and try again.',
         });
       }
     }

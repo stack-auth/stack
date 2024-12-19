@@ -2518,6 +2518,36 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   protected async _refreshApiKeys() {
     await this._apiKeysCache.refresh([]);
   }
+
+  async sendTestEmail(options: {
+    recipientEmail: string,
+    emailConfig: {
+      host: string,
+      port: number,
+      username: string,
+      password: string,
+      senderEmail: string,
+      senderName: string,
+    },
+  }): Promise<Result<undefined, { errorMessage: string }>> {
+    const response = await this._interface.sendTestEmail({
+      recipient_email: options.recipientEmail,
+      email_config: {
+        host: options.emailConfig.host,
+        port: options.emailConfig.port,
+        username: options.emailConfig.username,
+        password: options.emailConfig.password,
+        sender_email: options.emailConfig.senderEmail,
+        sender_name: options.emailConfig.senderName,
+      },
+    });
+
+    if (response.success) {
+      return Result.ok(undefined);
+    } else {
+      return Result.error({ errorMessage: response.error_message ?? throwErr("Email test error not specified") });
+    }
+  }
 }
 
 type _______________CONTACT_CHANNEL_______________ = never;  // this is a marker for VSCode's outline view
@@ -3410,6 +3440,18 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
     deleteTeamPermissionDefinition(permissionId: string): Promise<void>,
 
     useSvixToken(): string,
+
+    sendTestEmail(options: {
+      recipientEmail: string,
+      emailConfig: {
+        host: string,
+        port: number,
+        username: string,
+        password: string,
+        senderEmail: string,
+        senderName: string,
+      },
+    }): Promise<Result<undefined, { errorMessage: string }>>,
   }
   & StackServerApp<HasTokenStore, ProjectId>
 );
