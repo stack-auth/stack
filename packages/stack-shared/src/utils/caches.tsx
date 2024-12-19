@@ -194,6 +194,7 @@ class AsyncValueCache<T> {
       });
       this._unsubscribers.push(unsubscribe);
     }
+    console.log("add", this._subscriptionsCount, new Date().toISOString());
 
     let hasUnsubscribed = false;
     return {
@@ -201,6 +202,7 @@ class AsyncValueCache<T> {
         if (hasUnsubscribed) return;
         hasUnsubscribed = true;
         storeObj.unsubscribe();
+        console.log("remove", this._subscriptionsCount - 1, new Date().toISOString());
         if (--this._subscriptionsCount === 0) {
           for (const unsubscribe of this._unsubscribers) {
             unsubscribe();
