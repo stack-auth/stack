@@ -89,11 +89,15 @@ export function FormDialog<F extends FieldValues>(
 
   useEffect(() => {
     form.reset(props.defaultValues);
-  }, [props.defaultValues, form]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.defaultValues]);
 
   useEffect(() => {
-    props.onFormChange?.(form);
-  }, [form, props, form.watch]);
+    const subscription = form.watch((value, { name, type }) => {
+      props.onFormChange?.(form);
+    });
+    return () => subscription.unsubscribe();
+  }, [form, form.watch, props]);
 
   return (
     <ActionDialog

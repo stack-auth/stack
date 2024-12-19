@@ -11,6 +11,7 @@ import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/
 import { strictEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { ActionCell, ActionDialog, Alert, Button, Card, SimpleTooltip, Typography, useToast } from "@stackframe/stack-ui";
+import _ from "lodash";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -171,12 +172,14 @@ function EditEmailServerDialog(props: {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
   const [error, setError] = useState<string | null>(null);
+  const [formValues, setFormValues] = useState<any>(null);
+  const defaultValues = useMemo(() => getDefaultValues(project.config.emailConfig, project), [project]);
 
   return <FormDialog
     trigger={props.trigger}
     title="Edit Email Server"
     formSchema={emailServerSchema}
-    defaultValues={getDefaultValues(project.config.emailConfig, project)}
+    defaultValues={defaultValues}
     okButton={{ label: "Save" }}
     onSubmit={async (values) => {
       if (values.type === 'shared') {
@@ -222,6 +225,13 @@ function EditEmailServerDialog(props: {
       }
     }}
     cancelButton
+    onFormChange={(form) => {
+      const values = form.getValues();
+      if (!_.isEqual(values, formValues)) {
+        setFormValues(values);
+        setError(null);
+      }
+    }}
     render={(form) => (
       <>
         <SelectField

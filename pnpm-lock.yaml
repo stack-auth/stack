@@ -325,6 +325,9 @@ importers:
       jose:
         specifier: ^5.2.2
         version: 5.4.0
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       lucide-react:
         specifier: ^0.378.0
         version: 0.378.0(react@18.3.1)
@@ -389,6 +392,9 @@ importers:
       '@types/canvas-confetti':
         specifier: ^1.6.4
         version: 1.6.4
+      '@types/lodash':
+        specifier: ^4.17.5
+        version: 4.17.5
       '@types/node':
         specifier: ^20.8.10
         version: 20.14.2
@@ -443,9 +449,15 @@ importers:
 
   apps/oauth-mock-server:
     dependencies:
-      serve:
-        specifier: ^14.2.4
-        version: 14.2.4
+      '@stackframe/stack-shared':
+        specifier: workspace:*
+        version: link:../../packages/stack-shared
+      '@types/oidc-provider':
+        specifier: ^8.5.1
+        version: 8.5.1
+      oidc-provider:
+        specifier: ^8.5.1
+        version: 8.5.1
     devDependencies:
       tsx:
         specifier: ^4.16.2
@@ -15308,11 +15320,11 @@ snapshots:
   '@types/eslint-scope@3.7.7':
     dependencies:
       '@types/eslint': 8.56.10
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.6
 
   '@types/eslint@8.56.10':
     dependencies:
-      '@types/estree': 1.0.5
+      '@types/estree': 1.0.6
       '@types/json-schema': 7.0.15
 
   '@types/estree-jsx@1.0.5':
