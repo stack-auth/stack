@@ -1,6 +1,7 @@
+import { AsyncLock } from "./locks";
+import { ReactPromise, pending, rejected, resolved } from "./promises";
 import { AsyncResult, Result } from "./results";
 import { generateUuid } from "./uuids";
-import { ReactPromise, pending, rejected, resolved } from "./promises";
 
 export type ReadonlyStore<T> = {
   get(): T,
@@ -61,6 +62,9 @@ export class Store<T> implements ReadonlyStore<T> {
     return { unsubscribe };
   }
 }
+
+export const storeLock = new AsyncLock();
+
 
 export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
   private _isAvailable: boolean;
@@ -173,6 +177,7 @@ export class AsyncStore<T> implements ReadonlyAsyncStore<T> {
   async setAsync(promise: Promise<T>): Promise<boolean> {
     const curCounter = ++this._updateCounter;
     const result = await Result.fromPromise(promise);
+    await storeLock.waitUntilUnlocked();
     return this._setIfLatest(result, curCounter);
   }
 
