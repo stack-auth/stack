@@ -1536,17 +1536,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected async _signOut(session: InternalSession, options?: { redirectUrl?: URL | string }): Promise<void> {
-    try {
-      await storeLock.lock();
+    await storeLock.withWriteLock(async () => {
       await this._interface.signOut(session);
       if (options?.redirectUrl) {
         await _redirectTo(options.redirectUrl);
       } else {
         await this.redirectToAfterSignOut();
       }
-    } finally {
-      await storeLock.unlock();
-    }
+    });
   }
 
   async signOut(options?: { redirectUrl?: URL | string }): Promise<void> {
