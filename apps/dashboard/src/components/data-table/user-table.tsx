@@ -171,7 +171,9 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
   },
 ];
 
-export function extendUsers(users: ServerUser[] & { nextCursor: string | null }): ExtendedServerUser[] & { nextCursor: string | null } {
+export function extendUsers(users: ServerUser[] & { nextCursor: string | null }): ExtendedServerUser[] & { nextCursor: string | null };
+export function extendUsers(users: ServerUser[]): ExtendedServerUser[];
+export function extendUsers(users: ServerUser[] & { nextCursor?: string | null }): ExtendedServerUser[] & { nextCursor: string | null | undefined } {
   const extended = users.map((user) => ({
     ...user,
     authTypes: [
@@ -210,7 +212,6 @@ export function UserTable() {
       newFilters.desc = options.sorting[0].desc;
     }
 
-    console.log("AAAAAAAAA", newFilters, filters, deepPlainEquals(newFilters, filters, { ignoreUndefinedValues: true }));
     if (deepPlainEquals(newFilters, filters, { ignoreUndefinedValues: true })) {
       // save ourselves a request if the filters didn't change
       return { nextCursor: users.nextCursor };
