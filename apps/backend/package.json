@@ -14,7 +14,7 @@
     "analyze-bundle": "ANALYZE_BUNDLE=1 pnpm run build",
     "start": "next start --port 8102",
     "codegen-prisma": "pnpm run prisma generate",
-    "codegen-prisma:watch": "pnpm run prisma generate --watch",
+    "codegen-prisma:watch": "pnpm run prisma generate --sql --watch",
     "codegen": "pnpm run with-env bash -c 'if [ \"$STACK_ACCELERATE_ENABLED\" = \"true\" ]; then pnpm run prisma generate --no-engine && pnpm run generate-docs; else pnpm run codegen-prisma && pnpm run generate-docs; fi'",
     "codegen:watch": "concurrently -n \"prisma,docs\" -k \"pnpm run codegen-prisma:watch\" \"pnpm run watch-docs\"",
     "psql-inner": "psql $STACK_DATABASE_CONNECTION_STRING",
@@ -43,7 +43,7 @@
     "@opentelemetry/sdk-trace-base": "^1.26.0",
     "@opentelemetry/sdk-trace-node": "^1.26.0",
     "@opentelemetry/semantic-conventions": "^1.27.0",
-    "@prisma/client": "^6.0.1",
+    "@prisma/client": "^6.1.0",
     "@prisma/extension-accelerate": "^1.2.1",
     "@prisma/instrumentation": "^5.19.1",
     "@sentry/nextjs": "^8.40.0",
@@ -82,11 +82,11 @@
     "@types/semver": "^7.5.8",
     "concurrently": "^8.2.2",
     "glob": "^10.4.1",
-    "prisma": "^6.0.1",
+    "import-in-the-middle": "^1.12.0",
+    "prisma": "^6.1.0",
+    "require-in-the-middle": "^7.4.0",
     "rimraf": "^5.0.5",
     "tsup": "^8.3.0",
-    "tsx": "^4.7.2",
-    "require-in-the-middle": "^7.4.0",
-    "import-in-the-middle": "^1.12.0"
+    "tsx": "^4.7.2"
   }
 }

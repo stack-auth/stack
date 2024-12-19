@@ -5,6 +5,7 @@ import { prismaClient, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 import { BooleanTrue, Prisma } from "@prisma/client";
+import { getUsersLastActiveAtMillis as getUsersLastActiveAtMillisSql } from "@prisma/client/sql";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { currentUserCrud } from "@stackframe/stack-shared/dist/interface/crud/current-user";
 import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
@@ -228,16 +229,11 @@ export const getUsersLastActiveAtMillis = async (userIds: string[], fallbackTo: 
     return [];
   }
 
-  const events = await prismaClient.$queryRaw<Array<{ userId: string, lastActiveAt: Date }>>`
-    SELECT data->>'userId' as "userId", MAX("createdAt") as "lastActiveAt"
-    FROM "Event"
-    WHERE data->>'userId' = ANY(${Prisma.sql`ARRAY[${Prisma.join(userIds)}]`})
-    GROUP BY data->>'userId'
-  `;
+  const events = await prismaClient.$queryRawTyped(getUsersLastActiveAtMillisSql(userIds));
 
   return userIds.map((userId, index) => {
     const event = events.find(e => e.userId === userId);
-    return event ? event.lastActiveAt.getTime() : (
+    return event && event.lastActiveAt ? event.lastActiveAt.getTime() : (
       typeof fallbackTo[index] === "number" ? (fallbackTo[index] as number) : (fallbackTo[index] as Date).getTime()
     );
   });
