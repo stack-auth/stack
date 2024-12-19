@@ -111,7 +111,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
           rawError: error,
           errorType: 'HOST_NOT_FOUND',
           retryable: false,
-          message: 'The email host is not found. Please make sure the email host configuration is correct.'
+          message: 'Failed to connect to the email host. Please make sure the email host configuration is correct.'
         });
       }
 
@@ -120,7 +120,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
           rawError: error,
           errorType: 'AUTH_FAILED',
           retryable: false,
-          message: 'The email server authentication failed. Please check your email credentials configuration.',
+          message: 'Failed to authenticate with the email server. Please check your email credentials configuration.',
         });
       }
 

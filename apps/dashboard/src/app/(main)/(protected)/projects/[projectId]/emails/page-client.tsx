@@ -170,6 +170,7 @@ function EditEmailServerDialog(props: {
 }) {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
+  const [error, setError] = useState<string | null>(null);
 
   return <FormDialog
     trigger={props.trigger}
@@ -185,16 +186,36 @@ function EditEmailServerDialog(props: {
           }
         });
       } else {
+        if (!values.host || !values.port || !values.username || !values.password || !values.senderEmail || !values.senderName) {
+          throwErr("Email server fields are not filled for custom SMTP server");
+        }
+
+        const emailConfig = {
+          host: values.host,
+          port: values.port,
+          username: values.username,
+          password: values.password,
+          senderEmail: values.senderEmail,
+          senderName: values.senderName,
+        };
+
+        const testResult = await stackAdminApp.sendTestEmail({
+          recipientEmail: values.senderEmail,
+          emailConfig: emailConfig,
+        });
+
+        if (testResult.status === 'error') {
+          setError(testResult.error.errorMessage);
+          return 'prevent-close-and-prevent-reset';
+        } else {
+          setError(null);
+        }
+
         await project.update({
           config: {
             emailConfig: {
               type: 'standard',
-              senderName: values.senderName!,
-              host: values.host!,
-              port: values.port!,
-              username: values.username!,
-              password: values.password!,
-              senderEmail: values.senderEmail!,
+              ...emailConfig,
             }
           }
         });
@@ -231,6 +252,7 @@ function EditEmailServerDialog(props: {
             />
           ))}
         </>}
+        {error && <Alert variant="destructive">{error}</Alert>}
       </>
     )}
   />;
