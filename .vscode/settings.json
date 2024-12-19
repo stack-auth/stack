@@ -80,5 +80,12 @@
   },
   "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|",
   "editor.formatOnSave": false,
-  "prettier.enable": false
+  "prettier.enable": false,
+  "debug.javascript.autoAttachSmartPattern": [
+    "${workspaceFolder}/**",
+    "!**/node_modules/**",
+    "**/$KNOWN_TOOLS$/**",
+    "**/start-server.js",
+    "**/turbo/**"
+  ]
 }
