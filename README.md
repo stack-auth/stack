@@ -131,6 +131,8 @@ pnpm run start-deps
 
 # Start the dev server
 pnpm run dev
+# For systems with limited resources, you can run a minimal development setup with just the backend and dashboard
+# pnpm run dev:basic
 
 # In a different terminal, run tests in watch mode
 pnpm run test

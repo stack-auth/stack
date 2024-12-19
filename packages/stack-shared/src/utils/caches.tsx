@@ -1,6 +1,6 @@
 import { DependenciesMap } from "./maps";
 import { filterUndefined } from "./objects";
-import { RateLimitOptions, ReactPromise, pending, rateLimited, resolved, runAsynchronously } from "./promises";
+import { RateLimitOptions, ReactPromise, pending, rateLimited, resolved, runAsynchronously, wait } from "./promises";
 import { AsyncStore } from "./stores";
 
 /**
@@ -155,27 +155,46 @@ class AsyncValueCache<T> {
     return this._setAsync(value);
   }
 
+  /**
+   * Refetches the value from the fetcher, and updates the cache with it.
+   */
   async refresh(): Promise<T> {
     return await this.getOrWait("write-only");
   }
 
-  async invalidate(): Promise<T> {
+  /**
+   * Invalidates the cache, marking it to refresh on the next read. If anyone was listening to it, it will refresh
+   * immediately.
+   */
+  invalidate(): void {
     this._store.setUnavailable();
     this._pendingPromise = undefined;
-    return await this.refresh();
+    if (this._subscriptionsCount > 0) {
+      runAsynchronously(this.refresh());
+    }
   }
 
   onStateChange(callback: (value: T, oldValue: T | undefined) => void): { unsubscribe: () => void } {
     const storeObj = this._store.onChange(callback);
 
+    runAsynchronously(this.getOrWait("read-write"));
+
     if (this._subscriptionsCount++ === 0 && this._options.onSubscribe) {
+      let mostRecentRefreshPromiseIndex = 0;
       const unsubscribe = this._options.onSubscribe(() => {
-        runAsynchronously(this.refresh());
+        const currentRefreshPromiseIndex = mostRecentRefreshPromiseIndex++;
+        runAsynchronously(async () => {
+          // wait a few seconds; if anything changes during that time, we don't want to refresh
+          // else we do unnecessary requests if we unsubscribe and then subscribe again immediately
+          await wait(5000);
+          if (this._subscriptionsCount === 0 && currentRefreshPromiseIndex === mostRecentRefreshPromiseIndex) {
+            this.invalidate();
+          }
+        });
       });
       this._unsubscribers.push(unsubscribe);
     }
-
-    runAsynchronously(this.refresh());
+    console.log("add", this._subscriptionsCount, new Date().toISOString());
 
     let hasUnsubscribed = false;
     return {
@@ -183,6 +202,7 @@ class AsyncValueCache<T> {
         if (hasUnsubscribed) return;
         hasUnsubscribed = true;
         storeObj.unsubscribe();
+        console.log("remove", this._subscriptionsCount - 1, new Date().toISOString());
         if (--this._subscriptionsCount === 0) {
           for (const unsubscribe of this._unsubscribers) {
             unsubscribe();
