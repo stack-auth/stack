@@ -31,7 +31,7 @@ export const POST = createSmartRouteHandler({
     bodyType: yupString().oneOf(["json"]).defined(),
     body: apiKeysCreateOutputSchema.defined(),
   }),
-  handler: async ({ auth, body }) => {
+  handler: async ({ body }) => {
     await sendEmail({
       emailConfig: {
         type: 'standard',

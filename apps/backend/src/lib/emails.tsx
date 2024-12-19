@@ -62,62 +62,152 @@ export type EmailConfig = {
   type: 'shared' | 'standard',
 }
 
+type SendEmailOptions = {
+  emailConfig: EmailConfig,
+  to: string | string[],
+  subject: string,
+  html?: string,
+  text?: string,
+}
+
+export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): Promise<Result<undefined, {
+  rawError: any,
+  errorType: 'UNKNOWN' | 'HOST_NOT_FOUND' | 'AUTH_FAILED' | 'SOCKET_CLOSED' | 'TEMPORARY' | 'INVALID_EMAIL_ADDRESS',
+  retryable: boolean,
+  message?: string,
+}>> {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: options.emailConfig.host,
+      port: options.emailConfig.port,
+      secure: options.emailConfig.secure,
+      auth: {
+        user: options.emailConfig.username,
+        pass: options.emailConfig.password,
+      },
+    });
+
+    await transporter.sendMail({
+      from: `"${options.emailConfig.senderName}" <${options.emailConfig.senderEmail}>`,
+      ...options,
+    });
+
+    return Result.ok(undefined);
+  } catch (error) {
+    if (error instanceof Error) {
+      const code = (error as any).code as string | undefined;
+      const responseCode = (error as any).responseCode as number | undefined;
+      const errorNumber = (error as any).errno as number | undefined;
+
+      const getServerResponse = (error: any) => {
+        if (error.response) {
+          return `\nResponse from the email server:\n${error.response}`;
+        }
+        return '';
+      };
+
+      if (errorNumber === -3008 || code === 'EDNS') {
+        return Result.error({
+          rawError: error,
+          errorType: 'HOST_NOT_FOUND',
+          retryable: false,
+          message: 'The email host is not found. Please make sure the host exists.'
+        });
+      }
+
+      if (responseCode === 535 || code === 'EAUTH') {
+        return Result.error({
+          rawError: error,
+          errorType: 'AUTH_FAILED',
+          retryable: false,
+          message: 'The email server authentication failed. Please check your email credentials.',
+        });
+      }
+
+      if (responseCode === 450) {
+        return Result.error({
+          rawError: error,
+          errorType: 'TEMPORARY',
+          retryable: true,
+          message: 'The email server returned a temporary error. This could be due to a temporary network issue or a temporary block on the email server. Please try again later.' + getServerResponse(error),
+        });
+      }
+
+      if (responseCode === 553) {
+        return Result.error({
+          rawError: error,
+          errorType: 'INVALID_EMAIL_ADDRESS',
+          retryable: false,
+          message: 'The email address provided is invalid. Please verify both the recipient and sender email addresses are correct.' + getServerResponse(error),
+        });
+      }
+
+      if (error.message.includes('Unexpected socket close')) {
+        return Result.error({
+          rawError: error,
+          errorType: 'SOCKET_CLOSED',
+          retryable: false,
+          message: 'Connection to email server was lost unexpectedly. This could be due to incorrect port configuration or a temporary network issue. Please verify your email settings and try again.',
+        });
+      }
+    }
+
+    // ============ temporary error ============
+    const temporaryErrorIndicators = [
+      "450 ",
+      "Client network socket disconnected before secure TLS connection was established",
+      "Too many requests",
+      ...options.emailConfig.host.includes("resend") ? [
+        // Resend is a bit unreliable, so we'll retry even in some cases where it may send duplicate emails
+        "ECONNRESET",
+      ] : [],
+    ];
+    if (temporaryErrorIndicators.some(indicator => error instanceof Error && error.message.includes(indicator))) {
+      // this can happen occasionally (especially with certain unreliable email providers)
+      // so let's retry
+      return Result.error({
+        rawError: error,
+        errorType: 'UNKNOWN',
+        retryable: true,
+        message: 'Failed to send email, but error is possibly transient due to the internet connection. Please check your email configuration and try again later.',
+      });
+    }
+
+    // ============ unknown error ============
+    return Result.error({
+      rawError: error,
+      errorType: 'UNKNOWN',
+      retryable: false,
+      message: 'An unknown error occurred while sending the email.',
+    });
+  }
+}
+
 export async function sendEmail({
   emailConfig,
   to,
   subject,
   text,
   html,
-}: {
-  emailConfig: EmailConfig,
-  to: string | string[],
-  subject: string,
-  html?: string,
-  text?: string,
-}) {
+}: SendEmailOptions) {
   await trace.getTracer('stackframe').startActiveSpan('sendEmail', async (span) => {
     try {
-      const transporter = nodemailer.createTransport({
-        logger: !emailConfig.username.toLowerCase().includes('inbucket'),  // the info is not particularly useful for Inbucket, so we don't log anything
-        host: emailConfig.host,
-        port: emailConfig.port,
-        secure: emailConfig.secure,
-        auth: {
-          user: emailConfig.username,
-          pass: emailConfig.password,
-        },
-      });
-
       return Result.orThrow(await Result.retry(async (attempt) => {
-        try {
-          return Result.ok(await transporter.sendMail({
-            from: `"${emailConfig.senderName}" <${emailConfig.senderEmail}>`,
-            to,
-            subject,
-            text,
-            html
-          }));
-        } catch (error) {
-          const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject, cause: error };
-          const temporaryErrorIndicators = [
-            "450 ",
-            "Client network socket disconnected before secure TLS connection was established",
-            "Too many requests",
-            ...emailConfig.host.includes("resend") ? [
-              // Resend is a bit unreliable, so we'll retry even in some cases where it may send duplicate emails
-              "ECONNRESET",
-            ] : [],
-          ];
-          if (temporaryErrorIndicators.some(indicator => error instanceof Error && error.message.includes(indicator))) {
-            // this can happen occasionally (especially with certain unreliable email providers)
-            // so let's retry
-            console.warn("Failed to send email, but error is possibly transient so retrying.", extraData, error);
-            return Result.error(error);
+        const result = await sendEmailWithKnownErrorTypes({ emailConfig, to, subject, text, html });
+
+        if (result.status === 'error') {
+          const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject, cause: result.error.rawError };
+
+          if (result.error.retryable) {
+            console.warn("Failed to send email, but error is possibly transient so retrying.", extraData, result.error.rawError);
+            return Result.error(result.error);
           }
 
           // TODO if using custom email config, we should notify the developer instead of throwing an error
           throw new StackAssertionError('Failed to send email', extraData);
         }
+
+        return result;
       }, 3, { exponentialDelayBase: 2000 }));
     } finally {
       span.end();
