@@ -161,6 +161,24 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
         atmosphereColor='#CBD5E0'
         atmosphereAltitude={0.2}
       />}
+      <div className='absolute top-1 left-2 text-red-500 flex items-center gap-2 text-xs font-bold pointer-events-none select-none'>
+        <div className="stack-live-pulse"></div>
+        <style>{`
+          .stack-live-pulse {
+            width: 6px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 0 0 currentColor;
+            animation: stack-live-pulse-anim 4s infinite;
+          }
+          @keyframes stack-live-pulse-anim {
+              25% {box-shadow: 0 0 0 8px #0000}
+              100% {box-shadow: 0 0 0 8px #0000}
+          }
+        `}</style>
+        LIVE
+      </div>
     </div>
     <div className='h-full w-full xl:w-4/12 flex flex-col gap-4'>
       {children}
