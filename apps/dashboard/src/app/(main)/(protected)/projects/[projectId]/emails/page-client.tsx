@@ -191,7 +191,7 @@ function EditEmailServerDialog(props: {
         });
       } else {
         if (!values.host || !values.port || !values.username || !values.password || !values.senderEmail || !values.senderName) {
-          throwErr("Email server fields are not filled for custom SMTP server");
+          throwErr("Missing email server config for custom SMTP server");
         }
 
         const emailConfig = {
