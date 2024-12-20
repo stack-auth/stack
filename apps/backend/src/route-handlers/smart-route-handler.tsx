@@ -69,6 +69,9 @@ export function handleApiRequest(handler: (req: NextRequest, options: any, reque
       headers: Object.fromEntries(req.headers),
     });
 
+    // During development, don't trash the console with logs from E2E tests
+    const disableExtendedLogging = getNodeEnvironment().includes('dev') && !!req.headers.get("x-stack-development-disable-extended-logging");
+
     let hasRequestFinished = false;
     try {
       // censor long query parameters because they might contain sensitive data
@@ -89,29 +92,30 @@ export function handleApiRequest(handler: (req: NextRequest, options: any, reque
         }
       });
 
-      console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
+      if (!disableExtendedLogging) console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
       const timeStart = performance.now();
       const res = await handler(req, options, requestId);
       const time = (performance.now() - timeStart);
       if ([301, 302].includes(res.status)) {
         throw new StackAssertionError("HTTP status codes 301 and 302 should not be returned by our APIs because the behavior for non-GET methods is inconsistent across implementations. Use 303 (to rewrite method to GET) or 307/308 (to preserve the original method and data) instead.", { status: res.status, url: req.nextUrl, req, res });
       }
-      console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
+      if (!disableExtendedLogging) console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
       return res;
     } catch (e) {
       let statusError: StatusError;
       try {
         statusError = catchError(e);
       } catch (e) {
-        console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be re-thrown. Digest: ${(e as any)?.digest}`);
+        if (!disableExtendedLogging) console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be re-thrown. Digest: ${(e as any)?.digest}`);
         throw e;
       }
 
-      console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
+      if (!disableExtendedLogging) console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
+
       if (!commonErrors.some(e => statusError instanceof e)) {
         // HACK: Log a nicified version of the error instead of statusError to get around buggy Next.js pretty-printing
         // https://www.reddit.com/r/nextjs/comments/1gkxdqe/comment/m19kxgn/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
-        console.debug(`For the error above with request ID ${requestId}, the full error is:`, errorToNiceString(statusError));
+        if (!disableExtendedLogging) console.debug(`For the error above with request ID ${requestId}, the full error is:`, errorToNiceString(statusError));
       }
 
       const res = await createResponse(req, requestId, {

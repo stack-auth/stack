@@ -8,6 +8,7 @@ const hideHeaders = [
   "access-control-allow-methods",
   "access-control-allow-origin",
   "access-control-expose-headers",
+  "access-control-max-age",
   "cache-control",
   "connection",
   "content-security-policy",

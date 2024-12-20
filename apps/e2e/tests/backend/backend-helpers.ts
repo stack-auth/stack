@@ -106,7 +106,6 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
       } : {},
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
-      "x-stack-disable-artificial-development-delay": "yes",
       ...backendContext.value.ipData ? {
         "x-forwarded-for": backendContext.value.ipData.ipAddress,
         "cf-connecting-ip": backendContext.value.ipData.ipAddress,

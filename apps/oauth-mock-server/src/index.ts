@@ -1,5 +1,11 @@
 import Provider, { Configuration } from 'oidc-provider';
 
+// terminate this Node.js process if parent terminates
+process.on('disconnect', function() {
+  console.log('parent exited; exiting too');
+  process.exit();
+});
+
 const port = Number.parseInt(process.env.PORT || "8114");
 
 const mockedProviders = [

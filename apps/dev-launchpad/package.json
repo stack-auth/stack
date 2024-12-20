@@ -1,0 +1,11 @@
+{
+  "name": "@stackframe/dev-launchpad",
+  "version": "2.6.39",
+  "private": true,
+  "scripts": {
+    "dev": "serve -p 8100 -s public"
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}

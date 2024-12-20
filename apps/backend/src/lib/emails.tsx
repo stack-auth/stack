@@ -79,7 +79,7 @@ export async function sendEmail({
   await trace.getTracer('stackframe').startActiveSpan('sendEmail', async (span) => {
     try {
       const transporter = nodemailer.createTransport({
-        logger: true,
+        logger: !emailConfig.username.toLowerCase().includes('inbucket'),  // the info is not particularly useful for Inbucket, so we don't log anything
         host: emailConfig.host,
         port: emailConfig.port,
         secure: emailConfig.secure,

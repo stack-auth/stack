@@ -1,6 +1,7 @@
 'use client';
 import { useAdminApp } from '@/app/(main)/(protected)/projects/[projectId]/use-admin-app';
 import { ServerUser } from '@stackframe/stack';
+import { deepPlainEquals } from '@stackframe/stack-shared/dist/utils/objects';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableManualPagination, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
 import { ColumnDef, ColumnFiltersState, Row, SortingState, Table } from "@tanstack/react-table";
@@ -170,8 +171,10 @@ const columns: ColumnDef<ExtendedServerUser>[] =  [
   },
 ];
 
-export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
-  return users.map((user) => ({
+export function extendUsers(users: ServerUser[] & { nextCursor: string | null }): ExtendedServerUser[] & { nextCursor: string | null };
+export function extendUsers(users: ServerUser[]): ExtendedServerUser[];
+export function extendUsers(users: ServerUser[] & { nextCursor?: string | null }): ExtendedServerUser[] & { nextCursor: string | null | undefined } {
+  const extended = users.map((user) => ({
     ...user,
     authTypes: [
       ...user.otpAuthEnabled ? ["otp"] : [],
@@ -180,6 +183,7 @@ export function extendUsers(users: ServerUser[]): ExtendedServerUser[] {
     ],
     emailVerified: user.primaryEmailVerified ? "verified" : "unverified",
   } satisfies ExtendedServerUser)).sort((a, b) => a.signedUpAt > b.signedUpAt ? -1 : 1);
+  return Object.assign(extended, { nextCursor: users.nextCursor });
 }
 
 export function UserTable() {
@@ -194,7 +198,7 @@ export function UserTable() {
     columnFilters: ColumnFiltersState,
     globalFilters: any,
   }) => {
-    let filters: Parameters<typeof stackAdminApp.listUsers>[0] = {
+    let newFilters: Parameters<typeof stackAdminApp.listUsers>[0] = {
       cursor: options.cursor,
       limit: options.limit,
       query: options.globalFilters,
@@ -204,13 +208,18 @@ export function UserTable() {
       signedUpAt: "signedUpAt",
     } as const;
     if (options.sorting.length > 0 && options.sorting[0].id in orderMap) {
-      filters.orderBy = orderMap[options.sorting[0].id as keyof typeof orderMap];
-      filters.desc = options.sorting[0].desc;
+      newFilters.orderBy = orderMap[options.sorting[0].id as keyof typeof orderMap];
+      newFilters.desc = options.sorting[0].desc;
     }
 
-    setFilters(filters);
-    const users = await stackAdminApp.listUsers(filters);
-    return { nextCursor: users.nextCursor };
+    if (deepPlainEquals(newFilters, filters, { ignoreUndefinedValues: true })) {
+      // save ourselves a request if the filters didn't change
+      return { nextCursor: users.nextCursor };
+    } else {
+      setFilters(newFilters);
+      const users = await stackAdminApp.listUsers(newFilters);
+      return { nextCursor: users.nextCursor };
+    }
   };
 
   return <DataTableManualPagination
