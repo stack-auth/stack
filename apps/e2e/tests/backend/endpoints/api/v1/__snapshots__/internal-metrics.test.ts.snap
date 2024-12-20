@@ -1,0 +1,680 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`/internal/metrics route > should return metrics data 2`] = `
+NiceResponse {
+  "status": 200,
+  "body": {
+    "daily_active_users": [
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+    ],
+    "daily_users": [
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+    ],
+    "login_methods": [],
+    "recently_active": [],
+    "recently_registered": [],
+    "total_users": 0,
+    "users_by_country": {},
+  },
+  "headers": Headers { <some fields may have been hidden> },
+}
+`;
+
+exports[`/internal/metrics route > should return metrics data with users 17`] = `
+NiceResponse {
+  "status": 200,
+  "body": {
+    "daily_active_users": [
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 15,
+        "date": <stripped field 'date'>,
+      },
+    ],
+    "daily_users": [
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 0,
+        "date": <stripped field 'date'>,
+      },
+      {
+        "activity": 15,
+        "date": <stripped field 'date'>,
+      },
+    ],
+    "login_methods": [
+      {
+        "count": 15,
+        "method": "other",
+      },
+    ],
+    "recently_active": [
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+    ],
+    "recently_registered": [
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+      {
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": null,
+        "email": "<stripped UUID>@stack-generated.example.com",
+        "id": "<stripped UUID>",
+        "updated_at_millis": <stripped field 'updated_at_millis'>,
+      },
+    ],
+    "total_users": 15,
+    "users_by_country": {},
+  },
+  "headers": Headers { <some fields may have been hidden> },
+}
+`;

@@ -251,6 +251,7 @@ function useStore<T>(store: Store<T>): T {
   return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
+/** @internal */
 export const stackAppInternalsSymbol = Symbol.for("StackAuth--DO-NOT-USE-OR-YOU-WILL-BE-FIRED--StackAppInternals");
 
 const allClientApps = new Map<string, [checkString: string, app: StackClientApp<any, any>]>();
@@ -2268,6 +2269,9 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   private readonly _svixTokenCache = createCache(async () => {
     return await this._interface.getSvixToken();
   });
+  private readonly _metricsCache = createCache(async () => {
+    return await this._interface.getMetrics();
+  });
 
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
@@ -2519,6 +2523,15 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 
   protected async _refreshApiKeys() {
     await this._apiKeysCache.refresh([]);
+  }
+
+  get [stackAppInternalsSymbol]() {
+    return {
+      ...super[stackAppInternalsSymbol],
+      useMetrics: (): any => {
+        return useAsyncCache(this._metricsCache, [], "useMetrics()");
+      }
+    };
   }
 
   async sendTestEmail(options: {

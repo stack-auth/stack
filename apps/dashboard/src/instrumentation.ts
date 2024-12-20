@@ -5,6 +5,10 @@ import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import "./polyfills";
 
 export function register() {
+  if (getNextRuntime() === "nodejs") {
+    process.title = "stack-dashboard (nextjs)";
+  }
+
   if (getNextRuntime() === "nodejs" || getNextRuntime() === "edge") {
     Sentry.init({
       ...sentryBaseConfig,

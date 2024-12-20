@@ -230,15 +230,30 @@ async function seed() {
             throw new Error('GitHub OAuth provider config not found');
           }
 
-          await tx.projectUserOAuthAccount.create({
-            data: {
+          const githubAccount = await tx.projectUserOAuthAccount.findFirst({
+            where: {
               projectId: 'internal',
               projectConfigId: (internalProject as any).configId,
-              projectUserId: newUser.projectUserId,
               oauthProviderConfigId: 'github',
-              providerAccountId: adminGithubId
+              providerAccountId: adminGithubId,
             }
           });
+
+          if (githubAccount) {
+            console.log(`GitHub account already exists, skipping creation`);
+          } else {
+            await tx.projectUserOAuthAccount.create({
+              data: {
+                projectId: 'internal',
+                projectConfigId: (internalProject as any).configId,
+                projectUserId: newUser.projectUserId,
+                oauthProviderConfigId: 'github',
+                providerAccountId: adminGithubId
+              }
+            });
+
+            console.log(`Added GitHub account for admin user`);
+          }
 
           await tx.authMethod.create({
             data: {

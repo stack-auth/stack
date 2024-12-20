@@ -34,7 +34,7 @@ export class StackAdminInterface extends StackServerInterface {
     super(options);
   }
 
-  protected async sendAdminRequest(path: string, options: RequestInit, session: InternalSession | null, requestType: "admin" = "admin") {
+  public async sendAdminRequest(path: string, options: RequestInit, session: InternalSession | null, requestType: "admin" = "admin") {
     return await this.sendServerRequest(
       path,
       {
@@ -211,6 +211,16 @@ export class StackAdminInterface extends StackServerInterface {
       "/projects/current",
       {
         method: "DELETE",
+      },
+      null,
+    );
+  }
+
+  async getMetrics(): Promise<any> {
+    const response = await this.sendAdminRequest(
+      "/internal/metrics",
+      {
+        method: "GET",
       },
       null,
     );
