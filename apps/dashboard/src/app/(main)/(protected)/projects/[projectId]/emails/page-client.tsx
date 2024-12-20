@@ -285,7 +285,7 @@ function TestSendingDialog(props: {
 
   return <FormDialog
     trigger={props.trigger}
-    title="Send A Test Email"
+    title="Send a Test Email"
     formSchema={yup.object({
       email: yup.string().email().defined().label("Recipient email address")
     })}
