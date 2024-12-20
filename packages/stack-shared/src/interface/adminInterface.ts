@@ -224,6 +224,7 @@ export class StackAdminInterface extends StackServerInterface {
       },
       null,
     );
+  }
 
   async sendTestEmail(data: {
     recipient_email: string,

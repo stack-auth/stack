@@ -251,6 +251,7 @@ function useStore<T>(store: Store<T>): T {
   return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
+/** @internal */
 export const stackAppInternalsSymbol = Symbol.for("StackAuth--DO-NOT-USE-OR-YOU-WILL-BE-FIRED--StackAppInternals");
 
 const allClientApps = new Map<string, [checkString: string, app: StackClientApp<any, any>]>();
@@ -2524,13 +2525,6 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     await this._apiKeysCache.refresh([]);
   }
 
-  async sendAdminRequest(
-    path: string,
-    requestOptions: RequestInit,
-  ) {
-    return await this._interface.sendAdminRequest(path, requestOptions, await this._getSession());
-  }
-
   get [stackAppInternalsSymbol]() {
     return {
       ...super[stackAppInternalsSymbol],
@@ -2538,6 +2532,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         return useAsyncCache(this._metricsCache, [], "useMetrics()");
       }
     };
+  }
 
   async sendTestEmail(options: {
     recipientEmail: string,
@@ -3450,7 +3445,6 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
     deleteTeamPermissionDefinition(permissionId: string): Promise<void>,
 
     useSvixToken(): string,
-    sendAdminRequest(path: string, requestOptions: RequestInit,): ReturnType<StackAdminInterface['sendAdminRequest']>,
 
     sendTestEmail(options: {
       recipientEmail: string,
