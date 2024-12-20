@@ -31,6 +31,29 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
 
   const [isGlobeReady, setIsGlobeReady] = useState(false);
 
+  const resumeRenderIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const resumeRender = () => {
+    if (!globeRef.current) {
+      return;
+    }
+    const old = resumeRenderIntervalRef.current;
+    if (old !== null) {
+      clearTimeout(old);
+    }
+
+    // pause again after a bit
+    resumeRenderIntervalRef.current = setTimeout(() => {
+      globeRef.current!.pauseAnimation();
+      resumeRenderIntervalRef.current = null;
+    }, 200);
+
+    // resume animation
+    // we only resume if we haven't already resumed before to prevent a StackOverflow: resumeAnimation -> onZoom -> resumeRender -> resumeAnimation, etc etc
+    if (old === null) {
+      globeRef.current.resumeAnimation();
+    }
+  };
+
   const [isLightMode, setIsLightMode] = useState<boolean | null>(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -39,9 +62,10 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
       if (shouldBeLight !== isLightMode) {
         setIsLightMode(shouldBeLight);
       }
+      resumeRender();
     };
     updateIsLightMode();
-    const interval = setInterval(updateIsLightMode, 1000);
+    const interval = setInterval(updateIsLightMode, 10);
     return () => clearInterval(interval);
   }, [isLightMode]);
 
@@ -72,8 +96,14 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
   const maxColorValue = Math.max(0, ...[...colorValues.values()].filter((v): v is number => v !== null));
 
 
-  return <div className='flex w-full gap-4 flex-col xl:flex-row'>
-    <div ref={ref} className='relative w-full xl:w-8/12 rounded-lg h-[300px] xl:h-[500px] border border-1 border-border overflow-hidden'>
+  return <div className='relative flex w-full gap-4 flex-col xl:flex-row'>
+    <div
+      ref={ref}
+      className='w-full xl:w-8/12 rounded-lg h-[300px] xl:h-[500px] overflow-hidden'
+      onMouseMove={() => {
+        resumeRender();
+      }}
+    >
       {!isGlobeReady && (
         <Skeleton style={{
           width: Math.min(size?.width ?? 0, size?.height ?? 0) * 1.9 / 3,
@@ -86,7 +116,6 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
         }} />
       )}
       {isLightMode !== null && <Globe
-        key={isLightMode ? 'light' : 'dark'}
         ref={globeRef}
         backgroundColor='#00000000'
         globeImageUrl={
@@ -103,7 +132,10 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
           controls.maxDistance = 1000;
           controls.minDistance = 120;
           controls.dampingFactor = 0.3;
-          console.log('controls', controls);
+          resumeRender();
+        }}
+        onZoom={() => {
+          resumeRender();
         }}
         animateIn={false}
 
@@ -112,6 +144,7 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
         polygonSideColor={() => "transparent"}
         polygonAltitude={0.002}
         onPolygonHover={(d: any) => {
+          resumeRender();
           if (d) {
             setPolygonSelectedCountry({ code: d.properties.ISO_A2_EH, name: d.properties.NAME });
           } else {
@@ -142,15 +175,16 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
             }
             const scaled = value / maxColorValue;
             if (isLightMode) {
-              return `hsl(${175 * (1 - scaled)}, 100%, ${20 + 70 * scaled + (highlight ? 10 : 0)}%)`;
+              return `hsl(${175 * (1 - scaled)}, 100%, ${20 + 40 * scaled + (highlight ? 10 : 0)}%)`;
             } else {
-              return `hsl(271, 84%, ${24 + 40 * scaled + (highlight ? 10 : 0)}%)`;
+              return `hsl(271, 84%, ${24 + 60 * scaled + (highlight ? 10 : 0)}%)`;
             }
           };
           const color = createColor(colorValues.get(country.properties.ISO_A2_EH) ?? null);
           return color;
         }}
         onHexPolygonHover={(d: any) => {
+          resumeRender();
           if (d) {
             setHexSelectedCountry({ code: d.properties.ISO_A2_EH, name: d.properties.NAME });
           } else {
@@ -161,7 +195,7 @@ export function GlobeSection({ countryData, children }: {countryData: Record<str
         atmosphereColor='#CBD5E0'
         atmosphereAltitude={0.2}
       />}
-      <div className='absolute top-1 left-2 text-red-500 flex items-center gap-2 text-xs font-bold pointer-events-none select-none'>
+      <div className='absolute top-1 left-2 text-red-500 flex items-center gap-1.5 text-xs font-bold pointer-events-none select-none'>
         <div className="stack-live-pulse"></div>
         <style>{`
           .stack-live-pulse {

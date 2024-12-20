@@ -1,5 +1,6 @@
 'use client';
 
+import { useUser } from '@stackframe/stack';
 import { fromNow } from '@stackframe/stack-shared/dist/utils/dates';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@stackframe/stack-ui';
 import { PageLayout } from "../page-layout";
@@ -36,9 +37,11 @@ export default function PageClient() {
   const adminApp = useAdminApp();
 
   const data = (adminApp as any)[stackAppInternalsSymbol].useMetrics();
+  const user = useUser({ or: "redirect" });
+  const displayName = user.displayName ?? user.primaryEmail;
 
   return (
-    <PageLayout title="User Metric Dashboard">
+    <PageLayout title={`Welcome back${displayName ? `, ${displayName}!` : '!'}`}>
       {
         data !== null && <>
           <GlobeSection countryData={data.users_by_country}>
