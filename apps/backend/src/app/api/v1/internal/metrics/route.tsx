@@ -99,14 +99,28 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
 async function loadLoginMethods(projectId: string): Promise<{method: string, count: number }[]> {
   return await prismaClient.$queryRaw<{ method: string, count: number }[]>`
     WITH tab AS (
-      SELECT COALESCE(soapc."type"::text, poapc."type"::text, 'other') AS "method", method.id AS id FROM "AuthMethod" method
+      SELECT
+        COALESCE(
+          soapc."type"::text,
+          poapc."type"::text,
+          CASE WHEN pam IS NOT NULL THEN 'password' ELSE NULL END,
+          CASE WHEN pkm IS NOT NULL THEN 'passkey' ELSE NULL END,
+          CASE WHEN oam IS NOT NULL THEN 'otp' ELSE NULL END,
+          'other'
+        ) AS "method",
+        method.id AS id
+      FROM
+        "AuthMethod" method
       LEFT JOIN "OAuthAuthMethod" oaam ON method.id = oaam."authMethodId"
       LEFT JOIN "OAuthProviderConfig" oapc
         ON oaam."projectConfigId" = oapc."projectConfigId" AND oaam."oauthProviderConfigId" = oapc.id
       LEFT JOIN "StandardOAuthProviderConfig" soapc
         ON oapc."projectConfigId" = soapc."projectConfigId" AND oapc.id = soapc.id
-        LEFT JOIN "ProxiedOAuthProviderConfig" poapc
+      LEFT JOIN "ProxiedOAuthProviderConfig" poapc
         ON oapc."projectConfigId" = poapc."projectConfigId" AND oapc.id = poapc.id
+      LEFT JOIN "PasswordAuthMethod" pam ON method.id = pam."authMethodId"
+      LEFT JOIN "PasskeyAuthMethod" pkm ON method.id = pkm."authMethodId"
+      LEFT JOIN "OtpAuthMethod" oam ON method.id = oam."authMethodId"
       WHERE method."projectId" = ${projectId})
     SELECT LOWER("method") AS method, COUNT(id)::int AS "count" FROM tab
     GROUP BY "method"

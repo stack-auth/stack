@@ -72,11 +72,11 @@ const BRAND_CONFIG = {
   },
   google: {
     label: 'Google',
-    color: '#4285F4',
+    color: '#F3801D',
   },
   github: {
     label: 'GitHub',
-    color: '#238636',
+    color: '#222222',
   },
   microsoft: {
     label: 'Microsoft',
@@ -112,8 +112,20 @@ const BRAND_CONFIG = {
   },
   x: {
     label: 'X (Twitter)',
-    color: '#1D9BF0',
-  }
+    color: '#444444',
+  },
+  password: {
+    label: 'Password',
+    color: '#008888',
+  },
+  other: {
+    label: 'Other',
+    color: '#ffff00',
+  },
+  otp: {
+    label: 'OTP/Magic Link',
+    color: '#ff0088',
+  },
 };
 
 export type AuthMethodDatapoint = {
@@ -130,11 +142,8 @@ export function DonutChartDisplay({
     <Card>
       <CardHeader>
         <CardTitle>
-          Login Methods
+          Auth Methods
         </CardTitle>
-        <CardDescription>
-          Login methods used
-        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={BRAND_CONFIG} className='w-full max-h-[300px] p-4'>
@@ -151,7 +160,8 @@ export function DonutChartDisplay({
               dataKey="count"
               nameKey="method"
               innerRadius={60}
-              strokeWidth={5}
+              labelLine={false}
+              label={(x) => `${new Map(Object.entries(BRAND_CONFIG)).get(x.method)?.label ?? x.method}: ${x.count}`}
             />
           </PieChart>
         </ChartContainer>
