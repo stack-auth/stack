@@ -127,11 +127,11 @@ importers:
         specifier: ^1.27.0
         version: 1.27.0
       '@prisma/client':
-        specifier: ^6.0.1
-        version: 6.0.1(prisma@6.0.1)
+        specifier: ^6.1.0
+        version: 6.1.0(prisma@6.0.1)
       '@prisma/extension-accelerate':
         specifier: ^1.2.1
-        version: 1.2.1(@prisma/client@6.0.1(prisma@6.0.1))
+        version: 1.2.1(@prisma/client@6.1.0(prisma@6.0.1))
       '@prisma/instrumentation':
         specifier: ^5.19.1
         version: 5.20.0
@@ -3600,8 +3600,8 @@ packages:
   '@polka/url@1.0.0-next.25':
     resolution: {integrity: sha512-j7P6Rgr3mmtdkeDGTe0E/aYyWEWVtc5yFXtHCRHs28/jptDEWfaVOc5T7cblqy1XKPPfCxJc/8DwQ5YgLOZOVQ==}
 
-  '@prisma/client@6.0.1':
-    resolution: {integrity: sha512-60w7kL6bUxz7M6Gs/V+OWMhwy94FshpngVmOY05TmGD0Lhk+Ac0ZgtjlL6Wll9TD4G03t4Sq1wZekNVy+Xdlbg==}
+  '@prisma/client@6.1.0':
+    resolution: {integrity: sha512-AbQYc5+EJKm1Ydfq3KxwcGiy7wIbm4/QbjCKWWoNROtvy7d6a3gmAGkKjK0iUCzh+rHV8xDhD5Cge8ke/kiy5Q==}
     engines: {node: '>=18.18'}
     peerDependencies:
       prisma: '*'
@@ -13318,7 +13318,7 @@ snapshots:
 
   '@polka/url@1.0.0-next.25': {}
 
-  '@prisma/client@6.0.1(prisma@6.0.1)':
+  '@prisma/client@6.1.0(prisma@6.0.1)':
     optionalDependencies:
       prisma: 6.0.1
 
@@ -13333,9 +13333,9 @@ snapshots:
       '@prisma/fetch-engine': 6.0.1
       '@prisma/get-platform': 6.0.1
 
-  '@prisma/extension-accelerate@1.2.1(@prisma/client@6.0.1(prisma@6.0.1))':
+  '@prisma/extension-accelerate@1.2.1(@prisma/client@6.1.0(prisma@6.0.1))':
     dependencies:
-      '@prisma/client': 6.0.1(prisma@6.0.1)
+      '@prisma/client': 6.1.0(prisma@6.0.1)
 
   '@prisma/fetch-engine@6.0.1':
     dependencies:
