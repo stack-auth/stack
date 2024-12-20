@@ -73,7 +73,7 @@ type SendEmailOptions = {
 export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): Promise<Result<undefined, {
   rawError: any,
   errorType: 'UNKNOWN' | 'HOST_NOT_FOUND' | 'AUTH_FAILED' | 'SOCKET_CLOSED' | 'TEMPORARY' | 'INVALID_EMAIL_ADDRESS',
-  retryable: boolean,
+  canRetry: boolean,
   message?: string,
 }>> {
   try {
@@ -110,7 +110,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
         return Result.error({
           rawError: error,
           errorType: 'HOST_NOT_FOUND',
-          retryable: false,
+          canRetry: false,
           message: 'Failed to connect to the email host. Please make sure the email host configuration is correct.'
         });
       }
@@ -119,7 +119,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
         return Result.error({
           rawError: error,
           errorType: 'AUTH_FAILED',
-          retryable: false,
+          canRetry: false,
           message: 'Failed to authenticate with the email server. Please check your email credentials configuration.',
         });
       }
@@ -128,7 +128,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
         return Result.error({
           rawError: error,
           errorType: 'TEMPORARY',
-          retryable: true,
+          canRetry: true,
           message: 'The email server returned a temporary error. This could be due to a temporary network issue or a temporary block on the email server. Please try again later.\n\nError: ' + getServerResponse(error),
         });
       }
@@ -137,7 +137,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
         return Result.error({
           rawError: error,
           errorType: 'INVALID_EMAIL_ADDRESS',
-          retryable: false,
+          canRetry: false,
           message: 'The email address provided is invalid. Please verify both the recipient and sender email addresses configuration are correct.\n\nError:' + getServerResponse(error),
         });
       }
@@ -146,7 +146,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
         return Result.error({
           rawError: error,
           errorType: 'SOCKET_CLOSED',
-          retryable: false,
+          canRetry: false,
           message: 'Connection to email server was lost unexpectedly. This could be due to incorrect email server port configuration or a temporary network issue. Please verify your configuration and try again.',
         });
       }
@@ -168,7 +168,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
       return Result.error({
         rawError: error,
         errorType: 'UNKNOWN',
-        retryable: true,
+        canRetry: true,
         message: 'Failed to send email, but error is possibly transient due to the internet connection. Please check your email configuration and try again later.',
       });
     }
@@ -177,28 +177,28 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
     return Result.error({
       rawError: error,
       errorType: 'UNKNOWN',
-      retryable: false,
+      canRetry: false,
       message: 'An unknown error occurred while sending the email.',
     });
   }
 }
 
-export async function sendEmail({
-  emailConfig,
-  to,
-  subject,
-  text,
-  html,
-}: SendEmailOptions) {
+export async function sendEmail(options: SendEmailOptions) {
   await trace.getTracer('stackframe').startActiveSpan('sendEmail', async (span) => {
     try {
       return Result.orThrow(await Result.retry(async (attempt) => {
-        const result = await sendEmailWithKnownErrorTypes({ emailConfig, to, subject, text, html });
+        const result = await sendEmailWithKnownErrorTypes(options);
 
         if (result.status === 'error') {
-          const extraData = { host: emailConfig.host, from: emailConfig.senderEmail, to, subject, cause: result.error.rawError };
+          const extraData = {
+            host: options.emailConfig.host,
+            from: options.emailConfig.senderEmail,
+            to: options.to,
+            subject: options.subject,
+            cause: result.error.rawError,
+          };
 
-          if (result.error.retryable) {
+          if (result.error.canRetry) {
             console.warn("Failed to send email, but error is possibly transient so retrying.", extraData, result.error.rawError);
             return Result.error(result.error);
           }
