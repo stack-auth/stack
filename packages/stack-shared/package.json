@@ -27,11 +27,11 @@
     }
   },
   "peerDependencies": {
-    "react": ">=18.2 || >=19.0.0-rc.0",
-    "react-dom": ">=18.2 || >=19.0.0-rc.0",
     "@types/react": ">=18.2 || >=19.0.0-rc.0",
     "@types/react-dom": ">=18.2 || >=19.0.0-rc.0",
     "next": ">=14.1.0 || >=15.0.0-rc.0",
+    "react": ">=18.2 || >=19.0.0-rc.0",
+    "react-dom": ">=18.2 || >=19.0.0-rc.0",
     "yup": "^1.4.0"
   },
   "peerDependenciesMeta": {
@@ -51,24 +51,25 @@
   "dependencies": {
     "@simplewebauthn/browser": "^11.0.0",
     "@stackframe/stack-sc": "workspace:*",
+    "async-mutex": "^0.5.0",
     "bcrypt": "^5.1.1",
     "elliptic": "^6.5.7",
-    "jose": "^5.2.2",
     "ip-regex": "^5.0.0",
+    "jose": "^5.2.2",
     "oauth4webapi": "^2.10.3",
     "semver": "^7.6.3",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@sentry/nextjs": "^8.40.0",
     "@simplewebauthn/types": "^11.0.0",
     "@types/bcrypt": "^5.0.2",
     "@types/elliptic": "^6.4.18",
     "@types/semver": "^7.5.8",
     "@types/uuid": "^9.0.8",
-    "rimraf": "^5.0.5",
+    "next": "^14.1.0",
     "react": "^18.2",
     "react-dom": "^18.2",
-    "next": "^14.1.0",
-    "@sentry/nextjs": "^8.40.0"
+    "rimraf": "^5.0.5"
   }
 }

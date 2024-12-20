@@ -26,7 +26,7 @@ import { deepPlainEquals, filterUndefined, omit } from "@stackframe/stack-shared
 import { ReactPromise, neverResolve, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { suspend, suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { Result } from "@stackframe/stack-shared/dist/utils/results";
-import { Store } from "@stackframe/stack-shared/dist/utils/stores";
+import { Store, storeLock } from "@stackframe/stack-shared/dist/utils/stores";
 import { mergeScopeStrings } from "@stackframe/stack-shared/dist/utils/strings";
 import { getRelativePart, isRelative } from "@stackframe/stack-shared/dist/utils/urls";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
@@ -1536,12 +1536,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected async _signOut(session: InternalSession, options?: { redirectUrl?: URL | string }): Promise<void> {
-    await this._interface.signOut(session);
-    if (options?.redirectUrl) {
-      await _redirectTo(options.redirectUrl);
-    } else {
-      await this.redirectToAfterSignOut();
-    }
+    await storeLock.withWriteLock(async () => {
+      await this._interface.signOut(session);
+      if (options?.redirectUrl) {
+        await _redirectTo(options.redirectUrl);
+      } else {
+        await this.redirectToAfterSignOut();
+      }
+    });
   }
 
   async signOut(options?: { redirectUrl?: URL | string }): Promise<void> {
@@ -2536,6 +2538,25 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         return useAsyncCache(this._metricsCache, [], "useMetrics()");
       }
     };
+
+  async sendTestEmail(options: {
+    recipientEmail: string,
+    emailConfig: EmailConfig,
+  }): Promise<Result<undefined, { errorMessage: string }>> {
+    const response = await this._interface.sendTestEmail({
+      recipient_email: options.recipientEmail,
+      email_config: {
+        ...options.emailConfig,
+        sender_email: options.emailConfig.senderEmail,
+        sender_name: options.emailConfig.senderName,
+      },
+    });
+
+    if (response.success) {
+      return Result.ok(undefined);
+    } else {
+      return Result.error({ errorMessage: response.error_message ?? throwErr("Email test error not specified") });
+    }
   }
 }
 
@@ -3430,6 +3451,11 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
 
     useSvixToken(): string,
     sendAdminRequest(path: string, requestOptions: RequestInit,): ReturnType<StackAdminInterface['sendAdminRequest']>,
+
+    sendTestEmail(options: {
+      recipientEmail: string,
+      emailConfig: EmailConfig,
+    }): Promise<Result<undefined, { errorMessage: string }>>,
   }
   & StackServerApp<HasTokenStore, ProjectId>
 );
@@ -3473,8 +3499,11 @@ type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultip
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
   & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
 
-type Prettify<T> = {
-  [K in keyof T]: T[K];
-} & {};
-
-type x = Prettify<CurrentUser>
+type EmailConfig = {
+  host: string,
+  port: number,
+  username: string,
+  password: string,
+  senderEmail: string,
+  senderName: string,
+}
