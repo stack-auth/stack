@@ -51,7 +51,7 @@ ENV NEXT_CONFIG_OUTPUT=standalone
 RUN pnpm turbo run docker-build --filter=@stackframe/stack-backend... --filter=@stackframe/stack-dashboard...
 
 # Build the self-host seed script
-RUN cd apps/backend && pnpm self-host-seed-script
+RUN cd apps/backend && pnpm build-self-host-seed-script
 
 # Final image
 FROM node:${NODE_VERSION}-slim
