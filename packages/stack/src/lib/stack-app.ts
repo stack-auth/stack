@@ -2521,22 +2521,12 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
 
   async sendTestEmail(options: {
     recipientEmail: string,
-    emailConfig: {
-      host: string,
-      port: number,
-      username: string,
-      password: string,
-      senderEmail: string,
-      senderName: string,
-    },
+    emailConfig: EmailConfig,
   }): Promise<Result<undefined, { errorMessage: string }>> {
     const response = await this._interface.sendTestEmail({
       recipient_email: options.recipientEmail,
       email_config: {
-        host: options.emailConfig.host,
-        port: options.emailConfig.port,
-        username: options.emailConfig.username,
-        password: options.emailConfig.password,
+        ...options.emailConfig,
         sender_email: options.emailConfig.senderEmail,
         sender_name: options.emailConfig.senderName,
       },
@@ -3443,14 +3433,7 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
 
     sendTestEmail(options: {
       recipientEmail: string,
-      emailConfig: {
-        host: string,
-        port: number,
-        username: string,
-        password: string,
-        senderEmail: string,
-        senderName: string,
-      },
+      emailConfig: EmailConfig,
     }): Promise<Result<undefined, { errorMessage: string }>>,
   }
   & StackServerApp<HasTokenStore, ProjectId>
@@ -3495,8 +3478,11 @@ type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultip
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
   & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
 
-type Prettify<T> = {
-  [K in keyof T]: T[K];
-} & {};
-
-type x = Prettify<CurrentUser>
+type EmailConfig = {
+  host: string,
+  port: number,
+  username: string,
+  password: string,
+  senderEmail: string,
+  senderName: string,
+}
