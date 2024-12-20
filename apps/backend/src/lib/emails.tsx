@@ -138,7 +138,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
           rawError: error,
           errorType: 'INVALID_EMAIL_ADDRESS',
           retryable: false,
-          message: 'The email address provided is invalid. Please verify both the recipient and sender email addresses configuration are correct.' + getServerResponse(error),
+          message: 'The email address provided is invalid. Please verify both the recipient and sender email addresses configuration are correct.\n\nError:' + getServerResponse(error),
         });
       }
 
