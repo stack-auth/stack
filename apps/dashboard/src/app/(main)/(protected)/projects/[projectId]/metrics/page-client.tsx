@@ -11,7 +11,7 @@ import { DonutChartDisplay, LineChartDisplay, LineChartDisplayConfig } from './l
 
 const stackAppInternalsSymbol = Symbol.for("StackAuth--DO-NOT-USE-OR-YOU-WILL-BE-FIRED--StackAppInternals");
 
-const dailySignupsConfig = {
+const dailySignUpsConfig = {
   name: 'Daily Signups',
   description: 'User registration over the last 30 days',
   chart: {
@@ -62,7 +62,7 @@ export default function PageClient() {
           </GlobeSection>
           <div className='grid gap-4 lg:grid-cols-2'>
             <LineChartDisplay
-              config={dailySignupsConfig}
+              config={dailySignUpsConfig}
               datapoints={data.daily_users}
             />
             <LineChartDisplay
@@ -71,7 +71,7 @@ export default function PageClient() {
             />
             <Card>
               <CardHeader>
-                <CardTitle>Recent Signups</CardTitle>
+                <CardTitle>Recent Sign ups</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
