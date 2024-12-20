@@ -129,7 +129,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
           rawError: error,
           errorType: 'TEMPORARY',
           retryable: true,
-          message: 'The email server returned a temporary error. This could be due to a temporary network issue or a temporary block on the email server. Please try again later.' + getServerResponse(error),
+          message: 'The email server returned a temporary error. This could be due to a temporary network issue or a temporary block on the email server. Please try again later.\n\nError: ' + getServerResponse(error),
         });
       }
 
