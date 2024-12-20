@@ -273,11 +273,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     query: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "A search query to filter the results by. This is a free-text search that is applied to the user's display name and primary email." }}),
   }),
   onRead: async ({ auth, params }) => {
-    const user = await getUser({ projectId: auth.project.id, userId: params.user_id });
-    if (!user) {
+    if (!auth.user) {
       throw new KnownErrors.UserNotFound();
     }
-    return user;
+    return auth.user;
   },
   onList: async ({ auth, query }) => {
     const where = {
