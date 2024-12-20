@@ -100,7 +100,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
       const errorNumber = (error as any).errno as number | undefined;
 
       const getServerResponse = (error: any) => {
-        if (error.response) {
+        if (error?.response) {
           return `\nResponse from the email server:\n${error.response}`;
         }
         return '';
