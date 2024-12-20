@@ -71,7 +71,7 @@ export default function PageClient() {
             />
             <Card>
               <CardHeader>
-                <CardTitle>Recent Sign ups</CardTitle>
+                <CardTitle>Recent Sign Ups</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
