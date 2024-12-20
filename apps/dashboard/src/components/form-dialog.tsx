@@ -53,9 +53,10 @@ export function SmartFormDialog<S extends yup.ObjectSchema<any, any, any, any>>(
 export function FormDialog<F extends FieldValues>(
   props: Omit<ActionDialogProps, 'children'> & {
     defaultValues?: Partial<F>,
-    onSubmit: (values: F) => Promise<void | 'prevent-close'> | void | 'prevent-close',
+    onSubmit: (values: F) => Promise<void | 'prevent-close' | 'prevent-close-and-prevent-reset'> | void | 'prevent-close' | 'prevent-close-and-prevent-reset',
     render: (form: ReturnType<typeof useForm<F>>) => React.ReactNode,
     formSchema: yup.ObjectSchema<F>,
+    onFormChange?: (form: ReturnType<typeof useForm<F>>) => void,
   }
 ) {
   const formId = useId();
@@ -72,11 +73,14 @@ export function FormDialog<F extends FieldValues>(
     setSubmitting(true);
     try {
       const result = await props.onSubmit(values);
-      form.reset();
-      if (result !== 'prevent-close') {
-        setOpenState(false);
-        props.onClose?.();
-        props.onOpenChange?.(false);
+      if (result !== 'prevent-close-and-prevent-reset') {
+        form.reset();
+
+        if (result !== 'prevent-close') {
+          setOpenState(false);
+          props.onClose?.();
+          props.onOpenChange?.(false);
+        }
       }
     } finally {
       setSubmitting(false);
@@ -85,7 +89,15 @@ export function FormDialog<F extends FieldValues>(
 
   useEffect(() => {
     form.reset(props.defaultValues);
-  }, [props.defaultValues, form]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.defaultValues]);
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name, type }) => {
+      props.onFormChange?.(form);
+    });
+    return () => subscription.unsubscribe();
+  }, [form, form.watch, props]);
 
   return (
     <ActionDialog
