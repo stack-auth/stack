@@ -2,11 +2,12 @@ import { InternalProjectsCrud } from "@stackframe/stack-shared/dist/interface/cr
 import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import * as jose from "jose";
+import { randomUUID } from "node:crypto";
 import { expect } from "vitest";
-import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
+import { Context, INBUCKET_API_URL, Mailbox, MailboxMessage, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, generatedEmailSuffix, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
 type BackendContext = {
   readonly projectKeys: ProjectKeys,
@@ -24,12 +25,14 @@ type BackendContext = {
     readonly longitude: number,
     readonly tzIdentifier: string,
   },
+  readonly generatedMailboxNamesCount: number,
 };
 
 export const backendContext = new Context<BackendContext, Partial<BackendContext>>(
   () => ({
     projectKeys: InternalProjectKeys,
-    mailbox: createMailbox(),
+    mailbox: createMailbox(`default-mailbox--${randomUUID()}${generatedEmailSuffix}`),
+    generatedMailboxNamesCount: 0,
     userAuth: null,
     ipData: undefined,
   }),
@@ -40,6 +43,34 @@ export const backendContext = new Context<BackendContext, Partial<BackendContext
     };
   },
 );
+
+export function createMailbox(email?: string): Mailbox {
+  if (email === undefined) {
+    backendContext.set({ generatedMailboxNamesCount: backendContext.value.generatedMailboxNamesCount + 1 });
+    email = `mailbox-${backendContext.value.generatedMailboxNamesCount}--${randomUUID()}${generatedEmailSuffix}`;
+  }
+  if (!email.includes("@")) throw new StackAssertionError(`Invalid mailbox email: ${email}`);
+  const mailboxName = email.split("@")[0];
+  const fullMessageCache = new Map<string, any>();
+  return {
+    emailAddress: email,
+    async fetchMessages({ noBody } = {}) {
+      const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
+      return await Promise.all((res.body as any[]).map(async (message) => {
+        let fullMessage: any;
+        if (fullMessageCache.has(message.id)) {
+          fullMessage = fullMessageCache.get(message.id);
+        } else {
+          const fullMessageRes = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}/${message.id}`, INBUCKET_API_URL));
+          fullMessage = fullMessageRes.body;
+          fullMessageCache.set(message.id, fullMessage);
+        }
+        const messagePart = noBody ? omit(fullMessage, ["body", "attachments"]) : fullMessage;
+        return new MailboxMessage(messagePart);
+      }));
+    },
+  };
+}
 
 export type ProjectKeys = "no-project" | {
   projectId: string,
@@ -142,6 +173,7 @@ export namespace Auth {
     const accessToken = backendContext.value.userAuth?.accessToken;
     if (accessToken) {
       const aud = jose.decodeJwt(accessToken).aud;
+      console.log(accessToken, jose.decodeJwt(accessToken));
       const jwks = jose.createRemoteJWKSet(new URL(`api/v1/projects/${aud}/.well-known/jwks.json`, STACK_BACKEND_BASE_URL));
       const { payload } = await jose.jwtVerify(accessToken, jwks);
       expect(payload).toEqual({
@@ -496,9 +528,9 @@ export namespace Auth {
               },
               "timeout": 60000,
               "user": {
-                "displayName": "<stripped UUID>@stack-generated.example.com",
+                "displayName": "default-mailbox--<stripped UUID>@stack-generated.example.com",
                 "id": "<stripped encoded UUID>",
-                "name": "<stripped UUID>@stack-generated.example.com",
+                "name": "default-mailbox--<stripped UUID>@stack-generated.example.com",
               },
             },
           },
