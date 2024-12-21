@@ -2520,6 +2520,26 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   protected async _refreshApiKeys() {
     await this._apiKeysCache.refresh([]);
   }
+
+  async sendTestEmail(options: {
+    recipientEmail: string,
+    emailConfig: EmailConfig,
+  }): Promise<Result<undefined, { errorMessage: string }>> {
+    const response = await this._interface.sendTestEmail({
+      recipient_email: options.recipientEmail,
+      email_config: {
+        ...options.emailConfig,
+        sender_email: options.emailConfig.senderEmail,
+        sender_name: options.emailConfig.senderName,
+      },
+    });
+
+    if (response.success) {
+      return Result.ok(undefined);
+    } else {
+      return Result.error({ errorMessage: response.error_message ?? throwErr("Email test error not specified") });
+    }
+  }
 }
 
 type _______________CONTACT_CHANNEL_______________ = never;  // this is a marker for VSCode's outline view
@@ -3412,6 +3432,11 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
     deleteTeamPermissionDefinition(permissionId: string): Promise<void>,
 
     useSvixToken(): string,
+
+    sendTestEmail(options: {
+      recipientEmail: string,
+      emailConfig: EmailConfig,
+    }): Promise<Result<undefined, { errorMessage: string }>>,
   }
   & StackServerApp<HasTokenStore, ProjectId>
 );
@@ -3455,8 +3480,11 @@ type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultip
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
   & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
 
-type Prettify<T> = {
-  [K in keyof T]: T[K];
-} & {};
-
-type x = Prettify<CurrentUser>
+type EmailConfig = {
+  host: string,
+  port: number,
+  username: string,
+  password: string,
+  senderEmail: string,
+  senderName: string,
+}
