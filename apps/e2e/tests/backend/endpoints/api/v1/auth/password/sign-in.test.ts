@@ -31,7 +31,7 @@ it("should allow signing in to existing accounts", async ({ expect }) => {
         "oauth_providers": [],
         "otp_auth_enabled": false,
         "passkey_auth_enabled": false,
-        "primary_email": "<stripped UUID>@stack-generated.example.com",
+        "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
         "primary_email_verified": false,
         "profile_image_url": null,
         "requires_totp_mfa": false,

@@ -1,5 +1,5 @@
-import { createMailbox, it } from "../../../../helpers";
-import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { it } from "../../../../helpers";
+import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, createMailbox, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("is not allowed to add user to team on client", async ({ expect }) => {
@@ -78,7 +78,7 @@ it("creates a team and allows managing users on the server", async ({ expect }) 
             "oauth_providers": [],
             "otp_auth_enabled": true,
             "passkey_auth_enabled": false,
-            "primary_email": "<stripped UUID>@stack-generated.example.com",
+            "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
             "primary_email_auth_enabled": true,
             "primary_email_verified": true,
             "profile_image_url": null,
@@ -99,7 +99,7 @@ it("creates a team and allows managing users on the server", async ({ expect }) 
             "oauth_providers": [],
             "otp_auth_enabled": true,
             "passkey_auth_enabled": false,
-            "primary_email": "<stripped UUID>@stack-generated.example.com",
+            "primary_email": "mailbox-1--<stripped UUID>@stack-generated.example.com",
             "primary_email_auth_enabled": true,
             "primary_email_verified": true,
             "profile_image_url": null,
@@ -151,7 +151,7 @@ it("creates a team and allows managing users on the server", async ({ expect }) 
             "oauth_providers": [],
             "otp_auth_enabled": true,
             "passkey_auth_enabled": false,
-            "primary_email": "<stripped UUID>@stack-generated.example.com",
+            "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
             "primary_email_auth_enabled": true,
             "primary_email_verified": true,
             "profile_image_url": null,

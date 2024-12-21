@@ -1,5 +1,5 @@
-import { createMailbox, it } from "../../../../helpers";
-import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { it } from "../../../../helpers";
+import { Auth, Team, backendContext, createMailbox, niceBackendFetch } from "../../../backend-helpers";
 
 it("requires $invite_members permission to send invitation", async ({ expect }) => {
   await Auth.Otp.signIn();
