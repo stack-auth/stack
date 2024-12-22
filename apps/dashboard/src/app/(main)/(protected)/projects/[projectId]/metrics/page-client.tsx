@@ -67,7 +67,7 @@ export default function PageClient() {
                     {
                 data.recently_registered.map((user: any) => <TableRow key={user.id}>
                   <TableCell>{user.display_name}</TableCell>
-                  <TableCell>{fromNow(new Date(user.created_at_millis))}</TableCell>
+                  <TableCell>{fromNow(new Date(user.signed_up_at_millis))}</TableCell>
                 </TableRow>)
                     }
                   </TableBody>
@@ -90,7 +90,7 @@ export default function PageClient() {
                     {
                 data.recently_active.map((user: any) => <TableRow key={user.id}>
                   <TableCell>{user.display_name}</TableCell>
-                  <TableCell>{fromNow(new Date(user.updated_at_millis))}</TableCell>
+                  <TableCell>{fromNow(new Date(user.last_active_at_millis))}</TableCell>
                 </TableRow>)
                     }
                   </TableBody>

@@ -39,7 +39,7 @@ export const backendContext = new Context<BackendContext, Partial<BackendContext
   (acc, update) => {
     return {
       ...acc,
-      ...filterUndefined(update),
+      ...update,
     };
   },
 );
@@ -138,6 +138,7 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
       ...backendContext.value.ipData ? {
+        "user-agent": "Mozilla/5.0",  // pretend to be a browser so our IP gets tracked
         "x-forwarded-for": backendContext.value.ipData.ipAddress,
         "cf-connecting-ip": backendContext.value.ipData.ipAddress,
         "x-vercel-ip-country": backendContext.value.ipData.country,

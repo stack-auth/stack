@@ -1,8 +1,11 @@
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { ContactChannel, ProjectUser } from "@prisma/client";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { adaptSchema, adminAuthTypeSchema, yupArray, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import yup from 'yup';
+import { usersCrudHandlers } from "../../users/crud";
 
 type DataPoints = yup.InferType<typeof DataPointsSchema>;
 
@@ -14,21 +17,25 @@ const DataPointsSchema = yupArray(yupObject({
 
 async function loadUsersByCountry(projectId: string): Promise<Record<string, number>> {
   const a = await prismaClient.$queryRaw<{countryCode: string|null, userCount: bigint}[]>`
-    WITH LatestEvent AS (
-        SELECT "data"->'userId' AS "userId",
-          "countryCode", MAX("eventStartedAt") AS latest_timestamp
+    WITH LatestEventWithCountryCode AS (
+        SELECT DISTINCT ON ("userId")
+          "data"->'userId' AS "userId",
+          "countryCode",
+          "eventStartedAt" AS latest_timestamp
         FROM "Event"
         LEFT JOIN "EventIpInfo" eip
           ON "Event"."endUserIpInfoGuessId" = eip.id
         WHERE '$user-activity' = ANY("systemEventTypeIds"::text[])
           AND "data"->>'projectId' = ${projectId}
-        GROUP BY "userId", "countryCode"
+          AND "countryCode" IS NOT NULL
+        ORDER BY "userId", "eventStartedAt" DESC
     )
-    SELECT "countryCode", COUNT(DISTINCT "userId") AS "userCount"
-    FROM LatestEvent
+    SELECT "countryCode", COUNT("userId") AS "userCount"
+    FROM LatestEventWithCountryCode
     GROUP BY "countryCode"
     ORDER BY "userCount" DESC;
   `;
+  console.log("AAAAAAAAAA", a);
 
   const rec = Object.fromEntries(
     a.map(({ userCount, countryCode }) => [countryCode, Number(userCount)])
@@ -127,19 +134,7 @@ async function loadLoginMethods(projectId: string): Promise<{method: string, cou
   `;
 }
 
-function simplifyUsers(users: (ProjectUser & { contactChannels: ContactChannel[] })[]): any {
-  return users.map((user) => ({
-    id: user.projectUserId,
-    display_name: user.displayName,
-    email: user.contactChannels.find(x => x.isPrimary)?.value ?? '-',
-    created_at_millis: user.createdAt.getTime(),
-    updated_at_millis: user.updatedAt.getTime(),
-  }));
-}
-
-async function loadRecentlyActiveUsers(projectId: string):
-  Promise<(ProjectUser & { contactChannels: ContactChannel[] })[]> {
-
+async function loadRecentlyActiveUsers(project: ProjectsCrud["Admin"]["Read"]): Promise<UsersCrud["Admin"]["Read"][]> {
   // use the Events table to get the most recent activity
   const events = await prismaClient.$queryRaw<{ data: any, eventStartedAt: Date }[]>`
     WITH RankedEvents AS (
@@ -150,31 +145,36 @@ async function loadRecentlyActiveUsers(projectId: string):
           ORDER BY "eventStartedAt" DESC
         ) as rn
       FROM "Event"
-      WHERE "data"->>'projectId' = ${projectId}
+      WHERE "data"->>'projectId' = ${project.id}
         AND '$user-activity' = ANY("systemEventTypeIds"::text[])
     )
     SELECT "data", "eventStartedAt"
     FROM RankedEvents
     WHERE rn = 1
-    LIMIT 10
+    ORDER BY "eventStartedAt" DESC
+    LIMIT 5
   `;
-  const res = await prismaClient.projectUser.findMany({
-    take: 10,
-    where: { projectId, projectUserId: { in: events.map(x => (x.data as any).userId) } },
-    include: { contactChannels: true },
-    orderBy: [{
-      updatedAt: 'desc'
-    }]
-  });
-
-  // Create a map of userId to eventStartedAt for quick lookup
-  const eventDates = new Map(events.map(x => [(x.data as any).userId, x.eventStartedAt]));
-
-  // Replace updatedAt with eventStartedAt
-  return res.map(user => ({
-    ...user,
-    updatedAt: eventDates.get(user.projectUserId) || user.updatedAt
-  }));
+  const userObjects: UsersCrud["Admin"]["Read"][] = [];
+  for (const event of events) {
+    let user;
+    try {
+      user = await usersCrudHandlers.adminRead({
+        project,
+        user_id: event.data.userId,
+        allowedErrorTypes: [
+          KnownErrors.UserNotFound,
+        ],
+      });
+    } catch (e) {
+      if (e instanceof KnownErrors.UserNotFound) {
+        // user probably deleted their account, skip
+        continue;
+      }
+      throw e;
+    }
+    userObjects.push(user);
+  }
+  return userObjects;
 }
 
 export const GET = createSmartRouteHandler({
@@ -219,15 +219,18 @@ export const GET = createSmartRouteHandler({
       loadTotalUsers(req.auth.project.id, now),
       loadDailyActiveUsers(req.auth.project.id, now),
       loadUsersByCountry(req.auth.project.id),
-      prismaClient.projectUser.findMany({
-        take: 10,
-        where: { projectId: req.auth.project.id, },
-        include: { contactChannels: true },
-        orderBy: [{
-          createdAt: 'desc'
-        }]
-      }),
-      loadRecentlyActiveUsers(req.auth.project.id),
+      (await usersCrudHandlers.adminList({
+        project: req.auth.project,
+        query: {
+          order_by: 'signed_up_at',
+          desc: true,
+          limit: 5,
+        },
+        allowedErrorTypes: [
+          KnownErrors.UserNotFound,
+        ],
+      })).items,
+      loadRecentlyActiveUsers(req.auth.project),
       loadLoginMethods(req.auth.project.id),
     ] as const);
 
@@ -239,8 +242,8 @@ export const GET = createSmartRouteHandler({
         daily_users: dailyUsers,
         daily_active_users: dailyActiveUsers,
         users_by_country: usersByCountry,
-        recently_registered: simplifyUsers(recentlyRegistered),
-        recently_active: simplifyUsers(recentlyActive),
+        recently_registered: recentlyRegistered,
+        recently_active: recentlyActive,
         login_methods: loginMethods,
       }
     };
