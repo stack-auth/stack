@@ -31,6 +31,7 @@ import {
   Settings,
   Settings2,
   ShieldEllipsis,
+  TrendingUp,
   User,
   Users,
   Webhook,
@@ -78,6 +79,13 @@ const navigationItems: (Label | Item | Hidden)[] = [
     href: "/auth-methods",
     regex: /^\/projects\/[^\/]+\/auth-methods$/,
     icon: ShieldEllipsis,
+    type: 'item'
+  },
+  {
+    name: "Metrics",
+    href: "/metrics",
+    regex: /^\/projects\/[^\/]+\/metrics$/,
+    icon: TrendingUp,
     type: 'item'
   },
   {
@@ -410,7 +418,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}/>
           </div>
         </div>
-        <div className="flex-grow">
+        <div className="flex-grow relative">
           {props.children}
         </div>
       </div>

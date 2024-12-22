@@ -16,6 +16,15 @@ type BackendContext = {
     readonly refreshToken?: string,
     readonly accessToken?: string,
   } | null,
+  readonly ipData?: {
+    readonly ipAddress: string,
+    readonly country: string,
+    readonly city: string,
+    readonly region: string,
+    readonly latitude: number,
+    readonly longitude: number,
+    readonly tzIdentifier: string,
+  },
   readonly generatedMailboxNamesCount: number,
 };
 
@@ -25,11 +34,12 @@ export const backendContext = new Context<BackendContext, Partial<BackendContext
     mailbox: createMailbox(`default-mailbox--${randomUUID()}${generatedEmailSuffix}`),
     generatedMailboxNamesCount: 0,
     userAuth: null,
+    ipData: undefined,
   }),
   (acc, update) => {
     return {
       ...acc,
-      ...filterUndefined(update),
+      ...update,
     };
   },
 );
@@ -127,6 +137,18 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
       } : {},
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
+      ...backendContext.value.ipData ? {
+        "user-agent": "Mozilla/5.0",  // pretend to be a browser so our IP gets tracked
+        "x-forwarded-for": backendContext.value.ipData.ipAddress,
+        "cf-connecting-ip": backendContext.value.ipData.ipAddress,
+        "x-vercel-ip-country": backendContext.value.ipData.country,
+        "cf-ipcountry": backendContext.value.ipData.country,
+        "x-vercel-ip-country-region": backendContext.value.ipData.region,
+        "x-vercel-ip-city": backendContext.value.ipData.city,
+        "x-vercel-ip-latitude": backendContext.value.ipData.latitude.toString(),
+        "x-vercel-ip-longitude": backendContext.value.ipData.longitude.toString(),
+        "x-vercel-ip-timezone": backendContext.value.ipData.tzIdentifier,
+      } : {},
       ...Object.fromEntries(new Headers(filterUndefined(headers ?? {}) as any).entries()),
     }),
   });
