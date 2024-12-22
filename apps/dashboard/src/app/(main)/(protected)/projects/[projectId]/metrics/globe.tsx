@@ -132,12 +132,12 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
     >
       <div className='absolute top-0 right-0' style={{
         width: globeSize?.[0] ?? 64,
-        height: globeSize?.[1] ?? 64,
+        height: (globeWindowSize?.height ?? 64) + 16,
       }}>
         {!isGlobeReady && (
           <Skeleton style={{
-            width: Math.min(globeContainerSize?.width ?? 0, globeContainerSize?.height ?? 0) * 2 / 3,
-            height: Math.min(globeContainerSize?.width ?? 0, globeContainerSize?.height ?? 0) * 2 / 3,
+            width: Math.min(globeSize?.[0] ?? 64, (globeWindowSize?.height ?? 64) + 16) * 1.9 / 3,
+            height: Math.min(globeSize?.[0] ?? 64, (globeWindowSize?.height ?? 64) + 16) * 1.9 / 3,
             borderRadius: '100%',
             position: 'absolute',
             top: '50%',

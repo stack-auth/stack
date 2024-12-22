@@ -1,6 +1,7 @@
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { isWeekend } from "@stackframe/stack-shared/dist/utils/dates";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@stackframe/stack-ui";
-import { Area, AreaChart, Pie, PieChart, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from "recharts";
 
 export type LineChartDisplayConfig = {
   name: string,
@@ -30,19 +31,29 @@ export function LineChartDisplay({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={config.chart} className='w-full max-h-[300px] p-4'>
-          <AreaChart accessibilityLayer data={datapoints}>
+        <ChartContainer config={config.chart} className='w-full max-h-[300px] p-0 ml-[-30px]'>
+          <BarChart accessibilityLayer data={datapoints}>
+            <CartesianGrid
+              horizontal={true}
+              vertical={false}
+            />
             <ChartTooltip
               content={<ChartTooltipContent labelKey='date'/>}
             />
-            <Area
+            <Bar
               dataKey="activity"
               fill="var(--color-activity)"
-              fillOpacity={0.4}
-              stroke="var(--color-activity)"
-              strokeWidth={2}
-            />
+              fillOpacity={1}
+              isAnimationActive={false}
+            >{datapoints.map(x => (
+              <Cell key={x.date} fillOpacity={isWeekend(new Date(x.date)) ? 0.4 : 1} />
+            ))}</Bar>
 
+            <YAxis
+              tickLine={false}
+              axisLine={false}
+              width={60}
+            />
             <XAxis
               dataKey="date"
               tickLine={false}
@@ -50,7 +61,7 @@ export function LineChartDisplay({
               axisLine={false}
               tickFormatter={(value) => value}
             />
-          </AreaChart>
+          </BarChart>
         </ChartContainer>
       </CardContent>
     </Card>
@@ -161,6 +172,7 @@ export function DonutChartDisplay({
               nameKey="method"
               innerRadius={60}
               labelLine={false}
+              isAnimationActive={false}
               label={(x) => `${new Map(Object.entries(BRAND_CONFIG)).get(x.method)?.label ?? x.method}: ${x.count}`}
             />
           </PieChart>

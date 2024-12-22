@@ -64,7 +64,7 @@ async function loadTotalUsers(projectId: string, now: Date): Promise<DataPoints>
     GROUP BY ds.registration_day
     ORDER BY ds.registration_day
   `).map((x) => ({
-    date: x.date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+    date: x.date.toISOString().split('T')[0],
     activity: Number(x.dailyUsers),
   }));
 }
@@ -98,7 +98,7 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
   `;
 
   return res.map(x => ({
-    date: x.day.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }),
+    date: x.day.toISOString().split('T')[0],
     activity: Number(x.dau),
   }));
 }
