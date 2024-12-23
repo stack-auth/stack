@@ -1,5 +1,5 @@
 import { it } from "../../../../helpers";
-import { ApiKey, Auth, Project, Team, backendContext, createMailbox, niceBackendFetch } from "../../../backend-helpers";
+import { ApiKey, Auth, Project, Team, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("is not allowed to list all the teams in a project on the client", async ({ expect }) => {
@@ -160,9 +160,7 @@ it("gets a specific team that the user is not part of on the client", async ({ e
   await Auth.Otp.signIn();
   const { createTeamResponse: response, teamId } = await Team.createAndAddCurrent();
 
-  backendContext.set({
-    mailbox: createMailbox()
-  });
+  await bumpEmailAddress();
   await Auth.Otp.signIn();
 
   const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, { accessType: "client" });
@@ -189,9 +187,7 @@ it("gets a team that the user is not part of on the server", async ({ expect }) 
   await Auth.Otp.signIn();
   const { teamId } = await Team.createAndAddCurrent();
 
-  backendContext.set({
-    mailbox: createMailbox()
-  });
+  await bumpEmailAddress();
 
   await Auth.Otp.signIn();
   const { createTeamResponse: response } = await Team.createAndAddCurrent();
@@ -233,9 +229,7 @@ it("should not be allowed to get a team that the user is not part of on the clie
   await Auth.Otp.signIn();
   const { teamId } = await Team.createAndAddCurrent();
 
-  backendContext.set({
-    mailbox: createMailbox()
-  });
+  await bumpEmailAddress();
 
   await Auth.Otp.signIn();
   const { createTeamResponse: response } = await Team.createAndAddCurrent();
@@ -658,9 +652,7 @@ it("enables create team on sign up", async ({ expect }) => {
 
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
-  backendContext.set({
-    mailbox: createMailbox()
-  });
+  await bumpEmailAddress();
   await Auth.Otp.signIn();
 
   const response2 = await niceBackendFetch("/api/v1/teams?user_id=me", { accessType: "server" });

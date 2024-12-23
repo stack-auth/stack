@@ -1,5 +1,5 @@
 import { it } from "../../../../helpers";
-import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, createMailbox, niceBackendFetch } from "../../../backend-helpers";
+import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("is not allowed to add user to team on client", async ({ expect }) => {
@@ -35,9 +35,7 @@ it("is not allowed to add user to team on client", async ({ expect }) => {
 
 it("creates a team and allows managing users on the server", async ({ expect }) => {
   const { userId: userId1 } = await Auth.Otp.signIn();
-  backendContext.set({
-    mailbox: createMailbox(),
-  });
+  await bumpEmailAddress();
   const { userId: userId2 } = await Auth.Otp.signIn();
   const { teamId } = await Team.createAndAddCurrent();
 
@@ -175,9 +173,7 @@ it("should give team creator default permissions", async ({ expect }) => {
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
   const { userId: userId1 } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
-  backendContext.set({
-    mailbox: createMailbox(),
-  });
+  await bumpEmailAddress();
   const { userId: userId2 } = await Auth.Password.signUpWithEmail({ password: 'test1234' });
   const { teamId } = await Team.createAndAddCurrent();
 
@@ -230,9 +226,7 @@ it("allows leaving team", async ({ expect }) => {
 
 it("removes user from team on the client", async ({ expect }) => {
   const { userId: userId1 } = await Auth.Otp.signIn();
-  backendContext.set({
-    mailbox: createMailbox(),
-  });
+  await bumpEmailAddress();
   const { userId: userId2 } = await Auth.Otp.signIn();
   const { teamId } = await Team.createAndAddCurrent();
 
@@ -328,10 +322,9 @@ it("can create a team without adding the current user as a member on the client"
 });
 
 it("creates a team on the server and adds a different user as the creator", async ({ expect }) => {
-  const user1Mailbox = createMailbox();
-  backendContext.set({ mailbox: user1Mailbox });
+  const user1Mailbox = await bumpEmailAddress();
   const { userId: userId1 } = await Auth.Otp.signIn();
-  backendContext.set({ mailbox: createMailbox() });
+  await bumpEmailAddress();
   await Auth.Otp.signIn();
 
   const response = await niceBackendFetch("/api/v1/teams", {
@@ -387,7 +380,7 @@ it("creates a team on the server and adds a different user as the creator", asyn
 
 it("is not allowed to create a team and add a different user as the creator on the client", async ({ expect }) => {
   const { userId: userId1 } = await Auth.Otp.signIn();
-  backendContext.set({ mailbox: createMailbox() });
+  await bumpEmailAddress();
   await Auth.Otp.signIn();
 
   const response = await niceBackendFetch("/api/v1/teams", {

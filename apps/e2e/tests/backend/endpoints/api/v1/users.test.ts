@@ -1,7 +1,7 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { describe } from "vitest";
 import { it } from "../../../../helpers";
-import { Auth, InternalProjectKeys, Project, backendContext, createMailbox, niceBackendFetch } from "../../../backend-helpers";
+import { Auth, InternalProjectKeys, Project, backendContext, bumpEmailAddress, createMailbox, niceBackendFetch } from "../../../backend-helpers";
 
 describe("without project access", () => {
   backendContext.set({
@@ -31,6 +31,7 @@ describe("without project access", () => {
   });
 
   it("should not be able to list users", async ({ expect }) => {
+    await Project.createAndSwitch();
     const response = await niceBackendFetch("/api/v1/users");
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
@@ -450,6 +451,7 @@ describe("with client access", () => {
   });
 
   it("should not be able to list users", async ({ expect }) => {
+    await Project.createAndSwitch();
     const response = await niceBackendFetch("/api/v1/users", {
       accessType: "client",
     });
@@ -746,10 +748,10 @@ describe("with server access", () => {
     `);
   });
 
-  it("list next cursor", async ({ expect }) => {
+  it("lists users with pagination", async ({ expect }) => {
     await Project.createAndSwitch({ config: { magic_link_enabled: true } });
     for (let i = 0; i < 5; i++) {
-      backendContext.set({ mailbox: createMailbox() });
+      await bumpEmailAddress();
       await Auth.Otp.signIn();
     }
     const allResponse = await niceBackendFetch("/api/v1/users", {
@@ -1577,13 +1579,13 @@ describe("with server access", () => {
   });
 
   it("should be able to update primary email", async ({ expect }) => {
-    await Project.createAndSwitch({ config: { magic_link_enabled: true }});
     await Auth.Otp.signIn();
+    const mailbox = createMailbox();
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "server",
       method: "PATCH",
       body: {
-        primary_email: "new-primary-email@example.com",
+        primary_email: mailbox.emailAddress,
       },
     });
     expect(response).toMatchInlineSnapshot(`
@@ -1600,7 +1602,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "new-primary-email@example.com",
+          "primary_email": "mailbox-1--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1616,34 +1618,29 @@ describe("with server access", () => {
   });
 
   it("should be able to update primary email and sign-in with the new email", async ({ expect }) => {
-    await Project.createAndSwitch();
     await Auth.Password.signUpWithEmail({ password: "password123" });
+    const mailbox = createMailbox();
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "server",
       method: "PATCH",
       body: {
-        primary_email: "new-primary-email@example.com",
+        primary_email: mailbox.emailAddress,
       },
     });
-    expect(response.body.primary_email).toEqual("new-primary-email@example.com");
+    expect(response.body.primary_email).toEqual(mailbox.emailAddress);
 
     backendContext.set({
-      mailbox: {
-        ...backendContext.value.mailbox,
-        emailAddress: "new-primary-email@example.com",
-      },
+      mailbox,
     });
     await Auth.Password.signInWithEmail({ password: "password123" });
-    expect(response.body.primary_email).toEqual("new-primary-email@example.com");
+    expect(response.body.primary_email).toEqual(mailbox.emailAddress);
   });
 
   it("should not be able to update primary email to an email already in use for auth", async ({ expect }) => {
     await Auth.Otp.signIn();
     const primaryEmail = backendContext.value.mailbox.emailAddress;
     await Auth.signOut();
-    backendContext.set({
-      mailbox: createMailbox(),
-    });
+    await bumpEmailAddress();
     await Auth.Password.signUpWithEmail({ password: "password123" });
     const response = await niceBackendFetch("/api/v1/users/me", {
       accessType: "server",
@@ -1688,6 +1685,57 @@ describe("with server access", () => {
           "x-stack-known-error": "SCHEMA_ERROR",
           <some fields may have been hidden>,
         },
+      }
+    `);
+  });
+
+  it("should not be able to sign up with an email already in use for auth", async ({ expect }) => {
+    await Auth.Password.signUpWithEmail({ password: "password123" });
+    const response = await niceBackendFetch("/api/v1/auth/password/sign-up", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        email: backendContext.value.mailbox.emailAddress,
+        password: "password123",
+        verification_callback_url: "http://localhost:12345/some-callback-url",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "USER_EMAIL_ALREADY_EXISTS",
+          "error": "User email already exists.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it("should be able to sign up with an email already in use for auth in a different project", async ({ expect }) => {
+    await Auth.Password.signUpWithEmail({ password: "password123" });
+    await Project.createAndSwitch({});
+    const response = await niceBackendFetch("/api/v1/auth/password/sign-up", {
+      method: "POST",
+      accessType: "client",
+      body: {
+        email: backendContext.value.mailbox.emailAddress,
+        password: "password123",
+        verification_callback_url: "http://localhost:12345/some-callback-url",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "access_token": <stripped field 'access_token'>,
+          "refresh_token": <stripped field 'refresh_token'>,
+          "user_id": "<stripped UUID>",
+        },
+        "headers": Headers { <some fields may have been hidden> },
       }
     `);
   });
