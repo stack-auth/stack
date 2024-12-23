@@ -1140,7 +1140,7 @@ describe("with server access", () => {
         "status": 400,
         "body": {
           "code": "USER_EMAIL_ALREADY_EXISTS",
-          "error": "User already exists.",
+          "error": "User email already exists.",
         },
         "headers": Headers {
           "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
@@ -1635,5 +1635,35 @@ describe("with server access", () => {
     });
     await Auth.Password.signInWithEmail({ password: "password123" });
     expect(response.body.primary_email).toEqual("new-primary-email@example.com");
+  });
+
+  it("should not be able to update primary email to an email already in use for auth", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const primaryEmail = backendContext.value.mailbox.emailAddress;
+    await Auth.signOut();
+    backendContext.set({
+      mailbox: createMailbox(),
+    });
+    await Auth.Password.signUpWithEmail({ password: "password123" });
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        primary_email: primaryEmail,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "USER_EMAIL_ALREADY_EXISTS",
+          "error": "User email already exists.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
   });
 });

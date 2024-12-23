@@ -108,7 +108,7 @@ it("should not allow signing in if email is not verified", async ({ expect }) =>
       "status": 400,
       "body": {
         "code": "USER_EMAIL_ALREADY_EXISTS",
-        "error": "User already exists.",
+        "error": "User email already exists.",
       },
       "headers": Headers {
         "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
