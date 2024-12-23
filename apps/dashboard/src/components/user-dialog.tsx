@@ -139,7 +139,7 @@ export function UserDialog(props: {
               label={props.type === 'edit' ? "New password" : "Password"}
               name="password"
               type="password"
-              autocomplete="off"
+              autoComplete="off"
             />
           )
         )}
