@@ -1,6 +1,4 @@
-import { getAuthContactChannel } from "@/lib/contact-channel";
 import { createAuthTokens } from "@/lib/tokens";
-import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from "@stackframe/stack-shared/dist/helpers/password";
@@ -50,19 +48,6 @@ export const POST = createSmartRouteHandler({
       throw new KnownErrors.SignUpNotEnabled();
     }
 
-    const contactChannel = await getAuthContactChannel(
-      prismaClient,
-      {
-        projectId: project.id,
-        type: "EMAIL",
-        value: email,
-      }
-    );
-
-    if (contactChannel) {
-      throw new KnownErrors.UserEmailAlreadyExists();
-    }
-
     const createdUser = await usersCrudHandlers.adminCreate({
       project,
       data: {
@@ -71,6 +56,7 @@ export const POST = createSmartRouteHandler({
         primary_email_auth_enabled: true,
         password,
       },
+      allowedErrorTypes: [KnownErrors.UserEmailAlreadyExists],
     });
 
     try {
