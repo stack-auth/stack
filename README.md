@@ -94,6 +94,7 @@ Have your own? Happy to feature it if you create a PR or message us on [Discord]
 ### Templates
 - [Stack Template by Stack Team](https://github.com/stack-auth/stack-template)
 - [Next SaaSkit by wolfgunblood](https://github.com/wolfgunblood/nextjs-saaskit)
+- [SaaS Boilerplate by Robin Faraj](https://github.com/robinfaraj/saas-boilerplate)
 
 ### Examples
 - [Stack Example by career-tokens](https://github.com/career-tokens/StackYCAuth)
