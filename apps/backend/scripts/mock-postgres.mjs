@@ -45,6 +45,6 @@ const server = net.createServer(async (socket) => {
   })
 })
 
-server.listen(5432, () => {
-  console.info('Server listening on port 5432')
+server.listen(8118, () => {
+  console.info('Postgres server listening on port 8118')
 })
