@@ -2,7 +2,7 @@ import { useAdminApp } from "@/app/(main)/(protected)/projects/[projectId]/use-a
 import { ServerUser } from "@stackframe/stack";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { emailSchema, jsonStringOrEmptySchema, passwordSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Typography, useToast } from "@stackframe/stack-ui";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button, Typography, useToast } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { FormDialog } from "./form-dialog";
 import { DateField, InputField, SwitchField, TextAreaField } from "./form-fields";
@@ -33,6 +33,7 @@ export function UserDialog(props: {
       serverMetadata: props.user.serverMetadata == null ? "" : JSON.stringify(props.user.serverMetadata, null, 2),
       passwordEnabled: props.user.hasPassword,
       otpAuthEnabled: props.user.otpAuthEnabled,
+      updatePassword: false,
     };
   } else {
     defaultValues = {
@@ -48,7 +49,16 @@ export function UserDialog(props: {
     clientReadOnlyMetadata: jsonStringOrEmptySchema.default("null"),
     serverMetadata: jsonStringOrEmptySchema.default("null"),
     primaryEmailVerified: yup.boolean().optional(),
-    password: passwordSchema.optional(),
+    password: passwordSchema.test({
+      name: 'password-required',
+      message: "Password is required",
+      test: (value, context) => {
+        if (context.parent.passwordEnabled && (context.parent.updatePassword || props.type === 'create')) {
+          return value != null;
+        }
+        return true;
+      },
+    }).optional(),
     otpAuthEnabled: yup.boolean().test({
       name: 'otp-verified',
       message: "Primary email must be verified if OTP/magic link sign-in is enabled",
@@ -57,6 +67,7 @@ export function UserDialog(props: {
       },
     }).optional(),
     passwordEnabled: yup.boolean().optional(),
+    updatePassword: yup.boolean().optional(),
   });
 
   async function handleSubmit(values: yup.InferType<typeof formSchema>) {
@@ -113,7 +124,25 @@ export function UserDialog(props: {
 
         {project.config.magicLinkEnabled && <SwitchField control={form.control} label="OTP/magic link sign-in" name="otpAuthEnabled" />}
         {project.config.credentialEnabled && <SwitchField control={form.control} label="Password sign-in" name="passwordEnabled" />}
-        {form.watch("passwordEnabled") ? <InputField control={form.control} label={props.type === 'edit' ? "New password (leave it empty to not update it)" : "Password"} name="password" type="password" /> : null}
+        {form.watch("passwordEnabled") && (
+          props.type === 'edit' && !form.watch("password") && !form.watch("updatePassword") ? (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => form.setValue('updatePassword', true)}
+            >
+              Update Password
+            </Button>
+          ) : (
+            <InputField
+              control={form.control}
+              label={props.type === 'edit' ? "New password" : "Password"}
+              name="password"
+              type="password"
+              autocomplete="off"
+            />
+          )
+        )}
         {!form.watch("primaryEmailVerified") && form.watch("otpAuthEnabled") && <Typography variant="secondary">Primary email must be verified if OTP/magic link sign-in is enabled</Typography>}
 
         <Accordion type="single" collapsible>

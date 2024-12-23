@@ -42,14 +42,14 @@ describe("with grant_type === 'authorization_code'", async () => {
           "id": "<stripped UUID>",
           "oauth_providers": [
             {
-              "account_id": "<stripped UUID>@stack-generated.example.com",
-              "email": "<stripped UUID>@stack-generated.example.com",
+              "account_id": "default-mailbox--<stripped UUID>@stack-generated.example.com",
+              "email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
               "id": "spotify",
             },
           ],
           "otp_auth_enabled": false,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": false,
           "profile_image_url": null,
           "requires_totp_mfa": false,

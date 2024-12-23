@@ -1,5 +1,5 @@
-import { createMailbox, it } from "../../../../helpers";
-import { ApiKey, Auth, Project, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { it } from "../../../../helpers";
+import { ApiKey, Auth, Project, Team, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("is not allowed to list all the teams in a project on the client", async ({ expect }) => {
@@ -160,9 +160,7 @@ it("gets a specific team that the user is not part of on the client", async ({ e
   await Auth.Otp.signIn();
   const { createTeamResponse: response, teamId } = await Team.createAndAddCurrent();
 
-  backendContext.set({
-    mailbox: createMailbox()
-  });
+  await bumpEmailAddress();
   await Auth.Otp.signIn();
 
   const response2 = await niceBackendFetch(`/api/v1/teams/${teamId}`, { accessType: "client" });
@@ -189,9 +187,7 @@ it("gets a team that the user is not part of on the server", async ({ expect }) 
   await Auth.Otp.signIn();
   const { teamId } = await Team.createAndAddCurrent();
 
-  backendContext.set({
-    mailbox: createMailbox()
-  });
+  await bumpEmailAddress();
 
   await Auth.Otp.signIn();
   const { createTeamResponse: response } = await Team.createAndAddCurrent();
@@ -233,9 +229,7 @@ it("should not be allowed to get a team that the user is not part of on the clie
   await Auth.Otp.signIn();
   const { teamId } = await Team.createAndAddCurrent();
 
-  backendContext.set({
-    mailbox: createMailbox()
-  });
+  await bumpEmailAddress();
 
   await Auth.Otp.signIn();
   const { createTeamResponse: response } = await Team.createAndAddCurrent();
@@ -658,9 +652,7 @@ it("enables create team on sign up", async ({ expect }) => {
 
   await ApiKey.createAndSetProjectKeys(adminAccessToken);
 
-  backendContext.set({
-    mailbox: createMailbox()
-  });
+  await bumpEmailAddress();
   await Auth.Otp.signIn();
 
   const response2 = await niceBackendFetch("/api/v1/teams?user_id=me", { accessType: "server" });
@@ -674,7 +666,7 @@ it("enables create team on sign up", async ({ expect }) => {
             "client_metadata": null,
             "client_read_only_metadata": null,
             "created_at_millis": <stripped field 'created_at_millis'>,
-            "display_name": "<stripped UUID>@stack-generated.example.com's Team",
+            "display_name": "mailbox-1--<stripped UUID>@stack-generated.example.com's Team",
             "id": "<stripped UUID>",
             "profile_image_url": null,
             "server_metadata": null,
