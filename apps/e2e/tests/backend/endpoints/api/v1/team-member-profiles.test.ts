@@ -1,5 +1,5 @@
-import { createMailbox, it } from "../../../../helpers";
-import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { it } from "../../../../helpers";
+import { Auth, Team, backendContext, createMailbox, niceBackendFetch } from "../../../backend-helpers";
 
 async function signInAndCreateTeam() {
   const { userId: userId1 } = await Auth.Otp.signIn();

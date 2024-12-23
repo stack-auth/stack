@@ -1,7 +1,7 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { describe } from "vitest";
-import { createMailbox, it } from "../../../../helpers";
-import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { it } from "../../../../helpers";
+import { Auth, InternalProjectKeys, Project, backendContext, createMailbox, niceBackendFetch } from "../../../backend-helpers";
 
 describe("without project access", () => {
   backendContext.set({
@@ -86,7 +86,7 @@ describe("with client access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
           "requires_totp_mfa": false,
@@ -118,7 +118,7 @@ describe("with client access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
           "requires_totp_mfa": false,
@@ -195,7 +195,7 @@ describe("with client access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
           "requires_totp_mfa": false,
@@ -226,7 +226,7 @@ describe("with client access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
           "requires_totp_mfa": false,
@@ -367,7 +367,7 @@ describe("with client access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
           "requires_totp_mfa": false,
@@ -398,7 +398,7 @@ describe("with client access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
           "requires_totp_mfa": false,
@@ -527,7 +527,7 @@ describe("with client access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_verified": true,
           "profile_image_url": null,
           "requires_totp_mfa": false,
@@ -636,7 +636,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -674,7 +674,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -728,7 +728,7 @@ describe("with server access", () => {
               "oauth_providers": [],
               "otp_auth_enabled": true,
               "passkey_auth_enabled": false,
-              "primary_email": "<stripped UUID>@stack-generated.example.com",
+              "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
               "primary_email_auth_enabled": true,
               "primary_email_verified": true,
               "profile_image_url": null,
@@ -799,7 +799,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -875,7 +875,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": false,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -956,7 +956,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": false,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1008,7 +1008,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": false,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1114,7 +1114,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": false,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1140,7 +1140,7 @@ describe("with server access", () => {
         "status": 400,
         "body": {
           "code": "USER_EMAIL_ALREADY_EXISTS",
-          "error": "User already exists.",
+          "error": "User email already exists.",
         },
         "headers": Headers {
           "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
@@ -1172,7 +1172,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": false,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": false,
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1209,7 +1209,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": false,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1261,7 +1261,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": false,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1295,7 +1295,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": false,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": false,
           "primary_email_verified": false,
           "profile_image_url": null,
@@ -1353,7 +1353,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1383,7 +1383,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1422,7 +1422,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1461,7 +1461,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1549,7 +1549,7 @@ describe("with server access", () => {
           "oauth_providers": [],
           "otp_auth_enabled": true,
           "passkey_auth_enabled": false,
-          "primary_email": "<stripped UUID>@stack-generated.example.com",
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           "primary_email_auth_enabled": true,
           "primary_email_verified": true,
           "profile_image_url": null,
@@ -1635,5 +1635,60 @@ describe("with server access", () => {
     });
     await Auth.Password.signInWithEmail({ password: "password123" });
     expect(response.body.primary_email).toEqual("new-primary-email@example.com");
+  });
+
+  it("should not be able to update primary email to an email already in use for auth", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const primaryEmail = backendContext.value.mailbox.emailAddress;
+    await Auth.signOut();
+    backendContext.set({
+      mailbox: createMailbox(),
+    });
+    await Auth.Password.signUpWithEmail({ password: "password123" });
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        primary_email: primaryEmail,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "USER_EMAIL_ALREADY_EXISTS",
+          "error": "User email already exists.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it("should not be able to set profile image url to empty string", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        profile_image_url: "",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "SCHEMA_ERROR",
+          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.profile_image_url is not a valid URL" },
+          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.profile_image_url is not a valid URL",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "SCHEMA_ERROR",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
   });
 });

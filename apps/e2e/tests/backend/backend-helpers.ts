@@ -2,11 +2,12 @@ import { InternalProjectsCrud } from "@stackframe/stack-shared/dist/interface/cr
 import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import * as jose from "jose";
+import { randomUUID } from "node:crypto";
 import { expect } from "vitest";
-import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
+import { Context, INBUCKET_API_URL, Mailbox, MailboxMessage, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, generatedEmailSuffix, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
 type BackendContext = {
   readonly projectKeys: ProjectKeys,
@@ -15,21 +16,61 @@ type BackendContext = {
     readonly refreshToken?: string,
     readonly accessToken?: string,
   } | null,
+  readonly ipData?: {
+    readonly ipAddress: string,
+    readonly country: string,
+    readonly city: string,
+    readonly region: string,
+    readonly latitude: number,
+    readonly longitude: number,
+    readonly tzIdentifier: string,
+  },
+  readonly generatedMailboxNamesCount: number,
 };
 
 export const backendContext = new Context<BackendContext, Partial<BackendContext>>(
   () => ({
     projectKeys: InternalProjectKeys,
-    mailbox: createMailbox(),
+    mailbox: createMailbox(`default-mailbox--${randomUUID()}${generatedEmailSuffix}`),
+    generatedMailboxNamesCount: 0,
     userAuth: null,
+    ipData: undefined,
   }),
   (acc, update) => {
     return {
       ...acc,
-      ...filterUndefined(update),
+      ...update,
     };
   },
 );
+
+export function createMailbox(email?: string): Mailbox {
+  if (email === undefined) {
+    backendContext.set({ generatedMailboxNamesCount: backendContext.value.generatedMailboxNamesCount + 1 });
+    email = `mailbox-${backendContext.value.generatedMailboxNamesCount}--${randomUUID()}${generatedEmailSuffix}`;
+  }
+  if (!email.includes("@")) throw new StackAssertionError(`Invalid mailbox email: ${email}`);
+  const mailboxName = email.split("@")[0];
+  const fullMessageCache = new Map<string, any>();
+  return {
+    emailAddress: email,
+    async fetchMessages({ noBody } = {}) {
+      const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
+      return await Promise.all((res.body as any[]).map(async (message) => {
+        let fullMessage: any;
+        if (fullMessageCache.has(message.id)) {
+          fullMessage = fullMessageCache.get(message.id);
+        } else {
+          const fullMessageRes = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}/${message.id}`, INBUCKET_API_URL));
+          fullMessage = fullMessageRes.body;
+          fullMessageCache.set(message.id, fullMessage);
+        }
+        const messagePart = noBody ? omit(fullMessage, ["body", "attachments"]) : fullMessage;
+        return new MailboxMessage(messagePart);
+      }));
+    },
+  };
+}
 
 export type ProjectKeys = "no-project" | {
   projectId: string,
@@ -96,6 +137,18 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
       } : {},
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
+      ...backendContext.value.ipData ? {
+        "user-agent": "Mozilla/5.0",  // pretend to be a browser so our IP gets tracked
+        "x-forwarded-for": backendContext.value.ipData.ipAddress,
+        "cf-connecting-ip": backendContext.value.ipData.ipAddress,
+        "x-vercel-ip-country": backendContext.value.ipData.country,
+        "cf-ipcountry": backendContext.value.ipData.country,
+        "x-vercel-ip-country-region": backendContext.value.ipData.region,
+        "x-vercel-ip-city": backendContext.value.ipData.city,
+        "x-vercel-ip-latitude": backendContext.value.ipData.latitude.toString(),
+        "x-vercel-ip-longitude": backendContext.value.ipData.longitude.toString(),
+        "x-vercel-ip-timezone": backendContext.value.ipData.tzIdentifier,
+      } : {},
       ...Object.fromEntries(new Headers(filterUndefined(headers ?? {}) as any).entries()),
     }),
   });
@@ -121,6 +174,7 @@ export namespace Auth {
     const accessToken = backendContext.value.userAuth?.accessToken;
     if (accessToken) {
       const aud = jose.decodeJwt(accessToken).aud;
+      console.log(accessToken, jose.decodeJwt(accessToken));
       const jwks = jose.createRemoteJWKSet(new URL(`api/v1/projects/${aud}/.well-known/jwks.json`, STACK_BACKEND_BASE_URL));
       const { payload } = await jose.jwtVerify(accessToken, jwks);
       expect(payload).toEqual({
@@ -475,9 +529,9 @@ export namespace Auth {
               },
               "timeout": 60000,
               "user": {
-                "displayName": "<stripped UUID>@stack-generated.example.com",
+                "displayName": "default-mailbox--<stripped UUID>@stack-generated.example.com",
                 "id": "<stripped encoded UUID>",
-                "name": "<stripped UUID>@stack-generated.example.com",
+                "name": "default-mailbox--<stripped UUID>@stack-generated.example.com",
               },
             },
           },

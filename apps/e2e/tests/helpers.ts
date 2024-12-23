@@ -1,9 +1,8 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
+import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { randomUUID } from "node:crypto";
 // eslint-disable-next-line no-restricted-imports
 import { afterEach, beforeEach, test as vitestTest } from "vitest";
 
@@ -194,7 +193,7 @@ export async function niceFetch(url: string | URL, options?: NiceRequestInit): P
 export const localRedirectUrl = "http://stack-test.localhost/some-callback-url";
 export const localRedirectUrlRegex = /http:\/\/stack-test\.localhost\/some-callback-url([?#][A-Za-z0-9\-._~:\/?#\[\]@!$&\'()*+,;=]*)?/g;
 
-const generatedEmailSuffix = "@stack-generated.example.com";
+export const generatedEmailSuffix = "@stack-generated.example.com";
 export const generatedEmailRegex = /[a-zA-Z0-9_.+\-]+@stack-generated\.example\.com/;
 
 export type Mailbox = { emailAddress: string, fetchMessages: (options?: { noBody?: boolean }) => Promise<MailboxMessage[]> };
@@ -228,29 +227,6 @@ export class MailboxMessage {
         "seen",
       ],
     });
-  };
-}
-
-export function createMailbox(): Mailbox {
-  const mailboxName = randomUUID();
-  const fullMessageCache = new Map<string, any>();
-  return {
-    emailAddress: `${mailboxName}${generatedEmailSuffix}`,
-    async fetchMessages({ noBody } = {}) {
-      const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
-      return await Promise.all((res.body as any[]).map(async (message) => {
-        let fullMessage: any;
-        if (fullMessageCache.has(message.id)) {
-          fullMessage = fullMessageCache.get(message.id);
-        } else {
-          const fullMessageRes = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}/${message.id}`, INBUCKET_API_URL));
-          fullMessage = fullMessageRes.body;
-          fullMessageCache.set(message.id, fullMessage);
-        }
-        const messagePart = noBody ? omit(fullMessage, ["body", "attachments"]) : fullMessage;
-        return new MailboxMessage(messagePart);
-      }));
-    },
   };
 }
 

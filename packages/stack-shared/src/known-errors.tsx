@@ -597,7 +597,7 @@ const UserEmailAlreadyExists = createKnownErrorConstructor(
   "USER_EMAIL_ALREADY_EXISTS",
   () => [
     400,
-    "User already exists.",
+    "User email already exists.",
   ] as const,
   () => [] as const,
 );

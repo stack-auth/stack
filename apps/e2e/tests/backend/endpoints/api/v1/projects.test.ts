@@ -1,6 +1,6 @@
 import { isBase64Url } from "@stackframe/stack-shared/dist/utils/bytes";
-import { createMailbox, it } from "../../../../helpers";
-import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { it } from "../../../../helpers";
+import { Auth, InternalProjectKeys, Project, backendContext, createMailbox, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("should not have have access to the project without project keys", async ({ expect }) => {

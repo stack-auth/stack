@@ -1,5 +1,14 @@
 # @stackframe/docs-examples
 
+## 2.7.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.0
+  - @stackframe/stack-ui@2.7.0
+  - @stackframe/stack@2.7.0
+
 ## 2.6.39
 
 ### Patch Changes

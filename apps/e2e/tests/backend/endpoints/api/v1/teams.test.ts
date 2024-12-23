@@ -1,5 +1,5 @@
-import { createMailbox, it } from "../../../../helpers";
-import { ApiKey, Auth, Project, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { it } from "../../../../helpers";
+import { ApiKey, Auth, Project, Team, backendContext, createMailbox, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("is not allowed to list all the teams in a project on the client", async ({ expect }) => {
@@ -674,7 +674,7 @@ it("enables create team on sign up", async ({ expect }) => {
             "client_metadata": null,
             "client_read_only_metadata": null,
             "created_at_millis": <stripped field 'created_at_millis'>,
-            "display_name": "<stripped UUID>@stack-generated.example.com's Team",
+            "display_name": "mailbox-1--<stripped UUID>@stack-generated.example.com's Team",
             "id": "<stripped UUID>",
             "profile_image_url": null,
             "server_metadata": null,

@@ -1,5 +1,5 @@
-import { createMailbox, it } from "../../../../../helpers";
-import { Auth, ContactChannels, Project, backendContext, niceBackendFetch } from "../../../../backend-helpers";
+import { it } from "../../../../../helpers";
+import { Auth, ContactChannels, Project, backendContext, createMailbox, niceBackendFetch } from "../../../../backend-helpers";
 
 it("create contact channel on the client", async ({ expect }) => {
   await Project.createAndSwitch({ config: { magic_link_enabled: true } });
@@ -47,7 +47,7 @@ it("create contact channel on the client", async ({ expect }) => {
             "type": "email",
             "used_for_auth": true,
             "user_id": "<stripped UUID>",
-            "value": "<stripped UUID>@stack-generated.example.com",
+            "value": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           },
           {
             "id": "<stripped UUID>",
@@ -144,7 +144,7 @@ it("create contact channel on the server", async ({ expect }) => {
           "type": "email",
           "used_for_auth": true,
           "user_id": "<stripped UUID>",
-          "value": "<stripped UUID>@stack-generated.example.com",
+          "value": "default-mailbox--<stripped UUID>@stack-generated.example.com",
         },
         {
           "id": "<stripped UUID>",
@@ -246,7 +246,7 @@ it("lists current user's contact channels on the client", async ({ expect }) => 
             "type": "email",
             "used_for_auth": true,
             "user_id": "<stripped UUID>",
-            "value": "<stripped UUID>@stack-generated.example.com",
+            "value": "default-mailbox--<stripped UUID>@stack-generated.example.com",
           },
         ],
       },
@@ -343,7 +343,7 @@ it("creates a new account when login with a contact channel that is not used for
       "type": "email",
       "used_for_auth": false,
       "user_id": "<stripped UUID>",
-      "value": "<stripped UUID>@stack-generated.example.com",
+      "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
     }
   `);
 
@@ -368,7 +368,7 @@ it("creates a new account when login with a contact channel that is not used for
             "type": "email",
             "used_for_auth": true,
             "user_id": "<stripped UUID>",
-            "value": "<stripped UUID>@stack-generated.example.com",
+            "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
           },
         ],
       },
@@ -408,7 +408,7 @@ it("should update contact channel used for auth to true even if that contact cha
       "type": "email",
       "used_for_auth": false,
       "user_id": "<stripped UUID>",
-      "value": "<stripped UUID>@stack-generated.example.com",
+      "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
     }
   `);
 
@@ -434,7 +434,7 @@ it("should update contact channel used for auth to true even if that contact cha
       "type": "email",
       "used_for_auth": true,
       "user_id": "<stripped UUID>",
-      "value": "<stripped UUID>@stack-generated.example.com",
+      "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
     }
   `);
 });
@@ -470,7 +470,7 @@ it("updates contact channel used for auth", async ({ expect }) => {
       "type": "email",
       "used_for_auth": false,
       "user_id": "<stripped UUID>",
-      "value": "<stripped UUID>@stack-generated.example.com",
+      "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
     }
   `);
 
@@ -496,7 +496,7 @@ it("updates contact channel used for auth", async ({ expect }) => {
       "type": "email",
       "used_for_auth": true,
       "user_id": "<stripped UUID>",
-      "value": "<stripped UUID>@stack-generated.example.com",
+      "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
     }
   `);
 });
@@ -539,7 +539,7 @@ it("updates contact channel primary status", async ({ expect }) => {
         "type": "email",
         "used_for_auth": false,
         "user_id": "<stripped UUID>",
-        "value": "<stripped UUID>@stack-generated.example.com",
+        "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -563,7 +563,7 @@ it("updates contact channel primary status", async ({ expect }) => {
       "oauth_providers": [],
       "otp_auth_enabled": true,
       "passkey_auth_enabled": false,
-      "primary_email": "<stripped UUID>@stack-generated.example.com",
+      "primary_email": "mailbox-1--<stripped UUID>@stack-generated.example.com",
       "primary_email_verified": false,
       "profile_image_url": null,
       "requires_totp_mfa": false,
@@ -598,7 +598,7 @@ it("sets a primary contact channel to non-primary", async ({ expect }) => {
         "type": "email",
         "used_for_auth": true,
         "user_id": "<stripped UUID>",
-        "value": "<stripped UUID>@stack-generated.example.com",
+        "value": "default-mailbox--<stripped UUID>@stack-generated.example.com",
       },
       "headers": Headers { <some fields may have been hidden> },
     }

@@ -146,7 +146,7 @@ async function checkAuthData(
   }
   if (data.primaryEmailAuthEnabled) {
     if (!data.oldPrimaryEmail || data.oldPrimaryEmail !== data.primaryEmail) {
-      const otpAuth = await tx.contactChannel.findFirst({
+      const existingChannelUsedForAuth = await tx.contactChannel.findFirst({
         where: {
           projectId: data.projectId,
           type: 'EMAIL',
@@ -155,7 +155,7 @@ async function checkAuthData(
         }
       });
 
-      if (otpAuth) {
+      if (existingChannelUsedForAuth) {
         throw new KnownErrors.UserEmailAlreadyExists();
       }
     }
@@ -600,9 +600,9 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       await checkAuthData(tx, {
         projectId: auth.project.id,
         oldPrimaryEmail: primaryEmailContactChannel?.value,
-        primaryEmail: primaryEmailContactChannel?.value || data.primary_email,
-        primaryEmailVerified: primaryEmailContactChannel?.isVerified || data.primary_email_verified,
-        primaryEmailAuthEnabled: !!primaryEmailContactChannel?.usedForAuth || data.primary_email_auth_enabled,
+        primaryEmail: data.primary_email || primaryEmailContactChannel?.value,
+        primaryEmailVerified: data.primary_email_verified || primaryEmailContactChannel?.isVerified,
+        primaryEmailAuthEnabled: data.primary_email_auth_enabled || !!primaryEmailContactChannel?.usedForAuth,
       });
 
       // if there is a new primary email
