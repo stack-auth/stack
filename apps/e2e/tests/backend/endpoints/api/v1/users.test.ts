@@ -1666,4 +1666,29 @@ describe("with server access", () => {
       }
     `);
   });
+
+  it("should not be able to set profile image url to empty string", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        profile_image_url: "",
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 400,
+        "body": {
+          "code": "SCHEMA_ERROR",
+          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.profile_image_url is not a valid URL" },
+          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.profile_image_url is not a valid URL",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "SCHEMA_ERROR",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
 });
