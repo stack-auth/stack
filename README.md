@@ -1,4 +1,4 @@
-![Stack Logo](/.github/assets/logo.png)
+[![Stack Logo](/.github/assets/logo.png)](https://stack-auth.com)
 
 <h3 align="center">
   <a href="https://docs.stack-auth.com">📘 Docs</a>
