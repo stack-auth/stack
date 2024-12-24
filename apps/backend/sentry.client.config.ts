@@ -14,6 +14,10 @@ Sentry.init({
 
   enabled: process.env.NODE_ENV !== "development" && !process.env.CI,
 
+  // Sentry and Prisma are not compatible with the new tracing. https://github.com/prisma/prisma/issues/25885
+  // TODO: Remove this once sentry fixes the issue.
+  tracesSampleRate: 0,
+
   // You can remove this option if you're not planning to use the Sentry Session Replay feature:
   integrations: [
     Sentry.replayIntegration({
