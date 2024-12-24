@@ -2,15 +2,16 @@ import { InternalProjectsCrud } from "@stackframe/stack-shared/dist/interface/cr
 import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
+import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import * as jose from "jose";
 import { randomUUID } from "node:crypto";
 import { expect } from "vitest";
-import { Context, INBUCKET_API_URL, Mailbox, MailboxMessage, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, generatedEmailSuffix, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
+import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, generatedEmailSuffix, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
 type BackendContext = {
   readonly projectKeys: ProjectKeys,
+  readonly defaultProjectKeys: ProjectKeys,
   readonly mailbox: Mailbox,
   readonly userAuth: {
     readonly refreshToken?: string,
@@ -30,6 +31,7 @@ type BackendContext = {
 
 export const backendContext = new Context<BackendContext, Partial<BackendContext>>(
   () => ({
+    defaultProjectKeys: InternalProjectKeys,
     projectKeys: InternalProjectKeys,
     mailbox: createMailbox(`default-mailbox--${randomUUID()}${generatedEmailSuffix}`),
     generatedMailboxNamesCount: 0,
@@ -37,6 +39,12 @@ export const backendContext = new Context<BackendContext, Partial<BackendContext
     ipData: undefined,
   }),
   (acc, update) => {
+    if ("defaultProjectKeys" in update) {
+      throw new StackAssertionError("Cannot set defaultProjectKeys");
+    }
+    if ("mailbox" in update && !(update.mailbox instanceof Mailbox)) {
+      throw new StackAssertionError("Must create a mailbox with createMailbox()!");
+    }
     return {
       ...acc,
       ...update,
@@ -50,26 +58,7 @@ export function createMailbox(email?: string): Mailbox {
     email = `mailbox-${backendContext.value.generatedMailboxNamesCount}--${randomUUID()}${generatedEmailSuffix}`;
   }
   if (!email.includes("@")) throw new StackAssertionError(`Invalid mailbox email: ${email}`);
-  const mailboxName = email.split("@")[0];
-  const fullMessageCache = new Map<string, any>();
-  return {
-    emailAddress: email,
-    async fetchMessages({ noBody } = {}) {
-      const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
-      return await Promise.all((res.body as any[]).map(async (message) => {
-        let fullMessage: any;
-        if (fullMessageCache.has(message.id)) {
-          fullMessage = fullMessageCache.get(message.id);
-        } else {
-          const fullMessageRes = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}/${message.id}`, INBUCKET_API_URL));
-          fullMessage = fullMessageRes.body;
-          fullMessageCache.set(message.id, fullMessage);
-        }
-        const messagePart = noBody ? omit(fullMessage, ["body", "attachments"]) : fullMessage;
-        return new MailboxMessage(messagePart);
-      }));
-    },
-  };
+  return new Mailbox("(we can ignore the disclaimer here)" as any, email);
 }
 
 export type ProjectKeys = "no-project" | {
@@ -168,6 +157,19 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
   return res;
 }
 
+
+/**
+ * Creates a new mailbox with a different email address, and sets it as the current mailbox.
+ */
+export async function bumpEmailAddress(options: { unindexed?: boolean } = {}) {
+  let emailAddress = undefined;
+  if (options.unindexed) {
+    emailAddress = `unindexed-mailbox--${randomUUID()}${generatedEmailSuffix}`;
+  }
+  const mailbox = createMailbox(emailAddress);
+  backendContext.set({ mailbox });
+  return mailbox;
+}
 
 export namespace Auth {
   export async function ensureParsableAccessToken() {
@@ -484,7 +486,6 @@ export namespace Auth {
     }
 
     export async function initiateRegistration(): Promise<{ code: string }> {
-
       const response = await niceBackendFetch("/api/v1/auth/passkey/initiate-passkey-registration", {
         method: "POST",
         accessType: "client",
@@ -925,7 +926,9 @@ export namespace Project {
     backendContext.set({
       projectKeys: InternalProjectKeys,
     });
-    await Auth.Otp.signIn();
+    const oldMailbox = backendContext.value.mailbox;
+    await bumpEmailAddress({ unindexed: true });
+    const { userId } = await Auth.Otp.signIn();
     const adminAccessToken = backendContext.value.userAuth?.accessToken;
     expect(adminAccessToken).toBeDefined();
     const { projectId, createProjectResponse } = await Project.create(body);
@@ -935,9 +938,11 @@ export namespace Project {
         projectId,
       },
       userAuth: null,
+      mailbox: oldMailbox,
     });
 
     return {
+      creatorUserId: userId,
       projectId,
       adminAccessToken: adminAccessToken!,
       createProjectResponse,

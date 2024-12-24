@@ -1,6 +1,6 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { Nicifiable } from "@stackframe/stack-shared/dist/utils/strings";
 import { AsyncLocalStorage } from "node:async_hooks";
 // eslint-disable-next-line no-restricted-imports
@@ -196,7 +196,33 @@ export const localRedirectUrlRegex = /http:\/\/stack-test\.localhost\/some-callb
 export const generatedEmailSuffix = "@stack-generated.example.com";
 export const generatedEmailRegex = /[a-zA-Z0-9_.+\-]+@stack-generated\.example\.com/;
 
-export type Mailbox = { emailAddress: string, fetchMessages: (options?: { noBody?: boolean }) => Promise<MailboxMessage[]> };
+export class Mailbox {
+  public readonly fetchMessages: (options?: { noBody?: boolean }) => Promise<MailboxMessage[]>;
+
+  constructor(
+    disclaimer: "USE_CREATE_MAILBOX_FUNCTION_INSTEAD",
+    public readonly emailAddress: string,
+  ) {
+    const mailboxName = emailAddress.split("@")[0];
+    const fullMessageCache = new Map<string, any>();
+    this.fetchMessages = async ({ noBody } = {}) => {
+      const res = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}`, INBUCKET_API_URL));
+      return await Promise.all((res.body as any[]).map(async (message) => {
+        let fullMessage: any;
+        if (fullMessageCache.has(message.id)) {
+          fullMessage = fullMessageCache.get(message.id);
+        } else {
+          const fullMessageRes = await niceFetch(new URL(`/api/v1/mailbox/${encodeURIComponent(mailboxName)}/${message.id}`, INBUCKET_API_URL));
+          fullMessage = fullMessageRes.body;
+          fullMessageCache.set(message.id, fullMessage);
+        }
+        const messagePart = noBody ? omit(fullMessage, ["body", "attachments"]) : fullMessage;
+        return new MailboxMessage(messagePart);
+      }));
+    };
+  }
+}
+
 export class MailboxMessage {
   declare public readonly subject: string;
   declare public readonly from: string;

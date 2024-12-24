@@ -1,5 +1,5 @@
 import { it } from "../../../../helpers";
-import { Auth, Team, backendContext, createMailbox, niceBackendFetch } from "../../../backend-helpers";
+import { Auth, Team, backendContext, bumpEmailAddress, createMailbox, niceBackendFetch } from "../../../backend-helpers";
 
 it("requires $invite_members permission to send invitation", async ({ expect }) => {
   await Auth.Otp.signIn();
@@ -188,7 +188,7 @@ it("allows team admins to list invitations", async ({ expect }) => {
   });
   await Team.sendInvitation("some-email-test@example.com", teamId);
 
-  backendContext.set({ mailbox: createMailbox() });
+  await bumpEmailAddress();
   const { userId: teamAdmin } = await Auth.Otp.signIn();
   await Team.addMember(teamId, teamAdmin);
 
@@ -237,7 +237,7 @@ it("requires $invite_members permission to list invitations", async ({ expect })
   });
   await Team.sendInvitation("some-email-test@example.com", teamId);
 
-  backendContext.set({ mailbox: createMailbox() });
+  await bumpEmailAddress();
   const { userId: teamAdmin } = await Auth.Otp.signIn();
   await Team.addMember(teamId, teamAdmin);
 
@@ -283,7 +283,7 @@ it("requires $read_members permission to list invitations", async ({ expect }) =
   });
   const { sendTeamInvitationResponse } = await Team.sendInvitation("some-email-test@example.com", teamId);
 
-  backendContext.set({ mailbox: createMailbox() });
+  await bumpEmailAddress();
   const { userId: teamAdmin } = await Auth.Otp.signIn();
   await Team.addMember(teamId, teamAdmin);
 
@@ -329,7 +329,7 @@ it("allows team admins to revoke invitations", async ({ expect }) => {
   const { sendTeamInvitationResponse } = await Team.sendInvitation("some-email-test@example.com", teamId);
   const invitationId = sendTeamInvitationResponse.body.id;
 
-  backendContext.set({ mailbox: createMailbox() });
+  await bumpEmailAddress();
   const { userId: teamAdmin } = await Auth.Otp.signIn();
   await Team.addMember(teamId, teamAdmin);
 
@@ -390,7 +390,7 @@ it("requires $remove_members permission to revoke invitations", async ({ expect 
   const { sendTeamInvitationResponse } = await Team.sendInvitation("some-email-test@example.com", teamId);
   const invitationId = sendTeamInvitationResponse.body.id;
 
-  backendContext.set({ mailbox: createMailbox() });
+  await bumpEmailAddress();
   const { userId: teamAdmin } = await Auth.Otp.signIn();
   await Team.addMember(teamId, teamAdmin);
 

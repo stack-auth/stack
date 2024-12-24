@@ -63,6 +63,7 @@ export function InputField<F extends FieldValues>(props: {
   type?: string,
   disabled?: boolean,
   prefixItem?: React.ReactNode,
+  autoComplete?: string,
 }) {
   return (
     <FormField
@@ -81,6 +82,7 @@ export function InputField<F extends FieldValues>(props: {
                 disabled={props.disabled}
                 type={props.type}
                 prefixItem={props.prefixItem}
+                autoComplete={props.autoComplete}
               />
             </FormControl>
             <FormMessage />

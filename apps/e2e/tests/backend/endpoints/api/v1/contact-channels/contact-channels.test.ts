@@ -1,14 +1,14 @@
 import { it } from "../../../../../helpers";
-import { Auth, ContactChannels, Project, backendContext, createMailbox, niceBackendFetch } from "../../../../backend-helpers";
+import { Auth, ContactChannels, backendContext, bumpEmailAddress, createMailbox, niceBackendFetch } from "../../../../backend-helpers";
 
 it("create contact channel on the client", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
+  const mailbox = createMailbox();
   const response = await niceBackendFetch("/api/v1/contact-channels", {
     accessType: "client",
     method: "POST",
     body: {
-      value: "test@example.com",
+      value: mailbox.emailAddress,
       type: "email",
       used_for_auth: true,
       user_id: "me",
@@ -24,7 +24,7 @@ it("create contact channel on the client", async ({ expect }) => {
         "type": "email",
         "used_for_auth": true,
         "user_id": "<stripped UUID>",
-        "value": "test@example.com",
+        "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -56,7 +56,7 @@ it("create contact channel on the client", async ({ expect }) => {
             "type": "email",
             "used_for_auth": true,
             "user_id": "<stripped UUID>",
-            "value": "test@example.com",
+            "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
           },
         ],
       },
@@ -66,14 +66,14 @@ it("create contact channel on the client", async ({ expect }) => {
 });
 
 it("cannot create duplicate contact channels", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
+  const mailbox = createMailbox();
 
   await niceBackendFetch("/api/v1/contact-channels", {
     accessType: "client",
     method: "POST",
     body: {
-      value: "test@example.com",
+      value: mailbox.emailAddress,
       type: "email",
       used_for_auth: true,
       user_id: "me",
@@ -84,7 +84,7 @@ it("cannot create duplicate contact channels", async ({ expect }) => {
     accessType: "client",
     method: "POST",
     body: {
-      value: "test@example.com",
+      value: mailbox.emailAddress,
       type: "email",
       used_for_auth: true,
       user_id: "me",
@@ -100,14 +100,13 @@ it("cannot create duplicate contact channels", async ({ expect }) => {
 });
 
 it("create contact channel on the server", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   const { userId } = await Auth.Otp.signIn();
-
+  const mailbox = createMailbox();
   const response = await niceBackendFetch(`/api/v1/contact-channels`, {
     accessType: "server",
     method: "POST",
     body: {
-      value: "test@example.com",
+      value: mailbox.emailAddress,
       type: "email",
       used_for_auth: false,
       is_verified: true,
@@ -124,7 +123,7 @@ it("create contact channel on the server", async ({ expect }) => {
         "type": "email",
         "used_for_auth": false,
         "user_id": "<stripped UUID>",
-        "value": "test@example.com",
+        "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
       },
       "headers": Headers { <some fields may have been hidden> },
     }
@@ -153,7 +152,7 @@ it("create contact channel on the server", async ({ expect }) => {
           "type": "email",
           "used_for_auth": false,
           "user_id": "<stripped UUID>",
-          "value": "test@example.com",
+          "value": "mailbox-1--<stripped UUID>@stack-generated.example.com",
         },
       ],
     }
@@ -162,7 +161,6 @@ it("create contact channel on the server", async ({ expect }) => {
 
 
 it("delete contact channel on the client", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
 
   const meResponse = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
@@ -210,7 +208,6 @@ it("delete contact channel on the client", async ({ expect }) => {
 });
 
 it("cannot delete a contact channel that doesn't exist", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
 
   const deleteResponse = await niceBackendFetch("/api/v1/contact-channels/me/031448ab-178b-4d43-b31b-28f16c3c52a9", {
@@ -227,7 +224,6 @@ it("cannot delete a contact channel that doesn't exist", async ({ expect }) => {
 });
 
 it("lists current user's contact channels on the client", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
 
   const response = await niceBackendFetch("/api/v1/contact-channels?user_id=me", {
@@ -257,7 +253,6 @@ it("lists current user's contact channels on the client", async ({ expect }) => 
 
 
 it("cannot list contact channels that is not from the current user on the client", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
 
   const response = await niceBackendFetch("/api/v1/contact-channels?user_id=031448ab-178b-4d43-b31b-28f16c3c52a9", {
@@ -273,10 +268,8 @@ it("cannot list contact channels that is not from the current user on the client
 });
 
 it("login with a newly created contact channel", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
-  const newMailbox = createMailbox();
-  backendContext.set({ mailbox: newMailbox });
+  const newMailbox = await bumpEmailAddress();
 
   const ccResponse = await niceBackendFetch("/api/v1/contact-channels", {
     accessType: "client",
@@ -316,7 +309,6 @@ it("login with a newly created contact channel", async ({ expect }) => {
 });
 
 it("creates a new account when login with a contact channel that is not used for auth", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
   const newMailbox = createMailbox();
 
@@ -378,7 +370,6 @@ it("creates a new account when login with a contact channel that is not used for
 });
 
 it("should update contact channel used for auth to true even if that contact channel is already a primary channel", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
   const newMailbox = createMailbox();
 
@@ -440,7 +431,6 @@ it("should update contact channel used for auth to true even if that contact cha
 });
 
 it("updates contact channel used for auth", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
   const newMailbox = createMailbox();
 
@@ -502,7 +492,6 @@ it("updates contact channel used for auth", async ({ expect }) => {
 });
 
 it("updates contact channel primary status", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
   const newMailbox = createMailbox();
 
@@ -575,7 +564,6 @@ it("updates contact channel primary status", async ({ expect }) => {
 });
 
 it("sets a primary contact channel to non-primary", async ({ expect }) => {
-  await Project.createAndSwitch({ config: { magic_link_enabled: true } });
   await Auth.Otp.signIn();
 
   const response = await ContactChannels.getTheOnlyContactChannel();
