@@ -14,8 +14,14 @@ import * as yup from "yup";
 const oauthProviderReadSchema = yupObject({
   id: schemaFields.oauthIdSchema.defined(),
   type: schemaFields.oauthTypeSchema.defined(),
-  client_id: schemaFields.yupDefinedWhen(schemaFields.oauthClientIdSchema, 'type', 'standard'),
-  client_secret: schemaFields.yupDefinedWhen(schemaFields.oauthClientSecretSchema, 'type', 'standard'),
+  client_id: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientIdSchema, {
+    when: 'type',
+    is: 'standard',
+  }),
+  client_secret: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientSecretSchema, {
+    when: 'type',
+    is: 'standard',
+  }),
 
   // extra params
   facebook_config_id: schemaFields.oauthFacebookConfigIdSchema.optional(),
@@ -24,8 +30,14 @@ const oauthProviderReadSchema = yupObject({
 
 const oauthProviderUpdateSchema = yupObject({
   type: schemaFields.oauthTypeSchema.optional(),
-  client_id: schemaFields.yupDefinedWhen(schemaFields.oauthClientIdSchema, 'type', 'standard').optional(),
-  client_secret: schemaFields.yupDefinedWhen(schemaFields.oauthClientSecretSchema, 'type', 'standard').optional(),
+  client_id: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientIdSchema, {
+    when: 'type',
+    is: 'standard',
+  }).optional(),
+  client_secret: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientSecretSchema, {
+    when: 'type',
+    is: 'standard',
+  }).optional(),
 
   // extra params
   facebook_config_id: schemaFields.oauthFacebookConfigIdSchema.optional(),

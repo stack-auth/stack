@@ -35,7 +35,8 @@
     "changeset": "only-allow pnpm && changeset",
     "test": "vitest",
     "generate-docs": "only-allow pnpm && turbo run generate-docs",
-    "generate-keys": "only-allow pnpm && turbo run generate-keys"
+    "generate-keys": "only-allow pnpm && turbo run generate-keys",
+    "verify-data-integrity": "only-allow pnpm && pnpm -C apps/backend run verify-data-integrity"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.9",

@@ -520,6 +520,37 @@ it("updates the project email configuration", async ({ expect }) => {
   `);
 });
 
+it("does not update project email config to empty host", async ({ expect }) => {
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { updateProjectResponse: response } = await Project.updateCurrent(adminAccessToken, {
+    config: {
+      email_config: {
+        type: "standard",
+        host: "",
+        port: 587,
+        username: "test username",
+        password: "test password",
+        sender_name: "Test Sender",
+        sender_email: "test@email.com",
+      },
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host must not be empty" },
+        "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host must not be empty",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "SCHEMA_ERROR",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
 it("updates the project email configuration with invalid parameters", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
@@ -865,6 +896,39 @@ it("updates the project oauth configuration", async ({ expect }) => {
         "user_count": 0,
       },
       "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("fails when trying to update OAuth provider with empty client_secret", async ({ expect }) => {
+  await Project.createAndSwitch();
+  const response = await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "admin",
+    method: "PATCH",
+    body: {
+      config: {
+        oauth_providers: [{
+          id: "google",
+          type: "standard",
+          enabled: true,
+          client_id: "client_id",
+          client_secret: ""
+        }]
+      }
+    }
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.oauth_providers[0].client_secret must not be empty" },
+        "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.oauth_providers[0].client_secret must not be empty",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "SCHEMA_ERROR",
+        <some fields may have been hidden>,
+      },
     }
   `);
 });

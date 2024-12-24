@@ -12,13 +12,19 @@ declare module "yup" {
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface StringSchema<TType, TContext, TDefault, TFlags> {
     nonEmpty(message?: string): StringSchema<TType, TContext, TDefault, TFlags>,
+    empty(): StringSchema<TType, TContext, TDefault, TFlags>,
   }
 }
+
 // eslint-disable-next-line no-restricted-syntax
 yup.addMethod(yup.string, "nonEmpty", function (message?: string) {
-  return this.test("non-empty", message ?? "String must not be empty", (value) => {
-    return value !== "";
-  });
+  return this.test(
+    "non-empty",
+    message ?? (({ path }) => `${path} must not be empty`),
+    (value) => {
+      return value !== "";
+    }
+  );
 });
 
 
@@ -394,12 +400,24 @@ export const neonAuthorizationHeaderSchema = basicAuthorizationHeaderSchema.test
 // Utils
 export function yupDefinedWhen<S extends yup.AnyObject>(
   schema: S,
-  triggerName: string,
-  isValue: any
+  triggers: Record<string, any>,
 ): S {
-  return schema.when(triggerName, {
-    is: isValue,
+  const entries = Object.entries(triggers);
+  return schema.when(entries.map(([key]) => key), {
+    is: (...values: any[]) => entries.every(([key, value], index) => value === values[index]),
     then: (schema: S) => schema.defined(),
+    otherwise: (schema: S) => schema.optional()
+  });
+}
+
+export function yupDefinedAndNonEmptyWhen<S extends yup.StringSchema>(
+  schema: S,
+  triggers: Record<string, any>,
+): S {
+  const entries = Object.entries(triggers);
+  return schema.when(entries.map(([key]) => key), {
+    is: (...values: any[]) => entries.every(([key, value], index) => value === values[index]),
+    then: (schema: S) => schema.defined().nonEmpty(),
     otherwise: (schema: S) => schema.optional()
   });
 }

@@ -25,7 +25,8 @@
     "watch-docs": "pnpm run with-env tsx watch --clear-screen=false scripts/generate-docs.ts",
     "generate-docs": "pnpm run with-env tsx scripts/generate-docs.ts",
     "generate-keys": "pnpm run with-env tsx scripts/generate-keys.ts",
-    "db-seed-script": "pnpm run with-env tsx prisma/seed.ts"
+    "db-seed-script": "pnpm run with-env tsx prisma/seed.ts",
+    "verify-data-integrity": "pnpm run with-env tsx scripts/verify-data-integrity.ts"
   },
   "prisma": {
     "seed": "pnpm run db-seed-script"
