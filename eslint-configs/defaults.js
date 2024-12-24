@@ -12,6 +12,7 @@ module.exports = {
     "no-trailing-spaces": "warn",
     "eol-last": "error",
     "key-spacing": "error",
+    "object-curly-spacing": ["error", "always"],
     indent: [
       "error",
       2,

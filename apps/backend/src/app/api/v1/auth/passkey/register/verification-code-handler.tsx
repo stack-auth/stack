@@ -38,7 +38,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
   async send() {
     throw new StackAssertionError("send() called on a Passkey registration verification code handler");
   },
-  async handler(project, _, {challenge}, {credential}, user) {
+  async handler(project, _, { challenge }, { credential }, user) {
     if (!project.config.passkey_enabled) {
       throw new KnownErrors.PasskeyAuthenticationNotEnabled();
     }

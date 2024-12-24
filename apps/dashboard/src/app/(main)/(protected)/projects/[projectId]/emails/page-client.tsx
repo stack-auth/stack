@@ -252,8 +252,8 @@ function EditEmailServerDialog(props: {
         />
         {form.watch('type') === 'standard' && <>
           {([
-            { label: "Host", name: "host", type: 'text'},
-            { label: "Port", name: "port", type: 'number'},
+            { label: "Host", name: "host", type: 'text' },
+            { label: "Port", name: "port", type: 'number' },
             { label: "Username", name: "username", type: 'text' },
             { label: "Password", name: "password", type: 'password' },
             { label: "Sender Email", name: "senderEmail", type: 'email' },
