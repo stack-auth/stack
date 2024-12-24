@@ -62,7 +62,7 @@ async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRe
     if (error instanceof yup.ValidationError) {
       if (req === null) {
         // we weren't called by a HTTP request, so it must be a logical error in a manual invocation
-        throw new StackAssertionError("Request validation failed", { cause: error });
+        throw new StackAssertionError("Request validation failed", {cause: error});
       } else {
         const inners = error.inner.length ? error.inner : [error];
         const description = schema.describe();
@@ -158,7 +158,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       throw new KnownErrors.InvalidProjectForAccessToken();
     }
 
-    const user = await getUser({ projectId: options.projectId, userId: result.data.userId });
+    const user = await getUser({projectId: options.projectId, userId: result.data.userId});
     if (!user) {
       // this is the case when access token is still valid, but the user is deleted from the database
       throw new KnownErrors.AccessTokenExpired();
@@ -181,7 +181,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
       throw new KnownErrors.AdminAccessTokenIsNotAdmin();
     }
 
-    const user = await getUser({ projectId: 'internal', userId: result.data.userId });
+    const user = await getUser({projectId: 'internal', userId: result.data.userId});
     if (!user) {
       // this is the case when access token is still valid, but the user is deleted from the database
       throw new KnownErrors.AdminAccessTokenExpired();
@@ -198,11 +198,11 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   // Do all the requests in parallel
   const queries = {
     project: projectId ? ignoreUnhandledRejection(getProject(projectId)) : Promise.resolve(null),
-    isClientKeyValid: projectId && publishableClientKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { publishableClientKey })) : Promise.resolve(false),
-    isServerKeyValid: projectId && secretServerKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { secretServerKey })) : Promise.resolve(false),
-    isAdminKeyValid: projectId && superSecretAdminKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { superSecretAdminKey })) : Promise.resolve(false),
-    user: projectId && accessToken ? ignoreUnhandledRejection(extractUserFromAccessToken({ token: accessToken, projectId })) : Promise.resolve(null),
-    internalUser: projectId && adminAccessToken ? ignoreUnhandledRejection(extractUserFromAdminAccessToken({ token: adminAccessToken, projectId })) : Promise.resolve(null),
+    isClientKeyValid: projectId && publishableClientKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, {publishableClientKey})) : Promise.resolve(false),
+    isServerKeyValid: projectId && secretServerKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, {secretServerKey})) : Promise.resolve(false),
+    isAdminKeyValid: projectId && superSecretAdminKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, {superSecretAdminKey})) : Promise.resolve(false),
+    user: projectId && accessToken ? ignoreUnhandledRejection(extractUserFromAccessToken({token: accessToken, projectId})) : Promise.resolve(null),
+    internalUser: projectId && adminAccessToken ? ignoreUnhandledRejection(extractUserFromAdminAccessToken({token: adminAccessToken, projectId})) : Promise.resolve(null),
   } as const;
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
@@ -215,10 +215,10 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   if (!projectId) throw new KnownErrors.AccessTypeWithoutProjectId(requestType);
 
   if (developmentKeyOverride) {
-    if (getNodeEnvironment() !== "development") {
-      throw new StatusError(401, "Development key override is only allowed in development mode");
+    if (getNodeEnvironment() !== "development" && getNodeEnvironment() !== "test") {
+      throw new StatusError(401, "Development key override is only allowed in development or test environments");
     }
-    const result = await checkApiKeySet("internal", { superSecretAdminKey: developmentKeyOverride });
+    const result = await checkApiKeySet("internal", {superSecretAdminKey: developmentKeyOverride});
     if (!result) throw new StatusError(401, "Invalid development key override");
   } else if (adminAccessToken) {
     if (await queries.internalUser) {
@@ -255,7 +255,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   const project = await queries.project;
   if (!project) {
-    throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", { projectId });
+    throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", {projectId});
   }
 
   return {
