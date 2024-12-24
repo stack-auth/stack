@@ -58,7 +58,7 @@ export function parseWebhookOpenAPI(options: {
               method: 'POST',
               path: webhook.type,
               requestBodyDesc: undefinedIfMixed(yupObject({
-                type: yupString().defined().meta({ openapiField: { description: webhook.type, exampleValue: webhook.type }}),
+                type: yupString().defined().meta({ openapiField: { description: webhook.type, exampleValue: webhook.type } }),
                 data: webhook.schema.defined(),
               }).describe()) || yupObject().describe(),
               responseTypeDesc: yupString().oneOf(['json']).describe(),

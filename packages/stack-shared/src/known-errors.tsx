@@ -211,53 +211,6 @@ const InvalidProjectAuthentication = createKnownErrorConstructor(
   "inherit",
 );
 
-// TODO next-release: delete deprecated error type
-/**
- * @deprecated Use ProjectKeyWithoutAccessType instead
- */
-const ProjectKeyWithoutRequestType = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
-  "PROJECT_KEY_WITHOUT_REQUEST_TYPE",
-  () => [
-    400,
-    "Either an API key or an admin access token was provided, but the x-stack-access-type header is missing. Set it to 'client', 'server', or 'admin' as appropriate.",
-  ] as const,
-  () => [] as const,
-);
-
-// TODO next-release: delete deprecated error type
-/**
- * @deprecated Use InvalidAccessType instead
- */
-const InvalidRequestType = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
-  "INVALID_REQUEST_TYPE",
-  (requestType: string) => [
-    400,
-    `The x-stack-access-type header must be 'client', 'server', or 'admin', but was '${requestType}'.`,
-  ] as const,
-  (json) => [
-    (json as any)?.requestType ?? throwErr("requestType not found in InvalidRequestType details"),
-  ] as const,
-);
-
-// TODO next-release: delete deprecated error type
-/**
- * @deprecated Use AccessTypeWithoutProjectId instead
- */
-const RequestTypeWithoutProjectId = createKnownErrorConstructor(
-  InvalidProjectAuthentication,
-  "REQUEST_TYPE_WITHOUT_PROJECT_ID",
-  (requestType: "client" | "server" | "admin") => [
-    400,
-    `The x-stack-access-type header was '${requestType}', but the x-stack-project-id header was not provided.`,
-    {
-      request_type: requestType,
-    },
-  ] as const,
-  (json: any) => [json.request_type] as const,
-);
-
 const ProjectKeyWithoutAccessType = createKnownErrorConstructor(
   InvalidProjectAuthentication,
   "PROJECT_KEY_WITHOUT_ACCESS_TYPE",
@@ -1208,9 +1161,6 @@ export const KnownErrors = {
   AllOverloadsFailed,
   ProjectAuthenticationError,
   InvalidProjectAuthentication,
-  ProjectKeyWithoutRequestType,
-  InvalidRequestType,
-  RequestTypeWithoutProjectId,
   ProjectKeyWithoutAccessType,
   InvalidAccessType,
   AccessTypeWithoutProjectId,

@@ -10,7 +10,7 @@ import { teamInvitationCodeHandler } from "./accept/verification-code-handler";
 
 export const teamInvitationsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamInvitationCrud, {
   querySchema: yupObject({
-    team_id: yupString().uuid().defined().meta({ openapiField: { onlyShowInOperations: ['List'] }}),
+    team_id: yupString().uuid().defined().meta({ openapiField: { onlyShowInOperations: ['List'] } }),
   }),
   paramsSchema: yupObject({
     id: yupString().uuid().defined(),

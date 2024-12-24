@@ -9,6 +9,7 @@ import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/proje
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { StackAdaptSentinel, yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { ignoreUnhandledRejection } from "@stackframe/stack-shared/dist/utils/promises";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
@@ -145,6 +146,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   const adminAccessToken = req.headers.get("x-stack-admin-access-token");
   const accessToken = req.headers.get("x-stack-access-token");
   const refreshToken = req.headers.get("x-stack-refresh-token");
+  const developmentKeyOverride = req.headers.get("x-stack-development-override-key");  // in development, the internal project's API key can optionally be used to access any project
 
   const extractUserFromAccessToken = async (options: { token: string, projectId: string }) => {
     const result = await decodeAccessToken(options.token);
@@ -212,7 +214,13 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   if (!typedIncludes(["client", "server", "admin"] as const, requestType)) throw new KnownErrors.InvalidAccessType(requestType);
   if (!projectId) throw new KnownErrors.AccessTypeWithoutProjectId(requestType);
 
-  if (adminAccessToken) {
+  if (developmentKeyOverride) {
+    if (getNodeEnvironment() !== "development" && getNodeEnvironment() !== "test") {
+      throw new StatusError(401, "Development key override is only allowed in development or test environments");
+    }
+    const result = await checkApiKeySet("internal", { superSecretAdminKey: developmentKeyOverride });
+    if (!result) throw new StatusError(401, "Invalid development key override");
+  } else if (adminAccessToken) {
     if (await queries.internalUser) {
       if (!await queries.project) {
         // this happens if the project is still in the user's managedProjectIds, but has since been deleted

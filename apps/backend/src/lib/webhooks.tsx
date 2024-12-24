@@ -27,7 +27,7 @@ async function sendWebhooks(options: {
   } catch (e: any) {
     if (e.message.includes("409")) {
       // This is a Svix bug; they are working on fixing it
-      // TODO next-release: remove this once it no longer appears on Sentry
+      // TODO: remove this once it no longer appears on Sentry
       captureError("svix-409-hack", "Svix bug: 409 error when creating application. Remove this warning once Svix fixes this.");
     } else {
       throw e;

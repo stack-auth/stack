@@ -57,8 +57,6 @@
     "react-colorful": "^5.6.1",
     "zustand": "^4.5.2",
     "zod": "^3.23.8",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.3.0",
     "handlebars": "^4.7.8",
     "lodash": "^4.17.21",
     "@stackframe/stack-shared": "workspace:*",

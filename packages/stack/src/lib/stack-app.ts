@@ -892,7 +892,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           return Result.error(new KnownErrors.PasskeyRegistrationFailed("Failed to get initiation options for passkey registration"));
         }
 
-        const {options_json, code} = initiationResult.data;
+        const { options_json, code } = initiationResult.data;
 
         // HACK: Override the rpID to be the actual domain
         if (options_json.rp.id !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
@@ -1475,7 +1475,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
           return Result.error(new KnownErrors.PasskeyAuthenticationFailed("Failed to get initiation options for passkey authentication"));
         }
 
-        const {options_json, code} = initiationResult.data;
+        const { options_json, code } = initiationResult.data;
 
         // HACK: Override the rpID to be the actual domain
         if (options_json.rpId !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {

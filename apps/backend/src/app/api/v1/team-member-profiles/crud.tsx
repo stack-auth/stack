@@ -23,8 +23,8 @@ function prismaToCrud(prisma: Prisma.TeamMemberGetPayload<{ include: typeof full
 
 export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHandlers(teamMemberProfilesCrud, {
   querySchema: yupObject({
-    user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'] }}),
-    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: ['List'] }}),
+    user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'] } }),
+    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: ['List'] } }),
   }),
   paramsSchema: yupObject({
     team_id: yupString().uuid().defined(),

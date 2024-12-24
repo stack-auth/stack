@@ -49,7 +49,7 @@ export function UserDialog(props: {
     clientReadOnlyMetadata: jsonStringOrEmptySchema.default("null"),
     serverMetadata: jsonStringOrEmptySchema.default("null"),
     primaryEmailVerified: yup.boolean().optional(),
-    password: passwordSchema.test({
+    password: passwordSchema.min(1).test({
       name: 'password-required',
       message: "Password is required",
       test: (value, context) => {
@@ -139,7 +139,7 @@ export function UserDialog(props: {
               label={props.type === 'edit' ? "New password" : "Password"}
               name="password"
               type="password"
-              autocomplete="off"
+              autoComplete="off"
             />
           )
         )}

@@ -25,7 +25,8 @@
     "watch-docs": "pnpm run with-env tsx watch --clear-screen=false scripts/generate-docs.ts",
     "generate-docs": "pnpm run with-env tsx scripts/generate-docs.ts",
     "generate-keys": "pnpm run with-env tsx scripts/generate-keys.ts",
-    "db-seed-script": "pnpm run with-env tsx prisma/seed.ts"
+    "db-seed-script": "pnpm run with-env tsx prisma/seed.ts",
+    "verify-data-integrity": "pnpm run with-env tsx scripts/verify-data-integrity.ts"
   },
   "prisma": {
     "seed": "pnpm run db-seed-script"
@@ -51,7 +52,6 @@
     "@simplewebauthn/server": "^11.0.0",
     "@stackframe/stack-emails": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
-    "@vercel/analytics": "^1.2.2",
     "@vercel/functions": "^1.4.2",
     "@vercel/otel": "^1.10.0",
     "bcrypt": "^5.1.1",
@@ -62,13 +62,11 @@
     "oidc-provider": "^8.5.1",
     "openid-client": "^5.6.4",
     "oslo": "^1.2.1",
-    "pg": "^8.11.3",
     "posthog-node": "^4.1.0",
     "prettier": "^3.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "semver": "^7.6.3",
-    "server-only": "^0.0.1",
     "sharp": "^0.32.6",
     "svix": "^1.25.0",
     "yaml": "^2.4.5",

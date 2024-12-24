@@ -1,5 +1,4 @@
 import { StackAssertionError } from "./errors";
-import { camelCaseToSnakeCase, snakeCaseToCamelCase } from "./strings";
 
 export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]> } : T;
 
@@ -52,20 +51,6 @@ export function deepPlainClone<T>(obj: T): T {
   if (typeof obj !== 'object' || !obj) return obj;
   if (Array.isArray(obj)) return obj.map(deepPlainClone) as any;
   return Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, deepPlainClone(v)])) as any;
-}
-
-export function deepPlainSnakeCaseToCamelCase(snakeCaseObj: any): any {
-  if (typeof snakeCaseObj === 'function') throw new StackAssertionError("deepPlainSnakeCaseToCamelCase does not support functions");
-  if (typeof snakeCaseObj !== 'object' || !snakeCaseObj) return snakeCaseObj;
-  if (Array.isArray(snakeCaseObj)) return snakeCaseObj.map(o => deepPlainSnakeCaseToCamelCase(o));
-  return Object.fromEntries(Object.entries(snakeCaseObj).map(([k, v]) => [snakeCaseToCamelCase(k), deepPlainSnakeCaseToCamelCase(v)]));
-}
-
-export function deepPlainCamelCaseToSnakeCase(camelCaseObj: any): any {
-  if (typeof camelCaseObj === 'function') throw new StackAssertionError("deepPlainCamelCaseToSnakeCase does not support functions");
-  if (typeof camelCaseObj !== 'object' || !camelCaseObj) return camelCaseObj;
-  if (Array.isArray(camelCaseObj)) return camelCaseObj.map(o => deepPlainCamelCaseToSnakeCase(o));
-  return Object.fromEntries(Object.entries(camelCaseObj).map(([k, v]) => [camelCaseToSnakeCase(k), deepPlainCamelCaseToSnakeCase(v)]));
 }
 
 export function typedEntries<T extends {}>(obj: T): [keyof T, T[keyof T]][] {

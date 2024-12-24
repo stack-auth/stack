@@ -17,6 +17,7 @@
     "ctsx",
     "datapoints",
     "deindent",
+    "deindented",
     "EAUTH",
     "EDNS",
     "EMESSAGE",
@@ -95,5 +96,6 @@
     "**/$KNOWN_TOOLS$/**",
     "**/start-server.js",
     "**/turbo/**"
-  ]
+  ],
+  "files.insertFinalNewline": true
 }
