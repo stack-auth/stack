@@ -212,7 +212,7 @@ export const base64Schema = yupString().test("is-base64", (params) => `${params.
   if (value == null) return true;
   return isBase64(value);
 });
-export const passwordSchema = yupString().min(1).max(70);
+export const passwordSchema = yupString().max(70);
 
 /**
  * A stricter email schema that does some additional checks for UX input. (Some emails are allowed by the spec, for
