@@ -198,7 +198,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
 
   // Do all the requests in parallel
 
-  const queries = await traceSpan({ description: 'smart request auth queries' }, async () => {
+  const queries = await traceSpan('smart request auth queries', async () => {
     const queryFuncs = {
       project: () => projectId ? getProject(projectId) : Promise.resolve(null),
       isClientKeyValid: () => projectId && publishableClientKey ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
@@ -211,7 +211,7 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
     for (const [key, func] of Object.entries(queryFuncs)) {
       results.push([
         key,
-        ignoreUnhandledRejection(traceSpan({ description: `smart request auth query ${key}` }, async () => {
+        ignoreUnhandledRejection(traceSpan(`smart request auth query ${key}`, async () => {
           return await func();
         })),
       ]);

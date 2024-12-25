@@ -251,9 +251,7 @@ export function createSmartRouteHandler<
       return await handler.handler(smartReq as any, fullReq);
     });
 
-    return await traceSpan({
-      description: 'creating smart response',
-    }, async () => {
+    return await traceSpan('creating smart response', async () => {
       return await createResponse(nextRequest, requestId, smartRes, handler.response);
     });
   };

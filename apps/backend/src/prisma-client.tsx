@@ -21,9 +21,9 @@ if (getNodeEnvironment() !== 'production') {
 export async function retryTransaction<T>(fn: (...args: Parameters<Parameters<typeof prismaClient.$transaction>[0]>) => Promise<T>): Promise<T> {
   const isDev = getNodeEnvironment() === 'development';
 
-  return await traceSpan({ description: 'Prisma transaction' }, async () => {
+  return await traceSpan('Prisma transaction', async () => {
     const res = await Result.retry(async (attempt) => {
-      return await traceSpan({ description: `transaction attempt #${attempt}` }, async () => {
+      return await traceSpan(`transaction attempt #${attempt}`, async () => {
         try {
           return Result.ok(await prismaClient.$transaction(fn));
         } catch (e) {

@@ -75,7 +75,7 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
   canRetry: boolean,
   message?: string,
 }>> {
-  return await traceSpan({ description: 'sending email to ' + JSON.stringify(options.to) }, async () => {
+  return await traceSpan('sending email to ' + JSON.stringify(options.to), async () => {
     try {
       const transporter = nodemailer.createTransport({
         host: options.emailConfig.host,
