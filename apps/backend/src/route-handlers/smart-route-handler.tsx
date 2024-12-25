@@ -241,7 +241,10 @@ export function createSmartRouteHandler<
       attributes: {
         "user.id": fullReq.auth?.user?.id ?? "<none>",
         "stack.smart-request.project.id": fullReq.auth?.project.id ?? "<none>",
+        "stack.smart-request.project.display_name": fullReq.auth?.project.display_name ?? "<none>",
         "stack.smart-request.user.id": fullReq.auth?.user?.id ?? "<none>",
+        "stack.smart-request.user.display-name": fullReq.auth?.user?.display_name ?? "<none>",
+        "stack.smart-request.user.primary-email": fullReq.auth?.user?.primary_email ?? "<none>",
         "stack.smart-request.access-type": fullReq.auth?.type ?? "<none>",
         "stack.smart-request.request-id": requestId,
       },
