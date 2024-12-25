@@ -1,5 +1,6 @@
 import "../polyfills";
 
+import { traceSpan } from "@/utils/telemetry";
 import * as Sentry from "@sentry/nextjs";
 import { EndpointDocumentation } from "@stackframe/stack-shared/dist/crud";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
@@ -59,77 +60,85 @@ function catchError(error: unknown): StatusError {
 export function handleApiRequest(handler: (req: NextRequest, options: any, requestId: string) => Promise<Response>): (req: NextRequest, options: any) => Promise<Response> {
   return async (req: NextRequest, options: any) => {
     const requestId = generateSecureRandomString(80);
-
-    // Set Sentry scope to include request details
-    Sentry.setContext("stack-request", {
-      requestId: requestId,
-      method: req.method,
-      url: req.url,
-      query: Object.fromEntries(req.nextUrl.searchParams),
-      headers: Object.fromEntries(req.headers),
-    });
-
-    // During development, don't trash the console with logs from E2E tests
-    const disableExtendedLogging = getNodeEnvironment().includes('dev') && !!req.headers.get("x-stack-development-disable-extended-logging");
-
-    let hasRequestFinished = false;
-    try {
-      // censor long query parameters because they might contain sensitive data
-      const censoredUrl = new URL(req.url);
-      for (const [key, value] of censoredUrl.searchParams.entries()) {
-        if (value.length <= 8) {
-          continue;
-        }
-        censoredUrl.searchParams.set(key, value.slice(0, 4) + "--REDACTED--" + value.slice(-4));
-      }
-
-      // request duration warning
-      const warnAfterSeconds = 12;
-      runAsynchronously(async () => {
-        await wait(warnAfterSeconds * 1000);
-        if (!hasRequestFinished) {
-          captureError("request-timeout-watcher", new Error(`Request with ID ${requestId} to endpoint ${req.nextUrl.pathname} has been running for ${warnAfterSeconds} seconds. Try to keep requests short. The request may be cancelled by the serverless provider if it takes too long.`));
-        }
+    return await traceSpan({
+      description: 'handling API request',
+      attributes: {
+        "stack.request.id": requestId,
+        "stack.request.method": req.method,
+        "stack.request.url": req.url,
+      },
+    }, async (span) => {
+      // Set Sentry scope to include request details
+      Sentry.setContext("stack-request", {
+        requestId: requestId,
+        method: req.method,
+        url: req.url,
+        query: Object.fromEntries(req.nextUrl.searchParams),
+        headers: Object.fromEntries(req.headers),
       });
 
-      if (!disableExtendedLogging) console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
-      const timeStart = performance.now();
-      const res = await handler(req, options, requestId);
-      const time = (performance.now() - timeStart);
-      if ([301, 302].includes(res.status)) {
-        throw new StackAssertionError("HTTP status codes 301 and 302 should not be returned by our APIs because the behavior for non-GET methods is inconsistent across implementations. Use 303 (to rewrite method to GET) or 307/308 (to preserve the original method and data) instead.", { status: res.status, url: req.nextUrl, req, res });
-      }
-      if (!disableExtendedLogging) console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
-      return res;
-    } catch (e) {
-      let statusError: StatusError;
+      // During development, don't trash the console with logs from E2E tests
+      const disableExtendedLogging = getNodeEnvironment().includes('dev') && !!req.headers.get("x-stack-development-disable-extended-logging");
+
+      let hasRequestFinished = false;
       try {
-        statusError = catchError(e);
+        // censor long query parameters because they might contain sensitive data
+        const censoredUrl = new URL(req.url);
+        for (const [key, value] of censoredUrl.searchParams.entries()) {
+          if (value.length <= 8) {
+            continue;
+          }
+          censoredUrl.searchParams.set(key, value.slice(0, 4) + "--REDACTED--" + value.slice(-4));
+        }
+
+        // request duration warning
+        const warnAfterSeconds = 12;
+        runAsynchronously(async () => {
+          await wait(warnAfterSeconds * 1000);
+          if (!hasRequestFinished) {
+            captureError("request-timeout-watcher", new Error(`Request with ID ${requestId} to endpoint ${req.nextUrl.pathname} has been running for ${warnAfterSeconds} seconds. Try to keep requests short. The request may be cancelled by the serverless provider if it takes too long.`));
+          }
+        });
+
+        if (!disableExtendedLogging) console.log(`[API REQ] [${requestId}] ${req.method} ${censoredUrl}`);
+        const timeStart = performance.now();
+        const res = await handler(req, options, requestId);
+        const time = (performance.now() - timeStart);
+        if ([301, 302].includes(res.status)) {
+          throw new StackAssertionError("HTTP status codes 301 and 302 should not be returned by our APIs because the behavior for non-GET methods is inconsistent across implementations. Use 303 (to rewrite method to GET) or 307/308 (to preserve the original method and data) instead.", { status: res.status, url: req.nextUrl, req, res });
+        }
+        if (!disableExtendedLogging) console.log(`[    RES] [${requestId}] ${req.method} ${censoredUrl} (in ${time.toFixed(0)}ms)`);
+        return res;
       } catch (e) {
-        if (!disableExtendedLogging) console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be re-thrown. Digest: ${(e as any)?.digest}`);
-        throw e;
+        let statusError: StatusError;
+        try {
+          statusError = catchError(e);
+        } catch (e) {
+          if (!disableExtendedLogging) console.log(`[    EXC] [${requestId}] ${req.method} ${req.url}: Non-error caught (such as a redirect), will be re-thrown. Digest: ${(e as any)?.digest}`);
+          throw e;
+        }
+
+        if (!disableExtendedLogging) console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
+
+        if (!commonErrors.some(e => statusError instanceof e)) {
+          // HACK: Log a nicified version of the error instead of statusError to get around buggy Next.js pretty-printing
+          // https://www.reddit.com/r/nextjs/comments/1gkxdqe/comment/m19kxgn/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+          if (!disableExtendedLogging) console.debug(`For the error above with request ID ${requestId}, the full error is:`, errorToNiceString(statusError));
+        }
+
+        const res = await createResponse(req, requestId, {
+          statusCode: statusError.statusCode,
+          bodyType: "binary",
+          body: statusError.getBody(),
+          headers: {
+            ...statusError.getHeaders(),
+          },
+        }, yupMixed<any>());
+        return res;
+      } finally {
+        hasRequestFinished = true;
       }
-
-      if (!disableExtendedLogging) console.log(`[    ERR] [${requestId}] ${req.method} ${req.url}: ${statusError.message}`);
-
-      if (!commonErrors.some(e => statusError instanceof e)) {
-        // HACK: Log a nicified version of the error instead of statusError to get around buggy Next.js pretty-printing
-        // https://www.reddit.com/r/nextjs/comments/1gkxdqe/comment/m19kxgn/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
-        if (!disableExtendedLogging) console.debug(`For the error above with request ID ${requestId}, the full error is:`, errorToNiceString(statusError));
-      }
-
-      const res = await createResponse(req, requestId, {
-        statusCode: statusError.statusCode,
-        bodyType: "binary",
-        body: statusError.getBody(),
-        headers: {
-          ...statusError.getHeaders(),
-        },
-      }, yupMixed<any>());
-      return res;
-    } finally {
-      hasRequestFinished = true;
-    }
+    });
   };
 };
 
@@ -199,7 +208,7 @@ export function createSmartRouteHandler<
     throw new StackAssertionError("Duplicate overload parameters");
   }
 
-  const invoke = async (nextRequest: NextRequest | null, requestId: string, smartRequest: SmartRequest) => {
+  const invoke = async (nextRequest: NextRequest | null, requestId: string, smartRequest: SmartRequest, shouldSetContext: boolean = false) => {
     const reqsParsed: [[Req, SmartRequest], SmartRouteHandlerOverload<Req, Res>][] = [];
     const reqsErrors: unknown[] = [];
     for (const [overloadParam, overload] of overloads.entries()) {
@@ -223,9 +232,22 @@ export function createSmartRouteHandler<
     const fullReq = reqsParsed[0][0][1];
     const handler = reqsParsed[0][1];
 
-    Sentry.setContext("stack-parsed-smart-request", smartReq as any);
+    if (shouldSetContext) {
+      Sentry.setContext("stack-parsed-smart-request", smartReq as any);
+    }
 
-    let smartRes = await handler.handler(smartReq as any, fullReq);
+    let smartRes = await traceSpan({
+      description: 'calling smart route handler callback',
+      attributes: {
+        "user.id": fullReq.auth?.user?.id ?? "<none>",
+        "stack.smart-request.project.id": fullReq.auth?.project.id ?? "<none>",
+        "stack.smart-request.user.id": fullReq.auth?.user?.id ?? "<none>",
+        "stack.smart-request.access-type": fullReq.auth?.type ?? "<none>",
+        "stack.smart-request.request-id": requestId,
+      },
+    }, async () => {
+      return await handler.handler(smartReq as any, fullReq);
+    });
 
     return await createResponse(nextRequest, requestId, smartRes, handler.response);
   };
@@ -236,7 +258,7 @@ export function createSmartRouteHandler<
 
     Sentry.setContext("stack-full-smart-request", smartRequest);
 
-    return await invoke(req, requestId, smartRequest);
+    return await invoke(req, requestId, smartRequest, true);
   }), {
     [getSmartRouteHandlerSymbol()]: true,
     invoke: (smartRequest: SmartRequest) => invoke(null, "custom-endpoint-invocation", smartRequest),

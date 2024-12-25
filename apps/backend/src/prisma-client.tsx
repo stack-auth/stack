@@ -2,6 +2,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { getEnvVariable, getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
 import { Result } from "@stackframe/stack-shared/dist/utils/results";
+import { traceSpan } from "./utils/telemetry";
 
 // In dev mode, fast refresh causes us to recreate many Prisma clients, eventually overloading the database.
 // Therefore, only create one Prisma client in dev mode.
@@ -20,17 +21,21 @@ if (getNodeEnvironment() !== 'production') {
 export async function retryTransaction<T>(fn: (...args: Parameters<Parameters<typeof prismaClient.$transaction>[0]>) => Promise<T>): Promise<T> {
   const isDev = getNodeEnvironment() === 'development';
 
-  const res = await Result.retry(async () => {
-    try {
-      return Result.ok(await prismaClient.$transaction(fn));
-    } catch (e) {
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        // retry
-        return Result.error(e);
-      }
-      throw e;
-    }
-  }, isDev ? 1 : 3);
+  return await traceSpan({ description: 'Prisma transaction' }, async () => {
+    const res = await Result.retry(async (attempt) => {
+      return await traceSpan({ description: `transaction attempt #${attempt}` }, async () => {
+        try {
+          return Result.ok(await prismaClient.$transaction(fn));
+        } catch (e) {
+          if (e instanceof Prisma.PrismaClientKnownRequestError) {
+            // retry
+            return Result.error(e);
+          }
+          throw e;
+        }
+      });
+    }, isDev ? 1 : 3);
 
-  return Result.orThrow(res);
+    return Result.orThrow(res);
+  });
 }
