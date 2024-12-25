@@ -4,6 +4,7 @@ import { getUser } from "@/app/api/v1/users/crud";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject, listManagedProjectIds } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
+import { traceSpan } from "@/utils/telemetry";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
@@ -196,14 +197,27 @@ async function parseAuth(req: NextRequest): Promise<SmartRequestAuth | null> {
   };
 
   // Do all the requests in parallel
-  const queries = {
-    project: projectId ? ignoreUnhandledRejection(getProject(projectId)) : Promise.resolve(null),
-    isClientKeyValid: projectId && publishableClientKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { publishableClientKey })) : Promise.resolve(false),
-    isServerKeyValid: projectId && secretServerKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { secretServerKey })) : Promise.resolve(false),
-    isAdminKeyValid: projectId && superSecretAdminKey ? ignoreUnhandledRejection(checkApiKeySet(projectId, { superSecretAdminKey })) : Promise.resolve(false),
-    user: projectId && accessToken ? ignoreUnhandledRejection(extractUserFromAccessToken({ token: accessToken, projectId })) : Promise.resolve(null),
-    internalUser: projectId && adminAccessToken ? ignoreUnhandledRejection(extractUserFromAdminAccessToken({ token: adminAccessToken, projectId })) : Promise.resolve(null),
-  } as const;
+
+  const queries = await traceSpan({ description: 'smart request auth queries' }, async () => {
+    const queryFuncs = {
+      project: () => projectId ? getProject(projectId) : Promise.resolve(null),
+      isClientKeyValid: () => projectId && publishableClientKey ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
+      isServerKeyValid: () => projectId && secretServerKey ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
+      isAdminKeyValid: () => projectId && superSecretAdminKey ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
+      user: () => projectId && accessToken ? extractUserFromAccessToken({ token: accessToken, projectId }) : Promise.resolve(null),
+      internalUser: () => projectId && adminAccessToken ? extractUserFromAdminAccessToken({ token: adminAccessToken, projectId }) : Promise.resolve(null),
+    } as const;
+    const results: [string, Promise<any>][] = [];
+    for (const [key, func] of Object.entries(queryFuncs)) {
+      results.push([
+        key,
+        ignoreUnhandledRejection(traceSpan({ description: `smart request auth query ${key}` }, async () => {
+          return await func();
+        })),
+      ]);
+    }
+    return Object.fromEntries(results) as { [K in keyof typeof queryFuncs]: ReturnType<typeof queryFuncs[K]> };
+  });
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 

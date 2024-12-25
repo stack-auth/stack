@@ -63,7 +63,7 @@ export function handleApiRequest(handler: (req: NextRequest, options: any, reque
     return await traceSpan({
       description: 'handling API request',
       attributes: {
-        "stack.request.id": requestId,
+        "stack.request.request-id": requestId,
         "stack.request.method": req.method,
         "stack.request.url": req.url,
       },
@@ -246,13 +246,16 @@ export function createSmartRouteHandler<
         "stack.smart-request.user.display-name": fullReq.auth?.user?.display_name ?? "<none>",
         "stack.smart-request.user.primary-email": fullReq.auth?.user?.primary_email ?? "<none>",
         "stack.smart-request.access-type": fullReq.auth?.type ?? "<none>",
-        "stack.smart-request.request-id": requestId,
       },
     }, async () => {
       return await handler.handler(smartReq as any, fullReq);
     });
 
-    return await createResponse(nextRequest, requestId, smartRes, handler.response);
+    return await traceSpan({
+      description: 'creating smart response',
+    }, async () => {
+      return await createResponse(nextRequest, requestId, smartRes, handler.response);
+    });
   };
 
   return Object.assign(handleApiRequest(async (req, options, requestId) => {
