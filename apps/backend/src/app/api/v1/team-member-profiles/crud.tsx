@@ -118,7 +118,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         throw new KnownErrors.TeamMembershipNotFound(params.team_id, params.user_id);
       }
 
-      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId, db.projectUser.createdAt));
+      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId) ?? db.projectUser.createdAt.getTime());
     });
   },
   onUpdate: async ({ auth, data, params }) => {
@@ -151,7 +151,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         include: fullInclude,
       });
 
-      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId, db.projectUser.createdAt));
+      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId) ?? db.projectUser.createdAt.getTime());
     });
   },
 }));

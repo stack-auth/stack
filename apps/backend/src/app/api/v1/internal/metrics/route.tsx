@@ -35,7 +35,6 @@ async function loadUsersByCountry(projectId: string): Promise<Record<string, num
     GROUP BY "countryCode"
     ORDER BY "userCount" DESC;
   `;
-  console.log("AAAAAAAAAA", a);
 
   const rec = Object.fromEntries(
     a.map(({ userCount, countryCode }) => [countryCode, Number(userCount)])
