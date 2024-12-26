@@ -201,9 +201,9 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
 
   const queryFuncs = {
     project: () => projectId ? getProject(projectId) : Promise.resolve(null),
-    isClientKeyValid: () => projectId && publishableClientKey ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
-    isServerKeyValid: () => projectId && secretServerKey ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
-    isAdminKeyValid: () => projectId && superSecretAdminKey ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
+    isClientKeyValid: () => projectId && publishableClientKey && requestType === "client" ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
+    isServerKeyValid: () => projectId && secretServerKey && requestType === "server" ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
+    isAdminKeyValid: () => projectId && superSecretAdminKey && requestType === "admin" ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
     user: () => projectId && accessToken ? extractUserFromAccessToken({ token: accessToken, projectId }) : Promise.resolve(null),
     internalUser: () => projectId && adminAccessToken ? extractUserFromAdminAccessToken({ token: adminAccessToken, projectId }) : Promise.resolve(null),
   } as const;
