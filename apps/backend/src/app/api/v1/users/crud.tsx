@@ -12,7 +12,7 @@ import { userIdOrMeSchema, yupBoolean, yupNumber, yupObject, yupString } from "@
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword, isPasswordHashValid } from "@stackframe/stack-shared/dist/utils/hashes";
 import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
@@ -316,8 +316,10 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                   to_jsonb("TeamMember") ||
                   jsonb_build_object(
                     'Team', (
-                      SELECT
-                        to_jsonb("Team")
+                      SELECT (
+                        to_jsonb("Team") ||
+                        jsonb_build_object()
+                      )
                       FROM "Team"
                       WHERE "Team"."projectId" = "ProjectUser"."projectId" AND "Team"."teamId" = "TeamMember"."teamId"
                     )
@@ -349,6 +351,12 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
       const passwordAuth = row.AuthMethods.find((m: any) => m.PasswordAuthMethod);
       const otpAuth = row.AuthMethods.find((m: any) => m.OtpAuthMethod);
       const passkeyAuth = row.AuthMethods.find((m: any) => m.PasskeyAuthMethod);
+
+      if (row.SelectedTeamMember && !row.SelectedTeamMember.team) {
+        // This seems to happen in production much more often than it should, so let's log some information for debugging
+        captureError("selected-team-member-and-team-consistency", new StackAssertionError("Selected team member has no team? Ignoring it", { row }));
+        row.SelectedTeamMember = null;
+      }
 
       return {
         id: row.projectUserId,
