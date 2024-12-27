@@ -1,11 +1,11 @@
 import "../polyfills";
 
-import { getUser } from "@/app/api/v1/users/crud";
+import { getUser, getUserQuery } from "@/app/api/v1/users/crud";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { getProject, listManagedProjectIds } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
+import { rawQueryAll } from "@/prisma-client";
 import { traceSpan, withTraceSpan } from "@/utils/telemetry";
-import { Span } from "@opentelemetry/api";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
@@ -139,7 +139,7 @@ async function parseBody(req: NextRequest, bodyBuffer: ArrayBuffer): Promise<Sma
   }
 }
 
-const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextRequest, span: Span): Promise<SmartRequestAuth | null> => {
+const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextRequest): Promise<SmartRequestAuth | null> => {
   const projectId = req.headers.get("x-stack-project-id");
   let requestType = req.headers.get("x-stack-access-type");
   const publishableClientKey = req.headers.get("x-stack-publishable-client-key");
@@ -150,7 +150,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
   const refreshToken = req.headers.get("x-stack-refresh-token");
   const developmentKeyOverride = req.headers.get("x-stack-development-override-key");  // in development, the internal project's API key can optionally be used to access any project
 
-  const extractUserFromAccessToken = async (options: { token: string, projectId: string }) => {
+  const extractUserIdFromAccessToken = async (options: { token: string, projectId: string }) => {
     const result = await decodeAccessToken(options.token);
     if (result.status === "error") {
       throw result.error;
@@ -160,7 +160,12 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
       throw new KnownErrors.InvalidProjectForAccessToken();
     }
 
-    const user = await getUser({ projectId: options.projectId, userId: result.data.userId });
+    return result.data.userId;
+  };
+
+  const extractUserFromAccessToken = async (options: { token: string, projectId: string }) => {
+    const userId = await extractUserIdFromAccessToken(options);
+    const user = await getUser({ projectId: options.projectId, userId });
     if (!user) {
       // this is the case when access token is still valid, but the user is deleted from the database
       throw new KnownErrors.AccessTokenExpired();
@@ -197,7 +202,14 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     return user;
   };
 
-  // Do all the requests in parallel
+
+  // Prisma does a query for every function call by default, even if we batch them with transactions
+  // Because smart route handlers are always called, we instead send over a single raw query that fetches all the
+  // data at the same time, saving us a lot of requests
+  const bundledQueries = {
+    user: projectId && accessToken ? getUserQuery(projectId, await extractUserIdFromAccessToken({ token: accessToken, projectId })) : undefined,
+  };
+  const queriesResults = await rawQueryAll(bundledQueries);
 
   const queryFuncs = {
     project: () => projectId ? getProject(projectId) : Promise.resolve(null),

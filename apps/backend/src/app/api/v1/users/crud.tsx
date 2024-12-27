@@ -1,7 +1,7 @@
 import { ensureTeamMembershipExists, ensureUserExists } from "@/lib/request-checks";
 import { PrismaTransaction } from "@/lib/types";
 import { sendTeamMembershipDeletedWebhook, sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
-import { prismaClient, retryTransaction } from "@/prisma-client";
+import { RawQuery, prismaClient, rawQuery, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 import { BooleanTrue, Prisma } from "@prisma/client";
@@ -11,8 +11,10 @@ import { UsersCrud, usersCrud } from "@stackframe/stack-shared/dist/interface/cr
 import { userIdOrMeSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { validateBase64Image } from "@stackframe/stack-shared/dist/utils/base64";
 import { decodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { hashPassword, isPasswordHashValid } from "@stackframe/stack-shared/dist/utils/hashes";
+import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
@@ -203,45 +205,299 @@ async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
   return otpConfig.length === 0 ? null : otpConfig[0];
 }
 
-export const getUserLastActiveAtMillis = async (userId: string): Promise<number | null> => {
-  const event = await prismaClient.event.findFirst({
-    where: {
-      data: {
-        path: ["$.userId"],
-        equals: userId,
-      },
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
-  });
-
-  return event?.createdAt.getTime() ?? null;
+export const getUserLastActiveAtMillis = async (projectId: string, userId: string): Promise<number | null> => {
+  const res = (await getUsersLastActiveAtMillis(projectId, [userId], [new Date()]))[0];
+  if (res === 0) {
+    return null;
+  }
+  return res;
 };
 
-// same as userIds.map(userId => getUserLastActiveAtMillis(userId, fallbackTo)), but uses a single query
-export const getUsersLastActiveAtMillis = async (userIds: string[], fallbackTo: (number | Date)[]): Promise<number[]> => {
+// same as userIds.map(userId => getUserLastActiveAtMillis(projectId, userId)), but uses a single query
+export const getUsersLastActiveAtMillis = async (projectId: string, userIds: string[], userSignedUpAtMillis: (number | Date)[]): Promise<number[]> => {
   if (userIds.length === 0) {
     // Prisma.join throws an error if the array is empty, so we need to handle that case
     return [];
   }
 
   const events = await prismaClient.$queryRaw<Array<{ userId: string, lastActiveAt: Date }>>`
-    SELECT data->>'userId' as "userId", MAX("createdAt") as "lastActiveAt"
+    SELECT data->>'userId' as "userId", MAX("eventStartedAt") as "lastActiveAt"
     FROM "Event"
-    WHERE data->>'userId' = ANY(${Prisma.sql`ARRAY[${Prisma.join(userIds)}]`})
+    WHERE data->>'userId' = ANY(${Prisma.sql`ARRAY[${Prisma.join(userIds)}]`}) AND data->>'projectId' = ${projectId}
     GROUP BY data->>'userId'
   `;
 
   return userIds.map((userId, index) => {
     const event = events.find(e => e.userId === userId);
     return event ? event.lastActiveAt.getTime() : (
-      typeof fallbackTo[index] === "number" ? (fallbackTo[index] as number) : (fallbackTo[index] as Date).getTime()
+      typeof userSignedUpAtMillis[index] === "number" ? (userSignedUpAtMillis[index] as number) : (userSignedUpAtMillis[index] as Date).getTime()
     );
   });
 };
 
+export function getUserQuery(projectId: string, userId: string): RawQuery<UsersCrud["Admin"]["Read"] | null> {
+  return {
+    sql: Prisma.sql`
+      SELECT to_json(
+        (
+          SELECT (
+            to_jsonb("ProjectUser".*) ||
+            jsonb_build_object(
+              'lastActiveAt', (
+                SELECT MAX("eventStartedAt") as "lastActiveAt"
+                FROM "Event"
+                WHERE data->>'projectId' = "ProjectUser"."projectId" AND ("data"->>'userId')::UUID = "ProjectUser"."projectUserId" AND "systemEventTypeIds" @> '{"$user-activity"}'
+              ),
+              'UserActivityEvents', (
+                SELECT COALESCE(ARRAY_AGG(
+                  to_jsonb("Event") ||
+                  jsonb_build_object()
+                ), '{}')
+                FROM "Event"
+                WHERE "Event".data->>'projectId' = "ProjectUser"."projectId" AND ("Event".data->>'userId')::UUID = "ProjectUser"."projectUserId" AND "Event"."systemEventTypeIds" @> '{"$user-activity"}'
+              ),
+              'ContactChannels', (
+                SELECT COALESCE(ARRAY_AGG(
+                  to_jsonb("ContactChannel") ||
+                  jsonb_build_object()
+                ), '{}')
+                FROM "ContactChannel"
+                WHERE "ContactChannel"."projectId" = "ProjectUser"."projectId" AND "ContactChannel"."projectUserId" = "ProjectUser"."projectUserId" AND "ContactChannel"."isPrimary" = 'TRUE'
+              ),
+              'ProjectUserOAuthAccounts', (
+                SELECT COALESCE(ARRAY_AGG(
+                  to_jsonb("ProjectUserOAuthAccount") ||
+                  jsonb_build_object(
+                    'ProviderConfig', (
+                      SELECT to_jsonb("OAuthProviderConfig")
+                      FROM "OAuthProviderConfig"
+                      WHERE "OAuthProviderConfig"."id" = "ProjectUserOAuthAccount"."oauthProviderConfigId"
+                    )
+                  )
+                ), '{}')
+                FROM "ProjectUserOAuthAccount"
+                WHERE "ProjectUserOAuthAccount"."projectId" = "ProjectUser"."projectId" AND "ProjectUserOAuthAccount"."projectUserId" = "ProjectUser"."projectUserId"
+              ),
+              'AuthMethods', (
+                SELECT COALESCE(ARRAY_AGG(
+                  to_jsonb("AuthMethod") ||
+                  jsonb_build_object(
+                    'PasswordAuthMethod', (
+                      SELECT to_jsonb("PasswordAuthMethod")
+                      FROM "PasswordAuthMethod"
+                      WHERE "PasswordAuthMethod"."projectId" = "ProjectUser"."projectId" AND "PasswordAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "PasswordAuthMethod"."authMethodId" = "AuthMethod"."id"
+                    ),
+                    'OtpAuthMethod', (
+                      SELECT to_jsonb("OtpAuthMethod")
+                      FROM "OtpAuthMethod"
+                      WHERE "OtpAuthMethod"."projectId" = "ProjectUser"."projectId" AND "OtpAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "OtpAuthMethod"."authMethodId" = "AuthMethod"."id"
+                    ),
+                    'PasskeyAuthMethod', (
+                      SELECT to_jsonb("PasskeyAuthMethod")
+                      FROM "PasskeyAuthMethod"
+                      WHERE "PasskeyAuthMethod"."projectId" = "ProjectUser"."projectId" AND "PasskeyAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "PasskeyAuthMethod"."authMethodId" = "AuthMethod"."id"
+                    ),
+                    'OAuthAuthMethod', (
+                      SELECT to_jsonb("OAuthAuthMethod")
+                      FROM "OAuthAuthMethod"
+                      WHERE "OAuthAuthMethod"."projectId" = "ProjectUser"."projectId" AND "OAuthAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "OAuthAuthMethod"."authMethodId" = "AuthMethod"."id"
+                    )
+                  )
+                ), '{}')
+                FROM "AuthMethod"
+                WHERE "AuthMethod"."projectId" = "ProjectUser"."projectId" AND "AuthMethod"."projectUserId" = "ProjectUser"."projectUserId"
+              ),
+              'SelectedTeamMember', (
+                SELECT
+                  to_jsonb("TeamMember") ||
+                  jsonb_build_object(
+                    'Team', (
+                      SELECT
+                        to_jsonb("Team")
+                      FROM "Team"
+                      WHERE "Team"."projectId" = "ProjectUser"."projectId" AND "Team"."teamId" = "TeamMember"."teamId"
+                    )
+                  )
+                FROM "TeamMember"
+                WHERE "TeamMember"."projectId" = "ProjectUser"."projectId" AND "TeamMember"."projectUserId" = "ProjectUser"."projectUserId" AND "TeamMember"."isSelected" = 'TRUE'
+              )
+            )
+          )
+          FROM "ProjectUser"
+          WHERE "ProjectUser"."projectId" = ${projectId} AND "ProjectUser"."projectUserId" = ${userId}::UUID
+        )
+      ) AS "row_data_json"
+    `,
+    postProcess: async (queryResult) => {
+      /*
+  const selectedTeamMembers = prisma.teamMembers;
+  if (selectedTeamMembers.length > 1) {
+    throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  const primaryEmailContactChannel = prisma.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
+  const passwordAuth = prisma.authMethods.find((m) => m.passwordAuthMethod);
+  const otpAuth = prisma.authMethods.find((m) => m.otpAuthMethod);
+  const passkeyAuth = prisma.authMethods.find((m) => m.passkeyAuthMethod);
+
+  return {
+    id: prisma.projectUserId,
+    display_name: prisma.displayName || null,
+    primary_email: primaryEmailContactChannel?.value || null,
+    primary_email_verified: !!primaryEmailContactChannel?.isVerified,
+    primary_email_auth_enabled: !!primaryEmailContactChannel?.usedForAuth,
+    profile_image_url: prisma.profileImageUrl,
+    signed_up_at_millis: prisma.createdAt.getTime(),
+    client_metadata: prisma.clientMetadata,
+    client_read_only_metadata: prisma.clientReadOnlyMetadata,
+    server_metadata: prisma.serverMetadata,
+    has_password: !!passwordAuth,
+    otp_auth_enabled: !!otpAuth,
+    auth_with_email: !!passwordAuth || !!otpAuth,
+    requires_totp_mfa: prisma.requiresTotpMfa,
+    passkey_auth_enabled: !!passkeyAuth,
+    oauth_providers: prisma.projectUserOAuthAccounts.map((a) => ({
+      id: a.oauthProviderConfigId,
+      account_id: a.providerAccountId,
+      email: a.email,
+    })),
+    selected_team_id: selectedTeamMembers[0]?.teamId ?? null,
+    selected_team: selectedTeamMembers[0] ? teamPrismaToCrud(selectedTeamMembers[0]?.team) : null,
+    last_active_at_millis: lastActiveAtMillis,
+  };
+
+
+[
+  {
+    row_data_json: [
+      {
+        createdAt: '2024-12-27T01:18:14.979',
+        projectId: 'internal',
+        updatedAt: '2024-12-27T01:18:14.979',
+        totpSecret: null,
+        AuthMethods: [
+          {
+            id: '61d03adb-4121-4315-a930-ecfd99148811',
+            createdAt: '2024-12-27T01:18:15.17',
+            projectId: 'internal',
+            updatedAt: '2024-12-27T01:18:15.17',
+            OtpAuthMethod: [
+              {
+                createdAt: '2024-12-27T01:18:15.17',
+                projectId: 'internal',
+                updatedAt: '2024-12-27T01:18:15.17',
+                authMethodId: '61d03adb-4121-4315-a930-ecfd99148811',
+                projectUserId: 'be796835-b849-478f-93c8-a0827c4eff35'
+              }
+            ],
+            projectUserId: 'be796835-b849-478f-93c8-a0827c4eff35',
+            OAuthAuthMethod: null,
+            projectConfigId: 'f1d1732c-3061-41b0-bce4-09e0c5c009fc',
+            PasskeyAuthMethod: null,
+            PasswordAuthMethod: null,
+            authMethodConfigId: '27aa9ab1-664f-4910-97a0-a50c382c7e4f'
+          }
+        ],
+        displayName: null,
+        projectUserId: 'be796835-b849-478f-93c8-a0827c4eff35',
+        clientMetadata: null,
+        serverMetadata: null,
+        ContactChannels: [
+          {
+            id: '9a191986-97f9-42b8-99d0-db5a684ae88a',
+            type: 'EMAIL',
+            value: 'default-mailbox--28598bbe-79ed-44e6-b476-e6ffaa3a2dd5@stack-generated.example.com',
+            createdAt: '2024-12-27T01:18:15.071',
+            isPrimary: 'TRUE',
+            projectId: 'internal',
+            updatedAt: '2024-12-27T01:18:15.071',
+            isVerified: true,
+            usedForAuth: 'TRUE',
+            projectUserId: 'be796835-b849-478f-93c8-a0827c4eff35'
+          }
+        ],
+        profileImageUrl: null,
+        requiresTotpMfa: false,
+        SelectedTeamMember: null,
+        clientReadOnlyMetadata: null,
+        ProjectUserOAuthAccounts: null
+      }
+    ]
+  }
+]
+      */
+
+      if (queryResult.length === 0) {
+        return null;
+      }
+      if (queryResult.length !== 1) {
+        throw new StackAssertionError("Expected 1 result, got " + queryResult.length, queryResult);
+      }
+
+      const row = queryResult[0].row_data_json;
+
+      const primaryEmailContactChannel = row.ContactChannels.find((c: any) => c.type === 'EMAIL' && c.isPrimary);
+      const passwordAuth = row.AuthMethods.find((m: any) => m.PasswordAuthMethod);
+      const otpAuth = row.AuthMethods.find((m: any) => m.OtpAuthMethod);
+      const passkeyAuth = row.AuthMethods.find((m: any) => m.PasskeyAuthMethod);
+
+      return {
+        id: row.projectUserId,
+        display_name: row.displayName,
+        primary_email: primaryEmailContactChannel?.value || null,
+        primary_email_verified: primaryEmailContactChannel?.isVerified || false,
+        primary_email_auth_enabled: primaryEmailContactChannel?.usedForAuth === 'TRUE' ? true : false,
+        profile_image_url: row.profileImageUrl,
+        signed_up_at_millis: new Date(row.createdAt + "Z").getTime(),
+        client_metadata: row.clientMetadata,
+        client_read_only_metadata: row.clientReadOnlyMetadata,
+        server_metadata: row.serverMetadata,
+        has_password: !!passwordAuth,
+        otp_auth_enabled: !!otpAuth,
+        auth_with_email: !!passwordAuth || !!otpAuth,
+        requires_totp_mfa: row.requiresTotpMfa,
+        passkey_auth_enabled: !!passkeyAuth,
+        oauth_providers: row.ProjectUserOAuthAccounts.map((a: any) => ({
+          id: a.oauthProviderConfigId,
+          account_id: a.providerAccountId,
+          email: a.email,
+        })),
+        selected_team_id: row.SelectedTeamMember?.teamId ?? null,
+        selected_team: row.SelectedTeamMember ? {
+          id: row.SelectedTeamMember.team.teamId,
+          display_name: row.SelectedTeamMember.team.displayName,
+          profile_image_url: row.SelectedTeamMember.team.profileImageUrl,
+          created_at_millis: row.SelectedTeamMember.team.createdAt.getTime(),
+          client_metadata: row.SelectedTeamMember.team.clientMetadata,
+          client_read_only_metadata: row.SelectedTeamMember.team.clientReadOnlyMetadata,
+          server_metadata: row.SelectedTeamMember.team.serverMetadata,
+        } : null,
+        last_active_at_millis: row.lastActiveAt ? new Date(row.lastActiveAt + "Z").getTime() : new Date(row.createdAt + "Z").getTime(),
+      };
+    },
+  };
+}
+
 export async function getUser(options: { projectId: string, userId: string }) {
+  const result = await rawQuery(getUserQuery(options.projectId, options.userId));
+
+  // In non-prod environments, let's also call the legacy function and ensure the result is the same
+  // TODO next-release: remove this
+  if (!getNodeEnvironment().includes("prod")) {
+    const legacyResult = await getUserLegacy(options);
+    if (!deepPlainEquals(result, legacyResult)) {
+      throw new StackAssertionError("User result mismatch", {
+        result,
+        legacyResult,
+      });
+    }
+  }
+
+  return result;
+}
+
+async function getUserLegacy(options: { projectId: string, userId: string }) {
   const [db, lastActiveAtMillis] = await Promise.all([
     prismaClient.projectUser.findUnique({
       where: {
@@ -252,7 +508,7 @@ export async function getUser(options: { projectId: string, userId: string }) {
       },
       include: userFullInclude,
     }),
-    getUserLastActiveAtMillis(options.userId),
+    getUserLastActiveAtMillis(options.projectId, options.userId),
   ]);
 
   if (!db) {
@@ -333,7 +589,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       } : {},
     });
 
-    const lastActiveAtMillis = await getUsersLastActiveAtMillis(db.map(user => user.projectUserId), db.map(user => user.createdAt));
+    const lastActiveAtMillis = await getUsersLastActiveAtMillis(auth.project.id, db.map(user => user.projectUserId), db.map(user => user.createdAt));
     return {
       // remove the last item because it's the next cursor
       items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])).slice(0, query.limit),
@@ -514,7 +770,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         throw new StackAssertionError("User was created but not found", newUser);
       }
 
-      return userPrismaToCrud(user, await getUserLastActiveAtMillis(user.projectUserId) ?? user.createdAt.getTime());
+      return userPrismaToCrud(user, await getUserLastActiveAtMillis(auth.project.id, user.projectUserId) ?? user.createdAt.getTime());
     });
 
     if (auth.project.config.create_team_on_sign_up) {
@@ -826,7 +1082,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         });
       }
 
-      return userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id) ?? db.createdAt.getTime());
+      return userPrismaToCrud(db, await getUserLastActiveAtMillis(auth.project.id, params.user_id) ?? db.createdAt.getTime());
     });
 
 
