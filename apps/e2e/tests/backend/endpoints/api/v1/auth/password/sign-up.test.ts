@@ -21,7 +21,7 @@ it("should sign up new users", async ({ expect }) => {
       MailboxMessage {
         "from": "Stack Dashboard <noreply@example.com>",
         "subject": "Verify your email at Stack Dashboard",
-        "to": ["<<stripped UUID>@stack-generated.example.com>"],
+        "to": ["<default-mailbox--<stripped UUID>@stack-generated.example.com>"],
         <some fields may have been hidden>,
       },
     ]
@@ -40,7 +40,7 @@ it("should sign up new users", async ({ expect }) => {
         "oauth_providers": [],
         "otp_auth_enabled": false,
         "passkey_auth_enabled": false,
-        "primary_email": "<stripped UUID>@stack-generated.example.com",
+        "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
         "primary_email_verified": false,
         "profile_image_url": null,
         "requires_totp_mfa": false,
@@ -69,7 +69,7 @@ it("should not allow signing up with an e-mail that already exists", async ({ ex
       "status": 400,
       "body": {
         "code": "USER_EMAIL_ALREADY_EXISTS",
-        "error": "User already exists.",
+        "error": "User email already exists.",
       },
       "headers": Headers {
         "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",

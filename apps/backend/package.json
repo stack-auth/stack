@@ -1,16 +1,16 @@
 {
   "name": "@stackframe/stack-backend",
-  "version": "2.6.37",
+  "version": "2.7.1",
   "private": true,
   "scripts": {
     "clean": "rimraf .next && rimraf node_modules",
     "typecheck": "tsc --noEmit",
     "with-env": "dotenv -c development --",
     "with-env:prod": "dotenv -c --",
-    "dev": "concurrently -n \"dev,codegen,prisma-studio\" -k \"next dev --port 8102\" \"pnpm run codegen:watch\" \"pnpm run prisma-studio\"",
+    "dev": "concurrently -n \"dev,codegen,prisma-studio\" -k \"next dev --turbopack --port 8102\" \"pnpm run codegen:watch\" \"pnpm run prisma-studio\"",
     "build": "pnpm run codegen && next build",
     "docker-build": "pnpm run codegen && next build --experimental-build-mode compile",
-    "self-host-seed-script": "tsup --config prisma/tsup.config.ts",
+    "build-self-host-seed-script": "tsup --config prisma/tsup.config.ts",
     "analyze-bundle": "ANALYZE_BUNDLE=1 pnpm run build",
     "start": "next start --port 8102",
     "codegen-prisma": "pnpm run prisma generate",
@@ -24,10 +24,12 @@
     "lint": "next lint",
     "watch-docs": "pnpm run with-env tsx watch --clear-screen=false scripts/generate-docs.ts",
     "generate-docs": "pnpm run with-env tsx scripts/generate-docs.ts",
-    "generate-keys": "pnpm run with-env tsx scripts/generate-keys.ts"
+    "generate-keys": "pnpm run with-env tsx scripts/generate-keys.ts",
+    "db-seed-script": "pnpm run with-env tsx prisma/seed.ts",
+    "verify-data-integrity": "pnpm run with-env tsx scripts/verify-data-integrity.ts"
   },
   "prisma": {
-    "seed": "pnpm run with-env tsx prisma/seed.ts"
+    "seed": "pnpm run db-seed-script"
   },
   "dependencies": {
     "@next/bundle-analyzer": "15.0.3",
@@ -50,7 +52,6 @@
     "@simplewebauthn/server": "^11.0.0",
     "@stackframe/stack-emails": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
-    "@vercel/analytics": "^1.2.2",
     "@vercel/functions": "^1.4.2",
     "@vercel/otel": "^1.10.0",
     "bcrypt": "^5.1.1",
@@ -61,12 +62,10 @@
     "oidc-provider": "^8.5.1",
     "openid-client": "^5.6.4",
     "oslo": "^1.2.1",
-    "pg": "^8.11.3",
     "posthog-node": "^4.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "semver": "^7.6.3",
-    "server-only": "^0.0.1",
     "sharp": "^0.32.6",
     "svix": "^1.25.0",
     "yaml": "^2.4.5",
@@ -82,7 +81,9 @@
     "@types/semver": "^7.5.8",
     "concurrently": "^8.2.2",
     "glob": "^10.4.1",
+    "import-in-the-middle": "^1.12.0",
     "prisma": "^6.0.1",
+    "require-in-the-middle": "^7.4.0",
     "rimraf": "^5.0.5",
     "tsup": "^8.3.0",
     "tsx": "^4.7.2"

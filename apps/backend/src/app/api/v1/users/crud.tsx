@@ -145,7 +145,7 @@ async function checkAuthData(
   }
   if (data.primaryEmailAuthEnabled) {
     if (!data.oldPrimaryEmail || data.oldPrimaryEmail !== data.primaryEmail) {
-      const otpAuth = await tx.contactChannel.findFirst({
+      const existingChannelUsedForAuth = await tx.contactChannel.findFirst({
         where: {
           projectId: data.projectId,
           type: 'EMAIL',
@@ -154,7 +154,7 @@ async function checkAuthData(
         }
       });
 
-      if (otpAuth) {
+      if (existingChannelUsedForAuth) {
         throw new KnownErrors.UserEmailAlreadyExists();
       }
     }
@@ -203,7 +203,7 @@ async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
   return otpConfig.length === 0 ? null : otpConfig[0];
 }
 
-export const getUserLastActiveAtMillis = async (userId: string, fallbackTo: number | Date): Promise<number> => {
+export const getUserLastActiveAtMillis = async (userId: string): Promise<number | null> => {
   const event = await prismaClient.event.findFirst({
     where: {
       data: {
@@ -216,9 +216,7 @@ export const getUserLastActiveAtMillis = async (userId: string, fallbackTo: numb
     },
   });
 
-  return event?.createdAt.getTime() ?? (
-    typeof fallbackTo === "number" ? fallbackTo : fallbackTo.getTime()
-  );
+  return event?.createdAt.getTime() ?? null;
 };
 
 // same as userIds.map(userId => getUserLastActiveAtMillis(userId, fallbackTo)), but uses a single query
@@ -254,14 +252,14 @@ export async function getUser(options: { projectId: string, userId: string }) {
       },
       include: userFullInclude,
     }),
-    getUserLastActiveAtMillis(options.userId, new Date()),
+    getUserLastActiveAtMillis(options.userId),
   ]);
 
   if (!db) {
     return null;
   }
 
-  return userPrismaToCrud(db, lastActiveAtMillis);
+  return userPrismaToCrud(db, lastActiveAtMillis ?? db.createdAt.getTime());
 }
 
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
@@ -269,12 +267,12 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     user_id: userIdOrMeSchema.defined(),
   }),
   querySchema: yupObject({
-    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Only return users who are members of the given team" }}),
-    limit: yupNumber().integer().min(1).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return" }}),
-    cursor: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The cursor to start the result set from." }}),
-    order_by: yupString().oneOf(['signed_up_at']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" }}),
-    desc: yupBoolean().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Whether to sort the results in descending order. Defaults to false" }}),
-    query: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "A search query to filter the results by. This is a free-text search that is applied to the user's display name and primary email." }}),
+    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Only return users who are members of the given team" } }),
+    limit: yupNumber().integer().min(1).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The maximum number of items to return" } }),
+    cursor: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The cursor to start the result set from." } }),
+    order_by: yupString().oneOf(['signed_up_at']).optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "The field to sort the results by. Defaults to signed_up_at" } }),
+    desc: yupBoolean().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "Whether to sort the results in descending order. Defaults to false" } }),
+    query: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "A search query to filter the results by. This is a free-text search that is applied to the user's display name and primary email." } }),
   }),
   onRead: async ({ auth, params }) => {
     const user = await getUser({ projectId: auth.project.id, userId: params.user_id });
@@ -516,7 +514,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         throw new StackAssertionError("User was created but not found", newUser);
       }
 
-      return userPrismaToCrud(user, await getUserLastActiveAtMillis(user.projectUserId, new Date()));
+      return userPrismaToCrud(user, await getUserLastActiveAtMillis(user.projectUserId) ?? user.createdAt.getTime());
     });
 
     if (auth.project.config.create_team_on_sign_up) {
@@ -604,9 +602,9 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       await checkAuthData(tx, {
         projectId: auth.project.id,
         oldPrimaryEmail: primaryEmailContactChannel?.value,
-        primaryEmail: primaryEmailContactChannel?.value || data.primary_email,
-        primaryEmailVerified: primaryEmailContactChannel?.isVerified || data.primary_email_verified,
-        primaryEmailAuthEnabled: !!primaryEmailContactChannel?.usedForAuth || data.primary_email_auth_enabled,
+        primaryEmail: data.primary_email || primaryEmailContactChannel?.value,
+        primaryEmailVerified: data.primary_email_verified || primaryEmailContactChannel?.isVerified,
+        primaryEmailAuthEnabled: data.primary_email_auth_enabled || !!primaryEmailContactChannel?.usedForAuth,
       });
 
       // if there is a new primary email
@@ -828,7 +826,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         });
       }
 
-      return userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id, new Date()));
+      return userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id) ?? db.createdAt.getTime());
     });
 
 

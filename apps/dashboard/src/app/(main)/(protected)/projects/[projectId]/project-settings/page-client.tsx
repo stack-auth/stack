@@ -1,7 +1,7 @@
 "use client";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { StyledLink } from "@/components/link";
-import { FormSettingCard, SettingCard, SettingSwitch } from "@/components/settings";
+import { FormSettingCard, SettingCard, SettingSwitch, SettingText } from "@/components/settings";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Alert, Button, Typography } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -23,6 +23,49 @@ export default function PageClient() {
 
   return (
     <PageLayout title="Project Settings" description="Manage your project">
+      <SettingCard
+        title="Project Information"
+      >
+        <SettingText label="Project ID">
+          {project.id}
+        </SettingText>
+
+        <SettingText label="JWKS URL">
+          {`${process.env.NEXT_PUBLIC_STACK_API_URL}/api/v1/projects/${project.id}/.well-known/jwks.json`}
+        </SettingText>
+      </SettingCard>
+      <FormSettingCard
+        title="Project Details"
+        defaultValues={{
+          displayName: project.displayName,
+          description: project.description || undefined,
+        }}
+        formSchema={projectInformationSchema}
+        onSubmit={async (values) => {
+          await project.update(values);
+        }}
+        render={(form) => (
+          <>
+            <InputField
+              label="Display Name"
+              control={form.control}
+              name="displayName"
+              required
+            />
+            <InputField
+              label="Description"
+              control={form.control}
+              name="description"
+            />
+
+            <Typography variant="secondary" type="footnote">
+              The display name and description may be publicly visible to the
+              users of your app.
+            </Typography>
+          </>
+        )}
+      />
+
       <SettingCard
         title="Production mode"
         description="Production mode disallows certain configuration options that are useful for development but deemed unsafe for production usage. To prevent accidental misconfigurations, it is strongly recommended to enable production mode on your production environments."
@@ -81,38 +124,6 @@ export default function PageClient() {
           </>
         )}
       />}
-
-      <FormSettingCard
-        title="Project Information"
-        defaultValues={{
-          displayName: project.displayName,
-          description: project.description || undefined,
-        }}
-        formSchema={projectInformationSchema}
-        onSubmit={async (values) => {
-          await project.update(values);
-        }}
-        render={(form) => (
-          <>
-            <InputField
-              label="Display Name"
-              control={form.control}
-              name="displayName"
-              required
-            />
-            <InputField
-              label="Description"
-              control={form.control}
-              name="description"
-            />
-
-            <Typography variant="secondary" type="footnote">
-              The display name and description may be publicly visible to the
-              users of your app.
-            </Typography>
-          </>
-        )}
-      />
 
       <SettingCard
         title="Danger Zone"

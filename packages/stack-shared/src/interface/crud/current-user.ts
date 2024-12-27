@@ -33,10 +33,9 @@ const clientReadSchema = usersCrudServerReadSchema.pick([
   "passkey_auth_enabled",
 ]).concat(yupObject({
   selected_team: teamsCrudClientReadSchema.nullable().defined(),
-})).nullable().defined(); // TODO: next-release: make required
+})).defined();
 
-// TODO: next-release: make required
-const serverReadSchema = usersCrudServerReadSchema.nullable().defined();
+const serverReadSchema = usersCrudServerReadSchema.defined();
 
 const clientDeleteSchema = usersCrudServerDeleteSchema;
 

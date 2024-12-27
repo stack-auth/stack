@@ -1,6 +1,6 @@
 import { CrudTypeOf, createCrud } from "../../crud";
 import * as schemaFields from "../../schema-fields";
-import { yupArray, yupDefinedWhen, yupObject, yupString } from "../../schema-fields";
+import { yupArray, yupObject, yupString } from "../../schema-fields";
 
 const teamPermissionSchema = yupObject({
   id: yupString().defined(),
@@ -10,8 +10,20 @@ const oauthProviderSchema = yupObject({
   id: schemaFields.oauthIdSchema.defined(),
   enabled: schemaFields.oauthEnabledSchema.defined(),
   type: schemaFields.oauthTypeSchema.defined(),
-  client_id: yupDefinedWhen(schemaFields.oauthClientIdSchema, 'type', 'standard'),
-  client_secret: yupDefinedWhen(schemaFields.oauthClientSecretSchema, 'type', 'standard'),
+  client_id: schemaFields.yupDefinedAndNonEmptyWhen(
+    schemaFields.oauthClientIdSchema,
+    {
+      type: 'standard',
+      enabled: true,
+    },
+  ),
+  client_secret: schemaFields.yupDefinedAndNonEmptyWhen(
+    schemaFields.oauthClientSecretSchema,
+    {
+      type: 'standard',
+      enabled: true,
+    },
+  ),
 
   // extra params
   facebook_config_id: schemaFields.oauthFacebookConfigIdSchema.optional(),
@@ -22,14 +34,26 @@ const enabledOAuthProviderSchema = yupObject({
   id: schemaFields.oauthIdSchema.defined(),
 });
 
-const emailConfigSchema = yupObject({
+export const emailConfigSchema = yupObject({
   type: schemaFields.emailTypeSchema.defined(),
-  host: yupDefinedWhen(schemaFields.emailHostSchema, 'type', 'standard'),
-  port: yupDefinedWhen(schemaFields.emailPortSchema, 'type', 'standard'),
-  username: yupDefinedWhen(schemaFields.emailUsernameSchema, 'type', 'standard'),
-  password: yupDefinedWhen(schemaFields.emailPasswordSchema, 'type', 'standard'),
-  sender_name: yupDefinedWhen(schemaFields.emailSenderNameSchema, 'type', 'standard'),
-  sender_email: yupDefinedWhen(schemaFields.emailSenderEmailSchema, 'type', 'standard'),
+  host: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.emailHostSchema, {
+    type: 'standard',
+  }),
+  port: schemaFields.yupDefinedWhen(schemaFields.emailPortSchema, {
+    type: 'standard',
+  }),
+  username: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.emailUsernameSchema, {
+    type: 'standard',
+  }),
+  password: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.emailPasswordSchema, {
+    type: 'standard',
+  }),
+  sender_name: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.emailSenderNameSchema, {
+    type: 'standard',
+  }),
+  sender_email: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.emailSenderEmailSchema, {
+    type: 'standard',
+  }),
 });
 
 const domainSchema = yupObject({

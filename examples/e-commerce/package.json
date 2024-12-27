@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/e-commerce-demo",
-  "version": "2.6.37",
+  "version": "2.7.1",
   "private": true,
   "scripts": {
     "dev": "next dev --port 8111",

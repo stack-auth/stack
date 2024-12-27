@@ -125,6 +125,9 @@ jobs:
       - name: Run tests again, to make sure they are stable (attempt 3)
         run: pnpm test
 
+      - name: Verify data integrity
+        run: pnpm run verify-data-integrity
+
       - name: Print Docker Compose logs
         if: always()
         run: docker compose -f dependencies.compose.yaml logs

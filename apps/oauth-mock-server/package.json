@@ -1,12 +1,13 @@
 {
   "name": "@stackframe/oauth-mock-server",
-  "version": "2.6.37",
+  "version": "2.7.1",
   "private": true,
   "main": "index.js",
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "tsx watch --clear-screen=false src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@types/oidc-provider": "^8.5.1",

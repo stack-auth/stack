@@ -23,8 +23,8 @@ function prismaToCrud(prisma: Prisma.TeamMemberGetPayload<{ include: typeof full
 
 export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHandlers(teamMemberProfilesCrud, {
   querySchema: yupObject({
-    user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'] }}),
-    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: ['List'] }}),
+    user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'] } }),
+    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: ['List'] } }),
   }),
   paramsSchema: yupObject({
     team_id: yupString().uuid().defined(),
@@ -118,7 +118,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         throw new KnownErrors.TeamMembershipNotFound(params.team_id, params.user_id);
       }
 
-      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId, db.projectUser.createdAt));
+      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId) ?? db.projectUser.createdAt.getTime());
     });
   },
   onUpdate: async ({ auth, data, params }) => {
@@ -151,7 +151,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         include: fullInclude,
       });
 
-      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId, db.projectUser.createdAt));
+      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId) ?? db.projectUser.createdAt.getTime());
     });
   },
 }));

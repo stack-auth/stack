@@ -292,7 +292,7 @@ async function validate<T>(obj: unknown, schema: yup.ISchema<T>, currentUser: Us
           Errors:
             ${error.errors.join("\n")}
         `,
-        { obj: JSON.stringify(obj), schema, cause: error },
+        { obj: obj, schema, cause: error },
       );
     }
     throw error;

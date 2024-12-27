@@ -34,7 +34,7 @@ export class StackAdminInterface extends StackServerInterface {
     super(options);
   }
 
-  protected async sendAdminRequest(path: string, options: RequestInit, session: InternalSession | null, requestType: "admin" = "admin") {
+  public async sendAdminRequest(path: string, options: RequestInit, session: InternalSession | null, requestType: "admin" = "admin") {
     return await this.sendServerRequest(
       path,
       {
@@ -214,5 +214,37 @@ export class StackAdminInterface extends StackServerInterface {
       },
       null,
     );
+  }
+
+  async getMetrics(): Promise<any> {
+    const response = await this.sendAdminRequest(
+      "/internal/metrics",
+      {
+        method: "GET",
+      },
+      null,
+    );
+    return await response.json();
+  }
+
+  async sendTestEmail(data: {
+    recipient_email: string,
+    email_config: {
+      host: string,
+      port: number,
+      username: string,
+      password: string,
+      sender_email: string,
+      sender_name: string,
+    },
+  }): Promise<{ success: boolean, error_message?: string }> {
+    const response = await this.sendAdminRequest(`/internal/send-test-email`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(data),
+    }, null);
+    return await response.json();
   }
 }

@@ -123,17 +123,6 @@ export function mergeScopeStrings(...scopes: string[]): string {
 }
 
 
-export function snakeCaseToCamelCase(snakeCase: string): string {
-  if (snakeCase.match(/[A-Z]/)) return snakeCase; // TODO next-release: this is a hack for fixing the email templates, remove this after v2 migration
-  return snakeCase.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-}
-
-export function camelCaseToSnakeCase(camelCase: string): string {
-  if (camelCase.match(/_/)) return camelCase; // TODO next-release: this is a hack for fixing the email templates, remove this after v2 migration
-  return camelCase.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-}
-
-
 /**
  * Some classes have different constructor names in different environments (eg. `Headers` is sometimes called `_Headers`,
  * so we create an object of overrides to handle these cases.

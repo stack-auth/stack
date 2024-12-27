@@ -1,5 +1,9 @@
 import { remainder } from "./math";
 
+export function isWeekend(date: Date): boolean {
+  return date.getDay() === 0 || date.getDay() === 6;
+}
+
 const agoUnits = [
   [60, 'second'],
   [60, 'minute'],

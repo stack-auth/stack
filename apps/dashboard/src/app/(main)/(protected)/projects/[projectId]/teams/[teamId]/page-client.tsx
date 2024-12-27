@@ -89,7 +89,7 @@ export function AddUserDialog(props: {
               await props.team.addUser(user.id);
             }}
           >
-            {teamUsers.find(u => u.id === user.id) ? 'Added!' : 'Add'}
+            {teamUsers.find(u => u.id === user.id) ? 'Added' : 'Add'}
           </Button>
         </div>}
     />
