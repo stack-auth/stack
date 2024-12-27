@@ -28,6 +28,7 @@ module.exports = {
           "TSConditionalType",
           "FunctionDeclaration",
           "CallExpression",
+          "TemplateLiteral *",
         ],
       },
     ],

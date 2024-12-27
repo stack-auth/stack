@@ -167,6 +167,143 @@ it("creates a team and allows managing users on the server", async ({ expect }) 
   `);
 });
 
+it("lets users be on multiple teams", async ({ expect }) => {
+  const { userId: creatorUserId } = await Auth.Otp.signIn();
+  const { teamId: teamId1 } = await Team.createAndAddCurrent();
+  const { teamId: teamId2 } = await Team.createAndAddCurrent();
+
+  await bumpEmailAddress();
+  const { userId } = await Auth.Otp.signIn();
+  await niceBackendFetch(`/api/v1/team-memberships/${teamId1}/${userId}`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+  await niceBackendFetch(`/api/v1/team-memberships/${teamId2}/${userId}`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  const response = await niceBackendFetch(`/api/v1/users?team_id=${teamId1}`, {
+    accessType: "server",
+    method: "GET",
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": true,
+        "items": [
+          {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
+            "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+          {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
+            "primary_email": "mailbox-1--<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+        ],
+        "pagination": { "next_cursor": null },
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+  const response2 = await niceBackendFetch(`/api/v1/users?team_id=${teamId2}`, {
+    accessType: "server",
+    method: "GET",
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "is_paginated": true,
+        "items": [
+          {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
+            "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+          {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
+            "primary_email": "mailbox-1--<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+        ],
+        "pagination": { "next_cursor": null },
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
 it("should give team creator default permissions", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
   const { adminAccessToken } = await Project.createAndGetAdminToken({ config: { magic_link_enabled: true } });
