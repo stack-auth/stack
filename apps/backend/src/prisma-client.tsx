@@ -1,7 +1,7 @@
 import { Prisma, PrismaClient } from "@prisma/client";
 import { withAccelerate } from "@prisma/extension-accelerate";
 import { getEnvVariable, getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
-import { isNotNull, typedFromEntries, typedKeys } from "@stackframe/stack-shared/dist/utils/objects";
+import { filterUndefined, typedFromEntries, typedKeys } from "@stackframe/stack-shared/dist/utils/objects";
 import { Result } from "@stackframe/stack-shared/dist/utils/results";
 import { traceSpan } from "./utils/telemetry";
 
@@ -52,9 +52,9 @@ export async function rawQuery<Q extends RawQuery<any>>(query: Q): Promise<Await
 }
 
 export async function rawQueryAll<Q extends Record<string, undefined | RawQuery<any>>>(queries: Q): Promise<{ [K in keyof Q]: Awaited<ReturnType<NonNullable<Q[K]>["postProcess"]>> }> {
-  const keys = typedKeys(queries);
-  const result = await rawQueryArray(keys.map(key => queries[key]).filter(isNotNull));
-  return typedFromEntries(keys.map((key, index) => [key, result[index]]));
+  const keys = typedKeys(filterUndefined(queries));
+  const result = await rawQueryArray(keys.map(key => queries[key as any] as any));
+  return typedFromEntries(keys.map((key, index) => [key, result[index]])) as any;
 }
 
 async function rawQueryArray<Q extends RawQuery<any>[]>(queries: Q): Promise<[] & { [K in keyof Q]: Awaited<ReturnType<Q[K]["postProcess"]>> }> {

@@ -1,7 +1,7 @@
 import "../polyfills";
 
 import { getUser, getUserQuery } from "@/app/api/v1/users/crud";
-import { checkApiKeySet } from "@/lib/api-keys";
+import { checkApiKeySet, checkApiKeySetQuery } from "@/lib/api-keys";
 import { getProject, listManagedProjectIds } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
 import { rawQueryAll } from "@/prisma-client";
@@ -208,14 +208,15 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
   // data at the same time, saving us a lot of requests
   const bundledQueries = {
     user: projectId && accessToken ? getUserQuery(projectId, await extractUserIdFromAccessToken({ token: accessToken, projectId })) : undefined,
+    isClientKeyValid: projectId && publishableClientKey && requestType === "client" ? checkApiKeySetQuery(projectId, { publishableClientKey }) : undefined,
+    isServerKeyValid: projectId && secretServerKey && requestType === "server" ? checkApiKeySetQuery(projectId, { secretServerKey }) : undefined,
+    isAdminKeyValid: projectId && superSecretAdminKey && requestType === "admin" ? checkApiKeySetQuery(projectId, { superSecretAdminKey }) : undefined,
   };
   const queriesResults = await rawQueryAll(bundledQueries);
+  console.log("AAAAAAAAA", queriesResults, bundledQueries);
 
   const queryFuncs = {
     project: () => projectId ? getProject(projectId) : Promise.resolve(null),
-    isClientKeyValid: () => projectId && publishableClientKey && requestType === "client" ? checkApiKeySet(projectId, { publishableClientKey }) : Promise.resolve(false),
-    isServerKeyValid: () => projectId && secretServerKey && requestType === "server" ? checkApiKeySet(projectId, { secretServerKey }) : Promise.resolve(false),
-    isAdminKeyValid: () => projectId && superSecretAdminKey && requestType === "admin" ? checkApiKeySet(projectId, { superSecretAdminKey }) : Promise.resolve(false),
     internalUser: () => projectId && adminAccessToken ? extractUserFromAdminAccessToken({ token: adminAccessToken, projectId }) : Promise.resolve(null),
   } as const;
   const results: [string, Promise<any>][] = [];
@@ -258,17 +259,17 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     switch (requestType) {
       case "client": {
         if (!publishableClientKey) throw new KnownErrors.ClientAuthenticationRequired();
-        if (!await queries.isClientKeyValid) throw new KnownErrors.InvalidPublishableClientKey(projectId);
+        if (!queriesResults.isClientKeyValid) throw new KnownErrors.InvalidPublishableClientKey(projectId);
         break;
       }
       case "server": {
         if (!secretServerKey) throw new KnownErrors.ServerAuthenticationRequired();
-        if (!await queries.isServerKeyValid) throw new KnownErrors.InvalidSecretServerKey(projectId);
+        if (!queriesResults.isServerKeyValid) throw new KnownErrors.InvalidSecretServerKey(projectId);
         break;
       }
       case "admin": {
         if (!superSecretAdminKey) throw new KnownErrors.AdminAuthenticationRequired;
-        if (!await queries.isAdminKeyValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
+        if (!queriesResults.isAdminKeyValid) throw new KnownErrors.InvalidSuperSecretAdminKey(projectId);
         break;
       }
       default: {
