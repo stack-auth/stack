@@ -5,31 +5,61 @@ import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/uti
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import * as jose from "jose";
+import { randomUUID } from "node:crypto";
 import { expect } from "vitest";
-import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, createMailbox, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
+import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, generatedEmailSuffix, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
 type BackendContext = {
   readonly projectKeys: ProjectKeys,
+  readonly defaultProjectKeys: ProjectKeys,
   readonly mailbox: Mailbox,
   readonly userAuth: {
     readonly refreshToken?: string,
     readonly accessToken?: string,
   } | null,
+  readonly ipData?: {
+    readonly ipAddress: string,
+    readonly country: string,
+    readonly city: string,
+    readonly region: string,
+    readonly latitude: number,
+    readonly longitude: number,
+    readonly tzIdentifier: string,
+  },
+  readonly generatedMailboxNamesCount: number,
 };
 
 export const backendContext = new Context<BackendContext, Partial<BackendContext>>(
   () => ({
+    defaultProjectKeys: InternalProjectKeys,
     projectKeys: InternalProjectKeys,
-    mailbox: createMailbox(),
+    mailbox: createMailbox(`default-mailbox--${randomUUID()}${generatedEmailSuffix}`),
+    generatedMailboxNamesCount: 0,
     userAuth: null,
+    ipData: undefined,
   }),
   (acc, update) => {
+    if ("defaultProjectKeys" in update) {
+      throw new StackAssertionError("Cannot set defaultProjectKeys");
+    }
+    if ("mailbox" in update && !(update.mailbox instanceof Mailbox)) {
+      throw new StackAssertionError("Must create a mailbox with createMailbox()!");
+    }
     return {
       ...acc,
-      ...filterUndefined(update),
+      ...update,
     };
   },
 );
+
+export function createMailbox(email?: string): Mailbox {
+  if (email === undefined) {
+    backendContext.set({ generatedMailboxNamesCount: backendContext.value.generatedMailboxNamesCount + 1 });
+    email = `mailbox-${backendContext.value.generatedMailboxNamesCount}--${randomUUID()}${generatedEmailSuffix}`;
+  }
+  if (!email.includes("@")) throw new StackAssertionError(`Invalid mailbox email: ${email}`);
+  return new Mailbox("(we can ignore the disclaimer here)" as any, email);
+}
 
 export type ProjectKeys = "no-project" | {
   projectId: string,
@@ -96,7 +126,18 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
       } : {},
       "x-stack-access-token": userAuth?.accessToken,
       "x-stack-refresh-token": userAuth?.refreshToken,
-      "x-stack-disable-artificial-development-delay": "yes",
+      ...backendContext.value.ipData ? {
+        "user-agent": "Mozilla/5.0",  // pretend to be a browser so our IP gets tracked
+        "x-forwarded-for": backendContext.value.ipData.ipAddress,
+        "cf-connecting-ip": backendContext.value.ipData.ipAddress,
+        "x-vercel-ip-country": backendContext.value.ipData.country,
+        "cf-ipcountry": backendContext.value.ipData.country,
+        "x-vercel-ip-country-region": backendContext.value.ipData.region,
+        "x-vercel-ip-city": backendContext.value.ipData.city,
+        "x-vercel-ip-latitude": backendContext.value.ipData.latitude.toString(),
+        "x-vercel-ip-longitude": backendContext.value.ipData.longitude.toString(),
+        "x-vercel-ip-timezone": backendContext.value.ipData.tzIdentifier,
+      } : {},
       ...Object.fromEntries(new Headers(filterUndefined(headers ?? {}) as any).entries()),
     }),
   });
@@ -117,11 +158,25 @@ export async function niceBackendFetch(url: string | URL, options?: Omit<NiceReq
 }
 
 
+/**
+ * Creates a new mailbox with a different email address, and sets it as the current mailbox.
+ */
+export async function bumpEmailAddress(options: { unindexed?: boolean } = {}) {
+  let emailAddress = undefined;
+  if (options.unindexed) {
+    emailAddress = `unindexed-mailbox--${randomUUID()}${generatedEmailSuffix}`;
+  }
+  const mailbox = createMailbox(emailAddress);
+  backendContext.set({ mailbox });
+  return mailbox;
+}
+
 export namespace Auth {
   export async function ensureParsableAccessToken() {
     const accessToken = backendContext.value.userAuth?.accessToken;
     if (accessToken) {
       const aud = jose.decodeJwt(accessToken).aud;
+      console.log(accessToken, jose.decodeJwt(accessToken));
       const jwks = jose.createRemoteJWKSet(new URL(`api/v1/projects/${aud}/.well-known/jwks.json`, STACK_BACKEND_BASE_URL));
       const { payload } = await jose.jwtVerify(accessToken, jwks);
       expect(payload).toEqual({
@@ -431,7 +486,6 @@ export namespace Auth {
     }
 
     export async function initiateRegistration(): Promise<{ code: string }> {
-
       const response = await niceBackendFetch("/api/v1/auth/passkey/initiate-passkey-registration", {
         method: "POST",
         accessType: "client",
@@ -476,9 +530,9 @@ export namespace Auth {
               },
               "timeout": 60000,
               "user": {
-                "displayName": "<stripped UUID>@stack-generated.example.com",
+                "displayName": "default-mailbox--<stripped UUID>@stack-generated.example.com",
                 "id": "<stripped encoded UUID>",
-                "name": "<stripped UUID>@stack-generated.example.com",
+                "name": "default-mailbox--<stripped UUID>@stack-generated.example.com",
               },
             },
           },
@@ -872,7 +926,9 @@ export namespace Project {
     backendContext.set({
       projectKeys: InternalProjectKeys,
     });
-    await Auth.Otp.signIn();
+    const oldMailbox = backendContext.value.mailbox;
+    await bumpEmailAddress({ unindexed: true });
+    const { userId } = await Auth.Otp.signIn();
     const adminAccessToken = backendContext.value.userAuth?.accessToken;
     expect(adminAccessToken).toBeDefined();
     const { projectId, createProjectResponse } = await Project.create(body);
@@ -882,9 +938,11 @@ export namespace Project {
         projectId,
       },
       userAuth: null,
+      mailbox: oldMailbox,
     });
 
     return {
+      creatorUserId: userId,
       projectId,
       adminAccessToken: adminAccessToken!,
       createProjectResponse,

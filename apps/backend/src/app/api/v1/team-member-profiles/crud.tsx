@@ -1,5 +1,5 @@
 import { ensureTeamExists, ensureTeamMembershipExists, ensureUserExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
-import { prismaClient } from "@/prisma-client";
+import { retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -23,15 +23,15 @@ function prismaToCrud(prisma: Prisma.TeamMemberGetPayload<{ include: typeof full
 
 export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHandlers(teamMemberProfilesCrud, {
   querySchema: yupObject({
-    user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'] }}),
-    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: ['List'] }}),
+    user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'] } }),
+    team_id: yupString().uuid().optional().meta({ openapiField: { onlyShowInOperations: ['List'] } }),
   }),
   paramsSchema: yupObject({
     team_id: yupString().uuid().defined(),
     user_id: userIdOrMeSchema.defined(),
   }),
   onList: async ({ auth, query }) => {
-    return await prismaClient.$transaction(async (tx) => {
+    return await retryTransaction(async (tx) => {
       if (auth.type === 'client') {
         // Client can only:
         // - list users in their own team if they have the $read_members permission
@@ -85,7 +85,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
     });
   },
   onRead: async ({ auth, params }) => {
-    return await prismaClient.$transaction(async (tx) => {
+    return await retryTransaction(async (tx) => {
       if (auth.type === 'client') {
         const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
         if (params.user_id !== currentUserId) {
@@ -118,11 +118,11 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         throw new KnownErrors.TeamMembershipNotFound(params.team_id, params.user_id);
       }
 
-      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId, db.projectUser.createdAt));
+      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId) ?? db.projectUser.createdAt.getTime());
     });
   },
   onUpdate: async ({ auth, data, params }) => {
-    return await prismaClient.$transaction(async (tx) => {
+    return await retryTransaction(async (tx) => {
       if (auth.type === 'client') {
         const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
         if (params.user_id !== currentUserId) {
@@ -151,7 +151,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         include: fullInclude,
       });
 
-      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId, db.projectUser.createdAt));
+      return prismaToCrud(db, await getUserLastActiveAtMillis(db.projectUser.projectUserId) ?? db.projectUser.createdAt.getTime());
     });
   },
 }));

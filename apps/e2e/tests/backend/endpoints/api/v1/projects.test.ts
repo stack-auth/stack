@@ -1,5 +1,5 @@
 import { isBase64Url } from "@stackframe/stack-shared/dist/utils/bytes";
-import { createMailbox, it } from "../../../../helpers";
+import { it } from "../../../../helpers";
 import { Auth, InternalProjectKeys, Project, backendContext, niceBackendFetch } from "../../../backend-helpers";
 
 
@@ -520,6 +520,37 @@ it("updates the project email configuration", async ({ expect }) => {
   `);
 });
 
+it("does not update project email config to empty host", async ({ expect }) => {
+  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { updateProjectResponse: response } = await Project.updateCurrent(adminAccessToken, {
+    config: {
+      email_config: {
+        type: "standard",
+        host: "",
+        port: 587,
+        username: "test username",
+        password: "test password",
+        sender_name: "Test Sender",
+        sender_email: "test@email.com",
+      },
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host must not be empty" },
+        "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.email_config.host must not be empty",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "SCHEMA_ERROR",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
 it("updates the project email configuration with invalid parameters", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
@@ -869,6 +900,39 @@ it("updates the project oauth configuration", async ({ expect }) => {
   `);
 });
 
+it("fails when trying to update OAuth provider with empty client_secret", async ({ expect }) => {
+  await Project.createAndSwitch();
+  const response = await niceBackendFetch(`/api/v1/projects/current`, {
+    accessType: "admin",
+    method: "PATCH",
+    body: {
+      config: {
+        oauth_providers: [{
+          id: "google",
+          type: "standard",
+          enabled: true,
+          client_id: "client_id",
+          client_secret: ""
+        }]
+      }
+    }
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "SCHEMA_ERROR",
+        "details": { "message": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.oauth_providers[0].client_secret must not be empty" },
+        "error": "Request validation failed on PATCH /api/v1/projects/current:\\n  - body.config.oauth_providers[0].client_secret must not be empty",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "SCHEMA_ERROR",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
 it("deletes a project with admin access", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
@@ -1005,14 +1069,11 @@ it("deletes a project with users, teams, and permissions", async ({ expect }) =>
 });
 
 it("makes sure user have the correct managed project ID after project creation", async ({ expect }) => {
-  const { userId } =  await Auth.Otp.signIn();
+  backendContext.set({ projectKeys: InternalProjectKeys });
+  const { creatorUserId, projectId } = await Project.createAndGetAdminToken();
 
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const { projectId } = await Project.createAndGetAdminToken();
-
-  backendContext.set({ projectKeys: InternalProjectKeys });
-
-  const userResponse = await niceBackendFetch(`/api/v1/users/${userId}`, {
+  const userResponse = await niceBackendFetch(`/api/v1/users/${creatorUserId}`, {
     accessType: "server",
     method: "GET",
   });
@@ -1022,10 +1083,8 @@ it("makes sure user have the correct managed project ID after project creation",
 });
 
 it("makes sure user don't have managed project ID after project deletion", async ({ expect }) => {
-  const { userId } =  await Auth.Otp.signIn();
-
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const { adminAccessToken } = await Project.createAndGetAdminToken();
+  const { creatorUserId, adminAccessToken } = await Project.createAndGetAdminToken();
 
   // Delete the project
   const deleteResponse = await niceBackendFetch(`/api/v1/projects/current`, {
@@ -1046,7 +1105,7 @@ it("makes sure user don't have managed project ID after project deletion", async
 
   backendContext.set({ projectKeys: InternalProjectKeys });
 
-  const userResponse = await niceBackendFetch(`/api/v1/users/${userId}`, {
+  const userResponse = await niceBackendFetch(`/api/v1/users/${creatorUserId}`, {
     accessType: "server",
     method: "GET",
   });
@@ -1055,12 +1114,9 @@ it("makes sure user don't have managed project ID after project deletion", async
 });
 
 it("makes sure other users are not affected by project deletion", async ({ expect }) => {
-  const { userId: userId1 } =  await Auth.Otp.signIn();
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const { projectId } = await Project.createAndGetAdminToken();
+  const { creatorUserId, projectId } = await Project.createAndGetAdminToken();
 
-  backendContext.set({ mailbox: createMailbox(), projectKeys: InternalProjectKeys });
-  await Auth.Otp.signIn();
   backendContext.set({ projectKeys: InternalProjectKeys });
   const { adminAccessToken } = await Project.createAndGetAdminToken();
 
@@ -1074,7 +1130,7 @@ it("makes sure other users are not affected by project deletion", async ({ expec
   });
 
   backendContext.set({ projectKeys: InternalProjectKeys });
-  const userResponse1 = await niceBackendFetch(`/api/v1/users/${userId1}`, {
+  const userResponse1 = await niceBackendFetch(`/api/v1/users/${creatorUserId}`, {
     accessType: "server",
     method: "GET",
   });

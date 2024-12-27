@@ -1,13 +1,13 @@
-import { createMailbox, it } from "../../../../helpers";
-import { Auth, Team, backendContext, niceBackendFetch } from "../../../backend-helpers";
+import { it } from "../../../../helpers";
+import { Auth, Team, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
 
 async function signInAndCreateTeam() {
   const { userId: userId1 } = await Auth.Otp.signIn();
 
-  backendContext.set({ mailbox: createMailbox() });
+  await bumpEmailAddress();
   const { userId: userId2 } = await Auth.Otp.signIn();
 
-  backendContext.set({ mailbox: createMailbox() });
+  await bumpEmailAddress();
   const { userId: userId3 } = await Auth.Otp.signIn();
 
   // update names of users

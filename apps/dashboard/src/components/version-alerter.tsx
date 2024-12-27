@@ -1,9 +1,8 @@
 "use client";
 
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { useEffect, useState, version } from "react";
+import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { useEffect, useState } from "react";
 import packageJson from "../../package.json";
-import { wait } from "@stackframe/stack-shared/dist/utils/promises";
 
 /**
  * A version checking component for self-hosters which displays a banner if the server is out of date.
@@ -46,7 +45,7 @@ export function VersionAlerter({ severeOnly }: { severeOnly: boolean }) {
         setVersionCheckResult(data.upToDate ? null : data);
       } catch (e) {
         // wait a little bit because the error may have been caused by a page reload
-        await wait(2000);
+        await wait(5000);
         if (cancelled) return;
         console.error("Error checking version", e);
         setVersionCheckResult({ severe: true, error: `Error checking version, please make sure you're connected to the internet. See the console for more details. \n${e}` });

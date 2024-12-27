@@ -3,6 +3,7 @@ import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingIconButton, SettingSwitch } from "@/components/settings";
 import { AdminProject } from "@stackframe/stack";
+import { yupBoolean, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { sharedProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { ActionDialog, Badge, InlineCode, Label, SimpleTooltip, Typography } from "@stackframe/stack-ui";
@@ -31,22 +32,22 @@ function toTitle(id: string) {
   }[id];
 }
 
-export const providerFormSchema = yup.object({
-  shared: yup.boolean().defined(),
-  clientId: yup.string()
+export const providerFormSchema = yupObject({
+  shared: yupBoolean().defined(),
+  clientId: yupString()
     .when('shared', {
       is: false,
-      then: (schema) => schema.defined(),
+      then: (schema) => schema.defined().nonEmpty(),
       otherwise: (schema) => schema.optional()
     }),
-  clientSecret: yup.string()
+  clientSecret: yupString()
     .when('shared', {
       is: false,
-      then: (schema) => schema.defined(),
+      then: (schema) => schema.defined().nonEmpty(),
       otherwise: (schema) => schema.optional()
     }),
-  facebookConfigId: yup.string().optional(),
-  microsoftTenantId: yup.string().optional(),
+  facebookConfigId: yupString().optional(),
+  microsoftTenantId: yupString().optional(),
 });
 
 export type ProviderFormValues = yup.InferType<typeof providerFormSchema>
@@ -104,7 +105,8 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
               Shared keys are created by the Stack team for development. It helps you get started, but will show a Stack logo and name on the OAuth screen. This should never be enabled in production.
             </Typography> :
             <div className="flex flex-col gap-2">
-              <Label>Redirect URL for the OAuth provider settings
+              <Label>
+                Redirect URL for the OAuth provider settings
               </Label>
               <Typography type="footnote">
                 <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_API_URL}/api/v1/auth/oauth/callback/${props.id}`}</InlineCode>

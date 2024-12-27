@@ -1,5 +1,60 @@
 # @stackframe/stack-ui
 
+## 2.7.1
+
+### Patch Changes
+
+- Various changes
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.1
+
+## 2.7.0
+
+### Minor Changes
+
+- Various changes
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.0
+
+## 2.6.39
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.39
+
+## 2.6.38
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.38
+
+## 2.6.37
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.37
+
+## 2.6.36
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.36
+
+## 2.6.35
+
+### Patch Changes
+
+- Bugfixes
+- Updated dependencies
+  - @stackframe/stack-shared@2.6.35
+
 ## 2.6.34
 
 ### Patch Changes

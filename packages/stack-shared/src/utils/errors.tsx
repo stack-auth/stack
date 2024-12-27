@@ -1,5 +1,6 @@
 import { globalVar } from "./globals";
 import { Json } from "./json";
+import { pick } from "./objects";
 
 
 export function throwErr(errorMessage: string, extraData?: any): never;
@@ -24,11 +25,11 @@ function removeStacktraceNameLine(stack: string): string {
 
 
 /**
- * Concatenates the stacktraces of the given errors onto the first.
+ * Concatenates the (original) stacktraces of the given errors onto the first.
  *
  * Useful when you invoke an async function to receive a promise without awaiting it immediately. Browsers are smart
  * enough to keep track of the call stack in async function calls when you invoke `.then` within the same async tick,
- * but if you don't,
+ * but if you don't, the stacktrace will be lost.
  *
  * Here's an example of the unwanted behavior:
  *
@@ -62,25 +63,30 @@ export function concatStacktraces(first: Error, ...errors: Error[]): void {
 }
 
 
-export class StackAssertionError extends Error implements ErrorWithCustomCapture {
-  constructor(message: string, public readonly extraData?: Record<string, any>, options?: ErrorOptions) {
+export class StackAssertionError extends Error {
+  constructor(message: string, public readonly extraData?: Record<string, any> & ErrorOptions) {
     const disclaimer = `\n\nThis is likely an error in Stack. Please make sure you are running the newest version and report it.`;
-    super(`${message}${message.endsWith(disclaimer) ? "" : disclaimer}`, options);
-  }
+    super(`${message}${message.endsWith(disclaimer) ? "" : disclaimer}`, pick(extraData ?? {}, ["cause"]));
 
-  customCaptureExtraArgs = [
-    {
-      ...this.extraData,
-      ...this.cause ? { cause: this.cause } : {},
-    },
-  ];
+    Object.defineProperty(this, "customCaptureExtraArgs", {
+      get() {
+        return [this.extraData];
+      },
+      enumerable: false,
+    });
+  }
 }
 StackAssertionError.prototype.name = "StackAssertionError";
 
 
-export type ErrorWithCustomCapture = {
-  customCaptureExtraArgs: any[],
-};
+export function errorToNiceString(error: unknown): string {
+  if (!(error instanceof Error)) return `${typeof error}<${error}>`;
+  const stack = error.stack ?? "";
+  const toString = error.toString();
+  if (stack.startsWith(toString)) return stack;
+  return `${toString}\n${stack}`;
+}
+
 
 const errorSinks = new Set<(location: string, error: unknown, ...extraArgs: unknown[]) => void>();
 export function registerErrorSink(sink: (location: string, error: unknown) => void): void {
@@ -89,8 +95,15 @@ export function registerErrorSink(sink: (location: string, error: unknown) => vo
   }
   errorSinks.add(sink);
 }
-registerErrorSink((location, ...args) => {
-  console.error(`\x1b[41mCaptured error in ${location}:`, ...args, "\x1b[0m");
+registerErrorSink((location, error, ...extraArgs) => {
+  console.error(
+    `\x1b[41mCaptured error in ${location}:`,
+    // HACK: Log a nicified version of the error to get around buggy Next.js pretty-printing
+    // https://www.reddit.com/r/nextjs/comments/1gkxdqe/comment/m19kxgn/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
+    errorToNiceString(error),
+    ...extraArgs,
+    "\x1b[0m",
+  );
 });
 registerErrorSink((location, error, ...extraArgs) => {
   globalVar.stackCapturedErrors = globalVar.stackCapturedErrors ?? [];
@@ -182,7 +195,7 @@ export class StatusError extends Error {
     super(message);
     this.statusCode = status;
     if (!message) {
-      throw new StackAssertionError("StatusError always requires a message unless a Status object is passed", {}, { cause: this });
+      throw new StackAssertionError("StatusError always requires a message unless a Status object is passed", { cause: this });
     }
   }
 

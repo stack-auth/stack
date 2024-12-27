@@ -1,5 +1,5 @@
 import { ensureContactChannelDoesNotExists, ensureContactChannelExists } from "@/lib/request-checks";
-import { prismaClient } from "@/prisma-client";
+import { prismaClient, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -62,7 +62,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       }
     }
 
-    const contactChannel = await prismaClient.$transaction(async (tx) => {
+    const contactChannel = await retryTransaction(async (tx) => {
       await ensureContactChannelDoesNotExists(tx, {
         projectId: auth.project.id,
         userId: data.user_id,
@@ -145,7 +145,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       }
     }
 
-    const updatedContactChannel = await prismaClient.$transaction(async (tx) => {
+    const updatedContactChannel = await retryTransaction(async (tx) => {
       const existingContactChannel = await ensureContactChannelExists(tx, {
         projectId: auth.project.id,
         userId: params.user_id,
@@ -209,7 +209,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       }
     }
 
-    await prismaClient.$transaction(async (tx) => {
+    await retryTransaction(async (tx) => {
       await ensureContactChannelExists(tx, {
         projectId: auth.project.id,
         userId: params.user_id,

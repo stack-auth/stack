@@ -12,14 +12,14 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-16
     env:
       NODE_ENV: test
       STACK_ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING: yes
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [20.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -124,6 +124,9 @@ jobs:
 
       - name: Run tests again, to make sure they are stable (attempt 3)
         run: pnpm test
+
+      - name: Verify data integrity
+        run: pnpm run verify-data-integrity
 
       - name: Print Docker Compose logs
         if: always()

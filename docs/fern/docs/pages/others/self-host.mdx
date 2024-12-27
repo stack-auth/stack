@@ -30,15 +30,24 @@ On a high level, Stack Auth is composed of the following services:
 
 Stack Auth provides a pre-configured Docker image that bundles the dashboard and API backend into a single container. To complete the setup, you'll need to provide your own PostgreSQL database, and optionally configure an email server and Svix instance for webhooks.
 
-First, you need to get the [example environment file](https://github.com/stack-auth/stack/tree/main/docker/server/.env.example) and modify it to your needs. See the [full template here](https://github.com/stack-auth/stack/blob/dev/docker/server/.env).
+1. Use a cloud hosted Postgres or start a example Postgres database. Don't use this setting in production:
+  ```sh
+  docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+  ```
 
-```sh
-# Start a example Postgres database, don't use this setting in production
-docker run -d --name db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -e POSTGRES_DB=stackframe -p 5432:5432 postgres:latest
+2. Get the [example environment file](https://github.com/stack-auth/stack/tree/main/docker/server/.env.example) and modify it to your needs. See the [full template here](https://github.com/stack-auth/stack/blob/dev/docker/server/.env).
 
-# Run the Docker container
-docker run --env-file your-env-file.env -p 8101:8101 -p 8102:8102 stackauth/server:latest
-```
+3. Run the Docker container:
+  ```sh
+  docker run --env-file <your-env-file.env> -p 8101:8101 -p 8102:8102 stackauth/server:latest
+  ```
+
+  <Info>
+  For M1 Mac users, you might need to add `--platform linux/x86_64` to the `docker run` command.  
+  </Info>
+  <Info>
+  For Linux users, you might need to add `--add-host=host.docker.internal:host-gateway` to the `docker run` command in order to connect to the local Postgres database.
+  </Info>
 
 Now you can open the dashboard at [http://localhost:8101](http://localhost:8101) and the API backend on port 8102.
 
@@ -55,46 +64,38 @@ git clone git@github.com:stack-auth/stack.git
 cd stack
 ```
 
-Pre-populated `.env` files for the setup below are available and used by default in `.env.development` in each package. Copy all the `.env.development` files to `.env.local` in the respective packages for local development.
+Pre-populated .env files for the setup below are available and used by default in `.env.development` in each of the packages. (Note: If you're creating a production build (eg. with `pnpm run build`), you must supply the environment variables manually.)
 
-In a terminal, start the dependencies (Postgres and Inbucket) as Docker containers:
-
-```sh
-docker compose -f dependencies.compose.yaml up
-```
-
-Then open a new terminal:
+In a new terminal:
 
 ```sh
 pnpm install
 
-# Build everything once
-pnpm run build
+# Run build to build everything once
+pnpm run build:dev
 
-# Initialize the database and seed it with some data
-pnpm prisma db push
-pnpm prisma db seed
-
-# Run code generation (repeat this after e.g., changing the Prisma schema). This is part of the build script but faster.
-pnpm run codegen
+# reset & start the dependencies (DB, Inbucket, etc.) as Docker containers, seeding the DB with the Prisma schema
+pnpm run start-deps
+# pnpm run restart-deps
+# pnpm run stop-deps
 
 # Start the dev server
 pnpm run dev
+# For systems with limited resources, you can run a minimal development setup with just the backend and dashboard
+# pnpm run dev:basic
 
 # In a different terminal, run tests in watch mode
 pnpm run test
 ```
 
-You can now open the dashboard at [http://localhost:8101](http://localhost:8101), the API on port 8102, a demo on port 8103, docs on port 8104, Inbucket (emails) on port 8105, and Prisma Studio on port 8106.
+You can now open the dev launchpad at [http://localhost:8100](http://localhost:8100). From there, you can navigate to the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106. See the dev launchpad for a list of all running services.
 
-Your IDE may show errors on all `@stackframe/XYZ` imports. To fix this, restart the TypeScript language server; for example, in VSCode, you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
+Your IDE may show an error on all `@stackframe/XYZ` imports. To fix this, simply restart the TypeScript language server; for example, in VSCode you can open the command palette (Ctrl+Shift+P) and run `Developer: Reload Window` or `TypeScript: Restart TS server`.
 
-### Database migrations
-
-If you make changes to the Prisma schema, you need to run the following command to create a migration:
+You can also open Prisma Studio to see the database interface and edit data directly:
 
 ```sh
-pnpm run prisma migrate dev
+pnpm run prisma studio
 ```
 
 ## Run individual services

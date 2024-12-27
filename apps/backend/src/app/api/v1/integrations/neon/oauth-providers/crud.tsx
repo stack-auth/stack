@@ -1,4 +1,4 @@
-import { prismaClient } from "@/prisma-client";
+import { prismaClient, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
 import { CrudTypeOf, createCrud } from "@stackframe/stack-shared/dist/crud";
@@ -14,8 +14,14 @@ import * as yup from "yup";
 const oauthProviderReadSchema = yupObject({
   id: schemaFields.oauthIdSchema.defined(),
   type: schemaFields.oauthTypeSchema.defined(),
-  client_id: schemaFields.yupDefinedWhen(schemaFields.oauthClientIdSchema, 'type', 'standard'),
-  client_secret: schemaFields.yupDefinedWhen(schemaFields.oauthClientSecretSchema, 'type', 'standard'),
+  client_id: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientIdSchema, {
+    when: 'type',
+    is: 'standard',
+  }),
+  client_secret: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientSecretSchema, {
+    when: 'type',
+    is: 'standard',
+  }),
 
   // extra params
   facebook_config_id: schemaFields.oauthFacebookConfigIdSchema.optional(),
@@ -24,8 +30,14 @@ const oauthProviderReadSchema = yupObject({
 
 const oauthProviderUpdateSchema = yupObject({
   type: schemaFields.oauthTypeSchema.optional(),
-  client_id: schemaFields.yupDefinedWhen(schemaFields.oauthClientIdSchema, 'type', 'standard').optional(),
-  client_secret: schemaFields.yupDefinedWhen(schemaFields.oauthClientSecretSchema, 'type', 'standard').optional(),
+  client_id: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientIdSchema, {
+    when: 'type',
+    is: 'standard',
+  }).optional(),
+  client_secret: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientSecretSchema, {
+    when: 'type',
+    is: 'standard',
+  }).optional(),
 
   // extra params
   facebook_config_id: schemaFields.oauthFacebookConfigIdSchema.optional(),
@@ -105,7 +117,7 @@ async function createOrUpdateProvider(
     throw new StatusError(StatusError.BadRequest, `${providerId} is not a shared provider`);
   }
 
-  return await prismaClient.$transaction(async (tx) => {
+  return await retryTransaction(async (tx) => {
     if (oldProvider) {
       switch (oldProvider.type) {
         case 'shared': {

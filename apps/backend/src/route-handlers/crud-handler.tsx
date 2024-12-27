@@ -1,16 +1,16 @@
 import "../polyfills";
 
-import * as yup from "yup";
-import { SmartRouteHandler, routeHandlerTypeHelper, createSmartRouteHandler } from "./smart-route-handler";
 import { CrudSchema, CrudTypeOf, CrudlOperation } from "@stackframe/stack-shared/dist/crud";
-import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
-import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
-import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
-import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { SmartRequestAuth } from "./smart-request";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { yupArray, yupBoolean, yupMixed, yupNumber, yupObject, yupString, yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
+import { typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { FilterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
+import { deindent, typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+import * as yup from "yup";
+import { SmartRequestAuth } from "./smart-request";
+import { SmartRouteHandler, createSmartRouteHandler, routeHandlerTypeHelper } from "./smart-route-handler";
 
 type GetAdminKey<T extends CrudTypeOf<any>, K extends Capitalize<CrudlOperation>> = K extends keyof T["Admin"] ? T["Admin"][K] : void;
 
@@ -292,8 +292,7 @@ async function validate<T>(obj: unknown, schema: yup.ISchema<T>, currentUser: Us
           Errors:
             ${error.errors.join("\n")}
         `,
-        { obj: JSON.stringify(obj), schema },
-        { cause: error }
+        { obj: obj, schema, cause: error },
       );
     }
     throw error;

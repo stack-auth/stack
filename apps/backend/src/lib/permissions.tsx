@@ -1,4 +1,3 @@
-import { prismaClient } from "@/prisma-client";
 import { TeamSystemPermission as DBTeamSystemPermission, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
@@ -98,8 +97,8 @@ export async function listUserTeamPermissions(
     recursive: boolean,
   }
 ): Promise<TeamPermissionsCrud["Admin"]["Read"][]> {
-  const allPermissions = await listTeamPermissionDefinitions(tx, options.project);
-  const permissionsMap = new Map(allPermissions.map(p => [p.id, p]));
+  const permissionDefs = await listTeamPermissionDefinitions(tx, options.project);
+  const permissionsMap = new Map(permissionDefs.map(p => [p.id, p]));
   const results = await tx.teamMemberDirectPermission.findMany({
     where: {
       projectId: options.project.id,
@@ -110,18 +109,18 @@ export async function listUserTeamPermissions(
       permission: true,
     }
   });
-
-  const groupedResults = new Map<string, typeof results>();
+  const groupedResults = new Map<[string, string], typeof results>();
   for (const result of results) {
-    if (!groupedResults.has(result.projectUserId)) {
-      groupedResults.set(result.projectUserId, []);
+    const key: [string, string] = [result.projectUserId, result.teamId];
+    if (!groupedResults.has(key)) {
+      groupedResults.set(key, []);
     }
-    groupedResults.get(result.projectUserId)!.push(result);
+    groupedResults.get(key)!.push(result);
   }
 
   const finalResults: { id: string, team_id: string, user_id: string }[] = [];
-  for (const [userId, userResults] of groupedResults) {
-    const idsToProcess = [...userResults.map(p =>
+  for (const [[userId, teamId], userTeamResults] of groupedResults) {
+    const idsToProcess = [...userTeamResults.map(p =>
       p.permission?.queryableId ||
       (p.systemPermission ? teamDBTypeToSystemPermissionString(p.systemPermission) : null) ||
       throwErr(new StackAssertionError(`Permission should have either queryableId or systemPermission`, { p }))
@@ -138,9 +137,10 @@ export async function listUserTeamPermissions(
         idsToProcess.push(...current.contained_permission_ids);
       }
     }
+
     finalResults.push(...[...result.values()].map(p => ({
       id: p.id,
-      team_id: userResults[0].teamId,
+      team_id: teamId,
       user_id: userId,
     })));
   }

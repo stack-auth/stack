@@ -7,6 +7,7 @@
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.tabSize": 2,
   "cSpell.words": [
+    "backlinks",
     "Cdfc",
     "cjsx",
     "clsx",
@@ -14,13 +15,19 @@
     "codegen",
     "Crudl",
     "ctsx",
+    "datapoints",
     "deindent",
+    "deindented",
+    "EAUTH",
+    "EDNS",
+    "EMESSAGE",
     "Falsey",
     "frontends",
     "geoip",
     "hookform",
     "hostable",
     "INBUCKET",
+    "ipcountry",
     "Jwks",
     "JWTs",
     "katex",
@@ -67,6 +74,8 @@
     "typecheck",
     "typehack",
     "Uncapitalize",
+    "unindexed",
+    "unsubscribers",
     "upsert",
     "webapi",
     "webauthn",
@@ -80,5 +89,13 @@
   },
   "terminal.integrated.wordSeparators": " (){}',\"`─‘’“”|",
   "editor.formatOnSave": false,
-  "prettier.enable": false
+  "prettier.enable": false,
+  "debug.javascript.autoAttachSmartPattern": [
+    "${workspaceFolder}/**",
+    "!**/node_modules/**",
+    "**/$KNOWN_TOOLS$/**",
+    "**/start-server.js",
+    "**/turbo/**"
+  ],
+  "files.insertFinalNewline": true
 }

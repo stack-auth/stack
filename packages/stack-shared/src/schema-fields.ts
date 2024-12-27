@@ -12,13 +12,19 @@ declare module "yup" {
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface StringSchema<TType, TContext, TDefault, TFlags> {
     nonEmpty(message?: string): StringSchema<TType, TContext, TDefault, TFlags>,
+    empty(): StringSchema<TType, TContext, TDefault, TFlags>,
   }
 }
+
 // eslint-disable-next-line no-restricted-syntax
 yup.addMethod(yup.string, "nonEmpty", function (message?: string) {
-  return this.test("non-empty", message ?? "String must not be empty", (value) => {
-    return value !== "";
-  });
+  return this.test(
+    "non-empty",
+    message ?? (({ path }) => `${path} must not be empty`),
+    (value) => {
+      return value !== "";
+    }
+  );
 });
 
 
@@ -215,13 +221,14 @@ export const base64Schema = yupString().test("is-base64", (params) => `${params.
 export const passwordSchema = yupString().max(70);
 
 /**
- * A stricter email schema that does some additional checks for UX input.
+ * A stricter email schema that does some additional checks for UX input. (Some emails are allowed by the spec, for
+ * example `test@localhost` or `abc@gmail`, but almost certainly a user input error.)
  *
  * Note that some users in the DB have an email that doesn't match this regex, so most of the time you should use
  * `emailSchema` instead until we do the DB migration.
  */
 // eslint-disable-next-line no-restricted-syntax
-export const strictEmailSchema = (message: string | undefined) => yupString().email(message).matches(/^.*@.*\..*$/, message);
+export const strictEmailSchema = (message: string | undefined) => yupString().email(message).matches(/^.*@.*\.[^.][^.]+$/, message);
 // eslint-disable-next-line no-restricted-syntax
 export const emailSchema = yupString().email();
 
@@ -393,12 +400,24 @@ export const neonAuthorizationHeaderSchema = basicAuthorizationHeaderSchema.test
 // Utils
 export function yupDefinedWhen<S extends yup.AnyObject>(
   schema: S,
-  triggerName: string,
-  isValue: any
+  triggers: Record<string, any>,
 ): S {
-  return schema.when(triggerName, {
-    is: isValue,
+  const entries = Object.entries(triggers);
+  return schema.when(entries.map(([key]) => key), {
+    is: (...values: any[]) => entries.every(([key, value], index) => value === values[index]),
     then: (schema: S) => schema.defined(),
+    otherwise: (schema: S) => schema.optional()
+  });
+}
+
+export function yupDefinedAndNonEmptyWhen<S extends yup.StringSchema>(
+  schema: S,
+  triggers: Record<string, any>,
+): S {
+  const entries = Object.entries(triggers);
+  return schema.when(entries.map(([key]) => key), {
+    is: (...values: any[]) => entries.every(([key, value], index) => value === values[index]),
+    then: (schema: S) => schema.defined().nonEmpty(),
     otherwise: (schema: S) => schema.optional()
   });
 }

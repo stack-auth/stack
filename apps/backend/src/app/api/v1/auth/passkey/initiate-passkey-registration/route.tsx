@@ -31,7 +31,7 @@ export const POST = createSmartRouteHandler({
       code: yupString().defined(),
     }),
   }),
-  async handler({ auth: { project, user }}) {
+  async handler({ auth: { project, user } }) {
     if (!project.config.passkey_enabled) {
       throw new KnownErrors.PasskeyAuthenticationNotEnabled();
     }
@@ -56,7 +56,7 @@ export const POST = createSmartRouteHandler({
 
     const registrationOptions = await generateRegistrationOptions(opts);
 
-    const {code} = await registerVerificationCodeHandler.createCode({
+    const { code } = await registerVerificationCodeHandler.createCode({
       project,
       method: {},
       expiresInMs: REGISTRATION_TIMEOUT_MS + 5000,

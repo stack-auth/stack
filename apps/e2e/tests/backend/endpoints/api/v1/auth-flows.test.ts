@@ -28,7 +28,7 @@ it("should not be able to sign in again after signing in with OTP and disabling 
       "status": 400,
       "body": {
         "code": "USER_EMAIL_ALREADY_EXISTS",
-        "error": "User already exists.",
+        "error": "User email already exists.",
       },
       "headers": Headers {
         "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",
@@ -54,7 +54,7 @@ it("should not be able to sign in with OTP anymore after signing in with passwor
       "status": 400,
       "body": {
         "code": "USER_EMAIL_ALREADY_EXISTS",
-        "error": "User already exists.",
+        "error": "User email already exists.",
       },
       "headers": Headers {
         "x-stack-known-error": "USER_EMAIL_ALREADY_EXISTS",

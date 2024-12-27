@@ -1,4 +1,4 @@
-import { prismaClient } from '@/prisma-client';
+import { prismaClient, retryTransaction } from '@/prisma-client';
 import { Prisma } from '@prisma/client';
 import { decodeBase64OrBase64Url } from '@stackframe/stack-shared/dist/utils/bytes';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
@@ -94,7 +94,7 @@ function createAdapter(options: {
 function createPrismaAdapter(idpId: string) {
   return createAdapter({
     async onUpdateUnique(model, idOrWhere, updater) {
-      await prismaClient.$transaction(async (tx) => {
+      await retryTransaction(async (tx) => {
         const oldAll = await tx.idPAdapterData.findMany({
           where: typeof idOrWhere === 'string' ? {
             idpId,
@@ -276,6 +276,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
                     background-size: 400% 400%;
                     background-repeat: no-repeat;
                     animation: celebrate-gradient 60s linear infinite;
+                    min-height: 100vh;
                   }
                   @keyframes celebrate-gradient {
                     0% { background-position: 0% 100%; }
@@ -294,7 +295,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
                   setTimeout(() => {
                     document.getElementById('gradient-style').remove();
                     document.getElementById('continue-form').style.visibility = 'visible';
-                  }, 3000);
+                  }, 12000);
                 </script>
               </body>
             </html>

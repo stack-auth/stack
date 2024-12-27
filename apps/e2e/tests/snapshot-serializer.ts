@@ -8,6 +8,7 @@ const hideHeaders = [
   "access-control-allow-methods",
   "access-control-allow-origin",
   "access-control-expose-headers",
+  "access-control-max-age",
   "cache-control",
   "connection",
   "content-security-policy",
@@ -37,11 +38,13 @@ const stripFields = [
   "signed_up_at_millis",
   "expires_at_millis",
   "created_at_millis",
+  "updated_at_millis",
   "manually_revoked_at_millis",
   "last_four",
   "attempt_code",
   "nonce",
   "authorization_code",
+  "secret",
 ] as const;
 
 const stripFieldsIfString = [

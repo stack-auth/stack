@@ -1,5 +1,57 @@
 # @stackframe/stack-shared
 
+## 2.7.1
+
+### Patch Changes
+
+- Various changes
+  - @stackframe/stack-sc@2.7.1
+
+## 2.7.0
+
+### Minor Changes
+
+- Various changes
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.7.0
+
+## 2.6.39
+
+### Patch Changes
+
+- Various changes
+  - @stackframe/stack-sc@2.6.39
+
+## 2.6.38
+
+### Patch Changes
+
+- Various changes
+  - @stackframe/stack-sc@2.6.38
+
+## 2.6.37
+
+### Patch Changes
+
+- Various changes
+  - @stackframe/stack-sc@2.6.37
+
+## 2.6.36
+
+### Patch Changes
+
+- Various updates
+  - @stackframe/stack-sc@2.6.36
+
+## 2.6.35
+
+### Patch Changes
+
+- Bugfixes
+  - @stackframe/stack-sc@2.6.35
+
 ## 2.6.34
 
 ### Patch Changes

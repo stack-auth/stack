@@ -12,6 +12,7 @@ module.exports = {
     "no-trailing-spaces": "warn",
     "eol-last": "error",
     "key-spacing": "error",
+    "object-curly-spacing": ["error", "always"],
     indent: [
       "error",
       2,
@@ -71,7 +72,7 @@ module.exports = {
       },
       {
         selector:
-          "MemberExpression:has(Identifier[name='yupString']) Identifier[name='url']",
+          "MemberExpression:has(Identifier[name='yupString']) > Identifier[name='url']",
         message:
           "Use urlSchema from schema-fields.tsx instead of yupString().url().",
       },
