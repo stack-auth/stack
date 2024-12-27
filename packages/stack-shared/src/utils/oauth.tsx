@@ -1,6 +1,6 @@
 export const standardProviders = ["google", "github", "microsoft", "eartho", "spotify", "facebook", "discord", "gitlab", "bitbucket", "linkedin", "apple", "x"] as const;
 // No more shared providers should be added except for special cases
-export const sharedProviders = ["google", "github", "microsoft", "eartho"] as const;
+export const sharedProviders = ["google", "github", "microsoft", "spotify"] as const;
 export const allProviders = standardProviders;
 
 export type ProviderType = typeof allProviders[number];
