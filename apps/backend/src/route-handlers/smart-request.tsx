@@ -213,11 +213,9 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     isAdminKeyValid: projectId && superSecretAdminKey && requestType === "admin" ? checkApiKeySetQuery(projectId, { superSecretAdminKey }) : undefined,
   };
   const queriesResults = await rawQueryAll(bundledQueries);
-  console.log("AAAAAAAAA", queriesResults, bundledQueries);
 
   const queryFuncs = {
     project: () => projectId ? getProject(projectId) : Promise.resolve(null),
-    internalUser: () => projectId && adminAccessToken ? extractUserFromAdminAccessToken({ token: adminAccessToken, projectId }) : Promise.resolve(null),
   } as const;
   const results: [string, Promise<any>][] = [];
   for (const [key, func] of Object.entries(queryFuncs)) {
@@ -246,14 +244,11 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     const result = await checkApiKeySet("internal", { superSecretAdminKey: developmentKeyOverride });
     if (!result) throw new StatusError(401, "Invalid development key override");
   } else if (adminAccessToken) {
-    if (await queries.internalUser) {
-      if (!await queries.project) {
-        // this happens if the project is still in the user's managedProjectIds, but has since been deleted
-        throw new KnownErrors.InvalidProjectForAdminAccessToken();
-      }
-    } else {
-      // This case should be prevented by checks inside extractUserFromAdminAccessToken, if this happens, something is wrong
-      throw new StackAssertionError("adminAccessToken exists but no internal user was found");
+    // TODO put this into the bundled queries above (not so important because this path is quite rare)
+    const internalUser = await extractUserFromAdminAccessToken({ token: adminAccessToken, projectId });
+    if (!await queries.project) {
+      // this happens if the project is still in the user's managedProjectIds, but has since been deleted
+      throw new KnownErrors.InvalidProjectForAdminAccessToken();
     }
   } else {
     switch (requestType) {
