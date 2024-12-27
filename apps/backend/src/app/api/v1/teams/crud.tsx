@@ -101,30 +101,26 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     return result;
   },
   onRead: async ({ params, auth }) => {
-    const db = await retryTransaction(async (tx) => {
-      if (auth.type === 'client') {
-        await ensureTeamMembershipExists(tx, {
+    if (auth.type === 'client') {
+      await ensureTeamMembershipExists(prismaClient, {
+        projectId: auth.project.id,
+        teamId: params.team_id,
+        userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired),
+      });
+    }
+
+    const db = await prismaClient.team.findUnique({
+      where: {
+        projectId_teamId: {
           projectId: auth.project.id,
           teamId: params.team_id,
-          userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired),
-        });
-      }
-
-      const db = await prismaClient.team.findUnique({
-        where: {
-          projectId_teamId: {
-            projectId: auth.project.id,
-            teamId: params.team_id,
-          },
         },
-      });
-
-      if (!db) {
-        throw new KnownErrors.TeamNotFound(params.team_id);
-      }
-
-      return db;
+      },
     });
+
+    if (!db) {
+      throw new KnownErrors.TeamNotFound(params.team_id);
+    }
 
     return teamPrismaToCrud(db);
   },

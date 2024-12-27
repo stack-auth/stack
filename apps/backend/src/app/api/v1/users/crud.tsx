@@ -203,7 +203,7 @@ async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
   return otpConfig.length === 0 ? null : otpConfig[0];
 }
 
-export const getUserLastActiveAtMillis = async (userId: string, fallbackTo: number | Date): Promise<number> => {
+export const getUserLastActiveAtMillis = async (userId: string): Promise<number | null> => {
   const event = await prismaClient.event.findFirst({
     where: {
       data: {
@@ -216,9 +216,7 @@ export const getUserLastActiveAtMillis = async (userId: string, fallbackTo: numb
     },
   });
 
-  return event?.createdAt.getTime() ?? (
-    typeof fallbackTo === "number" ? fallbackTo : fallbackTo.getTime()
-  );
+  return event?.createdAt.getTime() ?? null;
 };
 
 // same as userIds.map(userId => getUserLastActiveAtMillis(userId, fallbackTo)), but uses a single query
@@ -254,14 +252,14 @@ export async function getUser(options: { projectId: string, userId: string }) {
       },
       include: userFullInclude,
     }),
-    getUserLastActiveAtMillis(options.userId, new Date()),
+    getUserLastActiveAtMillis(options.userId),
   ]);
 
   if (!db) {
     return null;
   }
 
-  return userPrismaToCrud(db, lastActiveAtMillis);
+  return userPrismaToCrud(db, lastActiveAtMillis ?? db.createdAt.getTime());
 }
 
 export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersCrud, {
@@ -516,7 +514,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         throw new StackAssertionError("User was created but not found", newUser);
       }
 
-      return userPrismaToCrud(user, await getUserLastActiveAtMillis(user.projectUserId, new Date()));
+      return userPrismaToCrud(user, await getUserLastActiveAtMillis(user.projectUserId) ?? user.createdAt.getTime());
     });
 
     if (auth.project.config.create_team_on_sign_up) {
@@ -828,7 +826,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         });
       }
 
-      return userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id, new Date()));
+      return userPrismaToCrud(db, await getUserLastActiveAtMillis(params.user_id) ?? db.createdAt.getTime());
     });
 
 
