@@ -206,7 +206,7 @@ async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
 }
 
 export const getUserLastActiveAtMillis = async (projectId: string, userId: string): Promise<number | null> => {
-  const res = (await getUsersLastActiveAtMillis(projectId, [userId], [new Date()]))[0];
+  const res = (await getUsersLastActiveAtMillis(projectId, [userId], [0]))[0];
   if (res === 0) {
     return null;
   }
@@ -223,7 +223,7 @@ export const getUsersLastActiveAtMillis = async (projectId: string, userIds: str
   const events = await prismaClient.$queryRaw<Array<{ userId: string, lastActiveAt: Date }>>`
     SELECT data->>'userId' as "userId", MAX("eventStartedAt") as "lastActiveAt"
     FROM "Event"
-    WHERE data->>'userId' = ANY(${Prisma.sql`ARRAY[${Prisma.join(userIds)}]`}) AND data->>'projectId' = ${projectId}
+    WHERE data->>'userId' = ANY(${Prisma.sql`ARRAY[${Prisma.join(userIds)}]`}) AND data->>'projectId' = ${projectId} AND "systemEventTypeIds" @> '{"$user-activity"}'
     GROUP BY data->>'userId'
   `;
 
@@ -245,6 +245,13 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
             jsonb_build_object(
               'lastActiveAt', (
                 SELECT MAX("eventStartedAt") as "lastActiveAt"
+                FROM "Event"
+                WHERE data->>'projectId' = "ProjectUser"."projectId" AND ("data"->>'userId')::UUID = "ProjectUser"."projectUserId" AND "systemEventTypeIds" @> '{"$user-activity"}'
+              ),
+              'UserActivityEvents', (
+                SELECT COALESCE(ARRAY_AGG(
+                  to_jsonb("Event")
+                ), '{}')
                 FROM "Event"
                 WHERE data->>'projectId' = "ProjectUser"."projectId" AND ("data"->>'userId')::UUID = "ProjectUser"."projectUserId" AND "systemEventTypeIds" @> '{"$user-activity"}'
               ),
@@ -328,7 +335,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
         throw new StackAssertionError("Expected 1 result, got " + queryResult.length, queryResult);
       }
 
-      const row = queryResult[0].row_data_json;
+      const row = queryResult[0].row_data_json;console.log(row);
 
       const primaryEmailContactChannel = row.ContactChannels.find((c: any) => c.type === 'EMAIL' && c.isPrimary);
       const passwordAuth = row.AuthMethods.find((m: any) => m.PasswordAuthMethod);
