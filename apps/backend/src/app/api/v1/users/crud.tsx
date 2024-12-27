@@ -336,14 +336,14 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
       ) AS "row_data_json"
     `,
     postProcess: (queryResult) => {
-      if (queryResult.length === 0) {
-        return null;
-      }
       if (queryResult.length !== 1) {
         throw new StackAssertionError("Expected 1 result, got " + queryResult.length, queryResult);
       }
 
       const row = queryResult[0].row_data_json;
+      if (!row) {
+        return null;
+      }
 
       const primaryEmailContactChannel = row.ContactChannels.find((c: any) => c.type === 'EMAIL' && c.isPrimary);
       const passwordAuth = row.AuthMethods.find((m: any) => m.PasswordAuthMethod);
