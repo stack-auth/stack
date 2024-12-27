@@ -1,5 +1,11 @@
 # @stackframe/e-commerce-demo
 
+## 2.7.2
+
+### Patch Changes
+
+- @stackframe/stack@2.7.2
+
 ## 2.7.1
 
 ### Patch Changes
