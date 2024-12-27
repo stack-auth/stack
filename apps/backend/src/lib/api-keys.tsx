@@ -6,6 +6,7 @@ import { ApiKeysCrud } from '@stackframe/stack-shared/dist/interface/crud/api-ke
 import { yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { typedIncludes } from '@stackframe/stack-shared/dist/utils/arrays';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
+import { getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 
@@ -40,12 +41,14 @@ export async function checkApiKeySet(projectId: string, key: KeyType): Promise<b
 
   // In non-prod environments, let's also call the legacy function and ensure the result is the same
   // TODO next-release: remove this
-  const legacy = await checkApiKeySetLegacy(projectId, key);
-  if (legacy !== result) {
-    throw new StackAssertionError("checkApiKeySet result mismatch", {
-      result,
-      legacy,
-    });
+  if (!getNodeEnvironment().includes("prod")) {
+    const legacy = await checkApiKeySetLegacy(projectId, key);
+    if (legacy !== result) {
+      throw new StackAssertionError("checkApiKeySet result mismatch", {
+        result,
+        legacy,
+      });
+    }
   }
 
   return result;
