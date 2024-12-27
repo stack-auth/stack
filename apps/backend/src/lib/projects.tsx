@@ -1,8 +1,10 @@
-import { prismaClient, retryTransaction } from "@/prisma-client";
+import { RawQuery, prismaClient, rawQuery, retryTransaction } from "@/prisma-client";
 import { Prisma } from "@prisma/client";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
+import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
@@ -193,7 +195,210 @@ export function listManagedProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
   return managedProjectIds;
 }
 
+/**
+ *
+ * @param projectId export const fullProjectInclude = {
+  config: {
+    include: {
+      oauthProviderConfigs: {
+        include: {
+          proxiedOAuthConfig: true,
+          standardOAuthConfig: true,
+        },
+      },
+      emailServiceConfig: {
+        include: {
+          proxiedEmailServiceConfig: true,
+          standardEmailServiceConfig: true,
+        },
+      },
+      permissions: {
+        include: fullPermissionInclude,
+      },
+      authMethodConfigs: {
+        include: {
+          oauthProviderConfig: {
+            include: {
+              proxiedOAuthConfig: true,
+              standardOAuthConfig: true,
+            },
+          },
+          otpConfig: true,
+          passwordConfig: true,
+          passkeyConfig: true,
+        }
+      },
+      connectedAccountConfigs: {
+        include: {
+          oauthProviderConfig: {
+            include: {
+              proxiedOAuthConfig: true,
+              standardOAuthConfig: true,
+            },
+          },
+        }
+      },
+      domains: true,
+    },
+  },
+  configOverride: true,
+  _count: {
+    select: {
+      users: true, // Count the users related to the project
+    },
+  },
+} as const satisfies Prisma.ProjectInclude;
+
+ * @returns
+ */
+
+export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin"]["Read"] | null> {
+  const OAuthProviderConfigSql = Prisma.sql`
+    (
+      SELECT (
+        to_jsonb("OAuthProviderConfig") ||
+        jsonb_build_object(
+          'ProxiedOAuthConfig', (
+            SELECT (
+              to_jsonb("ProxiedOAuthProviderConfig") ||
+              jsonb_build_object()
+            )
+            FROM "ProxiedOAuthProviderConfig"
+            WHERE "ProxiedOAuthProviderConfig"."id" = "OAuthProviderConfig"."id"
+          ),
+          'StandardOAuthConfig', (
+            SELECT (
+              to_jsonb("StandardOAuthProviderConfig") ||
+              jsonb_build_object()
+            )
+            FROM "StandardOAuthProviderConfig"
+            WHERE "StandardOAuthProviderConfig"."id" = "OAuthProviderConfig"."id"
+          )
+        )
+      )
+      FROM "OAuthProviderConfig"
+      WHERE "OAuthProviderConfig"."id" = "AuthMethodConfig"."oauthProviderConfigId"
+    )
+  `;
+
+  return {
+    sql: Prisma.sql`
+      SELECT to_json(
+        (
+          SELECT (
+            to_jsonb("Project".*) ||
+            jsonb_build_object(
+              'OAuthProviderConfigs', ${OAuthProviderConfigSql},
+              'EmailServiceConfig', (
+                SELECT (
+                  to_jsonb("EmailServiceConfig") ||
+                  jsonb_build_object(
+                    'ProxiedEmailServiceConfig', (
+                      SELECT (
+                        to_jsonb("ProxiedEmailServiceConfig") ||
+                        jsonb_build_object()
+                      )
+                      FROM "ProxiedEmailServiceConfig"
+                      WHERE "ProxiedEmailServiceConfig"."id" = "EmailServiceConfig"."proxiedEmailServiceConfigId"
+                    ),
+                    'StandardEmailServiceConfig', (
+                      SELECT (
+                        to_jsonb("StandardEmailServiceConfig") ||
+                        jsonb_build_object()
+                      )
+                      FROM "StandardEmailServiceConfig"
+                      WHERE "StandardEmailServiceConfig"."id" = "EmailServiceConfig"."standardEmailServiceConfigId"
+                    )
+                  )
+                )
+                FROM "EmailServiceConfig"
+                WHERE "EmailServiceConfig"."id" = "Project"."emailServiceConfigId"
+              ),
+              'AuthMethodConfigs', (
+                SELECT COALESCE(ARRAY_AGG(
+                  to_jsonb("AuthMethodConfig") ||
+                  jsonb_build_object(
+                    'OAuthProviderConfig', ${OAuthProviderConfigSql},
+                    'OtpConfig', (
+                      SELECT (
+                        to_jsonb("OtpConfig") ||
+                        jsonb_build_object()
+                      )
+                      FROM "OtpConfig"
+                      WHERE "OtpConfig"."id" = "AuthMethodConfig"."otpConfigId"
+                    ),
+                    'PasswordConfig', (
+                      SELECT (
+                        to_jsonb("PasswordConfig") ||
+                        jsonb_build_object()
+                      )
+                      FROM "PasswordConfig"
+                      WHERE "PasswordConfig"."id" = "AuthMethodConfig"."passwordConfigId"
+                    ),
+                    'PasskeyConfig', (
+                      SELECT (
+                        to_jsonb("PasskeyConfig") ||
+                        jsonb_build_object()
+                      )
+                      FROM "PasskeyConfig"
+                      WHERE "PasskeyConfig"."id" = "AuthMethodConfig"."passkeyConfigId"
+                    )
+                  )
+                ), '{}')
+                FROM "AuthMethodConfig"
+                WHERE "AuthMethodConfig"."projectId" = "Project"."id"
+              ),
+              'ConnectedAccountConfigs', (
+                SELECT COALESCE(ARRAY_AGG(
+                  to_jsonb("ConnectedAccountConfig") ||
+                  jsonb_build_object(
+                    'OAuthProviderConfig', ${OAuthProviderConfigSql}
+                  )
+                ), '{}')
+                FROM "ConnectedAccountConfig"
+                WHERE "ConnectedAccountConfig"."projectId" = "Project"."id"
+              ),
+              'Domains', (
+                SELECT COALESCE(ARRAY_AGG(
+                  to_jsonb("ProjectDomain") ||
+                  jsonb_build_object()
+                ), '{}')
+                FROM "ProjectDomain"
+                WHERE "ProjectDomain"."projectId" = "Project"."id"
+              )
+            )
+          )
+          FROM "Project"
+          LEFT JOIN "ProjectConfig" ON "ProjectConfig"."id" = "Project"."configId"
+          WHERE "Project"."id" = ${projectId}
+        )
+      ) AS "row_data_json"
+    `,
+    postProcess: (result) => {
+      throw new Error();
+    },
+  } as const;
+}
+
 export async function getProject(projectId: string): Promise<ProjectsCrud["Admin"]["Read"] | null> {
+  const result = await rawQuery(getProjectQuery(projectId));
+
+  // In non-prod environments, let's also call the legacy function and ensure the result is the same
+  // TODO next-release: remove this
+  if (!getNodeEnvironment().includes("prod")) {
+    const legacyResult = await getProjectLegacy(projectId);
+    if (!deepPlainEquals(result, legacyResult)) {
+      throw new StackAssertionError("Project result mismatch", {
+        result,
+        legacyResult,
+      });
+    }
+  }
+
+  return result.project;
+}
+
+async function getProjectLegacy(projectId: string): Promise<ProjectsCrud["Admin"]["Read"] | null> {
   const rawProject = await prismaClient.project.findUnique({
     where: { id: projectId },
     include: fullProjectInclude,
