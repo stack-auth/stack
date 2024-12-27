@@ -43,7 +43,7 @@ export async function retryTransaction<T>(fn: (...args: Parameters<Parameters<ty
 
 export type RawQuery<T> = {
   sql: Prisma.Sql,
-  postProcess: (rows: any[]) => Promise<T>,
+  postProcess: (rows: any[]) => T,  // Tip: If your postProcess is async, just set T = Promise<any> (compared to doing Promise.all in rawQuery, this ensures that there are no accidental timing attacks)
 };
 
 export async function rawQuery<Q extends RawQuery<any>>(query: Q): Promise<Awaited<ReturnType<Q["postProcess"]>>> {
@@ -83,8 +83,7 @@ async function rawQueryArray<Q extends RawQuery<any>[]>(queries: Q): Promise<[] 
     const index = +type.slice(1);
     unprocessed[index].push(row.json);
   }
-  const postProcessed = await Promise.all(
-    queries.map((q, index) => q.postProcess(unprocessed[index]))
-  );
+  const postProcessed = queries.map((q, index) => q.postProcess(unprocessed[index]));
   return postProcessed as any;
 }
+

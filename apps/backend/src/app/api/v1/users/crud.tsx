@@ -248,14 +248,6 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                 FROM "Event"
                 WHERE data->>'projectId' = "ProjectUser"."projectId" AND ("data"->>'userId')::UUID = "ProjectUser"."projectUserId" AND "systemEventTypeIds" @> '{"$user-activity"}'
               ),
-              'UserActivityEvents', (
-                SELECT COALESCE(ARRAY_AGG(
-                  to_jsonb("Event") ||
-                  jsonb_build_object()
-                ), '{}')
-                FROM "Event"
-                WHERE "Event".data->>'projectId' = "ProjectUser"."projectId" AND ("Event".data->>'userId')::UUID = "ProjectUser"."projectUserId" AND "Event"."systemEventTypeIds" @> '{"$user-activity"}'
-              ),
               'ContactChannels', (
                 SELECT COALESCE(ARRAY_AGG(
                   to_jsonb("ContactChannel") ||
@@ -328,106 +320,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
         )
       ) AS "row_data_json"
     `,
-    postProcess: async (queryResult) => {
-      /*
-  const selectedTeamMembers = prisma.teamMembers;
-  if (selectedTeamMembers.length > 1) {
-    throw new StackAssertionError("User cannot have more than one selected team; this should never happen");
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-  const primaryEmailContactChannel = prisma.contactChannels.find((c) => c.type === 'EMAIL' && c.isPrimary);
-  const passwordAuth = prisma.authMethods.find((m) => m.passwordAuthMethod);
-  const otpAuth = prisma.authMethods.find((m) => m.otpAuthMethod);
-  const passkeyAuth = prisma.authMethods.find((m) => m.passkeyAuthMethod);
-
-  return {
-    id: prisma.projectUserId,
-    display_name: prisma.displayName || null,
-    primary_email: primaryEmailContactChannel?.value || null,
-    primary_email_verified: !!primaryEmailContactChannel?.isVerified,
-    primary_email_auth_enabled: !!primaryEmailContactChannel?.usedForAuth,
-    profile_image_url: prisma.profileImageUrl,
-    signed_up_at_millis: prisma.createdAt.getTime(),
-    client_metadata: prisma.clientMetadata,
-    client_read_only_metadata: prisma.clientReadOnlyMetadata,
-    server_metadata: prisma.serverMetadata,
-    has_password: !!passwordAuth,
-    otp_auth_enabled: !!otpAuth,
-    auth_with_email: !!passwordAuth || !!otpAuth,
-    requires_totp_mfa: prisma.requiresTotpMfa,
-    passkey_auth_enabled: !!passkeyAuth,
-    oauth_providers: prisma.projectUserOAuthAccounts.map((a) => ({
-      id: a.oauthProviderConfigId,
-      account_id: a.providerAccountId,
-      email: a.email,
-    })),
-    selected_team_id: selectedTeamMembers[0]?.teamId ?? null,
-    selected_team: selectedTeamMembers[0] ? teamPrismaToCrud(selectedTeamMembers[0]?.team) : null,
-    last_active_at_millis: lastActiveAtMillis,
-  };
-
-
-[
-  {
-    row_data_json: [
-      {
-        createdAt: '2024-12-27T01:18:14.979',
-        projectId: 'internal',
-        updatedAt: '2024-12-27T01:18:14.979',
-        totpSecret: null,
-        AuthMethods: [
-          {
-            id: '61d03adb-4121-4315-a930-ecfd99148811',
-            createdAt: '2024-12-27T01:18:15.17',
-            projectId: 'internal',
-            updatedAt: '2024-12-27T01:18:15.17',
-            OtpAuthMethod: [
-              {
-                createdAt: '2024-12-27T01:18:15.17',
-                projectId: 'internal',
-                updatedAt: '2024-12-27T01:18:15.17',
-                authMethodId: '61d03adb-4121-4315-a930-ecfd99148811',
-                projectUserId: 'be796835-b849-478f-93c8-a0827c4eff35'
-              }
-            ],
-            projectUserId: 'be796835-b849-478f-93c8-a0827c4eff35',
-            OAuthAuthMethod: null,
-            projectConfigId: 'f1d1732c-3061-41b0-bce4-09e0c5c009fc',
-            PasskeyAuthMethod: null,
-            PasswordAuthMethod: null,
-            authMethodConfigId: '27aa9ab1-664f-4910-97a0-a50c382c7e4f'
-          }
-        ],
-        displayName: null,
-        projectUserId: 'be796835-b849-478f-93c8-a0827c4eff35',
-        clientMetadata: null,
-        serverMetadata: null,
-        ContactChannels: [
-          {
-            id: '9a191986-97f9-42b8-99d0-db5a684ae88a',
-            type: 'EMAIL',
-            value: 'default-mailbox--28598bbe-79ed-44e6-b476-e6ffaa3a2dd5@stack-generated.example.com',
-            createdAt: '2024-12-27T01:18:15.071',
-            isPrimary: 'TRUE',
-            projectId: 'internal',
-            updatedAt: '2024-12-27T01:18:15.071',
-            isVerified: true,
-            usedForAuth: 'TRUE',
-            projectUserId: 'be796835-b849-478f-93c8-a0827c4eff35'
-          }
-        ],
-        profileImageUrl: null,
-        requiresTotpMfa: false,
-        SelectedTeamMember: null,
-        clientReadOnlyMetadata: null,
-        ProjectUserOAuthAccounts: null
-      }
-    ]
-  }
-]
-      */
-
+    postProcess: (queryResult) => {
       if (queryResult.length === 0) {
         return null;
       }
