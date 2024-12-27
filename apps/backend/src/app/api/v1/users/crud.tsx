@@ -248,13 +248,6 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                 FROM "Event"
                 WHERE data->>'projectId' = "ProjectUser"."projectId" AND ("data"->>'userId')::UUID = "ProjectUser"."projectUserId" AND "systemEventTypeIds" @> '{"$user-activity"}'
               ),
-              'UserActivityEvents', (
-                SELECT COALESCE(ARRAY_AGG(
-                  to_jsonb("Event")
-                ), '{}')
-                FROM "Event"
-                WHERE data->>'projectId' = "ProjectUser"."projectId" AND ("data"->>'userId')::UUID = "ProjectUser"."projectUserId" AND "systemEventTypeIds" @> '{"$user-activity"}'
-              ),
               'ContactChannels', (
                 SELECT COALESCE(ARRAY_AGG(
                   to_jsonb("ContactChannel") ||
@@ -270,7 +263,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                     'ProviderConfig', (
                       SELECT to_jsonb("OAuthProviderConfig")
                       FROM "OAuthProviderConfig"
-                      WHERE "OAuthProviderConfig"."id" = "ProjectUserOAuthAccount"."oauthProviderConfigId"
+                      WHERE "ProjectConfig"."id" = "OAuthProviderConfig"."projectConfigId" AND "OAuthProviderConfig"."id" = "ProjectUserOAuthAccount"."oauthProviderConfigId"
                     )
                   )
                 ), '{}')
@@ -282,22 +275,34 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                   to_jsonb("AuthMethod") ||
                   jsonb_build_object(
                     'PasswordAuthMethod', (
-                      SELECT to_jsonb("PasswordAuthMethod")
+                      SELECT (
+                        to_jsonb("PasswordAuthMethod") ||
+                        jsonb_build_object()
+                      )
                       FROM "PasswordAuthMethod"
                       WHERE "PasswordAuthMethod"."projectId" = "ProjectUser"."projectId" AND "PasswordAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "PasswordAuthMethod"."authMethodId" = "AuthMethod"."id"
                     ),
                     'OtpAuthMethod', (
-                      SELECT to_jsonb("OtpAuthMethod")
+                      SELECT (
+                        to_jsonb("OtpAuthMethod") ||
+                        jsonb_build_object()
+                      )
                       FROM "OtpAuthMethod"
                       WHERE "OtpAuthMethod"."projectId" = "ProjectUser"."projectId" AND "OtpAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "OtpAuthMethod"."authMethodId" = "AuthMethod"."id"
                     ),
                     'PasskeyAuthMethod', (
-                      SELECT to_jsonb("PasskeyAuthMethod")
+                      SELECT (
+                        to_jsonb("PasskeyAuthMethod") ||
+                        jsonb_build_object()
+                      )
                       FROM "PasskeyAuthMethod"
                       WHERE "PasskeyAuthMethod"."projectId" = "ProjectUser"."projectId" AND "PasskeyAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "PasskeyAuthMethod"."authMethodId" = "AuthMethod"."id"
                     ),
                     'OAuthAuthMethod', (
-                      SELECT to_jsonb("OAuthAuthMethod")
+                      SELECT (
+                        to_jsonb("OAuthAuthMethod") ||
+                        jsonb_build_object()
+                      )
                       FROM "OAuthAuthMethod"
                       WHERE "OAuthAuthMethod"."projectId" = "ProjectUser"."projectId" AND "OAuthAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "OAuthAuthMethod"."authMethodId" = "AuthMethod"."id"
                     )
@@ -307,7 +312,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                 WHERE "AuthMethod"."projectId" = "ProjectUser"."projectId" AND "AuthMethod"."projectUserId" = "ProjectUser"."projectUserId"
               ),
               'SelectedTeamMember', (
-                SELECT
+                SELECT (
                   to_jsonb("TeamMember") ||
                   jsonb_build_object(
                     'Team', (
@@ -317,12 +322,15 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                       WHERE "Team"."projectId" = "ProjectUser"."projectId" AND "Team"."teamId" = "TeamMember"."teamId"
                     )
                   )
+                )
                 FROM "TeamMember"
                 WHERE "TeamMember"."projectId" = "ProjectUser"."projectId" AND "TeamMember"."projectUserId" = "ProjectUser"."projectUserId" AND "TeamMember"."isSelected" = 'TRUE'
               )
             )
           )
           FROM "ProjectUser"
+          LEFT JOIN "Project" ON "Project"."id" = "ProjectUser"."projectId"
+          LEFT JOIN "ProjectConfig" ON "ProjectConfig"."id" = "Project"."configId"
           WHERE "ProjectUser"."projectId" = ${projectId} AND "ProjectUser"."projectUserId" = ${userId}::UUID
         )
       ) AS "row_data_json"
@@ -335,7 +343,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
         throw new StackAssertionError("Expected 1 result, got " + queryResult.length, queryResult);
       }
 
-      const row = queryResult[0].row_data_json;console.log(row);
+      const row = queryResult[0].row_data_json;
 
       const primaryEmailContactChannel = row.ContactChannels.find((c: any) => c.type === 'EMAIL' && c.isPrimary);
       const passwordAuth = row.AuthMethods.find((m: any) => m.PasswordAuthMethod);
