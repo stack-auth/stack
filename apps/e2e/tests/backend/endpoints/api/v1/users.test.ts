@@ -618,16 +618,102 @@ describe("with client access", () => {
   it("should be able to updated selected team", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { teamId } = await Team.createAndAddCurrent({});
-    const response1 = await niceBackendFetch("/api/v1/users/me");
-    expect(response1).toMatchInlineSnapshot();
+    const response1 = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "otp_auth_enabled": true,
+          "passkey_auth_enabled": false,
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
     const response2 = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
       method: "PATCH",
       body: {
         selected_team_id: teamId,
       },
     });
-    expect(response2).toMatchInlineSnapshot();
+    expect(response2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "otp_auth_enabled": true,
+          "passkey_auth_enabled": false,
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": "New Team",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+          },
+          "selected_team_id": "<stripped UUID>",
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
     expect(response2.body.selected_team_id).toEqual(teamId);
+    const response3 = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+      method: "PATCH",
+      body: {
+        selected_team_id: null,
+      },
+    });
+    expect(response3).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "oauth_providers": [],
+          "otp_auth_enabled": true,
+          "passkey_auth_enabled": false,
+          "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
+          "primary_email_verified": true,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
   });
 });
 
