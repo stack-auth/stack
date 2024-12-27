@@ -352,7 +352,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
       const otpAuth = row.AuthMethods.find((m: any) => m.OtpAuthMethod);
       const passkeyAuth = row.AuthMethods.find((m: any) => m.PasskeyAuthMethod);
 
-      if (row.SelectedTeamMember && !row.SelectedTeamMember.team) {
+      if (row.SelectedTeamMember && !row.SelectedTeamMember.Team) {
         // This seems to happen in production much more often than it should, so let's log some information for debugging
         captureError("selected-team-member-and-team-consistency", new StackAssertionError("Selected team member has no team? Ignoring it", { row }));
         row.SelectedTeamMember = null;
@@ -360,7 +360,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
 
       return {
         id: row.projectUserId,
-        display_name: row.displayName,
+        display_name: row.displayName || null,
         primary_email: primaryEmailContactChannel?.value || null,
         primary_email_verified: primaryEmailContactChannel?.isVerified || false,
         primary_email_auth_enabled: primaryEmailContactChannel?.usedForAuth === 'TRUE' ? true : false,
@@ -381,13 +381,13 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
         })),
         selected_team_id: row.SelectedTeamMember?.teamId ?? null,
         selected_team: row.SelectedTeamMember ? {
-          id: row.SelectedTeamMember.team.teamId,
-          display_name: row.SelectedTeamMember.team.displayName,
-          profile_image_url: row.SelectedTeamMember.team.profileImageUrl,
-          created_at_millis: row.SelectedTeamMember.team.createdAt.getTime(),
-          client_metadata: row.SelectedTeamMember.team.clientMetadata,
-          client_read_only_metadata: row.SelectedTeamMember.team.clientReadOnlyMetadata,
-          server_metadata: row.SelectedTeamMember.team.serverMetadata,
+          id: row.SelectedTeamMember.Team.teamId,
+          display_name: row.SelectedTeamMember.Team.displayName,
+          profile_image_url: row.SelectedTeamMember.Team.profileImageUrl,
+          created_at_millis: new Date(row.SelectedTeamMember.Team.createdAt + "Z").getTime(),
+          client_metadata: row.SelectedTeamMember.Team.clientMetadata,
+          client_read_only_metadata: row.SelectedTeamMember.Team.clientReadOnlyMetadata,
+          server_metadata: row.SelectedTeamMember.Team.serverMetadata,
         } : null,
         last_active_at_millis: row.lastActiveAt ? new Date(row.lastActiveAt + "Z").getTime() : new Date(row.createdAt + "Z").getTime(),
       };

@@ -1,7 +1,7 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { describe } from "vitest";
 import { it } from "../../../../helpers";
-import { Auth, InternalProjectKeys, Project, backendContext, bumpEmailAddress, createMailbox, niceBackendFetch } from "../../../backend-helpers";
+import { Auth, InternalProjectKeys, Project, Team, backendContext, bumpEmailAddress, createMailbox, niceBackendFetch } from "../../../backend-helpers";
 
 describe("without project access", () => {
   backendContext.set({
@@ -615,7 +615,20 @@ describe("with client access", () => {
     `);
   });
 
-  it.todo("should be able to set selected team id, updating the selected team object");
+  it("should be able to updated selected team", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const { teamId } = await Team.createAndAddCurrent({});
+    const response1 = await niceBackendFetch("/api/v1/users/me");
+    expect(response1).toMatchInlineSnapshot();
+    const response2 = await niceBackendFetch("/api/v1/users/me", {
+      method: "PATCH",
+      body: {
+        selected_team_id: teamId,
+      },
+    });
+    expect(response2).toMatchInlineSnapshot();
+    expect(response2.body.selected_team_id).toEqual(teamId);
+  });
 });
 
 describe("with server access", () => {

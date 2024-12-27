@@ -163,17 +163,6 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     return result.data.userId;
   };
 
-  const extractUserFromAccessToken = async (options: { token: string, projectId: string }) => {
-    const userId = await extractUserIdFromAccessToken(options);
-    const user = await getUser({ projectId: options.projectId, userId });
-    if (!user) {
-      // this is the case when access token is still valid, but the user is deleted from the database
-      throw new KnownErrors.AccessTokenExpired();
-    }
-
-    return user;
-  };
-
   const extractUserFromAdminAccessToken = async (options: { token: string, projectId: string }) => {
     const result = await decodeAccessToken(options.token);
     if (result.status === "error") {
