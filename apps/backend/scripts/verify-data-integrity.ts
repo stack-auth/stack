@@ -67,11 +67,6 @@ async function main() {
   });
   console.log(`Found ${projects.length} projects, iterating over them.`);
 
-  // we wanna do the internal project first
-  const internalProject = projects.pop() ?? throwErr("No projects found");
-  if (internalProject.id !== "internal") throwErr("Last project is not the internal project? This is a bug.");
-  projects.unshift(internalProject);
-
   for (let i = 0; i < projects.length; i++) {
     const projectId = projects[i].id;
     await recurse(`[project ${i + 1}/${projects.length}] ${projectId} ${projects[i].displayName}`, async (recurse) => {

@@ -133,11 +133,11 @@ export function projectPrismaToCrud(
       client_user_deletion_enabled: prisma.config.clientUserDeletionEnabled,
       legacy_global_jwt_signing: prisma.config.legacyGlobalJwtSigning,
       domains: prisma.config.domains
+        .sort((a: any, b: any) => a.createdAt.getTime() - b.createdAt.getTime())
         .map((domain) => ({
           domain: domain.domain,
           handler_path: domain.handlerPath,
-        }))
-        .sort((a, b) => stringCompare(a.domain, b.domain)),
+        })),
       oauth_providers: oauthProviders,
       enabled_oauth_providers: oauthProviders.filter(provider => provider.enabled),
       email_config: (() => {
@@ -427,10 +427,12 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
           client_team_creation_enabled: row.ProjectConfig.clientTeamCreationEnabled,
           client_user_deletion_enabled: row.ProjectConfig.clientUserDeletionEnabled,
           legacy_global_jwt_signing: row.ProjectConfig.legacyGlobalJwtSigning,
-          domains: row.ProjectConfig.Domains.map((domain: any) => ({
-            domain: domain.domain,
-            handler_path: domain.handlerPath,
-          })),
+          domains: row.ProjectConfig.Domains
+            .sort((a: any, b: any) => new Date(a.createdAt + "Z").getTime() - new Date(b.createdAt + "Z").getTime())
+            .map((domain: any) => ({
+              domain: domain.domain,
+              handler_path: domain.handlerPath,
+            })),
           oauth_providers: oauthProviderAuthMethods,
           enabled_oauth_providers: oauthProviderAuthMethods.filter((provider: any) => provider.enabled),
           email_config: (() => {

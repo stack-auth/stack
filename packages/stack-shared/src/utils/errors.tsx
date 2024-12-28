@@ -85,7 +85,7 @@ export function errorToNiceString(error: unknown): string {
   let stack = error.stack ?? "";
   const toString = error.toString();
   if (!stack.startsWith(toString)) stack = `${toString}\n${stack}`;  // some browsers don't include the error message in the stack, some do
-  return `${stack} ${nicify(Object.fromEntries(Object.entries(error)))}`;
+  return `${stack} ${nicify(Object.fromEntries(Object.entries(error)), { maxDepth: 8 })}`;
 }
 
 
