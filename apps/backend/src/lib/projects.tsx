@@ -1,13 +1,13 @@
 import { RawQuery, prismaClient, rawQuery, retryTransaction } from "@/prisma-client";
-import { Prisma } from "@prisma/client";
+import { Prisma, TeamSystemPermission } from "@prisma/client";
 import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
+import { deepPlainEquals, isNotNull } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
-import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
+import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromRawDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { ensureSharedProvider, ensureStandardProvider } from "./request-checks";
 
 export const fullProjectInclude = {
@@ -166,12 +166,12 @@ export function projectPrismaToCrud(
       })(),
       team_creator_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
         .map(teamPermissionDefinitionJsonFromDbType)
-        .concat(prisma.config.teamCreateDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
+        .concat(prisma.config.teamCreateDefaultSystemPermissions.map(db => teamPermissionDefinitionJsonFromTeamSystemDbType(db, prisma.config)))
         .sort((a, b) => a.id.localeCompare(b.id))
         .map(perm => ({ id: perm.id })),
       team_member_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
         .map(teamPermissionDefinitionJsonFromDbType)
-        .concat(prisma.config.teamMemberDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
+        .concat(prisma.config.teamMemberDefaultSystemPermissions.map(db => teamPermissionDefinitionJsonFromTeamSystemDbType(db, prisma.config)))
         .sort((a, b) => a.id.localeCompare(b.id))
         .map(perm => ({ id: perm.id })),
     }
@@ -213,7 +213,13 @@ export function listManagedProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
         },
       },
       permissions: {
-        include: fullPermissionInclude,
+        include: {
+          parentEdges: {
+            include: {
+              parentPermission: true,
+            },
+          },
+        },
       },
       authMethodConfigs: {
         include: {
@@ -253,31 +259,27 @@ export function listManagedProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
  */
 
 export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin"]["Read"] | null> {
-  const OAuthProviderConfigSql = Prisma.sql`
+  const OAuthProviderConfigSelectSql = Prisma.sql`
     (
-      SELECT (
-        to_jsonb("OAuthProviderConfig") ||
-        jsonb_build_object(
-          'ProxiedOAuthConfig', (
-            SELECT (
-              to_jsonb("ProxiedOAuthProviderConfig") ||
-              jsonb_build_object()
-            )
-            FROM "ProxiedOAuthProviderConfig"
-            WHERE "ProxiedOAuthProviderConfig"."id" = "OAuthProviderConfig"."id"
-          ),
-          'StandardOAuthConfig', (
-            SELECT (
-              to_jsonb("StandardOAuthProviderConfig") ||
-              jsonb_build_object()
-            )
-            FROM "StandardOAuthProviderConfig"
-            WHERE "StandardOAuthProviderConfig"."id" = "OAuthProviderConfig"."id"
+      to_jsonb("OAuthProviderConfig") ||
+      jsonb_build_object(
+        'ProxiedOAuthConfig', (
+          SELECT (
+            to_jsonb("ProxiedOAuthProviderConfig") ||
+            jsonb_build_object()
           )
+          FROM "ProxiedOAuthProviderConfig"
+          WHERE "ProxiedOAuthProviderConfig"."id" = "OAuthProviderConfig"."id"
+        ),
+        'StandardOAuthConfig', (
+          SELECT (
+            to_jsonb("StandardOAuthProviderConfig") ||
+            jsonb_build_object()
+          )
+          FROM "StandardOAuthProviderConfig"
+          WHERE "StandardOAuthProviderConfig"."id" = "OAuthProviderConfig"."id"
         )
       )
-      FROM "OAuthProviderConfig"
-      WHERE "OAuthProviderConfig"."id" = "AuthMethodConfig"."oauthProviderConfigId"
     )
   `;
 
@@ -288,94 +290,344 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
           SELECT (
             to_jsonb("Project".*) ||
             jsonb_build_object(
-              'OAuthProviderConfigs', ${OAuthProviderConfigSql},
-              'EmailServiceConfig', (
+              'ProjectConfig', (
                 SELECT (
-                  to_jsonb("EmailServiceConfig") ||
+                  to_jsonb("ProjectConfig".*) ||
                   jsonb_build_object(
-                    'ProxiedEmailServiceConfig', (
-                      SELECT (
-                        to_jsonb("ProxiedEmailServiceConfig") ||
-                        jsonb_build_object()
-                      )
-                      FROM "ProxiedEmailServiceConfig"
-                      WHERE "ProxiedEmailServiceConfig"."id" = "EmailServiceConfig"."proxiedEmailServiceConfigId"
+                    'OAuthProviderConfigs', (
+                      SELECT COALESCE(ARRAY_AGG(
+                        ${OAuthProviderConfigSelectSql}
+                      ), '{}')
+                      FROM "OAuthProviderConfig"
+                      WHERE "OAuthProviderConfig"."projectConfigId" = "ProjectConfig"."id"
                     ),
-                    'StandardEmailServiceConfig', (
+                    'EmailServiceConfig', (
                       SELECT (
-                        to_jsonb("StandardEmailServiceConfig") ||
-                        jsonb_build_object()
+                        to_jsonb("EmailServiceConfig") ||
+                        jsonb_build_object(
+                          'ProxiedEmailServiceConfig', (
+                            SELECT (
+                              to_jsonb("ProxiedEmailServiceConfig") ||
+                              jsonb_build_object()
+                            )
+                            FROM "ProxiedEmailServiceConfig"
+                            WHERE "ProxiedEmailServiceConfig"."projectConfigId" = "EmailServiceConfig"."projectConfigId"
+                          ),
+                          'StandardEmailServiceConfig', (
+                            SELECT (
+                              to_jsonb("StandardEmailServiceConfig") ||
+                              jsonb_build_object()
+                            )
+                            FROM "StandardEmailServiceConfig"
+                            WHERE "StandardEmailServiceConfig"."projectConfigId" = "EmailServiceConfig"."projectConfigId"
+                          )
+                        )
                       )
-                      FROM "StandardEmailServiceConfig"
-                      WHERE "StandardEmailServiceConfig"."id" = "EmailServiceConfig"."standardEmailServiceConfigId"
+                      FROM "EmailServiceConfig"
+                      WHERE "EmailServiceConfig"."projectConfigId" = "ProjectConfig"."id"
+                    ),
+                    'Permissions', (
+                      SELECT COALESCE(ARRAY_AGG(
+                        to_jsonb("Permission") ||
+                        jsonb_build_object(
+                          'ParentEdges', (
+                            SELECT COALESCE(ARRAY_AGG(
+                              to_jsonb("PermissionEdge") ||
+                              jsonb_build_object(
+                                'ParentPermission', (
+                                  SELECT to_jsonb("Permission") ||
+                                  jsonb_build_object()
+                                  FROM "Permission"
+                                  WHERE "Permission"."dbId" = "PermissionEdge"."parentPermissionDbId"
+                                )
+                              )
+                            ), '{}')
+                            FROM "PermissionEdge"
+                            WHERE "PermissionEdge"."childPermissionDbId" = "Permission"."dbId"
+                          )
+                        )
+                      ), '{}')
+                      FROM "Permission"
+                      WHERE "Permission"."projectConfigId" = "ProjectConfig"."id"
+                    ),
+                    'AuthMethodConfigs', (
+                      SELECT COALESCE(ARRAY_AGG(
+                        to_jsonb("AuthMethodConfig") ||
+                        jsonb_build_object(
+                          'OAuthProviderConfig', (
+                            SELECT ${OAuthProviderConfigSelectSql}
+                            FROM "OAuthProviderConfig"
+                            WHERE "OAuthProviderConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
+                          ),
+                          'OtpAuthMethodConfig', (
+                            SELECT (
+                              to_jsonb("OtpAuthMethodConfig") ||
+                              jsonb_build_object()
+                            )
+                            FROM "OtpAuthMethodConfig"
+                            WHERE "OtpAuthMethodConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
+                          ),
+                          'PasswordAuthMethodConfig', (
+                            SELECT (
+                              to_jsonb("PasswordAuthMethodConfig") ||
+                              jsonb_build_object()
+                            )
+                            FROM "PasswordAuthMethodConfig"
+                            WHERE "PasswordAuthMethodConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
+                          ),
+                          'PasskeyAuthMethodConfig', (
+                            SELECT (
+                              to_jsonb("PasskeyAuthMethodConfig") ||
+                              jsonb_build_object()
+                            )
+                            FROM "PasskeyAuthMethodConfig"
+                            WHERE "PasskeyAuthMethodConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
+                          )
+                        )
+                      ), '{}')
+                      FROM "AuthMethodConfig"
+                      WHERE "AuthMethodConfig"."projectConfigId" = "ProjectConfig"."id"
+                    ),
+                    'ConnectedAccountConfigs', (
+                      SELECT COALESCE(ARRAY_AGG(
+                        to_jsonb("ConnectedAccountConfig") ||
+                        jsonb_build_object(
+                          'OAuthProviderConfig', (
+                            SELECT ${OAuthProviderConfigSelectSql}
+                            FROM "OAuthProviderConfig"
+                            WHERE "OAuthProviderConfig"."connectedAccountConfigId" = "ConnectedAccountConfig"."id"
+                          )
+                        )
+                      ), '{}')
+                      FROM "ConnectedAccountConfig"
+                      WHERE "ConnectedAccountConfig"."projectConfigId" = "ProjectConfig"."id"
+                    ),
+                    'Domains', (
+                      SELECT COALESCE(ARRAY_AGG(
+                        to_jsonb("ProjectDomain") ||
+                        jsonb_build_object()
+                      ), '{}')
+                      FROM "ProjectDomain"
+                      WHERE "ProjectDomain"."projectConfigId" = "ProjectConfig"."id"
                     )
                   )
                 )
-                FROM "EmailServiceConfig"
-                WHERE "EmailServiceConfig"."id" = "Project"."emailServiceConfigId"
+                FROM "ProjectConfig"
+                WHERE "ProjectConfig"."id" = "Project"."configId"
               ),
-              'AuthMethodConfigs', (
-                SELECT COALESCE(ARRAY_AGG(
-                  to_jsonb("AuthMethodConfig") ||
-                  jsonb_build_object(
-                    'OAuthProviderConfig', ${OAuthProviderConfigSql},
-                    'OtpConfig', (
-                      SELECT (
-                        to_jsonb("OtpConfig") ||
-                        jsonb_build_object()
-                      )
-                      FROM "OtpConfig"
-                      WHERE "OtpConfig"."id" = "AuthMethodConfig"."otpConfigId"
-                    ),
-                    'PasswordConfig', (
-                      SELECT (
-                        to_jsonb("PasswordConfig") ||
-                        jsonb_build_object()
-                      )
-                      FROM "PasswordConfig"
-                      WHERE "PasswordConfig"."id" = "AuthMethodConfig"."passwordConfigId"
-                    ),
-                    'PasskeyConfig', (
-                      SELECT (
-                        to_jsonb("PasskeyConfig") ||
-                        jsonb_build_object()
-                      )
-                      FROM "PasskeyConfig"
-                      WHERE "PasskeyConfig"."id" = "AuthMethodConfig"."passkeyConfigId"
-                    )
-                  )
-                ), '{}')
-                FROM "AuthMethodConfig"
-                WHERE "AuthMethodConfig"."projectId" = "Project"."id"
-              ),
-              'ConnectedAccountConfigs', (
-                SELECT COALESCE(ARRAY_AGG(
-                  to_jsonb("ConnectedAccountConfig") ||
-                  jsonb_build_object(
-                    'OAuthProviderConfig', ${OAuthProviderConfigSql}
-                  )
-                ), '{}')
-                FROM "ConnectedAccountConfig"
-                WHERE "ConnectedAccountConfig"."projectId" = "Project"."id"
-              ),
-              'Domains', (
-                SELECT COALESCE(ARRAY_AGG(
-                  to_jsonb("ProjectDomain") ||
-                  jsonb_build_object()
-                ), '{}')
-                FROM "ProjectDomain"
-                WHERE "ProjectDomain"."projectId" = "Project"."id"
+              'userCount', (
+                SELECT count(*)
+                FROM "ProjectUser"
+                WHERE "ProjectUser"."projectId" = "Project"."id"
               )
             )
           )
           FROM "Project"
-          LEFT JOIN "ProjectConfig" ON "ProjectConfig"."id" = "Project"."configId"
           WHERE "Project"."id" = ${projectId}
         )
       ) AS "row_data_json"
     `,
-    postProcess: (result) => {
-      throw new Error();
+    postProcess: (queryResult) => {
+
+      /**
+   * export function projectPrismaToCrud(
+  prisma: Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }>
+): ProjectsCrud["Admin"]["Read"] {
+  const oauthProviders = prisma.config.authMethodConfigs
+    .map((config) => {
+      if (config.oauthProviderConfig) {
+        const providerConfig = config.oauthProviderConfig;
+        if (providerConfig.proxiedOAuthConfig) {
+          return {
+            id: typedToLowercase(providerConfig.proxiedOAuthConfig.type),
+            enabled: config.enabled,
+            type: "shared",
+          } as const;
+        } else if (providerConfig.standardOAuthConfig) {
+          return {
+            id: typedToLowercase(providerConfig.standardOAuthConfig.type),
+            enabled: config.enabled,
+            type: "standard",
+            client_id: providerConfig.standardOAuthConfig.clientId,
+            client_secret: providerConfig.standardOAuthConfig.clientSecret,
+            facebook_config_id: providerConfig.standardOAuthConfig.facebookConfigId ?? undefined,
+            microsoft_tenant_id: providerConfig.standardOAuthConfig.microsoftTenantId ?? undefined,
+          } as const;
+        } else {
+          throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${config.id}' of project '${prisma.id}'`, { prisma });
+        }
+      }
+    })
+    .filter((provider): provider is Exclude<typeof provider, undefined> => !!provider)
+    .sort((a, b) => a.id.localeCompare(b.id));
+
+  const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig && config.enabled);
+  const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig && config.enabled);
+  const passkeyAuth = prisma.config.authMethodConfigs.find((config) => config.passkeyConfig && config.enabled);
+
+  return {
+    id: prisma.id,
+    display_name: prisma.displayName,
+    description: prisma.description ?? "",
+    created_at_millis: prisma.createdAt.getTime(),
+    user_count: prisma._count.users,
+    is_production_mode: prisma.isProductionMode,
+    config: {
+      id: prisma.config.id,
+      allow_localhost: prisma.config.allowLocalhost,
+      sign_up_enabled: prisma.config.signUpEnabled,
+      credential_enabled: !!passwordAuth,
+      magic_link_enabled: !!otpAuth,
+      passkey_enabled: !!passkeyAuth,
+      create_team_on_sign_up: prisma.config.createTeamOnSignUp,
+      client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
+      client_user_deletion_enabled: prisma.config.clientUserDeletionEnabled,
+      legacy_global_jwt_signing: prisma.config.legacyGlobalJwtSigning,
+      domains: prisma.config.domains
+        .map((domain) => ({
+          domain: domain.domain,
+          handler_path: domain.handlerPath,
+        }))
+        .sort((a, b) => a.domain.localeCompare(b.domain)),
+      oauth_providers: oauthProviders,
+      enabled_oauth_providers: oauthProviders.filter(provider => provider.enabled),
+      email_config: (() => {
+        const emailServiceConfig = prisma.config.emailServiceConfig;
+        if (!emailServiceConfig) {
+          throw new StackAssertionError(`Email service config should be set on project '${prisma.id}'`, { prisma });
+        }
+        if (emailServiceConfig.proxiedEmailServiceConfig) {
+          return {
+            type: "shared"
+          } as const;
+        } else if (emailServiceConfig.standardEmailServiceConfig) {
+          const standardEmailConfig = emailServiceConfig.standardEmailServiceConfig;
+          return {
+            type: "standard",
+            host: standardEmailConfig.host,
+            port: standardEmailConfig.port,
+            username: standardEmailConfig.username,
+            password: standardEmailConfig.password,
+            sender_email: standardEmailConfig.senderEmail,
+            sender_name: standardEmailConfig.senderName,
+          } as const;
+        } else {
+          throw new StackAssertionError(`Exactly one of the email service configs should be set on project '${prisma.id}'`, { prisma });
+        }
+      })(),
+      team_creator_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
+        .map(teamPermissionDefinitionJsonFromDbType)
+        .concat(prisma.config.teamCreateDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .map(perm => ({ id: perm.id })),
+      team_member_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
+        .map(teamPermissionDefinitionJsonFromDbType)
+        .concat(prisma.config.teamMemberDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
+        .sort((a, b) => a.id.localeCompare(b.id))
+        .map(perm => ({ id: perm.id })),
+    }
+  };
+}
+
+   */
+      if (queryResult.length !== 1) {
+        throw new StackAssertionError(`Expected 1 project with id ${projectId}, got ${queryResult.length}`, { queryResult });
+      }
+
+      const row = queryResult[0].row_data_json;
+      if (!row) {
+        return null;
+      }
+
+      const teamPermissions = [
+        ...row.ProjectConfig.Permissions.map((perm: any) => teamPermissionDefinitionJsonFromRawDbType(perm)),
+        ...Object.values(TeamSystemPermission).map(systemPermission => teamPermissionDefinitionJsonFromTeamSystemDbType(systemPermission, row.ProjectConfig)),
+      ].sort((a, b) => a.id.localeCompare(b.id, 'en'));
+
+      const oauthProviderAuthMethods = row.ProjectConfig.AuthMethodConfigs
+        .map((authMethodConfig: any) => {
+          if (authMethodConfig.OAuthProviderConfig) {
+            const providerConfig = authMethodConfig.OAuthProviderConfig;
+            if (providerConfig.ProxiedOAuthConfig) {
+              return {
+                id: typedToLowercase(providerConfig.ProxiedOAuthConfig.type),
+                enabled: authMethodConfig.enabled,
+                type: "shared",
+              } as const;
+            } else if (providerConfig.StandardOAuthConfig) {
+              return {
+                id: typedToLowercase(providerConfig.StandardOAuthConfig.type),
+                enabled: authMethodConfig.enabled,
+                type: "standard",
+                client_id: providerConfig.StandardOAuthConfig.clientId,
+                client_secret: providerConfig.StandardOAuthConfig.clientSecret,
+                facebook_config_id: providerConfig.StandardOAuthConfig.facebookConfigId ?? undefined,
+                microsoft_tenant_id: providerConfig.StandardOAuthConfig.microsoftTenantId ?? undefined,
+              } as const;
+            } else {
+              throw new StackAssertionError(`Exactly one of the OAuth provider configs should be set on auth method config ${authMethodConfig.id} of project ${row.id}`, { row });
+            }
+          }
+        })
+        .filter(isNotNull)
+        .sort((a: any, b: any) => a.id.localeCompare(b.id));
+
+      return {
+        id: row.id,
+        display_name: row.displayName,
+        description: row.description,
+        created_at_millis: new Date(row.createdAt + "Z").getTime(),
+        user_count: row.userCount,
+        is_production_mode: row.isProductionMode,
+        config: {
+          id: row.ProjectConfig.id,
+          allow_localhost: row.ProjectConfig.allowLocalhost,
+          sign_up_enabled: row.ProjectConfig.signUpEnabled,
+          credential_enabled: row.ProjectConfig.AuthMethodConfigs.some((config: any) => config.PasswordAuthMethodConfig && config.enabled),
+          magic_link_enabled: row.ProjectConfig.AuthMethodConfigs.some((config: any) => config.OtpAuthMethodConfig && config.enabled),
+          passkey_enabled: row.ProjectConfig.AuthMethodConfigs.some((config: any) => config.PasskeyAuthMethodConfig && config.enabled),
+          create_team_on_sign_up: row.ProjectConfig.createTeamOnSignUp,
+          client_team_creation_enabled: row.ProjectConfig.clientTeamCreationEnabled,
+          client_user_deletion_enabled: row.ProjectConfig.clientUserDeletionEnabled,
+          legacy_global_jwt_signing: row.ProjectConfig.legacyGlobalJwtSigning,
+          domains: row.ProjectConfig.Domains.map((domain: any) => ({
+            domain: domain.domain,
+            handler_path: domain.handlerPath,
+          })),
+          oauth_providers: oauthProviderAuthMethods,
+          enabled_oauth_providers: oauthProviderAuthMethods.filter((provider: any) => provider.enabled),
+          email_config: (() => {
+            const emailServiceConfig = row.ProjectConfig.EmailServiceConfig;
+            if (!emailServiceConfig) {
+              throw new StackAssertionError(`Email service config should be set on project ${row.id}`, { row });
+            }
+            if (emailServiceConfig.ProxiedEmailServiceConfig) {
+              return {
+                type: "shared"
+              } as const;
+            } else if (emailServiceConfig.StandardEmailServiceConfig) {
+              const standardEmailConfig = emailServiceConfig.StandardEmailServiceConfig;
+              return {
+                type: "standard",
+                host: standardEmailConfig.host,
+                port: standardEmailConfig.port,
+                username: standardEmailConfig.username,
+                password: standardEmailConfig.password,
+                sender_email: standardEmailConfig.senderEmail,
+                sender_name: standardEmailConfig.senderName,
+              } as const;
+            } else {
+              throw new StackAssertionError(`Exactly one of the email service configs should be set on project ${row.id}`, { row });
+            }
+          })(),
+          team_creator_default_permissions: teamPermissions
+            .filter(perm => perm.__is_default_team_creator_permission)
+            .map(perm => ({ id: perm.id })),
+          team_member_default_permissions: teamPermissions
+            .filter(perm => perm.__is_default_team_member_permission)
+            .map(perm => ({ id: perm.id })),
+        },
+      };
     },
   } as const;
 }
@@ -395,7 +647,7 @@ export async function getProject(projectId: string): Promise<ProjectsCrud["Admin
     }
   }
 
-  return result.project;
+  return result;
 }
 
 async function getProjectLegacy(projectId: string): Promise<ProjectsCrud["Admin"]["Read"] | null> {
