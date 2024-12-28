@@ -58,32 +58,40 @@ export async function rawQueryAll<Q extends Record<string, undefined | RawQuery<
 }
 
 async function rawQueryArray<Q extends RawQuery<any>[]>(queries: Q): Promise<[] & { [K in keyof Q]: Awaited<ReturnType<Q[K]["postProcess"]>> }> {
-  if (queries.length === 0) return [] as any;
+  return await traceSpan({
+    description: "raw SQL query",
+    attributes: {
+      "stack.raw-queries.length": queries.length,
+      ...Object.fromEntries(queries.map((q, index) => [`stack.raw-queries.${index}`, q.sql.text])),
+    },
+  }, async () => {
+    if (queries.length === 0) return [] as any;
 
-  const query = Prisma.sql`
-    WITH ${Prisma.join(queries.map((q, index) => {
-      return Prisma.sql`${Prisma.raw("q" + index)} AS (
-        ${q.sql}
-      )`;
-    }), ",\n")}
+    const query = Prisma.sql`
+      WITH ${Prisma.join(queries.map((q, index) => {
+        return Prisma.sql`${Prisma.raw("q" + index)} AS (
+          ${q.sql}
+        )`;
+      }), ",\n")}
 
-    ${Prisma.join(queries.map((q, index) => {
-      return Prisma.sql`
-        SELECT
-          ${"q" + index} AS type,
-          row_to_json(c) AS json
-        FROM (SELECT * FROM ${Prisma.raw("q" + index)}) c
-      `;
-    }), "\nUNION ALL\n")}
-  `;
-  const rawResult = await prismaClient.$queryRaw(query) as { type: string, json: any }[];
-  const unprocessed = new Array(queries.length).fill(null).map(() => [] as any[]);
-  for (const row of rawResult) {
-    const type = row.type;
-    const index = +type.slice(1);
-    unprocessed[index].push(row.json);
-  }
-  const postProcessed = queries.map((q, index) => q.postProcess(unprocessed[index]));
-  return postProcessed as any;
+      ${Prisma.join(queries.map((q, index) => {
+        return Prisma.sql`
+          SELECT
+            ${"q" + index} AS type,
+            row_to_json(c) AS json
+          FROM (SELECT * FROM ${Prisma.raw("q" + index)}) c
+        `;
+      }), "\nUNION ALL\n")}
+    `;
+    const rawResult = await prismaClient.$queryRaw(query) as { type: string, json: any }[];
+    const unprocessed = new Array(queries.length).fill(null).map(() => [] as any[]);
+    for (const row of rawResult) {
+      const type = row.type;
+      const index = +type.slice(1);
+      unprocessed[index].push(row.json);
+    }
+    const postProcessed = queries.map((q, index) => q.postProcess(unprocessed[index]));
+    return postProcessed as any;
+  });
 }
 

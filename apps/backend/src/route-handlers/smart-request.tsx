@@ -234,7 +234,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     if (!result) throw new StatusError(401, "Invalid development key override");
   } else if (adminAccessToken) {
     // TODO put this into the bundled queries above (not so important because this path is quite rare)
-    const internalUser = await extractUserFromAdminAccessToken({ token: adminAccessToken, projectId });
+    await extractUserFromAdminAccessToken({ token: adminAccessToken, projectId });
     if (!await queries.project) {
       // this happens if the project is still in the user's managedProjectIds, but has since been deleted
       throw new KnownErrors.InvalidProjectForAdminAccessToken();
