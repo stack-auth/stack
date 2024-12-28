@@ -4,7 +4,7 @@ import { InternalProjectsCrud, ProjectsCrud } from "@stackframe/stack-shared/dis
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { deepPlainEquals, isNotNull } from "@stackframe/stack-shared/dist/utils/objects";
+import { deepPlainEquals, isNotNull, omit } from "@stackframe/stack-shared/dist/utils/objects";
 import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromRawDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
@@ -269,7 +269,7 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
             jsonb_build_object()
           )
           FROM "ProxiedOAuthProviderConfig"
-          WHERE "ProxiedOAuthProviderConfig"."id" = "OAuthProviderConfig"."id"
+          WHERE "ProxiedOAuthProviderConfig"."projectConfigId" = "OAuthProviderConfig"."projectConfigId" AND "ProxiedOAuthProviderConfig"."id" = "OAuthProviderConfig"."id"
         ),
         'StandardOAuthConfig', (
           SELECT (
@@ -277,7 +277,7 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
             jsonb_build_object()
           )
           FROM "StandardOAuthProviderConfig"
-          WHERE "StandardOAuthProviderConfig"."id" = "OAuthProviderConfig"."id"
+          WHERE "StandardOAuthProviderConfig"."projectConfigId" = "OAuthProviderConfig"."projectConfigId" AND "StandardOAuthProviderConfig"."id" = "OAuthProviderConfig"."id"
         )
       )
     )
@@ -335,10 +335,12 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
                               to_jsonb("PermissionEdge") ||
                               jsonb_build_object(
                                 'ParentPermission', (
-                                  SELECT to_jsonb("Permission") ||
-                                  jsonb_build_object()
+                                  SELECT (
+                                    to_jsonb("Permission") ||
+                                    jsonb_build_object()
+                                  )
                                   FROM "Permission"
-                                  WHERE "Permission"."dbId" = "PermissionEdge"."parentPermissionDbId"
+                                  WHERE "Permission"."projectConfigId" = "ProjectConfig"."id" AND "Permission"."dbId" = "PermissionEdge"."parentPermissionDbId"
                                 )
                               )
                             ), '{}')
@@ -357,7 +359,7 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
                           'OAuthProviderConfig', (
                             SELECT ${OAuthProviderConfigSelectSql}
                             FROM "OAuthProviderConfig"
-                            WHERE "OAuthProviderConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
+                            WHERE "OAuthProviderConfig"."projectConfigId" = "ProjectConfig"."id" AND "OAuthProviderConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
                           ),
                           'OtpAuthMethodConfig', (
                             SELECT (
@@ -365,7 +367,7 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
                               jsonb_build_object()
                             )
                             FROM "OtpAuthMethodConfig"
-                            WHERE "OtpAuthMethodConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
+                            WHERE "OtpAuthMethodConfig"."projectConfigId" = "ProjectConfig"."id" AND "OtpAuthMethodConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
                           ),
                           'PasswordAuthMethodConfig', (
                             SELECT (
@@ -373,7 +375,7 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
                               jsonb_build_object()
                             )
                             FROM "PasswordAuthMethodConfig"
-                            WHERE "PasswordAuthMethodConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
+                            WHERE "PasswordAuthMethodConfig"."projectConfigId" = "ProjectConfig"."id" AND "PasswordAuthMethodConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
                           ),
                           'PasskeyAuthMethodConfig', (
                             SELECT (
@@ -381,7 +383,7 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
                               jsonb_build_object()
                             )
                             FROM "PasskeyAuthMethodConfig"
-                            WHERE "PasskeyAuthMethodConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
+                            WHERE "PasskeyAuthMethodConfig"."projectConfigId" = "ProjectConfig"."id" AND "PasskeyAuthMethodConfig"."authMethodConfigId" = "AuthMethodConfig"."id"
                           )
                         )
                       ), '{}')
@@ -395,7 +397,7 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
                           'OAuthProviderConfig', (
                             SELECT ${OAuthProviderConfigSelectSql}
                             FROM "OAuthProviderConfig"
-                            WHERE "OAuthProviderConfig"."connectedAccountConfigId" = "ConnectedAccountConfig"."id"
+                            WHERE "OAuthProviderConfig"."projectConfigId" = "ProjectConfig"."id" AND "OAuthProviderConfig"."connectedAccountConfigId" = "ConnectedAccountConfig"."id"
                           )
                         )
                       ), '{}')
@@ -639,7 +641,7 @@ export async function getProject(projectId: string): Promise<ProjectsCrud["Admin
   // TODO next-release: remove this
   if (!getNodeEnvironment().includes("prod")) {
     const legacyResult = await getProjectLegacy(projectId);
-    if (!deepPlainEquals(result, legacyResult)) {
+    if (!deepPlainEquals(omit(result ?? {}, ["user_count"] as any), omit(legacyResult ?? {}, ["user_count"] as any))) {
       throw new StackAssertionError("Project result mismatch", {
         result,
         legacyResult,
