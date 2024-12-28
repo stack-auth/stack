@@ -2,10 +2,10 @@ import "../polyfills";
 
 import { getUser, getUserQuery } from "@/app/api/v1/users/crud";
 import { checkApiKeySet, checkApiKeySetQuery } from "@/lib/api-keys";
-import { getProject, listManagedProjectIds } from "@/lib/projects";
+import { getProjectQuery, listManagedProjectIds } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
 import { rawQueryAll } from "@/prisma-client";
-import { traceSpan, withTraceSpan } from "@/utils/telemetry";
+import { withTraceSpan } from "@/utils/telemetry";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
@@ -13,7 +13,6 @@ import { StackAdaptSentinel, yupValidate } from "@stackframe/stack-shared/dist/s
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { ignoreUnhandledRejection } from "@stackframe/stack-shared/dist/utils/promises";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { NextRequest } from "next/server";
 import * as yup from "yup";
@@ -200,22 +199,9 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     isClientKeyValid: projectId && publishableClientKey && requestType === "client" ? checkApiKeySetQuery(projectId, { publishableClientKey }) : undefined,
     isServerKeyValid: projectId && secretServerKey && requestType === "server" ? checkApiKeySetQuery(projectId, { secretServerKey }) : undefined,
     isAdminKeyValid: projectId && superSecretAdminKey && requestType === "admin" ? checkApiKeySetQuery(projectId, { superSecretAdminKey }) : undefined,
+    project: projectId ? getProjectQuery(projectId) : undefined,
   };
   const queriesResults = await rawQueryAll(bundledQueries);
-
-  const queryFuncs = {
-    project: () => projectId ? getProject(projectId) : Promise.resolve(null),
-  } as const;
-  const results: [string, Promise<any>][] = [];
-  for (const [key, func] of Object.entries(queryFuncs)) {
-    results.push([
-      key,
-      ignoreUnhandledRejection(traceSpan(`auth query ${key}`, async () => {
-        return await func();
-      })),
-    ]);
-  }
-  const queries = Object.fromEntries(results) as { [K in keyof typeof queryFuncs]: ReturnType<typeof queryFuncs[K]> };
 
   const eitherKeyOrToken = !!(publishableClientKey || secretServerKey || superSecretAdminKey || adminAccessToken);
 
@@ -233,9 +219,9 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     const result = await checkApiKeySet("internal", { superSecretAdminKey: developmentKeyOverride });
     if (!result) throw new StatusError(401, "Invalid development key override");
   } else if (adminAccessToken) {
-    // TODO put this into the bundled queries above (not so important because this path is quite rare)
-    const internalUser = await extractUserFromAdminAccessToken({ token: adminAccessToken, projectId });
-    if (!await queries.project) {
+    // TODO put the assertion below into the bundled queries above (not so important because this path is quite rare)
+    await extractUserFromAdminAccessToken({ token: adminAccessToken, projectId });  // assert that the admin token is valid
+    if (!queriesResults.project) {
       // this happens if the project is still in the user's managedProjectIds, but has since been deleted
       throw new KnownErrors.InvalidProjectForAdminAccessToken();
     }
@@ -262,7 +248,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     }
   }
 
-  const project = await queries.project;
+  const project = queriesResults.project;
   if (!project) {
     throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", { projectId });
   }

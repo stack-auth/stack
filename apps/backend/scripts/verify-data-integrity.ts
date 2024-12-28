@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
@@ -88,6 +88,7 @@ async function main() {
           },
         }),
       ]);
+      if (users.pagination?.next_cursor) throwErr("Users are paginated? Please update the verify-data-integrity.ts script to handle this.");
 
       for (let j = 0; j < users.items.length; j++) {
         const user = users.items[j];

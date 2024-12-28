@@ -246,7 +246,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
               'lastActiveAt', (
                 SELECT MAX("eventStartedAt") as "lastActiveAt"
                 FROM "Event"
-                WHERE data->>'projectId' = "ProjectUser"."projectId" AND ("data"->>'userId')::UUID = "ProjectUser"."projectUserId" AND "systemEventTypeIds" @> '{"$user-activity"}'
+                WHERE data->>'projectId' = "ProjectUser"."projectId" AND "data"->>'userId' = ("ProjectUser"."projectUserId")::text AND "systemEventTypeIds" @> '{"$user-activity"}'
               ),
               'ContactChannels', (
                 SELECT COALESCE(ARRAY_AGG(
@@ -339,7 +339,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
     `,
     postProcess: (queryResult) => {
       if (queryResult.length !== 1) {
-        throw new StackAssertionError("Expected 1 result, got " + queryResult.length, queryResult);
+        throw new StackAssertionError(`Expected 1 user with id ${userId} in project ${projectId}, got ${queryResult.length}`, { queryResult });
       }
 
       const row = queryResult[0].row_data_json;

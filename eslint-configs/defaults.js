@@ -94,6 +94,11 @@ module.exports = {
           "MemberExpression:has(Identifier[name='yup']):has(Identifier[name='string'], Identifier[name='number'], Identifier[name='boolean'], Identifier[name='array'], Identifier[name='object'], Identifier[name='tuple'], Identifier[name='date'], Identifier[name='mixed'])",
         message: "Use yupXyz() from schema-fields.tsx instead of yup.xyz().",
       },
+      {
+        selector:
+          "Identifier[name='localeCompare']",
+        message: "Use stringCompare() from utils/strings.tsx instead of String.prototype.localeCompare.",
+      },
     ],
     "@typescript-eslint/no-misused-promises": [
       "error",
@@ -101,6 +106,7 @@ module.exports = {
         checksConditionals: true,
       },
     ],
+    "@typescript-eslint/require-array-sort-compare": "error",
     "@typescript-eslint/consistent-type-definitions": ["error", "type"],
     "no-restricted-imports": [
       "error",

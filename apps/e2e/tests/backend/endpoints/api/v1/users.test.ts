@@ -615,7 +615,7 @@ describe("with client access", () => {
     `);
   });
 
-  it("should be able to updated selected team", async ({ expect }) => {
+  it("should be able to update selected team", async ({ expect }) => {
     await Auth.Otp.signIn();
     const { teamId } = await Team.createAndAddCurrent({});
     const response1 = await niceBackendFetch("/api/v1/users/me", {

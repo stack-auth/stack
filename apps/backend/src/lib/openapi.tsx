@@ -5,7 +5,7 @@ import { yupNumber, yupObject, yupString } from '@stackframe/stack-shared/dist/s
 import { StackAssertionError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { HttpMethod } from '@stackframe/stack-shared/dist/utils/http';
 import { typedEntries, typedFromEntries } from '@stackframe/stack-shared/dist/utils/objects';
-import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
+import { deindent, stringCompare } from '@stackframe/stack-shared/dist/utils/strings';
 import * as yup from 'yup';
 
 export function parseOpenAPI(options: {
@@ -34,7 +34,7 @@ export function parseOpenAPI(options: {
           )]
         ))
         .filter(([_, handlersByMethod]) => Object.keys(handlersByMethod).length > 0)
-        .sort(([_a, handlersByMethodA], [_b, handlersByMethodB]) => ((Object.values(handlersByMethodA)[0] as any).tags[0] ?? "").localeCompare(((Object.values(handlersByMethodB)[0] as any).tags[0] ?? ""))),
+        .sort(([_a, handlersByMethodA], [_b, handlersByMethodB]) => stringCompare((Object.values(handlersByMethodA)[0] as any).tags[0] ?? "", (Object.values(handlersByMethodB)[0] as any).tags[0] ?? "")),
     ),
   };
 }
