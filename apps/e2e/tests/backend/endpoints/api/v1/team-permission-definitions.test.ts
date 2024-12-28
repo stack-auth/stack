@@ -20,6 +20,31 @@ it("lists all the team permissions", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "contained_permission_ids": [],
+            "description": "Delete the team",
+            "id": "$delete_team",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Invite other users to the team",
+            "id": "$invite_members",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Read and list the other members of the team",
+            "id": "$read_members",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Remove other members from the team",
+            "id": "$remove_members",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Update the team information",
+            "id": "$update_team",
+          },
+          {
             "contained_permission_ids": [
               "$delete_team",
               "$invite_members",
@@ -37,31 +62,6 @@ it("lists all the team permissions", async ({ expect }) => {
             ],
             "description": "Default permission for team members",
             "id": "member",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Update the team information",
-            "id": "$update_team",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Delete the team",
-            "id": "$delete_team",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Read and list the other members of the team",
-            "id": "$read_members",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Remove other members from the team",
-            "id": "$remove_members",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Invite other users to the team",
-            "id": "$invite_members",
           },
         ],
       },
@@ -163,6 +163,31 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "contained_permission_ids": [],
+            "description": "Delete the team",
+            "id": "$delete_team",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Invite other users to the team",
+            "id": "$invite_members",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Read and list the other members of the team",
+            "id": "$read_members",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Remove other members from the team",
+            "id": "$remove_members",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Update the team information",
+            "id": "$update_team",
+          },
+          {
             "contained_permission_ids": [
               "$delete_team",
               "$invite_members",
@@ -191,31 +216,6 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
               "p1",
             ],
             "id": "p3",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Update the team information",
-            "id": "$update_team",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Delete the team",
-            "id": "$delete_team",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Read and list the other members of the team",
-            "id": "$read_members",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Remove other members from the team",
-            "id": "$remove_members",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Invite other users to the team",
-            "id": "$invite_members",
           },
         ],
       },
@@ -254,6 +254,31 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
         "is_paginated": false,
         "items": [
           {
+            "contained_permission_ids": [],
+            "description": "Delete the team",
+            "id": "$delete_team",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Invite other users to the team",
+            "id": "$invite_members",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Read and list the other members of the team",
+            "id": "$read_members",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Remove other members from the team",
+            "id": "$remove_members",
+          },
+          {
+            "contained_permission_ids": [],
+            "description": "Update the team information",
+            "id": "$update_team",
+          },
+          {
             "contained_permission_ids": [
               "$delete_team",
               "$invite_members",
@@ -275,31 +300,6 @@ it("creates, updates, and delete a new team permission", async ({ expect }) => {
           {
             "contained_permission_ids": ["$update_team"],
             "id": "p3",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Update the team information",
-            "id": "$update_team",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Delete the team",
-            "id": "$delete_team",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Read and list the other members of the team",
-            "id": "$read_members",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Remove other members from the team",
-            "id": "$remove_members",
-          },
-          {
-            "contained_permission_ids": [],
-            "description": "Invite other users to the team",
-            "id": "$invite_members",
           },
         ],
       },

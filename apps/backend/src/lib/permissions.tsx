@@ -3,7 +3,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-permissions";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { stringCompare, typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { PrismaTransaction } from "./types";
 
 export const fullPermissionInclude = {
@@ -167,11 +167,7 @@ export async function listUserTeamPermissions(
   }
 
   return finalResults
-    .sort((a, b) => {
-      if (a.team_id !== b.team_id) return a.team_id.localeCompare(b.team_id);
-      if (a.user_id !== b.user_id) return a.user_id.localeCompare(b.user_id);
-      return a.id.localeCompare(b.id);
-    })
+    .sort((a, b) => stringCompare(a.team_id, b.team_id) || stringCompare(a.user_id, b.user_id) || stringCompare(a.id, b.id))
     .filter(p => options.permissionId ? p.id === options.permissionId : true);
 }
 
@@ -344,7 +340,7 @@ export async function listTeamPermissionDefinitions(
 
   const systemPermissions = Object.values(DBTeamSystemPermission).map(db => teamPermissionDefinitionJsonFromTeamSystemDbType(db, projectConfig));
 
-  return [...nonSystemPermissions, ...systemPermissions];
+  return [...nonSystemPermissions, ...systemPermissions].sort((a, b) => stringCompare(a.id, b.id));
 }
 
 export async function createTeamPermissionDefinition(

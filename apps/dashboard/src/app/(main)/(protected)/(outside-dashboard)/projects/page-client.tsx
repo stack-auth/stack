@@ -5,6 +5,7 @@ import { useRouter } from "@/components/router";
 import { SearchBar } from "@/components/search-bar";
 import { useUser } from "@stackframe/stack";
 import { wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { stringCompare } from "@stackframe/stack-shared/dist/utils/strings";
 import { Button, Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@stackframe/stack-ui";
 import { useEffect, useMemo, useState } from "react";
 
@@ -33,7 +34,7 @@ export default function PageClient() {
       if (sort === "recency") {
         return a.createdAt > b.createdAt ? -1 : 1;
       } else {
-        return a.displayName.localeCompare(b.displayName);
+        return stringCompare(a.displayName, b.displayName);
       }
     });
   }, [rawProjects, sort, search]);

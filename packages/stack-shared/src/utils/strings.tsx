@@ -15,6 +15,13 @@ export function typedCapitalize<S extends string>(s: S): Capitalize<S> {
 }
 
 /**
+ * Compares two strings in a way that is not dependent on the current locale.
+ */
+export function stringCompare(a: string, b: string): number {
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/**
  * Returns all whitespace character at the start of the string.
  *
  * Uses the same definition for whitespace as `String.prototype.trim()`.
@@ -313,7 +320,7 @@ function getNicifiableEntries(value: Nicifiable | object): [PropertyKey, unknown
   }
 
   if (isRecordLike(value)) {
-    return [...value.entries()].sort(([a], [b]) => String(a).localeCompare(String(b)));
+    return [...value.entries()].sort(([a], [b]) => stringCompare(`${a}`, `${b}`));
   }
   const keys = getNicifiableKeys(value);
   return keys.map((k) => [k, value[k as never]] as [PropertyKey, unknown]);

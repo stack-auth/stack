@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
@@ -67,6 +67,11 @@ async function main() {
   });
   console.log(`Found ${projects.length} projects, iterating over them.`);
 
+  // we wanna do the internal project first
+  const internalProject = projects.pop() ?? throwErr("No projects found");
+  if (internalProject.id !== "internal") throwErr("Last project is not the internal project? This is a bug.");
+  projects.unshift(internalProject);
+
   for (let i = 0; i < projects.length; i++) {
     const projectId = projects[i].id;
     await recurse(`[project ${i + 1}/${projects.length}] ${projectId} ${projects[i].displayName}`, async (recurse) => {
@@ -88,6 +93,7 @@ async function main() {
           },
         }),
       ]);
+      if (users.is_paginated) throwErr("Users are paginated? Please update the verify-data-integrity.ts script to handle this.");
 
       for (let j = 0; j < users.items.length; j++) {
         const user = users.items[j];

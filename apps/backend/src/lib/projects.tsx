@@ -5,7 +5,7 @@ import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { deepPlainEquals, isNotNull, omit } from "@stackframe/stack-shared/dist/utils/objects";
-import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { stringCompare, typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import { fullPermissionInclude, teamPermissionDefinitionJsonFromDbType, teamPermissionDefinitionJsonFromRawDbType, teamPermissionDefinitionJsonFromTeamSystemDbType } from "./permissions";
 import { ensureSharedProvider, ensureStandardProvider } from "./request-checks";
@@ -108,7 +108,7 @@ export function projectPrismaToCrud(
       }
     })
     .filter((provider): provider is Exclude<typeof provider, undefined> => !!provider)
-    .sort((a, b) => a.id.localeCompare(b.id));
+    .sort((a, b) => stringCompare(a.id, b.id));
 
   const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig && config.enabled);
   const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig && config.enabled);
@@ -137,7 +137,7 @@ export function projectPrismaToCrud(
           domain: domain.domain,
           handler_path: domain.handlerPath,
         }))
-        .sort((a, b) => a.domain.localeCompare(b.domain)),
+        .sort((a, b) => stringCompare(a.domain, b.domain)),
       oauth_providers: oauthProviders,
       enabled_oauth_providers: oauthProviders.filter(provider => provider.enabled),
       email_config: (() => {
@@ -167,12 +167,12 @@ export function projectPrismaToCrud(
       team_creator_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
         .map(teamPermissionDefinitionJsonFromDbType)
         .concat(prisma.config.teamCreateDefaultSystemPermissions.map(db => teamPermissionDefinitionJsonFromTeamSystemDbType(db, prisma.config)))
-        .sort((a, b) => a.id.localeCompare(b.id))
+        .sort((a, b) => stringCompare(a.id, b.id))
         .map(perm => ({ id: perm.id })),
       team_member_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
         .map(teamPermissionDefinitionJsonFromDbType)
         .concat(prisma.config.teamMemberDefaultSystemPermissions.map(db => teamPermissionDefinitionJsonFromTeamSystemDbType(db, prisma.config)))
-        .sort((a, b) => a.id.localeCompare(b.id))
+        .sort((a, b) => stringCompare(a.id, b.id))
         .map(perm => ({ id: perm.id })),
     }
   };
@@ -194,69 +194,6 @@ export function listManagedProjectIds(projectUser: UsersCrud["Admin"]["Read"]) {
 
   return managedProjectIds;
 }
-
-/**
- *
- * @param projectId export const fullProjectInclude = {
-  config: {
-    include: {
-      oauthProviderConfigs: {
-        include: {
-          proxiedOAuthConfig: true,
-          standardOAuthConfig: true,
-        },
-      },
-      emailServiceConfig: {
-        include: {
-          proxiedEmailServiceConfig: true,
-          standardEmailServiceConfig: true,
-        },
-      },
-      permissions: {
-        include: {
-          parentEdges: {
-            include: {
-              parentPermission: true,
-            },
-          },
-        },
-      },
-      authMethodConfigs: {
-        include: {
-          oauthProviderConfig: {
-            include: {
-              proxiedOAuthConfig: true,
-              standardOAuthConfig: true,
-            },
-          },
-          otpConfig: true,
-          passwordConfig: true,
-          passkeyConfig: true,
-        }
-      },
-      connectedAccountConfigs: {
-        include: {
-          oauthProviderConfig: {
-            include: {
-              proxiedOAuthConfig: true,
-              standardOAuthConfig: true,
-            },
-          },
-        }
-      },
-      domains: true,
-    },
-  },
-  configOverride: true,
-  _count: {
-    select: {
-      users: true, // Count the users related to the project
-    },
-  },
-} as const satisfies Prisma.ProjectInclude;
-
- * @returns
- */
 
 export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin"]["Read"] | null> {
   const OAuthProviderConfigSelectSql = Prisma.sql`
@@ -430,108 +367,6 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
       ) AS "row_data_json"
     `,
     postProcess: (queryResult) => {
-
-      /**
-   * export function projectPrismaToCrud(
-  prisma: Prisma.ProjectGetPayload<{ include: typeof fullProjectInclude }>
-): ProjectsCrud["Admin"]["Read"] {
-  const oauthProviders = prisma.config.authMethodConfigs
-    .map((config) => {
-      if (config.oauthProviderConfig) {
-        const providerConfig = config.oauthProviderConfig;
-        if (providerConfig.proxiedOAuthConfig) {
-          return {
-            id: typedToLowercase(providerConfig.proxiedOAuthConfig.type),
-            enabled: config.enabled,
-            type: "shared",
-          } as const;
-        } else if (providerConfig.standardOAuthConfig) {
-          return {
-            id: typedToLowercase(providerConfig.standardOAuthConfig.type),
-            enabled: config.enabled,
-            type: "standard",
-            client_id: providerConfig.standardOAuthConfig.clientId,
-            client_secret: providerConfig.standardOAuthConfig.clientSecret,
-            facebook_config_id: providerConfig.standardOAuthConfig.facebookConfigId ?? undefined,
-            microsoft_tenant_id: providerConfig.standardOAuthConfig.microsoftTenantId ?? undefined,
-          } as const;
-        } else {
-          throw new StackAssertionError(`Exactly one of the provider configs should be set on provider config '${config.id}' of project '${prisma.id}'`, { prisma });
-        }
-      }
-    })
-    .filter((provider): provider is Exclude<typeof provider, undefined> => !!provider)
-    .sort((a, b) => a.id.localeCompare(b.id));
-
-  const passwordAuth = prisma.config.authMethodConfigs.find((config) => config.passwordConfig && config.enabled);
-  const otpAuth = prisma.config.authMethodConfigs.find((config) => config.otpConfig && config.enabled);
-  const passkeyAuth = prisma.config.authMethodConfigs.find((config) => config.passkeyConfig && config.enabled);
-
-  return {
-    id: prisma.id,
-    display_name: prisma.displayName,
-    description: prisma.description ?? "",
-    created_at_millis: prisma.createdAt.getTime(),
-    user_count: prisma._count.users,
-    is_production_mode: prisma.isProductionMode,
-    config: {
-      id: prisma.config.id,
-      allow_localhost: prisma.config.allowLocalhost,
-      sign_up_enabled: prisma.config.signUpEnabled,
-      credential_enabled: !!passwordAuth,
-      magic_link_enabled: !!otpAuth,
-      passkey_enabled: !!passkeyAuth,
-      create_team_on_sign_up: prisma.config.createTeamOnSignUp,
-      client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
-      client_user_deletion_enabled: prisma.config.clientUserDeletionEnabled,
-      legacy_global_jwt_signing: prisma.config.legacyGlobalJwtSigning,
-      domains: prisma.config.domains
-        .map((domain) => ({
-          domain: domain.domain,
-          handler_path: domain.handlerPath,
-        }))
-        .sort((a, b) => a.domain.localeCompare(b.domain)),
-      oauth_providers: oauthProviders,
-      enabled_oauth_providers: oauthProviders.filter(provider => provider.enabled),
-      email_config: (() => {
-        const emailServiceConfig = prisma.config.emailServiceConfig;
-        if (!emailServiceConfig) {
-          throw new StackAssertionError(`Email service config should be set on project '${prisma.id}'`, { prisma });
-        }
-        if (emailServiceConfig.proxiedEmailServiceConfig) {
-          return {
-            type: "shared"
-          } as const;
-        } else if (emailServiceConfig.standardEmailServiceConfig) {
-          const standardEmailConfig = emailServiceConfig.standardEmailServiceConfig;
-          return {
-            type: "standard",
-            host: standardEmailConfig.host,
-            port: standardEmailConfig.port,
-            username: standardEmailConfig.username,
-            password: standardEmailConfig.password,
-            sender_email: standardEmailConfig.senderEmail,
-            sender_name: standardEmailConfig.senderName,
-          } as const;
-        } else {
-          throw new StackAssertionError(`Exactly one of the email service configs should be set on project '${prisma.id}'`, { prisma });
-        }
-      })(),
-      team_creator_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamCreatorPermission)
-        .map(teamPermissionDefinitionJsonFromDbType)
-        .concat(prisma.config.teamCreateDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
-        .sort((a, b) => a.id.localeCompare(b.id))
-        .map(perm => ({ id: perm.id })),
-      team_member_default_permissions: prisma.config.permissions.filter(perm => perm.isDefaultTeamMemberPermission)
-        .map(teamPermissionDefinitionJsonFromDbType)
-        .concat(prisma.config.teamMemberDefaultSystemPermissions.map(teamPermissionDefinitionJsonFromTeamSystemDbType))
-        .sort((a, b) => a.id.localeCompare(b.id))
-        .map(perm => ({ id: perm.id })),
-    }
-  };
-}
-
-   */
       if (queryResult.length !== 1) {
         throw new StackAssertionError(`Expected 1 project with id ${projectId}, got ${queryResult.length}`, { queryResult });
       }
@@ -544,7 +379,7 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
       const teamPermissions = [
         ...row.ProjectConfig.Permissions.map((perm: any) => teamPermissionDefinitionJsonFromRawDbType(perm)),
         ...Object.values(TeamSystemPermission).map(systemPermission => teamPermissionDefinitionJsonFromTeamSystemDbType(systemPermission, row.ProjectConfig)),
-      ].sort((a, b) => a.id.localeCompare(b.id, 'en'));
+      ].sort((a, b) => stringCompare(a.id, b.id));
 
       const oauthProviderAuthMethods = row.ProjectConfig.AuthMethodConfigs
         .map((authMethodConfig: any) => {
@@ -572,7 +407,7 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
           }
         })
         .filter(isNotNull)
-        .sort((a: any, b: any) => a.id.localeCompare(b.id));
+        .sort((a: any, b: any) => stringCompare(a.id, b.id));
 
       return {
         id: row.id,
