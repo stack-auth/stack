@@ -18,7 +18,8 @@ export function typedCapitalize<S extends string>(s: S): Capitalize<S> {
  * Compares two strings in a way that is not dependent on the current locale.
  */
 export function stringCompare(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0;
+  const cmp = (a: string, b: string) => a < b ? -1 : a > b ? 1 : 0;
+  return cmp(a.toUpperCase(), b.toUpperCase()) || cmp(b, a);
 }
 
 /**
