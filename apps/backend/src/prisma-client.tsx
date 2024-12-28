@@ -59,7 +59,7 @@ export async function rawQueryAll<Q extends Record<string, undefined | RawQuery<
 
 async function rawQueryArray<Q extends RawQuery<any>[]>(queries: Q): Promise<[] & { [K in keyof Q]: Awaited<ReturnType<Q[K]["postProcess"]>> }> {
   return await traceSpan({
-    description: "raw SQL query",
+    description: `raw SQL quer${queries.length === 1 ? "y" : `ies (${queries.length} total)`}`,
     attributes: {
       "stack.raw-queries.length": queries.length,
       ...Object.fromEntries(queries.map((q, index) => [`stack.raw-queries.${index}`, q.sql.text])),
