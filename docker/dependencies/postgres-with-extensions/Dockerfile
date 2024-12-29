@@ -27,5 +27,5 @@ ENTRYPOINT ["sh", "-c", "\
   fi; \
   \
   # Start Postgres with extensions enabled \
-  exec docker-entrypoint.sh postgres -c shared_preload_libraries='pg_stat_statements' -c shared_preload_libraries='hypopg' -c pg_stat_statements.track=all \
+  exec docker-entrypoint.sh postgres -c shared_preload_libraries='pg_stat_statements' -c pg_stat_statements.track=all \
 "]
