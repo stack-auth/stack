@@ -1,5 +1,9 @@
 import { StackAssertionError } from "./errors";
 
+export function isNotNull<T>(value: T): value is NonNullable<T> {
+  return value !== null && value !== undefined;
+}
+
 export type DeepPartial<T> = T extends object ? { [P in keyof T]?: DeepPartial<T[P]> } : T;
 
 /**

@@ -1,4 +1,4 @@
-import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
+import { deindent, stringCompare } from "@stackframe/stack-shared/dist/utils/strings";
 import * as fs from "fs";
 import quetzalKeys from "../quetzal-translations/keystore.json";
 import supportedLocales from "../quetzal-translations/supported-locales.json";
@@ -52,5 +52,5 @@ main().catch(err => {
 
 
 function sortKeys<T extends Record<string, any>>(obj: T): T {
-  return Object.fromEntries(Object.entries(obj).sort((a, b) => a[0].localeCompare(b[0]))) as T;
+  return Object.fromEntries(Object.entries(obj).sort((a, b) => stringCompare(a[0], b[0]))) as T;
 }

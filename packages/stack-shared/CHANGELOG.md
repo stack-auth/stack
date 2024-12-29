@@ -1,5 +1,12 @@
 # @stackframe/stack-shared
 
+## 2.7.2
+
+### Patch Changes
+
+- Various changes
+  - @stackframe/stack-sc@2.7.2
+
 ## 2.7.1
 
 ### Patch Changes
