@@ -1,9 +1,11 @@
+version: '3.9'
+
 services:
 
   # ================= PostgreSQL =================
 
   db:
-    image: postgres:latest
+    build: ./docker/dependencies/postgres-with-extensions
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: PASSWORD-PLACEHOLDER--uqfEC1hmmv
@@ -13,14 +15,8 @@ services:
       - 5432:5432
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    entrypoint: ["sh", "-c", "
-      if [ $POSTGRES_DELAY_MS -gt 0 ]; then 
-        apt-get update && apt-get install -y iproute2 && \
-        tc qdisc add dev eth0 root netem delay ${POSTGRES_DELAY_MS}ms;
-      fi;
-      exec docker-entrypoint.sh postgres -c shared_preload_libraries='pg_stat_statements' -c pg_stat_statements.track=all"]
     cap_add:
-      - NET_ADMIN
+      - NET_ADMIN  # TODO why do we need this? is it for the delay?
 
   # ================= PgHero =================
 
@@ -30,6 +26,60 @@ services:
       DATABASE_URL: postgres://postgres:PASSWORD-PLACEHOLDER--uqfEC1hmmv@db:5432/stackframe
     ports:
       - 8116:8080
+
+  # ================= PgAdmin =================
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: PASSWORD-PLACEHOLDER--vu9p2iy3f
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    configs:
+      - source: pgadmin_servers
+        target: /pgadmin4/servers.json
+    ports:
+      - 8117:80
+
+  # ================= Supabase Studio =================
+
+  supabase-studio:
+    image: supabase/studio:20241202-71e5240
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://studio:3000/api/profile').then((r) => {if (r.status !== 200) throw new Error(r.status)})"
+        ]
+      timeout: 10s
+      interval: 5s
+      retries: 3
+    environment:
+      STUDIO_PG_META_URL: http://supabase-meta:8080
+      POSTGRES_PASSWORD: PASSWORD-PLACEHOLDER--uqfEC1hmmv
+
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+
+      NEXT_PUBLIC_ENABLE_LOGS: true
+      NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
+    ports:
+      - 8118:3000
+  
+  supabase-meta:
+    image: supabase/postgres-meta:v0.84.2
+    restart: unless-stopped
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: 5432
+      PG_META_DB_NAME: stackframe
+      PG_META_DB_USER: postgres
+      PG_META_DB_PASSWORD: PASSWORD-PLACEHOLDER--uqfEC1hmmv
+
 
   # ================= Inbucket =================
 
@@ -94,3 +144,21 @@ volumes:
   svix-redis-data:
   svix-postgres-data:
 
+# ================= configs =================
+
+configs:
+  pgadmin_servers:
+    content: |
+      {
+        "Servers": {
+          "1": {
+            "Name": "Local Postgres DB",
+            "Group": "Servers",
+            "Host": "db",
+            "Port": 5432,
+            "Username": "postgres",
+            "PasswordExecCommand": "echo 'PASSWORD-PLACEHOLDER--uqfEC1hmmv'",
+            "MaintenanceDB": "stackframe"
+          }
+        }
+      }
