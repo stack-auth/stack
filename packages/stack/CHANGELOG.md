@@ -1,5 +1,15 @@
 # @stackframe/stack
 
+## 2.7.3
+
+### Patch Changes
+
+- Various changes
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.3
+  - @stackframe/stack-ui@2.7.3
+  - @stackframe/stack-sc@2.7.3
+
 ## 2.7.2
 
 ### Patch Changes
