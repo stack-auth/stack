@@ -18,6 +18,8 @@ RUN cd /index_advisor && make install
 RUN echo "CREATE EXTENSION pg_stat_statements;" >> /docker-entrypoint-initdb.d/init.sql
 RUN echo "CREATE EXTENSION hypopg;" >> /docker-entrypoint-initdb.d/init.sql
 RUN echo "CREATE EXTENSION index_advisor;" >> /docker-entrypoint-initdb.d/init.sql
+RUN echo "CREATE ROLE anon;" >> /docker-entrypoint-initdb.d/init.sql
+RUN echo "CREATE ROLE authenticated;" >> /docker-entrypoint-initdb.d/init.sql
 
 # Add args to Postgres entrypoint
 ENTRYPOINT ["sh", "-c", "\

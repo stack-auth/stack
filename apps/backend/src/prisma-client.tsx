@@ -67,7 +67,9 @@ async function rawQueryArray<Q extends RawQuery<any>[]>(queries: Q): Promise<[] 
   }, async () => {
     if (queries.length === 0) return [] as any;
 
-    const query = Prisma.sql`
+    // Prisma does a query for every rawQuery call by default, even if we batch them with transactions
+    // So, instead we combine all queries into one using WITH, and then return them as a single JSON result
+    const withQuery = Prisma.sql`
       WITH ${Prisma.join(queries.map((q, index) => {
         return Prisma.sql`${Prisma.raw("q" + index)} AS (
           ${q.sql}
@@ -83,6 +85,11 @@ async function rawQueryArray<Q extends RawQuery<any>[]>(queries: Q): Promise<[] 
         `;
       }), "\nUNION ALL\n")}
     `;
+
+    // Supabase's index advisor only analyzes rows that start with "SELECT" (for some reason)
+    // Since ours starts with "WITH", we prepend a SELECT to it
+    const query = Prisma.sql`SELECT * FROM (${withQuery}) AS _`;
+
     const rawResult = await prismaClient.$queryRaw(query) as { type: string, json: any }[];
     const unprocessed = new Array(queries.length).fill(null).map(() => [] as any[]);
     for (const row of rawResult) {
