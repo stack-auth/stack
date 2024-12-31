@@ -22,6 +22,7 @@ import {
 } from "@stackframe/stack-ui";
 import {
   Book,
+  Globe,
   KeyRound,
   Link as LinkIcon,
   LockKeyhole,
@@ -31,10 +32,9 @@ import {
   Settings,
   Settings2,
   ShieldEllipsis,
-  TrendingUp,
   User,
   Users,
-  Webhook,
+  Webhook
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
@@ -64,6 +64,13 @@ type Hidden = {
 
 const navigationItems: (Label | Item | Hidden)[] = [
   {
+    name: "Overview",
+    href: "/",
+    regex: /^\/projects\/[^\/]+$/,
+    icon: Globe,
+    type: 'item'
+  },
+  {
     name: "Users",
     type: 'label'
   },
@@ -79,13 +86,6 @@ const navigationItems: (Label | Item | Hidden)[] = [
     href: "/auth-methods",
     regex: /^\/projects\/[^\/]+\/auth-methods$/,
     icon: ShieldEllipsis,
-    type: 'item'
-  },
-  {
-    name: "Metrics",
-    href: "/metrics",
-    regex: /^\/projects\/[^\/]+\/metrics$/,
-    icon: TrendingUp,
     type: 'item'
   },
   {
