@@ -47,7 +47,7 @@ async function loadTotalUsers(projectId: string, now: Date): Promise<DataPoints>
   return (await prismaClient.$queryRaw<{date: Date, dailyUsers: bigint, cumUsers: bigint}[]>`
     WITH date_series AS (
         SELECT GENERATE_SERIES(
-          ${now}::date - INTERVAL '1 month',
+          ${now}::date - INTERVAL '30 days',
           ${now}::date,
           '1 day'
         )
@@ -72,7 +72,7 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
   const res = await prismaClient.$queryRaw<{day: Date, dau: bigint}[]>`
     WITH date_series AS (
       SELECT GENERATE_SERIES(
-        ${now}::date - INTERVAL '1 month',
+        ${now}::date - INTERVAL '30 days',
         ${now}::date,
         '1 day'
       )
@@ -83,7 +83,7 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
         DATE_TRUNC('day', "eventStartedAt") AS "day",
         COUNT(DISTINCT "data"->'userId') AS "dau"
       FROM "Event"
-      WHERE "eventStartedAt" >= ${now} - INTERVAL '1 month'
+      WHERE "eventStartedAt" >= ${now} - INTERVAL '30 days'
         AND "eventStartedAt" < ${now}
         AND '$user-activity' = ANY("systemEventTypeIds"::text[])
         AND "data"->>'projectId' = ${projectId}
