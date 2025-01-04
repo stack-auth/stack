@@ -29,6 +29,17 @@ export function isRelative(url: string) {
   return true;
 }
 
+/**
+ * Relative URL lookups work differently depending on whether the URL has a trailing slash or not.
+ *
+ * This function ensures that the URL has a trailing slash, so that relative lookups work consistently.
+ */
+export function ensureTrailingSlash(url: URL | string) {
+  if (typeof url === "string") url = new URL(url);
+  if (url.pathname.endsWith("/")) return url;
+  return new URL(url.toString() + "/");
+}
+
 export function getRelativePart(url: URL) {
   return url.pathname + url.search + url.hash;
 }
