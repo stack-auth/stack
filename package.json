@@ -16,7 +16,7 @@
     "deps-compose": "docker compose -f dependencies.compose.yaml",
     "stop-deps": "POSTGRES_DELAY_MS=0 pnpm run deps-compose kill && POSTGRES_DELAY_MS=0 pnpm run deps-compose down -v",
     "init-db": "pnpm run prisma db push && pnpm run prisma db seed",
-    "start-deps:no-delay": "pnpm run deps-compose up --detach && sleep 5 && pnpm run init-db && echo \"\\nDependencies started in the background as Docker containers. 'pnpm run stop-deps' to stop them\"n",
+    "start-deps:no-delay": "pnpm run deps-compose up --detach --build && sleep 5 && pnpm run init-db && echo \"\\nDependencies started in the background as Docker containers. 'pnpm run stop-deps' to stop them\"n",
     "start-deps": "POSTGRES_DELAY_MS=${POSTGRES_DELAY_MS:-20} pnpm run start-deps:no-delay",
     "restart-deps": "pnpm run stop-deps && pnpm run start-deps",
     "restart-deps:no-delay": "pnpm run stop-deps && pnpm run start-deps:no-delay",

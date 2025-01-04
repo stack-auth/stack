@@ -101,5 +101,6 @@
     "**/$KNOWN_TOOLS$/**",
     "**/start-server.js",
     "**/turbo/**"
-  ]
+  ],
+  "files.insertFinalNewline": true
 }

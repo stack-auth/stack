@@ -31,7 +31,7 @@ export function LineChartDisplay({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={config.chart} className='w-full max-h-[300px] p-0 ml-[-30px]'>
+        <ChartContainer config={config.chart} className='w-full p-0 ml-[-30px]' maxHeight={300}>
           <BarChart accessibilityLayer data={datapoints}>
             <CartesianGrid
               horizontal={true}
@@ -157,7 +157,7 @@ export function DonutChartDisplay({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={BRAND_CONFIG} className='w-full max-h-[300px] p-4'>
+        <ChartContainer config={BRAND_CONFIG} className='w-full p-4' maxHeight={300}>
           <PieChart>
             <ChartTooltip
               cursor={false}

@@ -22,7 +22,7 @@ import { StackAssertionError, concatStacktraces, throwErr } from "@stackframe/st
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { DependenciesMap } from "@stackframe/stack-shared/dist/utils/maps";
 import { ProviderType } from "@stackframe/stack-shared/dist/utils/oauth";
-import { deepPlainEquals, filterUndefined, omit } from "@stackframe/stack-shared/dist/utils/objects";
+import { deepPlainEquals, filterUndefined, omit, pick } from "@stackframe/stack-shared/dist/utils/objects";
 import { ReactPromise, neverResolve, runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { suspend, suspendIfSsr } from "@stackframe/stack-shared/dist/utils/react";
 import { Result } from "@stackframe/stack-shared/dist/utils/results";
@@ -36,7 +36,6 @@ import React, { useCallback, useMemo } from "react";
 import { constructRedirectUrl } from "../utils/url";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
 import { CookieHelper, createBrowserCookieHelper, createCookieHelper, deleteCookieClient, getCookieClient, setOrDeleteCookie, setOrDeleteCookieClient } from "./cookie";
-
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
 
@@ -2541,7 +2540,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     const response = await this._interface.sendTestEmail({
       recipient_email: options.recipientEmail,
       email_config: {
-        ...options.emailConfig,
+        ...(pick(options.emailConfig, ['host', 'port', 'username', 'password'])),
         sender_email: options.emailConfig.senderEmail,
         sender_name: options.emailConfig.senderName,
       },

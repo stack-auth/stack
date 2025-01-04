@@ -1,6 +1,5 @@
 import useResizeObserver from '@react-hook/resize-observer';
 import { useUser } from '@stackframe/stack';
-import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { getFlagEmoji } from '@stackframe/stack-shared/dist/utils/unicode';
 import { Skeleton, Typography } from '@stackframe/stack-ui';
 import { RefObject, use, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -158,7 +157,11 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
             height={globeSize?.[1] ?? 64}
             onGlobeReady={() => {
               setTimeout(() => setIsGlobeReady(true), 100);
-              const current = globeRef.current ?? throwErr('Globe ref not available even though globe is ready?');
+              const current = globeRef.current;
+              if (!current) {
+                // User probably navigated away right at this moment
+                return;
+              }
               const controls = current.controls();
               controls.maxDistance = 1000;
               controls.minDistance = 120;

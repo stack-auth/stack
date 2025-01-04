@@ -150,8 +150,8 @@ describe("with admin access to a non-internal project", () => {
 
   it("creates, list, updates, revokes api keys", async ({ expect }) => {
     const { adminAccessToken } = await Project.createAndGetAdminToken();
-    const { createApiKeyResponse: response1 } = await ApiKey.create(adminAccessToken);
-    expect(response1).toMatchInlineSnapshot(`
+    const { createApiKeyResponse } = await ApiKey.create(adminAccessToken);
+    expect(createApiKeyResponse).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
         "body": {
@@ -167,8 +167,27 @@ describe("with admin access to a non-internal project", () => {
       }
     `);
 
+    // ensure the api key works
+    const response1 = await niceBackendFetch(`/api/v1/users`, {
+      accessType: "admin",
+      headers: {
+        'x-stack-super-secret-admin-key': createApiKeyResponse.body.super_secret_admin_key,
+      }
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "is_paginated": true,
+          "items": [],
+          "pagination": { "next_cursor": null },
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+
     // update api key description
-    const response2 = await niceBackendFetch(`/api/v1/internal/api-keys/${response1.body.id}`, {
+    const response2 = await niceBackendFetch(`/api/v1/internal/api-keys/${createApiKeyResponse.body.id}`, {
       accessType: "admin",
       method: "PATCH",
       body: {
@@ -196,12 +215,25 @@ describe("with admin access to a non-internal project", () => {
     `);
 
     // create another api key
-    await ApiKey.create(adminAccessToken, {
+    const { createApiKeyResponse: createApiKeyResponse2 } = await ApiKey.create(adminAccessToken, {
       description: 'key2',
       has_publishable_client_key: false,
       has_secret_server_key: true,
       has_super_secret_admin_key: false
     });
+    expect(createApiKeyResponse2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "key2",
+          "expires_at_millis": <stripped field 'expires_at_millis'>,
+          "id": "<stripped UUID>",
+          "secret_server_key": <stripped field 'secret_server_key'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
 
     // list api keys
     const response3 = await niceBackendFetch("/api/v1/internal/api-keys", {
@@ -239,7 +271,7 @@ describe("with admin access to a non-internal project", () => {
     `);
 
     // revoke api key
-    const response4 = await niceBackendFetch(`/api/v1/internal/api-keys/${response1.body.id}`, {
+    const response4 = await niceBackendFetch(`/api/v1/internal/api-keys/${createApiKeyResponse.body.id}`, {
       accessType: "admin",
       method: "PATCH",
       body: {
@@ -263,6 +295,28 @@ describe("with admin access to a non-internal project", () => {
           "super_secret_admin_key": { "last_four": <stripped field 'last_four'> },
         },
         "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+
+    // ensure the api key no longer works
+    const response5 = await niceBackendFetch(`/api/v1/users`, {
+      accessType: "admin",
+      headers: {
+        'x-stack-super-secret-admin-key': createApiKeyResponse.body.super_secret_admin_key,
+      }
+    });
+    expect(response5).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "INVALID_SUPER_SECRET_ADMIN_KEY",
+          "details": { "project_id": "<stripped UUID>" },
+          "error": "The super secret admin key is not valid for the project \\"<stripped UUID>\\". Does the project and/or the key exist?",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "INVALID_SUPER_SECRET_ADMIN_KEY",
+          <some fields may have been hidden>,
+        },
       }
     `);
   });
