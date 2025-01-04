@@ -3,9 +3,15 @@ import { StackAssertionError } from './errors';
 
 export async function sha512(input: Uint8Array | string) {
   const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
-  return await crypto.subtle.digest("SHA-512", bytes).then(buf => {
-    return Array.prototype.map.call(new Uint8Array(buf), x=>(('00'+x.toString(16)).slice(-2))).join('');
-  });
+  return new Uint8Array(await crypto.subtle.digest("SHA-512", bytes));
+}
+
+/**
+ * Hashes the input using SHA-512 and returns it as a hex string.
+ */
+export async function sha512ToHex(input: Uint8Array | string) {
+  const buf = await sha512(input);
+  return Array.prototype.map.call(new Uint8Array(buf), x=>(('00'+x.toString(16)).slice(-2))).join('');
 }
 
 export async function hashPassword(password: string) {

@@ -16,6 +16,10 @@ export function isShallowEqual(a: readonly any[], b: readonly any[]): boolean {
   return true;
 }
 
+export function repeat<T>(count: number, func: (index: number) => T): T[] {
+  return Array(count).fill(null).map((_, index) => func(index));
+}
+
 /**
  * Ponyfill for ES2023's findLastIndex.
  */
