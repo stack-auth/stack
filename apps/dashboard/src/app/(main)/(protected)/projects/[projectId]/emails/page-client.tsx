@@ -10,8 +10,8 @@ import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTem
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { strictEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 import { ActionCell, ActionDialog, Alert, Button, Card, SimpleTooltip, Typography, useToast } from "@stackframe/stack-ui";
-import _ from "lodash";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -234,7 +234,7 @@ function EditEmailServerDialog(props: {
     cancelButton
     onFormChange={(form) => {
       const values = form.getValues();
-      if (!_.isEqual(values, formValues)) {
+      if (!deepPlainEquals(values, formValues)) {
         setFormValues(values);
         setError(null);
       }

@@ -58,13 +58,11 @@
     "zustand": "^4.5.2",
     "zod": "^3.23.8",
     "handlebars": "^4.7.8",
-    "lodash": "^4.17.21",
     "@stackframe/stack-shared": "workspace:*",
     "@stackframe/stack-ui": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^5.0.5",
-    "@types/lodash": "^4.17.5",
     "react": "^18.2",
     "react-dom": "^18.2",
     "next": "^14.1.0"
