@@ -47,6 +47,8 @@ export default function PageClient () {
     }
   };
 
+  const redirectToNeonConfirmWith = searchParams.get("redirect_to_neon_confirm_with");
+
   const onSubmit = async (values: ProjectFormValues, e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
     setLoading(true);
@@ -65,7 +67,7 @@ export default function PageClient () {
           } as const)).filter(({ enabled }) => enabled),
         }
       });
-      const redirectToNeonConfirmWith = searchParams.get("redirect_to_neon_confirm_with");
+
       if (redirectToNeonConfirmWith) {
         const confirmSearchParams = new URLSearchParams(redirectToNeonConfirmWith);
         confirmSearchParams.set("default_selected_project_id", newProject.id);
@@ -108,7 +110,9 @@ export default function PageClient () {
               />
 
               <div className="flex justify-center">
-                <Button loading={loading} type="submit">Create project</Button>
+                <Button loading={loading} type="submit">
+                  {redirectToNeonConfirmWith ? "Create & Connect Project" : "Create Project"}
+                </Button>
               </div>
             </form>
           </Form>
