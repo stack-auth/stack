@@ -87,6 +87,7 @@ class AsyncValueCache<T> {
   private readonly _rateLimitOptions: Omit<RateLimitOptions, "batchCalls">;
   private _subscriptionsCount = 0;
   private _unsubscribers: (() => void)[] = [];
+  private _mostRecentRefreshPromiseIndex = 0;
 
   constructor(
     fetcher: () => Promise<T>,
@@ -180,17 +181,8 @@ class AsyncValueCache<T> {
     runAsynchronously(this.getOrWait("read-write"));
 
     if (this._subscriptionsCount++ === 0 && this._options.onSubscribe) {
-      let mostRecentRefreshPromiseIndex = 0;
       const unsubscribe = this._options.onSubscribe(() => {
-        const currentRefreshPromiseIndex = mostRecentRefreshPromiseIndex++;
-        runAsynchronously(async () => {
-          // wait a few seconds; if anything changes during that time, we don't want to refresh
-          // else we do unnecessary requests if we unsubscribe and then subscribe again immediately
-          await wait(5000);
-          if (this._subscriptionsCount === 0 && currentRefreshPromiseIndex === mostRecentRefreshPromiseIndex) {
-            this.invalidate();
-          }
-        });
+        runAsynchronously(this.refresh());
       });
       this._unsubscribers.push(unsubscribe);
     }
@@ -202,6 +194,16 @@ class AsyncValueCache<T> {
         hasUnsubscribed = true;
         storeObj.unsubscribe();
         if (--this._subscriptionsCount === 0) {
+          const currentRefreshPromiseIndex = ++this._mostRecentRefreshPromiseIndex;
+          runAsynchronously(async () => {
+            // wait a few seconds; if anything changes during that time, we don't want to refresh
+            // else we do unnecessary requests if we unsubscribe and then subscribe again immediately
+            await wait(5000);
+            if (this._subscriptionsCount === 0 && currentRefreshPromiseIndex === this._mostRecentRefreshPromiseIndex) {
+              this.invalidate();
+            }
+          });
+
           for (const unsubscribe of this._unsubscribers) {
             unsubscribe();
           }
