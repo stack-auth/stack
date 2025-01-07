@@ -75,6 +75,10 @@ export default function NeonConfirmCard(props: { onContinue: (options: { project
               if (p === "create-new") {
                 const createSearchParams = new URLSearchParams();
                 createSearchParams.set("redirect_to_neon_confirm_with", searchParams.toString());
+                const neonDisplayName = searchParams.get("neon_project_display_name");
+                if (neonDisplayName) {
+                  createSearchParams.set("display_name", neonDisplayName);
+                }
                 window.location.href = '/new-project?' + createSearchParams.toString();
               } else {
                 setSelectedProject(projects.find((project) => project.id === p) ?? null);

@@ -18,23 +18,25 @@ export const projectFormSchema = yup.object({
     .defined("At least one sign-in method is required"),
 });
 
-export type ProjectFormValues = yup.InferType<typeof projectFormSchema>
-
-export const defaultValues: Partial<ProjectFormValues> = {
-  displayName: "",
-  signInMethods: ["credential", "google", "github"],
-};
+type ProjectFormValues = yup.InferType<typeof projectFormSchema>
 
 export default function PageClient () {
   const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const displayName = searchParams.get("display_name");
+
+  const defaultValues: Partial<ProjectFormValues> = {
+    displayName: displayName || "",
+    signInMethods: ["credential", "google", "github"],
+  };
+
   const form = useForm<ProjectFormValues>({
     resolver: yupResolver<ProjectFormValues>(projectFormSchema),
     defaultValues,
     mode: "onChange",
   });
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const mockProject = {
     id: "id",
