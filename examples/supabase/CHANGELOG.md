@@ -1,5 +1,25 @@
 # @stackframe/example-supabase
 
+## 2.7.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.7.4
+
+## 2.7.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack@2.7.3
+
+## 2.7.2
+
+### Patch Changes
+
+- @stackframe/stack@2.7.2
+
 ## 2.7.1
 
 ### Patch Changes

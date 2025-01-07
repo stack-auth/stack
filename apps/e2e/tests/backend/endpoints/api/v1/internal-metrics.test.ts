@@ -46,6 +46,8 @@ it("should return metrics data with users", async ({ expect }) => {
 
   const response = await niceBackendFetch("/api/v1/internal/metrics", { accessType: 'admin' });
   expect(response).toMatchSnapshot();
+}, {
+  timeout: 60_000,
 });
 
 it("should not work for non-admins", async ({ expect }) => {

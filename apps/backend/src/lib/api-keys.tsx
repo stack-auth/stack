@@ -1,11 +1,12 @@
 // TODO remove and replace with CRUD handler
 
-import { prismaClient } from '@/prisma-client';
-import { ApiKeySet } from '@prisma/client';
+import { RawQuery, prismaClient, rawQuery } from '@/prisma-client';
+import { ApiKeySet, Prisma } from '@prisma/client';
 import { ApiKeysCrud } from '@stackframe/stack-shared/dist/interface/crud/api-keys';
 import { yupString } from '@stackframe/stack-shared/dist/schema-fields';
 import { typedIncludes } from '@stackframe/stack-shared/dist/utils/arrays';
 import { generateSecureRandomString } from '@stackframe/stack-shared/dist/utils/crypto';
+import { getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 
@@ -13,10 +14,48 @@ export const publishableClientKeyHeaderSchema = yupString().matches(/^[a-zA-Z0-9
 export const secretServerKeyHeaderSchema = publishableClientKeyHeaderSchema;
 export const superSecretAdminKeyHeaderSchema = secretServerKeyHeaderSchema;
 
-export async function checkApiKeySet(
-  ...args: Parameters<typeof getApiKeySet>
-): Promise<boolean> {
-  const set = await getApiKeySet(...args);
+export function checkApiKeySetQuery(projectId: string, key: KeyType): RawQuery<boolean> {
+  key = validateKeyType(key);
+  const keyType = Object.keys(key)[0] as keyof KeyType;
+  const keyValue = key[keyType];
+
+  const whereClause = Prisma.sql`
+    ${Prisma.raw(JSON.stringify(keyType))} = ${keyValue}
+  `;
+
+  return {
+    sql: Prisma.sql`
+      SELECT 't' AS "result"
+      FROM "ApiKeySet"
+      WHERE ${whereClause}
+      AND "projectId" = ${projectId}
+      AND "manuallyRevokedAt" IS NULL
+      AND "expiresAt" > ${new Date()}
+    `,
+    postProcess: (rows) => rows[0]?.result === "t",
+  };
+}
+
+export async function checkApiKeySet(projectId: string, key: KeyType): Promise<boolean> {
+  const result = await rawQuery(checkApiKeySetQuery(projectId, key));
+
+  // In non-prod environments, let's also call the legacy function and ensure the result is the same
+  // TODO next-release: remove this
+  if (!getNodeEnvironment().includes("prod")) {
+    const legacy = await checkApiKeySetLegacy(projectId, key);
+    if (legacy !== result) {
+      throw new StackAssertionError("checkApiKeySet result mismatch", {
+        result,
+        legacy,
+      });
+    }
+  }
+
+  return result;
+}
+
+async function checkApiKeySetLegacy(projectId: string, key: KeyType): Promise<boolean> {
+  const set = await getApiKeySet(projectId, key);
   if (!set) return false;
   if (set.manually_revoked_at_millis) return false;
   if (set.expires_at_millis < Date.now()) return false;
@@ -29,7 +68,7 @@ type KeyType =
   | { secretServerKey: string }
   | { superSecretAdminKey: string };
 
-function assertKeyType(obj: any): KeyType {
+function validateKeyType(obj: any): KeyType {
   if (typeof obj !== 'object' || obj === null) {
     throw new StackAssertionError('Invalid key type', { obj });
   }
@@ -64,7 +103,7 @@ export async function getApiKeySet(
       }
     }
     : {
-      ...assertKeyType(whereOrId),
+      ...validateKeyType(whereOrId),
       projectId,
     };
 

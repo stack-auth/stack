@@ -257,7 +257,7 @@ export function createCrudHandlers<
                     },
                   });
                 } catch (error) {
-                  if (allowedErrorTypes?.some((a) => error instanceof a)) {
+                  if (allowedErrorTypes?.some((a) => error instanceof a) || error instanceof StackAssertionError) {
                     throw error;
                   }
                   throw new CrudHandlerInvocationError(error);

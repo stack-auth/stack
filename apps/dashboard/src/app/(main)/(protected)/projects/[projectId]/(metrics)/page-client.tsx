@@ -57,6 +57,9 @@ export default function PageClient() {
                 <CardTitle>Recent Sign Ups</CardTitle>
               </CardHeader>
               <CardContent>
+                {data.recently_registered.length === 0 && (
+                  <Typography variant='secondary'>No recent sign ups</Typography>
+                )}
                 <Table>
                   <TableBody>
                     {data.recently_registered.map((user: any) => <TableRow key={user.id}>
@@ -77,6 +80,9 @@ export default function PageClient() {
                 <CardTitle>Recently Active Users</CardTitle>
               </CardHeader>
               <CardContent>
+                {data.recently_active.length === 0 && (
+                  <Typography variant='secondary'>No recent active users</Typography>
+                )}
                 <Table>
                   <TableBody>
                     {data.recently_active.map((user: any) => <TableRow key={user.id}>
