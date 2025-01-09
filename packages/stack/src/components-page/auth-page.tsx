@@ -87,8 +87,7 @@ function Inner (props: Props) {
 
   const hasOAuthProviders = project.config.oauthProviders.length > 0;
   const hasPasskey = (project.config.passkeyEnabled === true && props.type === "sign-in");
-  const hasSomeAuthMethod = hasOAuthProviders || hasPasskey;
-  const enableSeparator = (project.config.credentialEnabled || project.config.magicLinkEnabled) && hasSomeAuthMethod;
+  const enableSeparator = (project.config.credentialEnabled || project.config.magicLinkEnabled) && (hasOAuthProviders || hasPasskey);
 
   return (
     <MaybeFullPage fullPage={!!props.fullPage}>
@@ -117,7 +116,7 @@ function Inner (props: Props) {
             </Typography>
           )}
         </div>
-        {hasSomeAuthMethod && (
+        {(hasOAuthProviders || hasPasskey) && (
           <div className='gap-4 flex flex-col items-stretch stack-scope'>
             {hasOAuthProviders && <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />}
             {hasPasskey && <PasskeyButton type={props.type} />}
@@ -144,7 +143,7 @@ function Inner (props: Props) {
           props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>
         ) : project.config.magicLinkEnabled ? (
           <MagicLinkSignIn/>
-        ) : !hasSomeAuthMethod ? <Typography variant={"destructive"} className="text-center">{t("No authentication method enabled.")}</Typography> : null}
+        ) : !(hasOAuthProviders || hasPasskey) ? <Typography variant={"destructive"} className="text-center">{t("No authentication method enabled.")}</Typography> : null}
         {props.extraInfo && (
           <div className={cn('flex flex-col items-center text-center text-sm text-gray-500', {
             'mt-2': project.config.credentialEnabled || project.config.magicLinkEnabled,
