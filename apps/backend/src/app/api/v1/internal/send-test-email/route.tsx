@@ -62,6 +62,7 @@ export const POST = createSmartRouteHandler({
           recipient_email: body.recipient_email,
           email_config: body.email_config,
         }));
+        errorMessage = "Unknown error while sending test email. Make sure the email server is running and accepting connections.";
       }
     }
 
