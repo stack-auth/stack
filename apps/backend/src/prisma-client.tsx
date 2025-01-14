@@ -25,15 +25,17 @@ export async function retryTransaction<T>(fn: (...args: Parameters<Parameters<ty
   return await traceSpan('Prisma transaction', async () => {
     const res = await Result.retry(async (attempt) => {
       return await traceSpan(`transaction attempt #${attempt}`, async () => {
-        try {
-          return Result.ok(await prismaClient.$transaction(fn));
-        } catch (e) {
-          if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof Prisma.PrismaClientUnknownRequestError) {
-            // retry
-            return Result.error(e);
+        return await prismaClient.$transaction(async (...args) => {
+          try {
+            return Result.ok(await fn(...args));
+          } catch (e) {
+            if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof Prisma.PrismaClientUnknownRequestError) {
+              // retry
+              return Result.error(e);
+            }
+            throw e;
           }
-          throw e;
-        }
+        });
       });
     }, isDev ? 1 : 3);
 
