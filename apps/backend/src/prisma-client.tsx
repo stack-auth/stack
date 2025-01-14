@@ -28,7 +28,7 @@ export async function retryTransaction<T>(fn: (...args: Parameters<Parameters<ty
         try {
           return Result.ok(await prismaClient.$transaction(fn));
         } catch (e) {
-          if (e instanceof Prisma.PrismaClientKnownRequestError) {
+          if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof Prisma.PrismaClientUnknownRequestError) {
             // retry
             return Result.error(e);
           }
