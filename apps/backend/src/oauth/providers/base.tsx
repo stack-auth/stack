@@ -159,6 +159,9 @@ export abstract class OAuthBaseProvider {
       if (error?.error === 'access_denied') {
         throw new KnownErrors.OAuthProviderAccessDenied();
       }
+      if (error?.error === 'invalid_client') {
+        throw new StatusError(400, `Invalid client credentials for this OAuth provider. Please ensure the configuration in the Stack Auth dashboard is correct.`);
+      }
       throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, { params, cause: error });
     }
 
