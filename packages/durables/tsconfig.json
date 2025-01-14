@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "outDir": "dist",
+    "rootDir": "",
+    "declaration": true,
+    "target": "ES2021",
+    "lib": ["DOM", "DOM.Iterable", "ES2021", "ES2022.Error"],
+    "module": "ES2020",
+    "moduleResolution": "Bundler",
+    "esModuleInterop": true,
+    "noErrorTruncation": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "sourceMap": true,
+    "declarationMap": true
+  },
+  "include": ["next-env.d.ts", "src/**/*", ".next/types/**/*.ts", "examples/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

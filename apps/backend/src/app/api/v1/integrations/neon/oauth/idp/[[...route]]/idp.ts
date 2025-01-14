@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { decodeBase64OrBase64Url } from '@stackframe/stack-shared/dist/utils/bytes';
 import { getEnvVariable } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError, captureError, throwErr } from '@stackframe/stack-shared/dist/utils/errors';
-import { sha512 } from '@stackframe/stack-shared/dist/utils/hashes';
+import { sha512ToHex } from '@stackframe/stack-shared/dist/utils/hashes';
 import { getPerAudienceSecret, getPrivateJwk, getPublicJwkSet } from '@stackframe/stack-shared/dist/utils/jwt';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
@@ -186,7 +186,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
     ttl: {},
     cookies: {
       keys: [
-        await sha512(`oidc-idp-cookie-encryption-key:${getEnvVariable("STACK_SERVER_SECRET")}`),
+        await sha512ToHex(`oidc-idp-cookie-encryption-key:${getEnvVariable("STACK_SERVER_SECRET")}`),
       ],
     },
     jwks: privateJwks,
