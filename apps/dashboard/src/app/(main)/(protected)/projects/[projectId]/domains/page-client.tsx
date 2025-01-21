@@ -46,7 +46,24 @@ function EditDialog(props: {
     addWww: yup.boolean(),
   });
 
-  const canAddWww = (domain: string | undefined) => domain && isValidUrl('https://' + domain) && !domain.startsWith('www.') && isValidUrl('https://www.' + domain);
+  const canAddWww = (domain: string | undefined) => {
+    if (!domain) {
+      return false;
+    }
+
+    const httpsUrl = 'https://' + domain;
+    if (!isValidUrl(httpsUrl)) {
+      return false;
+    }
+
+    if (domain.startsWith('www.')) {
+      return false;
+    }
+
+    const wwwUrl = 'https://www.' + domain;
+    console.log(wwwUrl, isValidUrl(wwwUrl));
+    return isValidUrl(wwwUrl);
+  };
 
   return <FormDialog
     open={props.open}
@@ -70,7 +87,7 @@ function EditDialog(props: {
                 domain: values.domain,
                 handlerPath: values.handlerPath,
               },
-              ...(canAddWww(values.domain) && values.addWww ? [{
+              ...(canAddWww(values.domain.slice(8)) && values.addWww ? [{
                 domain: 'https://www.' + values.domain.slice(8),
                 handlerPath: values.handlerPath,
               }] : []),
