@@ -230,7 +230,7 @@ export default function PageClient() {
 
 
   return (
-    <PageLayout title="Domains and Handler">
+    <PageLayout title="Domains">
       <SettingCard
         title="Trusted domains"
         description="Features that will redirect to your app, such as SSO and e-mail verification, will refuse to redirect to domains other than the ones listed here. Please make sure that you trust all domains listed here, as they can be used to access user data."

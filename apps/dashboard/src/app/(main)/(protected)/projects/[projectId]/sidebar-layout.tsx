@@ -139,7 +139,7 @@ const navigationItems: (Label | Item | Hidden)[] = [
     type: 'label'
   },
   {
-    name: "Domains & Handlers",
+    name: "Domains",
     href: "/domains",
     regex: /^\/projects\/[^\/]+\/domains$/,
     icon: LinkIcon,
