@@ -1,5 +1,16 @@
 # @stackframe/stack-dashboard
 
+## 2.7.6
+
+### Patch Changes
+
+- Fixed bugs, updated Neon requirements
+- Updated dependencies
+  - @stackframe/stack-emails@2.7.6
+  - @stackframe/stack-shared@2.7.6
+  - @stackframe/stack-ui@2.7.6
+  - @stackframe/stack@2.7.6
+
 ## 2.7.5
 
 ### Patch Changes

@@ -1,5 +1,15 @@
 # @stackframe/stack
 
+## 2.7.6
+
+### Patch Changes
+
+- Fixed bugs, updated Neon requirements
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.6
+  - @stackframe/stack-sc@2.7.6
+  - @stackframe/stack-ui@2.7.6
+
 ## 2.7.5
 
 ### Patch Changes

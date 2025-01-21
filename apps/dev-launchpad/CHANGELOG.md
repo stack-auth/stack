@@ -1,5 +1,11 @@
 # @stackframe/dev-launchpad
 
+## 2.7.6
+
+### Patch Changes
+
+- Fixed bugs, updated Neon requirements
+
 ## 2.7.5
 
 ## 2.7.4
