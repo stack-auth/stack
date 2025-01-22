@@ -815,7 +815,7 @@ export class StackClientInterface {
     });
   }
 
-  async signInWithMagicLink(code: string): Promise<Result<{ newUser: boolean, accessToken: string, refreshToken: string }, KnownErrors["VerificationCodeError"]>> {
+  async signInWithMagicLink(code: string, options?: { afterCallbackRedirectUrl?: string }): Promise<Result<{ newUser: boolean, accessToken: string, refreshToken: string }, KnownErrors["VerificationCodeError"]>> {
     const res = await this.sendClientRequestAndCatchKnownError(
       "/auth/otp/sign-in",
       {
