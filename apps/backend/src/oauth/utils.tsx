@@ -13,10 +13,6 @@ const OAuthUserInfoSchema = yupObject({
 
 export function validateUserInfo(
   userInfo: Partial<yup.InferType<typeof OAuthUserInfoSchema>>,
-  options?: { expectNoEmail?: boolean }
 ): OAuthUserInfo {
-  if (!options?.expectNoEmail && !userInfo.email) {
-    throw new Error("Email is required");
-  }
   return OAuthUserInfoSchema.validateSync(userInfo);
 }

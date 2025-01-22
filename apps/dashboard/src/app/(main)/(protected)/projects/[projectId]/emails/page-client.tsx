@@ -10,8 +10,8 @@ import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTem
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { strictEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 import { ActionCell, ActionDialog, Alert, Button, Card, SimpleTooltip, Typography, useToast } from "@stackframe/stack-ui";
-import _ from "lodash";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -130,9 +130,9 @@ function SubjectPreview(props: { subject: string, type: EmailTemplateType }) {
   return subject;
 }
 
-function definedWhenShared<S extends yup.AnyObject>(schema: S, message: string): S {
-  return schema.when('shared', {
-    is: 'false',
+function definedWhenNotShared<S extends yup.AnyObject>(schema: S, message: string): S {
+  return schema.when('type', {
+    is: 'standard',
     then: (schema: S) => schema.defined(message),
     otherwise: (schema: S) => schema.optional()
   });
@@ -158,12 +158,12 @@ const getDefaultValues = (emailConfig: AdminEmailConfig | undefined, project: Ad
 
 const emailServerSchema = yup.object({
   type: yup.string().oneOf(['shared', 'standard']).defined(),
-  host: definedWhenShared(yup.string(), "Host is required"),
-  port: definedWhenShared(yup.number(), "Port is required"),
-  username: definedWhenShared(yup.string(), "Username is required"),
-  password: definedWhenShared(yup.string(), "Password is required"),
-  senderEmail: definedWhenShared(strictEmailSchema("Sender email must be a valid email"), "Sender email is required"),
-  senderName: definedWhenShared(yup.string(), "Email sender name is required"),
+  host: definedWhenNotShared(yup.string(), "Host is required"),
+  port: definedWhenNotShared(yup.number(), "Port is required"),
+  username: definedWhenNotShared(yup.string(), "Username is required"),
+  password: definedWhenNotShared(yup.string(), "Password is required"),
+  senderEmail: definedWhenNotShared(strictEmailSchema("Sender email must be a valid email"), "Sender email is required"),
+  senderName: definedWhenNotShared(yup.string(), "Email sender name is required"),
 });
 
 function EditEmailServerDialog(props: {
@@ -234,7 +234,7 @@ function EditEmailServerDialog(props: {
     cancelButton
     onFormChange={(form) => {
       const values = form.getValues();
-      if (!_.isEqual(values, formValues)) {
+      if (!deepPlainEquals(values, formValues)) {
         setFormValues(values);
         setError(null);
       }

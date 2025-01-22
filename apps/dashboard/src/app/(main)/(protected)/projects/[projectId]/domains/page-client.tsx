@@ -46,7 +46,24 @@ function EditDialog(props: {
     addWww: yup.boolean(),
   });
 
-  const canAddWww = (domain: string | undefined) => domain && isValidUrl('https://' + domain) && !domain.startsWith('www.') && isValidUrl('https://www.' + domain);
+  const canAddWww = (domain: string | undefined) => {
+    if (!domain) {
+      return false;
+    }
+
+    const httpsUrl = 'https://' + domain;
+    if (!isValidUrl(httpsUrl)) {
+      return false;
+    }
+
+    if (domain.startsWith('www.')) {
+      return false;
+    }
+
+    const wwwUrl = 'https://www.' + domain;
+    console.log(wwwUrl, isValidUrl(wwwUrl));
+    return isValidUrl(wwwUrl);
+  };
 
   return <FormDialog
     open={props.open}
@@ -70,7 +87,7 @@ function EditDialog(props: {
                 domain: values.domain,
                 handlerPath: values.handlerPath,
               },
-              ...(canAddWww(values.domain) && values.addWww ? [{
+              ...(canAddWww(values.domain.slice(8)) && values.addWww ? [{
                 domain: 'https://www.' + values.domain.slice(8),
                 handlerPath: values.handlerPath,
               }] : []),
@@ -213,7 +230,7 @@ export default function PageClient() {
 
 
   return (
-    <PageLayout title="Domains and Handler">
+    <PageLayout title="Domains">
       <SettingCard
         title="Trusted domains"
         description="Features that will redirect to your app, such as SSO and e-mail verification, will refuse to redirect to domains other than the ones listed here. Please make sure that you trust all domains listed here, as they can be used to access user data."

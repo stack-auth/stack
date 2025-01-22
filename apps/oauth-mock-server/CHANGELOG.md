@@ -1,5 +1,20 @@
 # @stackframe/oauth-mock-server
 
+## 2.7.6
+
+### Patch Changes
+
+- Fixed bugs, updated Neon requirements
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.6
+
+## 2.7.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.5
+
 ## 2.7.4
 
 ### Patch Changes

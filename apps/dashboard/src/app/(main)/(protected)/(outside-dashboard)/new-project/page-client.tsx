@@ -18,23 +18,25 @@ export const projectFormSchema = yup.object({
     .defined("At least one sign-in method is required"),
 });
 
-export type ProjectFormValues = yup.InferType<typeof projectFormSchema>
-
-export const defaultValues: Partial<ProjectFormValues> = {
-  displayName: "",
-  signInMethods: ["credential", "google", "github"],
-};
+type ProjectFormValues = yup.InferType<typeof projectFormSchema>
 
 export default function PageClient () {
   const user = useUser({ or: 'redirect', projectIdMustMatch: "internal" });
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const displayName = searchParams.get("display_name");
+
+  const defaultValues: Partial<ProjectFormValues> = {
+    displayName: displayName || "",
+    signInMethods: ["credential", "google", "github"],
+  };
+
   const form = useForm<ProjectFormValues>({
     resolver: yupResolver<ProjectFormValues>(projectFormSchema),
     defaultValues,
     mode: "onChange",
   });
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
   const mockProject = {
     id: "id",
@@ -46,6 +48,8 @@ export default function PageClient () {
       oauthProviders: form.watch('signInMethods').filter((method) => ["google", "github", "microsoft", "spotify"].includes(method)).map(provider => ({ id: provider, type: 'shared' })),
     }
   };
+
+  const redirectToNeonConfirmWith = searchParams.get("redirect_to_neon_confirm_with");
 
   const onSubmit = async (values: ProjectFormValues, e?: React.BaseSyntheticEvent) => {
     e?.preventDefault();
@@ -65,7 +69,7 @@ export default function PageClient () {
           } as const)).filter(({ enabled }) => enabled),
         }
       });
-      const redirectToNeonConfirmWith = searchParams.get("redirect_to_neon_confirm_with");
+
       if (redirectToNeonConfirmWith) {
         const confirmSearchParams = new URLSearchParams(redirectToNeonConfirmWith);
         confirmSearchParams.set("default_selected_project_id", newProject.id);
@@ -108,7 +112,9 @@ export default function PageClient () {
               />
 
               <div className="flex justify-center">
-                <Button loading={loading} type="submit">Create project</Button>
+                <Button loading={loading} type="submit">
+                  {redirectToNeonConfirmWith ? "Create & Connect Project" : "Create Project"}
+                </Button>
               </div>
             </form>
           </Form>
