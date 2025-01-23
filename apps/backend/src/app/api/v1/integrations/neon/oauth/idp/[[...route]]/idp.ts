@@ -392,7 +392,7 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
       const interactionUrl = new URL(`/integrations/neon/confirm`, getEnvVariable("NEXT_PUBLIC_STACK_DASHBOARD_URL"));
       interactionUrl.searchParams.set("interaction_uid", uid);
       if (neonProjectDisplayName) {
-        interactionUrl.searchParams.set("neon_project_display_name", neonProjectDisplayName);
+        interactionUrl.searchParams.set("neon_project_name", neonProjectDisplayName);
       }
       return ctx.redirect(interactionUrl.toString());
     }
