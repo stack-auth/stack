@@ -7,7 +7,8 @@
 		"dbaeumer.vscode-eslint",
 		"streetsidesoftware.code-spell-checker",
 		"YoavBls.pretty-ts-errors",
-		"mxsdev.typescript-explorer"
+		"mxsdev.typescript-explorer",
+		"github.vscode-github-actions"
 	],
 	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
 	"unwantedRecommendations": [
