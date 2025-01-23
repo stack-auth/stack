@@ -107,7 +107,7 @@ export function ApiKeyTable(props: { apiKeys: ApiKey[] }) {
       ...apiKey,
       status: ({ 'valid': 'valid', 'manually-revoked': 'revoked', 'expired': 'expired' } as const)[apiKey.whyInvalid() || 'valid'],
     } satisfies ExtendedApiKey));
-    // first soft based on status, then by createdAt
+    // first sort based on status, then by createdAt
     return keys.sort((a, b) => {
       if (a.status === b.status) {
         return a.createdAt < b.createdAt ? 1 : -1;
