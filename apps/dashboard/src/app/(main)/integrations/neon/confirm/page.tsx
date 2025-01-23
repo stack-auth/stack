@@ -16,7 +16,7 @@ export default async function NeonIntegrationConfirmPage(props: { searchParams: 
     </>;
   }
 
-  const onContinue = async (options: { projectId: string, neonProjectDisplayName?: string }) => {
+  const onContinue = async (options: { projectId: string, neonProjectName?: string }) => {
     "use server";
 
     const user = await stackServerApp.getUser();
@@ -39,7 +39,7 @@ export default async function NeonIntegrationConfirmPage(props: { searchParams: 
       body: JSON.stringify({
         project_id: options.projectId,
         interaction_uid: props.searchParams.interaction_uid,
-        neon_project_name: options.neonProjectDisplayName,
+        neon_project_name: options.neonProjectName,
       }),
     });
     if (!response.ok) {

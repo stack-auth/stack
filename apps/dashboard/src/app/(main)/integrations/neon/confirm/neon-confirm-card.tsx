@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import NeonLogo from "../../../../../../public/neon.png";
 
-export default function NeonConfirmCard(props: { onContinue: (options: { projectId: string, neonProjectDisplayName?: string }) => Promise<{ error: string } | undefined> }) {
+export default function NeonConfirmCard(props: { onContinue: (options: { projectId: string, neonProjectName?: string }) => Promise<{ error: string } | undefined> }) {
   const user = useUser({ or: "redirect", projectIdMustMatch: "internal" });
   const projects = user.useOwnedProjects();
   const searchParams = useSearchParams();
@@ -120,7 +120,7 @@ export default function NeonConfirmCard(props: { onContinue: (options: { project
           <Button
             disabled={!selectedProject}
             onClick={async () => {
-              const error = await props.onContinue({ projectId: selectedProject!.id, neonProjectDisplayName: searchParams.get("neon_project_name") ?? undefined });
+              const error = await props.onContinue({ projectId: selectedProject!.id, neonProjectName: searchParams.get("neon_project_name") ?? undefined });
               if (error) {
                 throw new Error(error.error);
               }
