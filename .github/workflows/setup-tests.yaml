@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - dev
+      - automated-setup-testing
 
 jobs:
   run:
