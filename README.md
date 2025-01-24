@@ -122,10 +122,10 @@ In a new terminal:
 ```sh
 pnpm install
 
-# Run build to build everything once
-pnpm run build:dev
+# Build the packages
+pnpm run build:packages
 
-# reset & start the dependencies (DB, Inbucket, etc.) as Docker containers, seeding the DB with the Prisma schema
+# Reset & start the dependencies (DB, Inbucket, etc.) as Docker containers, seeding the DB with the Prisma schema
 pnpm run start-deps
 # pnpm run restart-deps
 # pnpm run stop-deps
