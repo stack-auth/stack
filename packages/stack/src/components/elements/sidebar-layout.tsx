@@ -73,7 +73,7 @@ function DesktopLayout(props: { items: SidebarItem[], title?: ReactNode, selecte
 
   return (
     <div className="stack-scope flex w-full h-full max-w-full relative">
-      <div className="flex max-w-[200px] min-w-[200px] border-r flex-col items-stretch gap-2 p-2 overflow-y-auto">
+      <div className="flex min-w-[200px] border-r flex-col items-stretch gap-2 p-2 overflow-y-auto">
         {props.title && <div className='mb-2 ml-2'>
           <Typography type='h2' className="text-lg font-semibold text-zinc-800 dark:text-zinc-300">{props.title}</Typography>
         </div>}
