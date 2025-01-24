@@ -1,5 +1,22 @@
 # @stackframe/stack-backend
 
+## 2.7.6
+
+### Patch Changes
+
+- Fixed bugs, updated Neon requirements
+- Updated dependencies
+  - @stackframe/stack-emails@2.7.6
+  - @stackframe/stack-shared@2.7.6
+
+## 2.7.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-emails@2.7.5
+  - @stackframe/stack-shared@2.7.5
+
 ## 2.7.4
 
 ### Patch Changes

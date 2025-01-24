@@ -1,6 +1,7 @@
 'use client';
 
 import { yupResolver } from "@hookform/resolvers/yup";
+import { KnownErrors } from "@stackframe/stack-shared";
 import { getPasswordError } from '@stackframe/stack-shared/dist/helpers/password';
 import { useAsyncCallback } from '@stackframe/stack-shared/dist/hooks/use-async-callback';
 import { passwordSchema as schemaFieldsPasswordSchema, strictEmailSchema, yupObject, yupString } from '@stackframe/stack-shared/dist/schema-fields';
@@ -307,7 +308,15 @@ function EmailsSection() {
                           }] : []),
                         ...(!x.usedForAuth && x.isVerified ? [{
                           item: t("Use for sign-in"),
-                          onClick: async () => { await x.update({ usedForAuth: true }); },
+                          onClick: async () => {
+                            try {
+                              await x.update({ usedForAuth: true });
+                            } catch (e) {
+                              if (e instanceof KnownErrors.ContactChannelAlreadyUsedForAuthBySomeoneElse) {
+                                alert(t("This email is already used for sign-in by another user."));
+                              }
+                            }
+                          }
                         }] : []),
                         ...(x.usedForAuth && !isLastEmail ? [{
                           item: t("Stop using for sign-in"),

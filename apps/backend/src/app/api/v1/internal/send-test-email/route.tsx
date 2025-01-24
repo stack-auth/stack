@@ -2,7 +2,7 @@ import { isSecureEmailPort, sendEmailWithKnownErrorTypes } from "@/lib/emails";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import * as schemaFields from "@stackframe/stack-shared/dist/schema-fields";
 import { adaptSchema, adminAuthTypeSchema, emailSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -51,8 +51,19 @@ export const POST = createSmartRouteHandler({
       text: "This is a test email from Stack Auth. If you successfully received this email, your email server configuration is working correctly.",
     });
 
+    let errorMessage = result.status === 'error' ? result.error.message : undefined;
+
     if (result.status === 'error' && result.error.errorType === 'UNKNOWN') {
-      captureError("Unknown error sending test email", result.error);
+      if (result.error.rawError.message && result.error.rawError.message.includes("ETIMEDOUT")) {
+        errorMessage = "Timed out. Make sure the email server is running and accepting connections.";
+      } else {
+        captureError("send-test-email", new StackAssertionError("Unknown error while sending test email. We should add a better error description for the user.", {
+          cause: result.error,
+          recipient_email: body.recipient_email,
+          email_config: body.email_config,
+        }));
+        errorMessage = "Unknown error while sending test email. Make sure the email server is running and accepting connections.";
+      }
     }
 
     return {
@@ -60,7 +71,7 @@ export const POST = createSmartRouteHandler({
       bodyType: 'json',
       body: {
         success: result.status === 'ok',
-        error_message: result.status === 'error' ? result.error.message : undefined,
+        error_message: errorMessage,
       },
     };
   },

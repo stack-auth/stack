@@ -48,6 +48,6 @@ export class XProvider extends OAuthBaseProvider {
       email: null, // There is no way of getting email from X OAuth2.0 API
       profileImageUrl: userInfo?.profile_image_url as any,
       emailVerified: false,
-    }, { expectNoEmail: true });
+    });
   }
 }

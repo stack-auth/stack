@@ -18,6 +18,7 @@ export const POST = createSmartRouteHandler({
     body: yupObject({
       interaction_uid: yupString().defined(),
       project_id: yupString().defined(),
+      neon_project_name: yupString().optional(),
     }).defined(),
   }),
   response: yupObject({
@@ -32,7 +33,7 @@ export const POST = createSmartRouteHandler({
     const set = await prismaClient.apiKeySet.create({
       data: {
         projectId: req.body.project_id,
-        description: "Auto-generated for Neon",
+        description: `Auto-generated for Neon${req.body.neon_project_name ? ` (${req.body.neon_project_name})` : ""}`,
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 100),
         superSecretAdminKey: `sak_${generateSecureRandomString()}`,
       },
