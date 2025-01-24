@@ -26,4 +26,4 @@ jobs:
       - run: pnpm run build:packages
       - run: pnpm run start-deps
       - run: pnpm dev &
-      - run: pnpm test
+      - run: sleep 20 && pnpm test
