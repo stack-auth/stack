@@ -25,5 +25,13 @@ jobs:
 
       - run: pnpm run build:packages
       - run: pnpm run start-deps
-      - run: pnpm dev &
+      - name: Run dev server in background
+        uses: JarvusInnovations/background-action@v1.0.7
+        with:
+          run: pnpm dev &
+          wait-on: |
+            http://localhost:8102
+          tail: true
+          wait-for: 30s
+          log-output-if: true
       - run: pnpm test
