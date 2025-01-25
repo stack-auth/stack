@@ -1,14 +1,19 @@
 name: "Run setup tests"
 
+
 on:
   push:
     branches:
       - dev
       - automated-setup-testing
 
+env:
+  SHELL: /usr/bin/bash
+
 jobs:
   run:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v3
 
@@ -26,3 +31,4 @@ jobs:
       - run: pnpm run build:packages
       - run: pnpm run start-deps
       - run: pnpm dev
+        
