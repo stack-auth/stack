@@ -83,12 +83,29 @@ export function templateIdentity(strings: TemplateStringsArray | readonly string
   return strings.slice(1).reduce((result, string, i) => `${result}${values[i] ?? "n/a"}${string}`, strings[0]);
 }
 
+export function indent(str: string, indentation: string): `${typeof indentation}${typeof str}` {
+  return indentation + indentExceptFirstLine(str, indentation);
+}
+
+export function indentExceptFirstLine(str: string, indentation: string): `${typeof indentation}${typeof str}` {
+  if (typeof str !== "string") throw new Error(`Invalid string ${nicify(str)}`);
+  return str.replaceAll("\n", `\n${indentation}`);
+}
 
 export function deindent(code: string): string;
 export function deindent(strings: TemplateStringsArray | readonly string[], ...values: any[]): string;
 export function deindent(strings: string | readonly string[], ...values: any[]): string {
   if (typeof strings === "string") return deindent([strings]);
-  if (strings.length === 0) return "";
+
+  const [deindentedStrings, deindentInfo] = getDeindentInfo(strings, ...values);
+  return templateIdentity(
+    deindentedStrings,
+    ...deindentInfo.map(({ value, indentation }) => indentExceptFirstLine(`${value}`, indentation)),
+  );
+}
+
+export function getDeindentInfo(strings: readonly string[], ...values: any[]): [string[], { value: any, indentation: string }[]] {
+  if (strings.length === 0 && values.length === 0) return [[], []];
   if (values.length !== strings.length - 1) throw new Error("Invalid number of values; must be one less than strings");
 
   const trimmedStrings = [...strings];
@@ -112,10 +129,10 @@ export function deindent(strings: string | readonly string[], ...values: any[]):
 
   const indentedValues = values.map((value, i) => {
     const firstLineIndentation = getWhitespacePrefix(deindentedStrings[i].split("\n").at(-1)!);
-    return `${value}`.replaceAll("\n", `\n${firstLineIndentation}`);
+    return { value, indentation: firstLineIndentation };
   });
 
-  return templateIdentity(deindentedStrings, ...indentedValues);
+  return [deindentedStrings, indentedValues];
 }
 
 export function extractScopes(scope: string, removeDuplicates=true): string[] {

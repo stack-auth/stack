@@ -1,0 +1,46 @@
+{
+  "name": "@stackframe/durables",
+  "version": "2.7.0",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": {
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "default": "./dist/index.js"
+      }
+    }
+  },
+  "homepage": "https://stack-auth.com",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "rimraf dist && pnpm run css && tsup-node",
+    "clean": "rimraf dist && rimraf node_modules",
+    "dev": "rimraf dist && tsup-node --watch",
+    "lint": "eslint --ext .tsx,.ts .",
+    "tsx": "DURABLES_CONNECTION_STRING=${DURABLES_CONNECTION_STRING:-memory://} tsx",
+    "example:table": "pnpm run tsx examples/table.tsx",
+    "example:variable": "pnpm run tsx examples/variable.tsx"
+  },
+  "files": [
+    "README.md",
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@stackframe/stack-shared": "workspace:*",
+    "@electric-sql/pglite": "^0.2.15"
+  },
+  "peerDependencies": {},
+  "peerDependenciesMeta": {},
+  "devDependencies": {
+    "esbuild": "^0.20.2",
+    "tsup": "^8.0.2",
+    "rimraf": "^5.0.5"
+  }
+}

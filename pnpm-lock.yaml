@@ -729,6 +729,25 @@ importers:
         specifier: 5.3.3
         version: 5.3.3
 
+  packages/durables:
+    dependencies:
+      '@electric-sql/pglite':
+        specifier: ^0.2.15
+        version: 0.2.15
+      '@stackframe/stack-shared':
+        specifier: workspace:*
+        version: link:../stack-shared
+    devDependencies:
+      esbuild:
+        specifier: ^0.20.2
+        version: 0.20.2
+      rimraf:
+        specifier: ^5.0.5
+        version: 5.0.10
+      tsup:
+        specifier: ^8.0.2
+        version: 8.3.5(@swc/core@1.3.101)(jiti@1.21.6)(postcss@8.4.47)(tsx@4.16.2)(typescript@5.3.3)(yaml@2.6.0)
+
   packages/init-stack:
     dependencies:
       inquirer:
@@ -1482,6 +1501,9 @@ packages:
   '@discoveryjs/json-ext@0.5.7':
     resolution: {integrity: sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==}
     engines: {node: '>=10.0.0'}
+
+  '@electric-sql/pglite@0.2.15':
+    resolution: {integrity: sha512-Jiq31Dnk+rg8rMhcSxs4lQvHTyizNo5b269c1gCC3ldQ0sCLrNVPGzy+KnmonKy1ZArTUuXZf23/UamzFMKVaA==}
 
   '@emnapi/core@0.45.0':
     resolution: {integrity: sha512-DPWjcUDQkCeEM4VnljEOEcXdAD7pp8zSZsgOujk/LGIwCXWbXJngin+MO4zbH429lzeC3WbYLGjE2MaUOwzpyw==}
@@ -11728,6 +11750,8 @@ snapshots:
       prettier: 2.8.8
 
   '@discoveryjs/json-ext@0.5.7': {}
+
+  '@electric-sql/pglite@0.2.15': {}
 
   '@emnapi/core@0.45.0':
     dependencies:
