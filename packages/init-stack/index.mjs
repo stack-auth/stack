@@ -230,6 +230,13 @@ async function main() {
     cwd: projectPath,
   });
 
+  if (isNeon) {
+    await shellNicelyFormatted(`${installCommand} @neondatabase/serverless`, {
+      shell: true,
+      cwd: projectPath,
+    });
+  }
+
   console.log();
   console.log(colorize.bold`Writing files...`);
   console.log();
