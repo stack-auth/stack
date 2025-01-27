@@ -13,7 +13,7 @@ export class AccessToken {
 
   get expiresAt(): Date {
     const { exp } = jose.decodeJwt(this.token);
-    if (!exp) return new Date(8640000000000000);  // max date value
+    if (exp === undefined) return new Date(8640000000000000);  // max date value
     return new Date(exp * 1000);
   }
 
@@ -139,9 +139,9 @@ export class InternalSession {
   /**
    * Fetches new tokens that are, at the time of fetching, guaranteed to be valid.
    *
-   * The newly generated tokens are shortlived, so it's good practice not to rely on their validity (if possible). However, this function is useful in some cases where you only want to pass access tokens to a service, and you want to make sure said access token has the longest possible lifetime.
+   * The newly generated tokens are short-lived, so it's good practice not to rely on their validity (if possible). However, this function is useful in some cases where you only want to pass access tokens to a service, and you want to make sure said access token has the longest possible lifetime.
    *
-   * In most cases, you should prefer `getOrFetchLikelyValidTokens` with a fallback to `markAccessTokenExpired` and a retry mechanism if the endpoint rejects the token.
+   * In most cases, you should prefer `getOrFetchLikelyValidTokens`.
    *
    * @returns null if the session is known to be invalid, or new tokens otherwise (which, at the time of fetching, are guaranteed to be valid).
    */
@@ -168,29 +168,17 @@ export class InternalSession {
    * @returns An access token, which may be expired or expire soon, or null if it is known to be invalid.
    */
   private _getPotentiallyInvalidAccessTokenIfAvailable(): AccessToken | null {
+    if (!this._refreshToken) return null;
+    if (this.isKnownToBeInvalid()) return null;
+
     const accessToken = this._accessToken.get();
     if (accessToken && !accessToken.isExpired()) return accessToken;
+
     return null;
   }
 
   /**
-   * @returns An access token (cached if possible), or null if the session either does not represent a user or the session is invalid.
-   */
-  private async _getOrFetchPotentiallyInvalidAccessToken(): Promise<AccessToken | null> {
-    if (!this._refreshToken) return null;
-    if (this.isKnownToBeInvalid()) return null;
-    const oldAccessToken = this._getPotentiallyInvalidAccessTokenIfAvailable();
-    if (oldAccessToken) return oldAccessToken;
-
-    // refresh access token
-    if (!this._refreshPromise) {
-      this._refreshAndSetRefreshPromise(this._refreshToken);
-    }
-    return await this._refreshPromise;
-  }
-
-  /**
-   * You should prefer `_getOrFetchAccessToken` in almost all cases.
+   * You should prefer `_getOrFetchPotentiallyInvalidAccessToken` in almost all cases.
    *
    * @returns A newly fetched access token (never read from cache), or null if the session either does not represent a user or the session is invalid.
    */
@@ -198,7 +186,9 @@ export class InternalSession {
     if (!this._refreshToken) return null;
     if (this._knownToBeInvalid.get()) return null;
 
-    this._refreshAndSetRefreshPromise(this._refreshToken);
+    if (!this._refreshPromise) {
+      this._refreshAndSetRefreshPromise(this._refreshToken);
+    }
     return await this._refreshPromise;
   }
 
