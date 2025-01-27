@@ -278,32 +278,25 @@ async function main() {
 }
 main()
   .then(async () => {
-    console.log();
-    console.log();
-    console.log();
-    console.log();
-    console.log(colorize.green`===============================================`);
-    console.log();
-    console.log(colorize.green`Successfully installed Stack! 🚀🚀🚀`);
-    console.log();
-    console.log("Next steps:");
-    console.log(
-      "  1. Create an account and project on https://app.stack-auth.com"
-    );
-    console.log(
-      "  2. Copy the environment variables from the new API key into your .env.local file"
-    );
-    console.log();
-    console.log(
-      "Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!"
-    );
-    console.log();
-    console.log(colorize.green`===============================================`);
-    console.log();
-    console.log(
-      "For more information, please visit https://docs.stack-auth.com/getting-started/setup"
-    );
-    console.log();
+    for (const x of [
+      '\n\n\n\n',
+      colorize.green`===============================================`,
+      '',
+      colorize.green`Successfully installed Stack! 🚀🚀🚀`,
+      '',
+      "Next steps:",
+      "  1. Create an account and project on https://app.stack-auth.com",
+      "  2. Copy the environment variables from the new API key into your .env.local file",
+      '',
+      "Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!",
+      '',
+      colorize.green`===============================================`,
+      '',
+      "For more information, please visit https://docs.stack-auth.com/getting-started/setup",
+      '',
+    ]) {
+      console.log(x);
+    }
     if (!process.env.STACK_DISABLE_INTERACTIVE) {
       await open("https://app.stack-auth.com/wizard-congrats");
     }
@@ -312,10 +305,7 @@ main()
     if (!(err instanceof UserError)) {
       console.error(err);
     }
-    console.error();
-    console.error();
-    console.error();
-    console.error();
+    console.error('\n\n\n\n');
     console.log(colorize.red`===============================================`);
     console.error();
     if (err instanceof UserError) {
@@ -564,10 +554,6 @@ async function writeFileIfNotExists(fullPath, content) {
   if (!fs.existsSync(fullPath)) {
     await writeFile(fullPath, content);
   }
-}
-
-async function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function throwErr(message) {
