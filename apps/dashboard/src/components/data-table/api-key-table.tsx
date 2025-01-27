@@ -88,7 +88,12 @@ const columns: ColumnDef<ExtendedApiKey>[] =  [
   {
     accessorKey: "expiresAt",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Expires At" />,
-    cell: ({ row }) => <DateCell date={row.original.expiresAt} ignoreAfterYears={100} />
+    cell: ({ row }) => <DateCell date={row.original.expiresAt} ignoreAfterYears={50} />
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Created At" />,
+    cell: ({ row }) => <DateCell date={row.original.createdAt} ignoreAfterYears={50} />
   },
   {
     id: "actions",
@@ -102,10 +107,10 @@ export function ApiKeyTable(props: { apiKeys: ApiKey[] }) {
       ...apiKey,
       status: ({ 'valid': 'valid', 'manually-revoked': 'revoked', 'expired': 'expired' } as const)[apiKey.whyInvalid() || 'valid'],
     } satisfies ExtendedApiKey));
-    // first soft based on status, then by expiresAt
+    // first sort based on status, then by createdAt
     return keys.sort((a, b) => {
       if (a.status === b.status) {
-        return a.expiresAt < b.expiresAt ? 1 : -1;
+        return a.createdAt < b.createdAt ? 1 : -1;
       }
       return a.status === 'valid' ? -1 : 1;
     });

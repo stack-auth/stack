@@ -261,7 +261,7 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
         <Typography type="h2">
           Welcome back{displayName ? `, ${displayName}!` : '!'}
         </Typography>
-        <div className='text-red-500 flex items-center gap-1.5 text-xs font-bold'>
+        <div className='text-red-500 p-4 flex items-center gap-1.5 text-xs font-bold'>
           <div className="stack-live-pulse" />
           <style>{`
               .stack-live-pulse {

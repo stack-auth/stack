@@ -373,13 +373,13 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
       if (typeof state !== 'string') {
         throwErr(`state is not a string`);
       }
-      let neonProjectDisplayName: string | undefined;
+      let neonProjectName: string | undefined;
       try {
         const base64Decoded = new TextDecoder().decode(decodeBase64OrBase64Url(state));
         const json = JSON.parse(base64Decoded);
-        neonProjectDisplayName = json?.details?.neon_project_name;
-        if (typeof neonProjectDisplayName !== 'string') {
-          throwErr(`neon_project_name is not a string`, { type: typeof neonProjectDisplayName, neonProjectDisplayName });
+        neonProjectName = json?.details?.neon_project_name;
+        if (typeof neonProjectName !== 'string') {
+          throwErr(`neon_project_name is not a string`, { type: typeof neonProjectName, neonProjectName });
         }
       } catch (e) {
         // this probably shouldn't happen, because it means Neon messed up the configuration
@@ -391,8 +391,8 @@ export async function createOidcProvider(options: { id: string, baseUrl: string 
       const uid = ctx.path.split('/')[2];
       const interactionUrl = new URL(`/integrations/neon/confirm`, getEnvVariable("NEXT_PUBLIC_STACK_DASHBOARD_URL"));
       interactionUrl.searchParams.set("interaction_uid", uid);
-      if (neonProjectDisplayName) {
-        interactionUrl.searchParams.set("neon_project_display_name", neonProjectDisplayName);
+      if (neonProjectName) {
+        interactionUrl.searchParams.set("neon_project_name", neonProjectName);
       }
       return ctx.redirect(interactionUrl.toString());
     }

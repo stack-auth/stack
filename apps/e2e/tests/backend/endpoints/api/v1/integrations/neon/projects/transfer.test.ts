@@ -65,6 +65,45 @@ it("should be able to transfer a project exactly once", async ({ expect }) => {
   `);
 });
 
+it("should be able to initiate multiple transfers for the same project, but only one can be confirmed", async ({ expect }) => {
+  const provisioned = await provisionProject();
+  const projectId = provisioned.body.project_id;
+  const { code: code1 } = await initiateTransfer(projectId);
+  const { code: code2 } = await initiateTransfer(projectId);
+  await Auth.Otp.signIn();
+  const response1 = await niceBackendFetch(`/api/v1/integrations/neon/projects/transfer/confirm`, {
+    method: "POST",
+    accessType: "client",
+    body: {
+      code: code1,
+    },
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "project_id": "<stripped UUID>" },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+  expect(response1.body.project_id).toBe(projectId);
+
+  // but only one confirmation!
+  const response2 = await niceBackendFetch(`/api/v1/integrations/neon/projects/transfer/confirm`, {
+    method: "POST",
+    accessType: "client",
+    body: {
+      code: code2,
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": "The project to transfer was not provisioned by Neon or has already been transferred.",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
 it("should fail if the project to transfer was not provisioned by Neon", async ({ expect }) => {
   await Auth.Otp.signIn();
   const createdProject = await Project.create();
