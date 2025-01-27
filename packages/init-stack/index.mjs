@@ -256,12 +256,8 @@ async function main() {
   await writeFile(layoutPath, updatedLayoutContent);
   console.log(`${colorize.green`√`} Done writing files`);
 
-  console.log();
-  console.log();
-  console.log();
-  console.log(
-    `${ansis.bold}${colorize.green`Installation succeeded!`}`
-  );
+  console.log('\n\n\n');
+  console.log(colorize.bold`${colorize.green`Installation succeeded!`}`);
   console.log();
   console.log("Commands executed:");
   for (const command of commandsExecuted) {
