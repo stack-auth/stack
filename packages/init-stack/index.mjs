@@ -199,7 +199,6 @@ async function main() {
   const packageManager = await getPackageManager();
   const versionCommand = `${packageManager} --version`;
 
-
   try {
     await shellNicelyFormatted(versionCommand, { shell: true, quiet: true });
   } catch (err) {
@@ -207,8 +206,6 @@ async function main() {
       `Could not run the package manager command '${versionCommand}'. Please make sure ${packageManager} is installed on your system.`
     );
   }
-
-  const stackPackageName = process.env.STACK_PACKAGE_NAME_OVERRIDE || "@stackframe/stack";
 
   const isReady = await inquirer.prompt([
     {
@@ -224,7 +221,7 @@ async function main() {
 
   console.log();
   console.log(colorize.bold`Installing dependencies...`);
-  const packagesToInstall = [stackPackageName];
+  const packagesToInstall = [process.env.STACK_PACKAGE_NAME_OVERRIDE || "@stackframe/stack"];
   if (isNeon) {
     packagesToInstall.push('@neondatabase/serverless');
   }
@@ -310,7 +307,7 @@ main()
     console.log(colorize.red`===============================================`);
     console.error();
     if (err instanceof UserError) {
-      console.error(`${ansis.red}ERROR!${ansis.clear} ${err.message}`);
+      console.error(`${colorize.red`ERROR!`} ${err.message}`);
     } else {
       console.error("An error occurred during the initialization process.");
     }
