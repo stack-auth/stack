@@ -13,7 +13,7 @@ env:
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v3
 
@@ -31,5 +31,12 @@ jobs:
       - run: pnpm run build:packages
       - run: pnpm run codegen
       - run: pnpm run start-deps
-      - run: pnpm dev
+      - name: Run dev servers in background
+        uses: JarvusInnovations/background-action@v1.0.7
+        with:
+          run: pnpm run dev &
+          tail: true
+          wait-for: 30s
+          log-output-if: true
+      - run: pnpm test
         
