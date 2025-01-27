@@ -28,8 +28,8 @@ jobs:
       - name: Install packages
         run: pnpm install
 
-      - run: pnpm run codegen
       - run: pnpm run build:packages
+      - run: pnpm run codegen
       - run: pnpm run start-deps
       - run: pnpm dev
         
