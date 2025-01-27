@@ -867,7 +867,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       _internalSession: session,
       currentSession: {
         async getTokens() {
-          const tokens = await session.getOrFetchLikelyValidTokens(30_000);
+          const tokens = await session.getOrFetchLikelyValidTokens(20_000);
           return {
             accessToken: tokens?.accessToken.token ?? null,
             refreshToken: tokens?.refreshToken?.token ?? null,
