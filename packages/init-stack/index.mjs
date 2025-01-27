@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import inquirer from "inquirer";
-import * as fs from "fs";
 import * as child_process from "child_process";
-import * as path from "path";
+import * as fs from "fs";
+import inquirer from "inquirer";
 import open from "open";
+import * as path from "path";
 
 const jsLikeFileExtensions = [
   "mtsx",
@@ -31,15 +31,32 @@ class UserError extends Error {
 let savedProjectPath = process.argv[2] || undefined;
 
 const isDryRun = process.argv.includes("--dry-run");
+const isNeon = process.argv.includes("--neon");
 
 const ansis = {
   red: "\x1b[31m",
   blue: "\x1b[34m",
   green: "\x1b[32m",
   yellow: "\x1b[33m",
+
   clear: "\x1b[0m",
   bold: "\x1b[1m",
 };
+
+function simpleTaggedLiteral(strings, ...values) {
+  return strings
+    .map((s, i) => (i < values.length ? `${s}${values[i]}` : s))
+    .join("");
+}
+
+// use tagged template literals to colorize output
+const colorize = {
+  red: (strings, ...values) => ansis.red + simpleTaggedLiteral(strings, ...values) + ansis.clear,
+  blue: (strings, ...values) => ansis.blue + simpleTaggedLiteral(strings, ...values) + ansis.clear,
+  green: (strings, ...values) => ansis.green + simpleTaggedLiteral(strings, ...values) + ansis.clear,
+  yellow: (strings, ...values) => ansis.yellow + simpleTaggedLiteral(strings, ...values) + ansis.clear,
+  bold: (strings, ...values) => ansis.bold + simpleTaggedLiteral(strings, ...values) + ansis.clear,
+}
 
 const filesCreated = [];
 const filesModified = [];
@@ -103,18 +120,15 @@ async function main() {
     );
   }
 
-  const envPath = path.join(projectPath, ".env");
-  const envDevelopmentPath = path.join(projectPath, ".env.development");
-  const envDefaultPath = path.join(projectPath, ".env.default");
-  const envDefaultsPath = path.join(projectPath, ".env.defaults");
-  const envExamplePath = path.join(projectPath, ".env.example");
+
   const envLocalPath = path.join(projectPath, ".env.local");
+
   const potentialEnvLocations = [
-    envPath,
-    envDevelopmentPath,
-    envDefaultPath,
-    envDefaultsPath,
-    envExamplePath,
+    path.join(projectPath, ".env"),
+    path.join(projectPath, ".env.development"),
+    path.join(projectPath, ".env.default"),
+    path.join(projectPath, ".env.defaults"),
+    path.join(projectPath, ".env.example"),
     envLocalPath,
   ];
 
@@ -210,14 +224,14 @@ async function main() {
   }
 
   console.log();
-  console.log(`${ansis.bold}Installing dependencies...${ansis.clear}`);
+  console.log(colorize.bold`Installing dependencies...`);
   await shellNicelyFormatted(`${installCommand} ${stackPackageName}`, {
     shell: true,
     cwd: projectPath,
   });
 
   console.log();
-  console.log(`${ansis.bold}Writing files...${ansis.clear}`);
+  console.log(colorize.bold`Writing files...`);
   console.log();
   if (potentialEnvLocations.every((p) => !fs.existsSync(p))) {
     await writeFile(
@@ -240,26 +254,26 @@ async function main() {
     `import "server-only";\n\nimport { StackServerApp } from "@stackframe/stack";\n\nexport const stackServerApp = new StackServerApp({\n${ind}tokenStore: "nextjs-cookie",\n});\n`
   );
   await writeFile(layoutPath, updatedLayoutContent);
-  console.log(`${ansis.green}√${ansis.clear} Done writing files`);
+  console.log(`${colorize.green`√`} Done writing files`);
 
   console.log();
   console.log();
   console.log();
   console.log(
-    `${ansis.bold}${ansis.green}Installation succeeded!${ansis.clear}`
+    `${ansis.bold}${colorize.green`Installation succeeded!`}`
   );
   console.log();
   console.log("Commands executed:");
   for (const command of commandsExecuted) {
-    console.log(`  ${ansis.blue}${command}${ansis.clear}`);
+    console.log(`  ${colorize.blue`${command}`}`);
   }
   console.log();
   console.log("Files written:");
   for (const file of filesModified) {
-    console.log(`  ${ansis.yellow}${file}${ansis.clear}`);
+    console.log(`  ${colorize.yellow`${file}`}`);
   }
   for (const file of filesCreated) {
-    console.log(`  ${ansis.green}${file}${ansis.clear}`);
+    console.log(`  ${colorize.green`${file}`}`);
   }
 }
 main()
@@ -268,13 +282,9 @@ main()
     console.log();
     console.log();
     console.log();
-    console.log(
-      `${ansis.green}===============================================${ansis.clear}`
-    );
+    console.log(colorize.green`===============================================`);
     console.log();
-    console.log(
-      `${ansis.green}Successfully installed Stack! 🚀🚀🚀${ansis.clear}`
-    );
+    console.log(colorize.green`Successfully installed Stack! 🚀🚀🚀`);
     console.log();
     console.log("Next steps:");
     console.log(
@@ -288,9 +298,7 @@ main()
       "Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!"
     );
     console.log();
-    console.log(
-      `${ansis.green}===============================================${ansis.clear}`
-    );
+    console.log(colorize.green`===============================================`);
     console.log();
     console.log(
       "For more information, please visit https://docs.stack-auth.com/getting-started/setup"
@@ -308,9 +316,7 @@ main()
     console.error();
     console.error();
     console.error();
-    console.error(
-      `${ansis.red}===============================================${ansis.clear}`
-    );
+    console.log(colorize.red`===============================================`);
     console.error();
     if (err instanceof UserError) {
       console.error(`${ansis.red}ERROR!${ansis.clear} ${err.message}`);
@@ -318,9 +324,7 @@ main()
       console.error("An error occurred during the initialization process.");
     }
     console.error();
-    console.error(
-      `${ansis.red}===============================================${ansis.clear}`
-    );
+    console.log(colorize.red`===============================================`);
     console.error();
     console.error(
       "If you need assistance, please try installing Stack manually as described in https://docs.stack-auth.com/getting-started/setup or join our Discord where we're happy to help: https://discord.stack-auth.com"
@@ -483,14 +487,12 @@ async function shellNicelyFormatted(command, { quiet, ...options }) {
   const ui = new inquirer.ui.BottomBar();
   let dots = 4;
   ui.updateBottomBar(
-    `${ansis.blue}Running command: ${command}...${ansis.clear}`
+    colorize.blue`Running command: ${command}...`
   );
   const interval = setInterval(() => {
     if (!isDryRun) {
       ui.updateBottomBar(
-        `${ansis.blue}Running command: ${command}${".".repeat(dots++ % 5)}${
-          ansis.clear
-        }`
+        colorize.blue`Running command: ${command}${".".repeat(dots++ % 5)}`
       );
     }
   }, 700);
@@ -523,7 +525,7 @@ async function shellNicelyFormatted(command, { quiet, ...options }) {
     ui.updateBottomBar(
       quiet
         ? ""
-        : `${ansis.green}√${ansis.clear} Command ${command} succeeded\n`
+        : `${colorize.green`√`} Command ${command} succeeded\n`
     );
     ui.close();
   }
