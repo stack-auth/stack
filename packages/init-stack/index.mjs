@@ -198,8 +198,7 @@ async function main() {
 
   const packageManager = await getPackageManager();
   const versionCommand = `${packageManager} --version`;
-  const installCommand =
-    packageManager === "yarn" ? "yarn add" : `${packageManager} install`;
+
 
   try {
     await shellNicelyFormatted(versionCommand, { shell: true, quiet: true });
@@ -225,17 +224,16 @@ async function main() {
 
   console.log();
   console.log(colorize.bold`Installing dependencies...`);
-  await shellNicelyFormatted(`${installCommand} ${stackPackageName}`, {
+  const packagesToInstall = [stackPackageName];
+  if (isNeon) {
+    packagesToInstall.push('@neondatabase/serverless');
+  }
+
+  const installCommand = packageManager === "yarn" ? "yarn add" : `${packageManager} install`;
+  await shellNicelyFormatted(`${installCommand} ${packagesToInstall.join(' ')}`, {
     shell: true,
     cwd: projectPath,
   });
-
-  if (isNeon) {
-    await shellNicelyFormatted(`${installCommand} @neondatabase/serverless`, {
-      shell: true,
-      cwd: projectPath,
-    });
-  }
 
   console.log();
   console.log(colorize.bold`Writing files...`);
