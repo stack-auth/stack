@@ -11,7 +11,7 @@ env:
   SHELL: /usr/bin/bash
 
 jobs:
-  run:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

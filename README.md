@@ -122,21 +122,22 @@ In a new terminal:
 ```sh
 pnpm install
 
-# Build the packages
-pnpm run build:packages
+# Build the packages and generate code
+pnpm build:packages
+pnpm codegen
 
 # Reset & start the dependencies (DB, Inbucket, etc.) as Docker containers, seeding the DB with the Prisma schema
-pnpm run start-deps
+pnpm start-deps
 # pnpm run restart-deps
 # pnpm run stop-deps
 
 # Start the dev server
-pnpm run dev
+pnpm dev
 # For systems with limited resources, you can run a minimal development setup with just the backend and dashboard
 # pnpm run dev:basic
 
 # In a different terminal, run tests in watch mode
-pnpm run test
+pnpm test
 ```
 
 You can now open the dev launchpad at [http://localhost:8100](http://localhost:8100). From there, you can navigate to the dashboard at [http://localhost:8101](http://localhost:8101), API on port 8102, demo on port 8103, docs on port 8104, Inbucket (e-mails) on port 8105, and Prisma Studio on port 8106. See the dev launchpad for a list of all running services.
