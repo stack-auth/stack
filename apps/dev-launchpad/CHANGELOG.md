@@ -1,5 +1,11 @@
 # @stackframe/dev-launchpad
 
+## 2.7.8
+
+### Patch Changes
+
+- Various changes
+
 ## 2.7.7
 
 ## 2.7.6
