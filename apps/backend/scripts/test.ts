@@ -1,5 +1,5 @@
 import { EndpointTransforms, EndpointsSchema, ParsedResponseFromSchema, RawEndpointsHandlers, TransformFn, createEndpointHandlersFromRawEndpoints, createMigrationEndpointHandlers } from "@/route-handlers/migration-handler";
-import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { NextRequest, NextResponse } from "next/server";
 
 const schema1 = {
@@ -13,8 +13,8 @@ const schema1 = {
           }).defined(),
         },
         output: {
-          statusCode: yupNumber().defined(),
-          bodyType: yupString().oneOf(['json']).defined(),
+          statusCode: [200],
+          bodyType: 'json',
           body: yupObject({
             id: yupString().defined(),
             fullName: yupString().defined(),
@@ -31,8 +31,8 @@ const schema1 = {
           body: yupObject({}),
         },
         output: {
-          statusCode: yupNumber().defined(),
-          bodyType: yupString().oneOf(['json']).defined(),
+          statusCode: [200],
+          bodyType: 'json',
           body: yupObject({}).defined(),
         },
       },
@@ -50,8 +50,8 @@ const schema1 = {
           }).defined(),
         },
         output: {
-          statusCode: yupNumber().defined(),
-          bodyType: yupString().oneOf(['json']),
+          statusCode: [200],
+          bodyType: 'json',
           body: yupObject({
             same: yupString().defined(),
           }).defined(),
@@ -74,8 +74,8 @@ const schema2 = {
           }).defined(),
         },
         output: {
-          statusCode: yupNumber().defined(),
-          bodyType: yupString().oneOf(['json']).defined(),
+          statusCode: [200],
+          bodyType: 'json',
           body: yupObject({
             id: yupString().defined(),
           }).defined(),
@@ -89,8 +89,8 @@ const schema2 = {
           body: yupObject({}).defined(),
         },
         output: {
-          statusCode: yupNumber().defined(),
-          bodyType: yupString().oneOf(['json']).defined(),
+          statusCode: [200],
+          bodyType: 'json',
           body: yupObject({}).defined(),
         },
       },
@@ -108,8 +108,8 @@ const schema2 = {
           }).defined(),
         },
         output: {
-          statusCode: yupNumber().defined(),
-          bodyType: yupString().oneOf(['json']).defined(),
+          statusCode: [200],
+          bodyType: 'json',
           body: yupObject({
             same: yupString().defined(),
           }).defined(),
@@ -169,21 +169,7 @@ const endpointHandlers1 = createMigrationEndpointHandlers(schema1, schema2, endp
         };
       },
     },
-  },
-  '/same': {
-    'POST': {
-      'default': async ({ req, newEndpointHandlers }) => {
-        return {
-          statusCode: 200,
-          headers: {},
-          body: {
-            same: req.body.same,
-          },
-          bodyType: 'json',
-        };
-      },
-    },
-  },
+  }
 });
 
 type x = EndpointTransforms<typeof schema1, typeof schema2, typeof endpointHandlers1>;

@@ -17,7 +17,7 @@ export type EndpointInputSchema<
 };
 
 export type EndpointOutputSchema<
-  StatusCode extends number,
+  StatusCode extends number[],
   T extends BodyType,
   Body extends yup.Schema | undefined
 > = {
@@ -74,8 +74,8 @@ export type ParsedResponseFromSchema<
   method extends (typeof allowedMethods)[number],
   overload extends keyof S[url][method]
 > = {
-  bodyType: yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['output']['bodyType']>,
-  statusCode: yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['output']['statusCode']>,
+  bodyType: ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['output']['bodyType'],
+  statusCode: ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['output']['statusCode'][number],
   body: yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['output']['body']>,
 }
 
@@ -173,7 +173,7 @@ type ParsedRequest<Body, Query extends Record<string, string | undefined>> = {
 };
 type ParsedResponse = {
   statusCode: number,
-  bodyType: "empty" | "text" | "json" | "binary" | "success" | undefined,
+  bodyType: BodyType,
   body?: any,
 }
 
@@ -224,14 +224,13 @@ async function convertParsedResponseToRaw(
 
 async function convertRawToParsedResponse<
   Body extends yup.Schema,
-  StatusCode extends number,
+  StatusCode extends number[],
   T extends BodyType,
-  Headers extends yup.Schema
 >(
   res: NextResponse,
   schema: EndpointOutputSchema<StatusCode, T, Body>
 ): Promise<{
-  statusCode: StatusCode,
+  statusCode: StatusCode[number],
   bodyType: T,
   body: yup.InferType<Body>,
 }> {
@@ -241,46 +240,55 @@ async function convertRawToParsedResponse<
     contentType = contentType.split(";")[0];
   }
 
+  let result: ParsedResponse;
+
   switch (contentType) {
     case "application/json": {
-      return {
-        statusCode: res.status as StatusCode,
+      result = {
+        statusCode: res.status,
         body: await res.json(),
         bodyType: "json" as T,
       };
+      break;
     }
     case "text/plain": {
-      return {
-        statusCode: res.status as StatusCode,
+      result = {
+        statusCode: res.status,
         body: await res.text(),
         bodyType: "text" as T,
       };
+      break;
     }
     case "binary": {
-      return {
-        statusCode: res.status as StatusCode,
+      result = {
+        statusCode: res.status,
         body: await res.arrayBuffer(),
         bodyType: "binary" as T,
       };
+      break;
     }
     case "success": {
-      return {
-        statusCode: res.status as StatusCode,
+      result = {
+        statusCode: res.status,
         body: undefined,
         bodyType: "success" as T,
       };
+      break;
     }
     case undefined: {
-      return {
-        statusCode: res.status as StatusCode,
+      result = {
+        statusCode: res.status,
         body: undefined,
         bodyType: "empty" as T,
       };
+      break;
     }
     default: {
       throw new Error(`Unsupported content type: ${contentType}`);
     }
   }
+
+  return result as any;
 }
 
 export function createMigrationRoute(endpointHandlers: EndpointHandlers) {
