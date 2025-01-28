@@ -40,10 +40,10 @@ jobs:
         uses: JarvusInnovations/background-action@v1.0.7
         with:
           run: docker compose -f dependencies.compose.yaml up -d &
-          wait-on: |
-            file:./package.json  # we don't need to wait on anything, just need to start the daemon
+          # we don't need to wait on anything, just need to start the daemon
+          wait-on: /dev/null
           tail: true
-          wait-for: 30s
+          wait-for: 3s
           log-output-if: true
 
       - name: Install dependencies
