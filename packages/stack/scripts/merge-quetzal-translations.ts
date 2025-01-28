@@ -11,6 +11,7 @@ async function main() {
     console.warn('Quetzal translation files not found, assuming Quetzal failed. The translations will not be updated.');
     process.exit(0);
   }
+  
   const locales = Object.fromEntries(await Promise.all(supportedLocales.map(async (locale) => [
     locale,
     JSON.parse(fs.readFileSync(path.join(__dirname, `../quetzal-translations/${locale}.json`), 'utf-8'))
