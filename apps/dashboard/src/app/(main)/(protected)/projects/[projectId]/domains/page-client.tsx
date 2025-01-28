@@ -30,9 +30,8 @@ function EditDialog(props: {
   }
 )) {
   const domainFormSchema = yup.object({
-    domain: urlSchema
-      .url("Invalid URL")
-      .transform((value) => 'https://' + value)
+    domain: yup.string()
+      // .url("Invalid URL")
       .notOneOf(
         props.domains
           .filter((_, i) => (props.type === 'update' && i !== props.editIndex) || props.type === 'create')
@@ -86,11 +85,11 @@ function EditDialog(props: {
             domains: [
               ...props.domains,
               {
-                domain: values.domain,
+                domain: (values.allowInsecureHttp ? 'http' : 'https') + `://` + values.domain,
                 handlerPath: values.handlerPath,
               },
-              ...(canAddWww(values.domain.slice(8)) && values.addWww ? [{
-                domain: 'https://www.' + values.domain.slice(8),
+              ...(canAddWww(values.domain) && values.addWww ? [{
+                domain: `${values.allowInsecureHttp ? 'http' : 'https'}://www.` + values.domain,
                 handlerPath: values.handlerPath,
               }] : []),
             ],
@@ -147,7 +146,7 @@ function EditDialog(props: {
               <Typography variant="secondary" type="footnote">
                 only modify this if you changed the default handler path in your app
               </Typography>
-              <div className="mt-4">
+              <div className="my-4">
                 <SwitchField
                   label="Allow insecure HTTP domains"
                   name="allowInsecureHttp"

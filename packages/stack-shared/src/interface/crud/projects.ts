@@ -57,7 +57,7 @@ export const emailConfigSchema = yupObject({
 });
 
 const domainSchema = yupObject({
-  domain: schemaFields.projectTrustedDomainSchema.defined(),
+  domain: schemaFields.urlSchema.defined(),
   handler_path: schemaFields.handlerPathSchema.defined(),
 });
 
