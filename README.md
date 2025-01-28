@@ -122,7 +122,7 @@ In a new terminal:
 ```sh
 pnpm install
 
-# Build the packages and generate code
+# Build the packages and generate code. We only need to do this once, as `pnpm dev` will do this from now on
 pnpm build:packages
 pnpm codegen
 
