@@ -32,14 +32,14 @@ jobs:
       - run: pnpm run codegen
       - run: pnpm run start-deps
 
-      # - uses: JarvusInnovations/background-action@v1.0.7
-      #   with:
-      #     run: pnpm run dev &
-      #     wait-on: |
-      #       http://localhost:8102
-      #     tail: true
-      #     wait-for: 30s
-      #     log-output-if: true
-      - run: pnpm run dev & sleep 120
+      - uses: JarvusInnovations/background-action@v1.0.7
+        with:
+          run: pnpm run dev &
+          wait-on: |
+            http://localhost:8102
+          tail: true
+          wait-for: 120s
+          log-output-if: true
+      # - run: pnpm run dev & sleep 120
       - run: pnpm test
         
