@@ -39,7 +39,7 @@ jobs:
       - name: Start Docker Compose in background
         uses: JarvusInnovations/background-action@v1.0.7
         with:
-          run: docker compose -f dependencies.compose.yaml up -d
+          run: docker compose -f dependencies.compose.yaml up -d &
           wait-on: |
             tcp:5432
           tail: true
