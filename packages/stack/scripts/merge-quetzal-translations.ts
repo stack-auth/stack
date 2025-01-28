@@ -1,12 +1,20 @@
 import { deindent, stringCompare } from "@stackframe/stack-shared/dist/utils/strings";
 import * as fs from "fs";
-import quetzalKeys from "../quetzal-translations/keystore.json";
-import supportedLocales from "../quetzal-translations/supported-locales.json";
+import * as path from "path";
 
 async function main() {
+  let quetzalKeys, supportedLocales
+  try {
+    quetzalKeys = JSON.parse(fs.readFileSync(path.join(__dirname, "../quetzal-translations/keystore.json"), 'utf-8'));
+    supportedLocales = JSON.parse(fs.readFileSync(path.join(__dirname, "../quetzal-translations/supported-locales.json"), 'utf-8'));
+  } catch (e: unknown) {
+    console.warn('Quetzal translation files not found, assuming Quetzal failed. The translations will not be updated.');
+    process.exit(0);
+  }
+  
   const locales = Object.fromEntries(await Promise.all(supportedLocales.map(async (locale) => [
     locale,
-    (await import(`../quetzal-translations/${locale}.json`)).default
+    JSON.parse(fs.readFileSync(path.join(__dirname, `../quetzal-translations/${locale}.json`), 'utf-8'))
   ] as const)));
 
   // replace Quetzal's auto-generated IDs (like k-0, k-1, etc.) with our own

@@ -11,6 +11,7 @@
     "build:backend": "only-allow pnpm && turbo run build --filter=@stackframe/stack-backend...",
     "build:dashboard": "only-allow pnpm && turbo run build --filter=@stackframe/stack-dashboard...",
     "build:demo": "only-allow pnpm && turbo run build --filter=demo-app...",
+    "build:packages": "only-allow pnpm && turbo run build --filter=./packages/*",
     "clean": "only-allow pnpm && turbo run clean && rimraf --glob **/.next && rimraf --glob **/.turbo && rimraf .turbo && rimraf --glob **/node_modules",
     "codegen": "only-allow pnpm && turbo run codegen",
     "deps-compose": "docker compose -f dependencies.compose.yaml",
