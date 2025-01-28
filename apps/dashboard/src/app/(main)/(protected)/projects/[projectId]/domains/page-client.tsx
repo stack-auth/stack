@@ -145,6 +145,15 @@ function EditDialog(props: {
               <Typography variant="secondary" type="footnote">
                 only modify this if you changed the default handler path in your app
               </Typography>
+              <div className="mt-4">
+                <SettingSwitch label="Enable insecure HTTP domains"
+                  onCheckedChange={(x) => {
+                    // TODO: Implement
+                  }}/>
+              </div>
+              <Typography variant="secondary" type="footnote">
+                Warning: HTTP domains are insecure and should only be used for development / internal networks.
+              </Typography>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
