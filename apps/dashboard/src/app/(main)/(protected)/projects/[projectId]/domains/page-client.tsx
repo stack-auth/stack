@@ -44,6 +44,7 @@ function EditDialog(props: {
       .matches(/^\//, "Handler path must start with /")
       .defined(),
     addWww: yup.boolean(),
+    allowInsecureHttp: yup.boolean(),
   });
 
   const canAddWww = (domain: string | undefined) => {
@@ -71,6 +72,7 @@ function EditDialog(props: {
       addWww: props.type === 'create',
       domain: props.type === 'update' ? props.defaultDomain.replace(/^https:\/\//, "") : undefined,
       handlerPath: props.type === 'update' ? props.defaultHandlerPath : "/handler",
+      allowInsecureHttp: false,
     }}
     onOpenChange={props.onOpenChange}
     trigger={props.trigger}
@@ -119,7 +121,7 @@ function EditDialog(props: {
           label="Domain"
           name="domain"
           control={form.control}
-          prefixItem='https://'
+          prefixItem={form.getValues('allowInsecureHttp') ? 'http://' : 'https://'}
           placeholder='example.com'
         />
 
@@ -146,10 +148,11 @@ function EditDialog(props: {
                 only modify this if you changed the default handler path in your app
               </Typography>
               <div className="mt-4">
-                <SettingSwitch label="Enable insecure HTTP domains"
-                  onCheckedChange={(x) => {
-                    // TODO: Implement
-                  }}/>
+                <SwitchField
+                  label="Allow insecure HTTP domains"
+                  name="allowInsecureHttp"
+                  control={form.control}
+                />
               </div>
               <Typography variant="secondary" type="footnote">
                 Warning: HTTP domains are insecure and should only be used for development / internal networks.
