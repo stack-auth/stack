@@ -373,7 +373,7 @@ export function createMigrationEndpointHandlers<
           throw new Error(`No endpoint found for ${method.toString()} ${url.toString()}`);
         }
 
-        return endpoint(transformedRequest);
+        return endpoint[overload](transformedRequest);
       }
     }
   );

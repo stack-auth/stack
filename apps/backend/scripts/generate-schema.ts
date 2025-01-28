@@ -106,6 +106,8 @@ function endpointSchemaToTypeString(reqSchema: yup.SchemaFieldDescription, resSc
     const field = Object.entries((reqSchema as any).fields).find(([k]) => k === key);
     if (field && Object.keys((field[1] as any).fields || {}).length > 0) {
       inputFields += `${key}: ${schemaToTypeString(field[1] as any)},`;
+    } else {
+      inputFields += `${key}: yupObject({}),`;
     }
   }
   inputFields += "}";

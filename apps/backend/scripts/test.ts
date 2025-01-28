@@ -125,6 +125,16 @@ const exampleRawEndpointHandlers = {
       return NextResponse.json({ id: 'example-id' });
     },
   },
+  '/tokens': {
+    'POST': async (req: NextRequest) => {
+      return NextResponse.json({ test: 'example-token' });
+    },
+  },
+  '/same': {
+    'POST': async (req: NextRequest) => {
+      return NextResponse.json({ same: 'same' });
+    },
+  },
 } satisfies RawEndpointsHandlers;
 
 
@@ -197,14 +207,30 @@ const c = null as unknown as b;
 // });
 
 
-endpointHandlers1['/users']['POST']['default']({
+// endpointHandlers1['/users']['POST']['default']({
+//   body: {
+//     fullName: 'John Doe',
+//   },
+//   query: {},
+//   headers: {},
+//   method: 'POST',
+//   url: 'http://localhost:3000/users',
+// }).then((res) => {
+//   console.log(res);
+// }).catch((err) => {
+//   console.error(err);
+// });
+
+endpointHandlers1['/same']['POST']['default']({
   body: {
-    fullName: 'John Doe',
+    same: 'same',
   },
-  query: {},
+  query: {
+    same: 'same',
+  },
   headers: {},
   method: 'POST',
-  url: 'http://localhost:3000/users',
+  url: 'http://localhost:3000/same',
 }).then((res) => {
   console.log(res);
 }).catch((err) => {
