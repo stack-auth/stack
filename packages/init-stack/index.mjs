@@ -5,6 +5,7 @@ import * as fs from "fs";
 import inquirer from "inquirer";
 import open from "open";
 import * as path from "path";
+import { templateIdentity, deindent } from '@stackframe/stack-shared/dist/utils/strings'
 
 const jsLikeFileExtensions = [
   "mtsx",
@@ -43,19 +44,12 @@ const ansis = {
   bold: "\x1b[1m",
 };
 
-function simpleTaggedLiteral(strings, ...values) {
-  return strings
-    .map((s, i) => (i < values.length ? `${s}${values[i]}` : s))
-    .join("");
-}
-
-// use tagged template literals to colorize output
 const colorize = {
-  red: (strings, ...values) => ansis.red + simpleTaggedLiteral(strings, ...values) + ansis.clear,
-  blue: (strings, ...values) => ansis.blue + simpleTaggedLiteral(strings, ...values) + ansis.clear,
-  green: (strings, ...values) => ansis.green + simpleTaggedLiteral(strings, ...values) + ansis.clear,
-  yellow: (strings, ...values) => ansis.yellow + simpleTaggedLiteral(strings, ...values) + ansis.clear,
-  bold: (strings, ...values) => ansis.bold + simpleTaggedLiteral(strings, ...values) + ansis.clear,
+  red: (strings, ...values) => ansis.red + templateIdentity(strings, ...values) + ansis.clear,
+  blue: (strings, ...values) => ansis.blue + templateIdentity(strings, ...values) + ansis.clear,
+  green: (strings, ...values) => ansis.green + templateIdentity(strings, ...values) + ansis.clear,
+  yellow: (strings, ...values) => ansis.yellow + templateIdentity(strings, ...values) + ansis.clear,
+  bold: (strings, ...values) => ansis.bold + templateIdentity(strings, ...values) + ansis.clear,
 }
 
 const filesCreated = [];
@@ -276,25 +270,22 @@ async function main() {
 }
 main()
   .then(async () => {
-    for (const x of [
-      '\n\n\n\n',
-      colorize.green`===============================================`,
-      '',
-      colorize.green`Successfully installed Stack! 🚀🚀🚀`,
-      '',
-      "Next steps:",
-      "  1. Create an account and project on https://app.stack-auth.com",
-      "  2. Copy the environment variables from the new API key into your .env.local file",
-      '',
-      "Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!",
-      '',
-      colorize.green`===============================================`,
-      '',
-      "For more information, please visit https://docs.stack-auth.com/getting-started/setup",
-      '',
-    ]) {
-      console.log(x);
-    }
+    console.log(deindent`
+      ${colorize.green`===============================================`}
+
+      ${colorize.green`Successfully installed Stack! 🚀🚀🚀`}
+
+      Next steps:
+
+      1. Create an account and project on https://app.stack-auth.com
+      2. Copy the environment variables from the new API key into your .env.local file
+
+      Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!
+
+      ${colorize.green`===============================================`}
+
+      For more information, please visit https://docs.stack-auth.com/getting-started/setup
+    `);
     if (!process.env.STACK_DISABLE_INTERACTIVE) {
       await open("https://app.stack-auth.com/wizard-congrats");
     }

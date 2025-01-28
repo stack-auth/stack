@@ -731,6 +731,9 @@ importers:
 
   packages/init-stack:
     dependencies:
+      '@stackframe/stack-shared':
+        specifier: workspace:*
+        version: link:../stack-shared
       inquirer:
         specifier: ^9.2.19
         version: 9.2.23
