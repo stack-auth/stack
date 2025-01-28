@@ -40,8 +40,6 @@ jobs:
         uses: JarvusInnovations/background-action@v1.0.7
         with:
           run: docker compose -f dependencies.compose.yaml up -d &
-          wait-on: |
-            tcp:5432
           tail: true
           wait-for: 30s
           log-output-if: true
