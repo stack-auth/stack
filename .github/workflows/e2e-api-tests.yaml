@@ -34,8 +34,17 @@ jobs:
         with:
             version: 9.1.2
 
-      - name: Start Docker Compose
-        run: docker compose -f dependencies.compose.yaml up -d
+      # Even just starting the Docker Compose as a daemon is slow because we have to download and build the images
+      # so, we run it in the background
+      - name: Start Docker Compose in background
+        uses: JarvusInnovations/background-action@v1.0.7
+        with:
+          run: docker compose -f dependencies.compose.yaml up -d
+          wait-on: |
+            tcp:5432
+          tail: true
+          wait-for: 30s
+          log-output-if: true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
