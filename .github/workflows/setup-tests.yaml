@@ -16,7 +16,7 @@ env:
 
 jobs:
   test:
-    runs-on: ubicloud-standard-8
+    runs-on: ubicloud-standard-16
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v3
