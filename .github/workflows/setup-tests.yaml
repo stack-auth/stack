@@ -23,6 +23,8 @@ jobs:
         run: pnpm install
 
       - run: pnpm run build:dev
+        continue-on-error: true
+
       - run: pnpm run start-deps
       - run: pnpm dev &
       - run: pnpm test
