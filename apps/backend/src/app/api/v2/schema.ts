@@ -298,6 +298,109 @@ export const endpointSchema = {
       },
     },
   },
+  '/team-permissions': {
+    GET: {
+      client: {
+        input: {
+          query: yupObject({
+            team_id: yupString().optional(),
+            user_id: yupString().optional(),
+            permission_id: yupString().optional(),
+            recursive: yupString().optional().oneOf(['true', 'false']),
+          }).optional(),
+          params: yupObject({
+            team_id: yupString().optional(),
+            user_id: yupString().optional(),
+            permission_id: yupString().optional(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            items: yupArray(
+              yupObject({
+                id: yupString().defined(),
+                user_id: yupString().defined(),
+                team_id: yupString().defined(),
+              }).defined(),
+            ).defined(),
+            is_paginated: yupBoolean().defined(),
+            pagination: yupObject({
+              next_cursor: yupString().nullable(),
+            }).optional(),
+          }).defined(),
+        },
+      },
+      server: {
+        input: {
+          query: yupObject({
+            team_id: yupString().optional(),
+            user_id: yupString().optional(),
+            permission_id: yupString().optional(),
+            recursive: yupString().optional().oneOf(['true', 'false']),
+          }).optional(),
+          params: yupObject({
+            team_id: yupString().optional(),
+            user_id: yupString().optional(),
+            permission_id: yupString().optional(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            items: yupArray(
+              yupObject({
+                id: yupString().defined(),
+                user_id: yupString().defined(),
+                team_id: yupString().defined(),
+              }).defined(),
+            ).defined(),
+            is_paginated: yupBoolean().defined(),
+            pagination: yupObject({
+              next_cursor: yupString().nullable(),
+            }).optional(),
+          }).defined(),
+        },
+      },
+      admin: {
+        input: {
+          query: yupObject({
+            team_id: yupString().optional(),
+            user_id: yupString().optional(),
+            permission_id: yupString().optional(),
+            recursive: yupString().optional().oneOf(['true', 'false']),
+          }).optional(),
+          params: yupObject({
+            team_id: yupString().optional(),
+            user_id: yupString().optional(),
+            permission_id: yupString().optional(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            items: yupArray(
+              yupObject({
+                id: yupString().defined(),
+                user_id: yupString().defined(),
+                team_id: yupString().defined(),
+              }).defined(),
+            ).defined(),
+            is_paginated: yupBoolean().defined(),
+            pagination: yupObject({
+              next_cursor: yupString().nullable(),
+            }).optional(),
+          }).defined(),
+        },
+      },
+    },
+  },
   '/teams': {
     GET: {
       client: {
@@ -479,109 +582,6 @@ export const endpointSchema = {
             profile_image_url: yupString().nullable(),
             client_metadata: yupMixed().optional().nullable(),
             client_read_only_metadata: yupMixed().optional().nullable(),
-          }).defined(),
-        },
-      },
-    },
-  },
-  '/team-permissions': {
-    GET: {
-      client: {
-        input: {
-          query: yupObject({
-            team_id: yupString().optional(),
-            user_id: yupString().optional(),
-            permission_id: yupString().optional(),
-            recursive: yupString().optional().oneOf(['true', 'false']),
-          }).optional(),
-          params: yupObject({
-            team_id: yupString().optional(),
-            user_id: yupString().optional(),
-            permission_id: yupString().optional(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            items: yupArray(
-              yupObject({
-                id: yupString().defined(),
-                user_id: yupString().defined(),
-                team_id: yupString().defined(),
-              }).defined(),
-            ).defined(),
-            is_paginated: yupBoolean().defined(),
-            pagination: yupObject({
-              next_cursor: yupString().nullable(),
-            }).optional(),
-          }).defined(),
-        },
-      },
-      server: {
-        input: {
-          query: yupObject({
-            team_id: yupString().optional(),
-            user_id: yupString().optional(),
-            permission_id: yupString().optional(),
-            recursive: yupString().optional().oneOf(['true', 'false']),
-          }).optional(),
-          params: yupObject({
-            team_id: yupString().optional(),
-            user_id: yupString().optional(),
-            permission_id: yupString().optional(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            items: yupArray(
-              yupObject({
-                id: yupString().defined(),
-                user_id: yupString().defined(),
-                team_id: yupString().defined(),
-              }).defined(),
-            ).defined(),
-            is_paginated: yupBoolean().defined(),
-            pagination: yupObject({
-              next_cursor: yupString().nullable(),
-            }).optional(),
-          }).defined(),
-        },
-      },
-      admin: {
-        input: {
-          query: yupObject({
-            team_id: yupString().optional(),
-            user_id: yupString().optional(),
-            permission_id: yupString().optional(),
-            recursive: yupString().optional().oneOf(['true', 'false']),
-          }).optional(),
-          params: yupObject({
-            team_id: yupString().optional(),
-            user_id: yupString().optional(),
-            permission_id: yupString().optional(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            items: yupArray(
-              yupObject({
-                id: yupString().defined(),
-                user_id: yupString().defined(),
-                team_id: yupString().defined(),
-              }).defined(),
-            ).defined(),
-            is_paginated: yupBoolean().defined(),
-            pagination: yupObject({
-              next_cursor: yupString().nullable(),
-            }).optional(),
           }).defined(),
         },
       },
@@ -1143,6 +1143,18 @@ export const endpointSchema = {
       },
     },
   },
+  '/check-feature-support': {
+    POST: {
+      default: {
+        input: {},
+        output: {
+          statusCode: [200],
+          bodyType: 'text',
+          body: yupString().defined(),
+        },
+      },
+    },
+  },
   '/check-version': {
     POST: {
       default: {
@@ -1153,18 +1165,6 @@ export const endpointSchema = {
           statusCode: [200],
           bodyType: 'json',
           body: yupMixed().defined(),
-        },
-      },
-    },
-  },
-  '/check-feature-support': {
-    POST: {
-      default: {
-        input: {},
-        output: {
-          statusCode: [200],
-          bodyType: 'text',
-          body: yupString().defined(),
         },
       },
     },
@@ -1206,7 +1206,7 @@ export const endpointSchema = {
             requires_totp_mfa: yupBoolean().defined(),
             otp_auth_enabled: yupBoolean().defined(),
             passkey_auth_enabled: yupBoolean().defined(),
-          }).nullable(),
+          }).defined(),
         },
       },
       server: {
@@ -1249,7 +1249,7 @@ export const endpointSchema = {
             ).defined(),
             auth_with_email: yupBoolean().defined(),
             requires_totp_mfa: yupBoolean().defined(),
-          }).nullable(),
+          }).defined(),
         },
       },
       admin: {
@@ -1292,7 +1292,7 @@ export const endpointSchema = {
             ).defined(),
             auth_with_email: yupBoolean().defined(),
             requires_totp_mfa: yupBoolean().defined(),
-          }).nullable(),
+          }).defined(),
         },
       },
     },
@@ -1371,7 +1371,7 @@ export const endpointSchema = {
             requires_totp_mfa: yupBoolean().defined(),
             otp_auth_enabled: yupBoolean().defined(),
             passkey_auth_enabled: yupBoolean().defined(),
-          }).nullable(),
+          }).defined(),
         },
       },
       server: {
@@ -1431,7 +1431,7 @@ export const endpointSchema = {
             ).defined(),
             auth_with_email: yupBoolean().defined(),
             requires_totp_mfa: yupBoolean().defined(),
-          }).nullable(),
+          }).defined(),
         },
       },
       admin: {
@@ -1491,7 +1491,7 @@ export const endpointSchema = {
             ).defined(),
             auth_with_email: yupBoolean().defined(),
             requires_totp_mfa: yupBoolean().defined(),
-          }).nullable(),
+          }).defined(),
         },
       },
     },
@@ -2072,6 +2072,49 @@ export const endpointSchema = {
       },
     },
   },
+  '/team-permission-definitions/[permission_id]': {
+    DELETE: {
+      admin: {
+        input: {
+          params: yupObject({
+            permission_id: yupString().defined(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'success',
+          headers: yupObject({}).optional(),
+          body: yupMixed().optional(),
+        },
+      },
+    },
+    PATCH: {
+      admin: {
+        input: {
+          body: yupObject({
+            id: yupString().optional(),
+            description: yupString().optional(),
+            contained_permission_ids: yupArray(
+              yupString().defined(),
+            ).optional(),
+          }).defined(),
+          params: yupObject({
+            permission_id: yupString().defined(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            id: yupString().defined(),
+            description: yupString().optional(),
+            contained_permission_ids: yupArray(yupString().defined()).defined(),
+          }).defined(),
+        },
+      },
+    },
+  },
   '/projects/current': {
     GET: {
       client: {
@@ -2416,286 +2459,30 @@ export const endpointSchema = {
       },
     },
   },
-  '/team-permission-definitions/[permission_id]': {
-    DELETE: {
-      admin: {
-        input: {
-          params: yupObject({
-            permission_id: yupString().defined(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'success',
-          headers: yupObject({}).optional(),
-          body: yupMixed().optional(),
-        },
-      },
-    },
-    PATCH: {
-      admin: {
-        input: {
-          body: yupObject({
-            id: yupString().optional(),
-            description: yupString().optional(),
-            contained_permission_ids: yupArray(
-              yupString().defined(),
-            ).optional(),
-          }).defined(),
-          params: yupObject({
-            permission_id: yupString().defined(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            id: yupString().defined(),
-            description: yupString().optional(),
-            contained_permission_ids: yupArray(yupString().defined()).defined(),
-          }).defined(),
-        },
-      },
-    },
-  },
-  '/team-invitations/[id]': {
-    DELETE: {
-      client: {
-        input: {
-          query: yupObject({ team_id: yupString().defined() }).optional(),
-          params: yupObject({ id: yupString().defined() }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'success',
-          headers: yupObject({}).optional(),
-          body: yupMixed().optional(),
-        },
-      },
-      server: {
-        input: {
-          query: yupObject({ team_id: yupString().defined() }).optional(),
-          params: yupObject({ id: yupString().defined() }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'success',
-          headers: yupObject({}).optional(),
-          body: yupMixed().optional(),
-        },
-      },
-      admin: {
-        input: {
-          query: yupObject({ team_id: yupString().defined() }).optional(),
-          params: yupObject({ id: yupString().defined() }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'success',
-          headers: yupObject({}).optional(),
-          body: yupMixed().optional(),
-        },
-      },
-    },
-  },
-  '/email-templates/[type]': {
-    GET: {
-      admin: {
-        input: {
-          params: yupObject({
-            type: yupString()
-              .defined()
-              .oneOf([
-                'email_verification',
-                'password_reset',
-                'magic_link',
-                'team_invitation',
-              ]),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            type: yupString()
-              .defined()
-              .oneOf([
-                'email_verification',
-                'password_reset',
-                'magic_link',
-                'team_invitation',
-              ]),
-            subject: yupString().defined(),
-            content: yupMixed().nullable(),
-            is_default: yupBoolean().defined(),
-          }).defined(),
-        },
-      },
-    },
-    DELETE: {
-      admin: {
-        input: {
-          params: yupObject({
-            type: yupString()
-              .defined()
-              .oneOf([
-                'email_verification',
-                'password_reset',
-                'magic_link',
-                'team_invitation',
-              ]),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'success',
-          headers: yupObject({}).optional(),
-          body: yupMixed().optional(),
-        },
-      },
-    },
-    PATCH: {
-      admin: {
-        input: {
-          body: yupObject({
-            content: yupMixed().optional(),
-            subject: yupString().optional(),
-          }).defined(),
-          params: yupObject({
-            type: yupString()
-              .defined()
-              .oneOf([
-                'email_verification',
-                'password_reset',
-                'magic_link',
-                'team_invitation',
-              ]),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            type: yupString()
-              .defined()
-              .oneOf([
-                'email_verification',
-                'password_reset',
-                'magic_link',
-                'team_invitation',
-              ]),
-            subject: yupString().defined(),
-            content: yupMixed().nullable(),
-            is_default: yupBoolean().defined(),
-          }).defined(),
-        },
-      },
-    },
-  },
-  '/internal/api-keys': {
-    GET: {
-      admin: {
-        input: {
-          params: yupObject({ api_key_id: yupString().optional() }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            items: yupArray(
-              yupObject({
-                publishable_client_key: yupObject({
-                  last_four: yupString().defined(),
-                }).optional(),
-                secret_server_key: yupObject({
-                  last_four: yupString().defined(),
-                }).optional(),
-                super_secret_admin_key: yupObject({
-                  last_four: yupString().defined(),
-                }).optional(),
-                id: yupString().defined(),
-                description: yupString().defined(),
-                expires_at_millis: yupNumber().defined(),
-                manually_revoked_at_millis: yupNumber().optional(),
-                created_at_millis: yupNumber().defined(),
-              }).optional(),
-            ).defined(),
-            is_paginated: yupBoolean().defined(),
-            pagination: yupObject({
-              next_cursor: yupString().nullable(),
-            }).optional(),
-          }).defined(),
-        },
-      },
-    },
+  '/internal/send-test-email': {
     POST: {
       admin: {
         input: {
           body: yupObject({
-            description: yupString().defined(),
-            expires_at_millis: yupNumber().defined(),
-            has_publishable_client_key: yupBoolean().defined(),
-            has_secret_server_key: yupBoolean().defined(),
-            has_super_secret_admin_key: yupBoolean().defined(),
+            recipient_email: yupString().defined(),
+            email_config: yupObject({
+              host: yupString().defined(),
+              port: yupNumber().defined(),
+              username: yupString().defined(),
+              password: yupString().defined(),
+              sender_name: yupString().defined(),
+              sender_email: yupString().defined(),
+            }).defined(),
           }).defined(),
         },
         output: {
           statusCode: [200],
           bodyType: 'json',
           body: yupObject({
-            publishable_client_key: yupString().optional(),
-            secret_server_key: yupString().optional(),
-            super_secret_admin_key: yupString().optional(),
-            id: yupString().defined(),
-            description: yupString().defined(),
-            expires_at_millis: yupNumber().defined(),
-            manually_revoked_at_millis: yupNumber().optional(),
-            created_at_millis: yupNumber().defined(),
+            success: yupBoolean().defined(),
+            error_message: yupString().optional(),
           }).defined(),
         },
-      },
-    },
-  },
-  '/contact-channels/verify': {
-    POST: {
-      default: {
-        input: { body: yupObject({ code: yupString().defined() }).defined() },
-        output: { statusCode: [200], bodyType: 'success' },
-      },
-    },
-  },
-  '/contact-channels/send-verification-code': {
-    POST: {
-      client: {
-        input: {
-          body: yupObject({
-            email: yupString().defined(),
-            callback_url: yupString().defined(),
-          }).defined(),
-        },
-        output: { statusCode: [200], bodyType: 'success' },
-      },
-      server: {
-        input: {
-          body: yupObject({
-            email: yupString().defined(),
-            callback_url: yupString().defined(),
-          }).defined(),
-        },
-        output: { statusCode: [200], bodyType: 'success' },
-      },
-      admin: {
-        input: {
-          body: yupObject({
-            email: yupString().defined(),
-            callback_url: yupString().defined(),
-          }).defined(),
-        },
-        output: { statusCode: [200], bodyType: 'success' },
       },
     },
   },
@@ -3485,6 +3272,245 @@ export const endpointSchema = {
       },
     },
   },
+  '/internal/metrics': {
+    GET: {
+      admin: {
+        input: {},
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({
+            total_users: yupNumber().defined(),
+            daily_users: yupArray(
+              yupObject({
+                date: yupString().defined(),
+                activity: yupNumber().defined(),
+              }).defined(),
+            ).defined(),
+            daily_active_users: yupArray(
+              yupObject({
+                date: yupString().defined(),
+                activity: yupNumber().defined(),
+              }).defined(),
+            ).defined(),
+            users_by_country: yupMixed().defined(),
+            recently_registered: yupMixed().defined(),
+            recently_active: yupMixed().defined(),
+            login_methods: yupMixed().defined(),
+          }).defined(),
+        },
+      },
+    },
+  },
+  '/team-invitations/[id]': {
+    DELETE: {
+      client: {
+        input: {
+          query: yupObject({ team_id: yupString().defined() }).optional(),
+          params: yupObject({ id: yupString().defined() }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'success',
+          headers: yupObject({}).optional(),
+          body: yupMixed().optional(),
+        },
+      },
+      server: {
+        input: {
+          query: yupObject({ team_id: yupString().defined() }).optional(),
+          params: yupObject({ id: yupString().defined() }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'success',
+          headers: yupObject({}).optional(),
+          body: yupMixed().optional(),
+        },
+      },
+      admin: {
+        input: {
+          query: yupObject({ team_id: yupString().defined() }).optional(),
+          params: yupObject({ id: yupString().defined() }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'success',
+          headers: yupObject({}).optional(),
+          body: yupMixed().optional(),
+        },
+      },
+    },
+  },
+  '/internal/api-keys': {
+    GET: {
+      admin: {
+        input: {
+          params: yupObject({ api_key_id: yupString().optional() }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            items: yupArray(
+              yupObject({
+                publishable_client_key: yupObject({
+                  last_four: yupString().defined(),
+                }).optional(),
+                secret_server_key: yupObject({
+                  last_four: yupString().defined(),
+                }).optional(),
+                super_secret_admin_key: yupObject({
+                  last_four: yupString().defined(),
+                }).optional(),
+                id: yupString().defined(),
+                description: yupString().defined(),
+                expires_at_millis: yupNumber().defined(),
+                manually_revoked_at_millis: yupNumber().optional(),
+                created_at_millis: yupNumber().defined(),
+              }).optional(),
+            ).defined(),
+            is_paginated: yupBoolean().defined(),
+            pagination: yupObject({
+              next_cursor: yupString().nullable(),
+            }).optional(),
+          }).defined(),
+        },
+      },
+    },
+    POST: {
+      admin: {
+        input: {
+          body: yupObject({
+            description: yupString().defined(),
+            expires_at_millis: yupNumber().defined(),
+            has_publishable_client_key: yupBoolean().defined(),
+            has_secret_server_key: yupBoolean().defined(),
+            has_super_secret_admin_key: yupBoolean().defined(),
+          }).defined(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({
+            publishable_client_key: yupString().optional(),
+            secret_server_key: yupString().optional(),
+            super_secret_admin_key: yupString().optional(),
+            id: yupString().defined(),
+            description: yupString().defined(),
+            expires_at_millis: yupNumber().defined(),
+            manually_revoked_at_millis: yupNumber().optional(),
+            created_at_millis: yupNumber().defined(),
+          }).defined(),
+        },
+      },
+    },
+  },
+  '/email-templates/[type]': {
+    GET: {
+      admin: {
+        input: {
+          params: yupObject({
+            type: yupString()
+              .defined()
+              .oneOf([
+                'email_verification',
+                'password_reset',
+                'magic_link',
+                'team_invitation',
+              ]),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            type: yupString()
+              .defined()
+              .oneOf([
+                'email_verification',
+                'password_reset',
+                'magic_link',
+                'team_invitation',
+              ]),
+            subject: yupString().defined(),
+            content: yupMixed().nullable(),
+            is_default: yupBoolean().defined(),
+          }).defined(),
+        },
+      },
+    },
+    DELETE: {
+      admin: {
+        input: {
+          params: yupObject({
+            type: yupString()
+              .defined()
+              .oneOf([
+                'email_verification',
+                'password_reset',
+                'magic_link',
+                'team_invitation',
+              ]),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'success',
+          headers: yupObject({}).optional(),
+          body: yupMixed().optional(),
+        },
+      },
+    },
+    PATCH: {
+      admin: {
+        input: {
+          body: yupObject({
+            content: yupMixed().optional(),
+            subject: yupString().optional(),
+          }).defined(),
+          params: yupObject({
+            type: yupString()
+              .defined()
+              .oneOf([
+                'email_verification',
+                'password_reset',
+                'magic_link',
+                'team_invitation',
+              ]),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            type: yupString()
+              .defined()
+              .oneOf([
+                'email_verification',
+                'password_reset',
+                'magic_link',
+                'team_invitation',
+              ]),
+            subject: yupString().defined(),
+            content: yupMixed().nullable(),
+            is_default: yupBoolean().defined(),
+          }).defined(),
+        },
+      },
+    },
+  },
+  '/contact-channels/verify': {
+    POST: {
+      default: {
+        input: { body: yupObject({ code: yupString().defined() }).defined() },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+    },
+  },
   '/auth/sessions': {
     POST: {
       server: {
@@ -3517,6 +3543,119 @@ export const endpointSchema = {
             refresh_token: yupString().defined(),
             access_token: yupString().defined(),
           }).defined(),
+        },
+      },
+    },
+  },
+  '/contact-channels/send-verification-code': {
+    POST: {
+      client: {
+        input: {
+          body: yupObject({
+            email: yupString().defined(),
+            callback_url: yupString().defined(),
+          }).defined(),
+        },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+      server: {
+        input: {
+          body: yupObject({
+            email: yupString().defined(),
+            callback_url: yupString().defined(),
+          }).defined(),
+        },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+      admin: {
+        input: {
+          body: yupObject({
+            email: yupString().defined(),
+            callback_url: yupString().defined(),
+          }).defined(),
+        },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+    },
+  },
+  '/team-memberships/[team_id]/[user_id]': {
+    POST: {
+      server: {
+        input: {
+          params: yupObject({
+            team_id: yupString().optional(),
+            user_id: yupString().optional(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [201],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            team_id: yupString().defined(),
+            user_id: yupString().defined(),
+          }).defined(),
+        },
+      },
+      admin: {
+        input: {
+          params: yupObject({
+            team_id: yupString().optional(),
+            user_id: yupString().optional(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [201],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            team_id: yupString().defined(),
+            user_id: yupString().defined(),
+          }).defined(),
+        },
+      },
+    },
+    DELETE: {
+      client: {
+        input: {
+          params: yupObject({
+            team_id: yupString().defined(),
+            user_id: yupString().defined(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'success',
+          headers: yupObject({}).optional(),
+          body: yupMixed().optional(),
+        },
+      },
+      server: {
+        input: {
+          params: yupObject({
+            team_id: yupString().defined(),
+            user_id: yupString().defined(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'success',
+          headers: yupObject({}).optional(),
+          body: yupMixed().optional(),
+        },
+      },
+      admin: {
+        input: {
+          params: yupObject({
+            team_id: yupString().defined(),
+            user_id: yupString().defined(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'success',
+          headers: yupObject({}).optional(),
+          body: yupMixed().optional(),
         },
       },
     },
@@ -3817,88 +3956,6 @@ export const endpointSchema = {
       },
     },
   },
-  '/team-memberships/[team_id]/[user_id]': {
-    POST: {
-      server: {
-        input: {
-          params: yupObject({
-            team_id: yupString().optional(),
-            user_id: yupString().optional(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [201],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            team_id: yupString().defined(),
-            user_id: yupString().defined(),
-          }).defined(),
-        },
-      },
-      admin: {
-        input: {
-          params: yupObject({
-            team_id: yupString().optional(),
-            user_id: yupString().optional(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [201],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            team_id: yupString().defined(),
-            user_id: yupString().defined(),
-          }).defined(),
-        },
-      },
-    },
-    DELETE: {
-      client: {
-        input: {
-          params: yupObject({
-            team_id: yupString().defined(),
-            user_id: yupString().defined(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'success',
-          headers: yupObject({}).optional(),
-          body: yupMixed().optional(),
-        },
-      },
-      server: {
-        input: {
-          params: yupObject({
-            team_id: yupString().defined(),
-            user_id: yupString().defined(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'success',
-          headers: yupObject({}).optional(),
-          body: yupMixed().optional(),
-        },
-      },
-      admin: {
-        input: {
-          params: yupObject({
-            team_id: yupString().defined(),
-            user_id: yupString().defined(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'success',
-          headers: yupObject({}).optional(),
-          body: yupMixed().optional(),
-        },
-      },
-    },
-  },
   '/team-invitations/accept/details': {
     POST: {
       default: {
@@ -3923,232 +3980,6 @@ export const endpointSchema = {
           bodyType: 'json',
           body: yupObject({
             is_code_valid: yupBoolean().defined().oneOf([true]),
-          }).defined(),
-        },
-      },
-    },
-  },
-  '/integrations/neon/webhooks': {
-    POST: {
-      default: {
-        input: {
-          body: yupObject({
-            url: yupString().defined(),
-            description: yupString().optional(),
-          }).defined(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          body: yupObject({ secret: yupString().defined() }).defined(),
-        },
-      },
-    },
-  },
-  '/integrations/neon/oauth-providers': {
-    GET: {
-      admin: {
-        input: {
-          params: yupObject({
-            oauth_provider_id: yupString()
-              .optional()
-              .oneOf([
-                'google',
-                'github',
-                'microsoft',
-                'spotify',
-                'facebook',
-                'discord',
-                'gitlab',
-                'bitbucket',
-                'linkedin',
-                'apple',
-                'x',
-              ]),
-          }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            items: yupArray(
-              yupObject({
-                id: yupString()
-                  .defined()
-                  .oneOf([
-                    'google',
-                    'github',
-                    'microsoft',
-                    'spotify',
-                    'facebook',
-                    'discord',
-                    'gitlab',
-                    'bitbucket',
-                    'linkedin',
-                    'apple',
-                    'x',
-                  ]),
-                type: yupString().defined().oneOf(['shared', 'standard']),
-                client_id: yupString().optional(),
-                client_secret: yupString().optional(),
-                facebook_config_id: yupString().optional(),
-                microsoft_tenant_id: yupString().optional(),
-              }).optional(),
-            ).defined(),
-            is_paginated: yupBoolean().defined(),
-            pagination: yupObject({
-              next_cursor: yupString().nullable(),
-            }).optional(),
-          }).defined(),
-        },
-      },
-    },
-    POST: {
-      admin: {
-        input: {
-          body: yupObject({
-            id: yupString()
-              .defined()
-              .oneOf([
-                'google',
-                'github',
-                'microsoft',
-                'spotify',
-                'facebook',
-                'discord',
-                'gitlab',
-                'bitbucket',
-                'linkedin',
-                'apple',
-                'x',
-              ]),
-            type: yupString().optional().oneOf(['shared', 'standard']),
-            client_id: yupString().optional(),
-            client_secret: yupString().optional(),
-            facebook_config_id: yupString().optional(),
-            microsoft_tenant_id: yupString().optional(),
-          }).optional(),
-          params: yupObject({
-            oauth_provider_id: yupString()
-              .optional()
-              .oneOf([
-                'google',
-                'github',
-                'microsoft',
-                'spotify',
-                'facebook',
-                'discord',
-                'gitlab',
-                'bitbucket',
-                'linkedin',
-                'apple',
-                'x',
-              ]),
-          }).optional(),
-        },
-        output: {
-          statusCode: [201],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            id: yupString()
-              .defined()
-              .oneOf([
-                'google',
-                'github',
-                'microsoft',
-                'spotify',
-                'facebook',
-                'discord',
-                'gitlab',
-                'bitbucket',
-                'linkedin',
-                'apple',
-                'x',
-              ]),
-            type: yupString().defined().oneOf(['shared', 'standard']),
-            client_id: yupString().optional(),
-            client_secret: yupString().optional(),
-            facebook_config_id: yupString().optional(),
-            microsoft_tenant_id: yupString().optional(),
-          }).optional(),
-        },
-      },
-    },
-  },
-  '/integrations/neon/oauth': {
-    GET: {
-      default: {
-        input: {},
-        output: {
-          statusCode: [200],
-          bodyType: 'text',
-          body: yupString().defined(),
-        },
-      },
-    },
-  },
-  '/integrations/neon/api-keys': {
-    GET: {
-      admin: {
-        input: {
-          params: yupObject({ api_key_id: yupString().optional() }).optional(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({
-            items: yupArray(
-              yupObject({
-                publishable_client_key: yupObject({
-                  last_four: yupString().defined(),
-                }).optional(),
-                secret_server_key: yupObject({
-                  last_four: yupString().defined(),
-                }).optional(),
-                super_secret_admin_key: yupObject({
-                  last_four: yupString().defined(),
-                }).optional(),
-                id: yupString().defined(),
-                description: yupString().defined(),
-                expires_at_millis: yupNumber().defined(),
-                manually_revoked_at_millis: yupNumber().optional(),
-                created_at_millis: yupNumber().defined(),
-              }).optional(),
-            ).defined(),
-            is_paginated: yupBoolean().defined(),
-            pagination: yupObject({
-              next_cursor: yupString().nullable(),
-            }).optional(),
-          }).defined(),
-        },
-      },
-    },
-    POST: {
-      admin: {
-        input: {
-          body: yupObject({
-            description: yupString().defined(),
-            expires_at_millis: yupNumber().defined(),
-            has_publishable_client_key: yupBoolean().defined(),
-            has_secret_server_key: yupBoolean().defined(),
-            has_super_secret_admin_key: yupBoolean().defined(),
-          }).defined(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          body: yupObject({
-            id: yupString().defined(),
-            description: yupString().defined(),
-            expires_at_millis: yupNumber().defined(),
-            manually_revoked_at_millis: yupNumber().optional(),
-            created_at_millis: yupNumber().defined(),
-            publishable_client_key: yupString().optional(),
-            secret_server_key: yupString().optional(),
-            super_secret_admin_key: yupString().optional(),
           }).defined(),
         },
       },
@@ -4227,22 +4058,6 @@ export const endpointSchema = {
             is_code_valid: yupBoolean().defined().oneOf([true]),
           }).defined(),
         },
-      },
-    },
-  },
-  '/auth/sessions/current': {
-    DELETE: {
-      client: {
-        input: {},
-        output: { statusCode: [200], bodyType: 'success' },
-      },
-      server: {
-        input: {},
-        output: { statusCode: [200], bodyType: 'success' },
-      },
-      admin: {
-        input: {},
-        output: { statusCode: [200], bodyType: 'success' },
       },
     },
   },
@@ -4484,34 +4299,79 @@ export const endpointSchema = {
       },
     },
   },
-  '/auth/password/update': {
+  '/auth/sessions/current': {
+    DELETE: {
+      client: {
+        input: {},
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+      server: {
+        input: {},
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+      admin: {
+        input: {},
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+    },
+  },
+  '/auth/otp/send-sign-in-code': {
     POST: {
       client: {
         input: {
           body: yupObject({
-            old_password: yupString().defined(),
-            new_password: yupString().defined(),
+            email: yupString().defined(),
+            callback_url: yupString().defined(),
           }).defined(),
         },
-        output: { statusCode: [200], bodyType: 'success' },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({ nonce: yupString().defined() }).defined(),
+        },
       },
       server: {
         input: {
           body: yupObject({
-            old_password: yupString().defined(),
-            new_password: yupString().defined(),
+            email: yupString().defined(),
+            callback_url: yupString().defined(),
           }).defined(),
         },
-        output: { statusCode: [200], bodyType: 'success' },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({ nonce: yupString().defined() }).defined(),
+        },
       },
       admin: {
         input: {
           body: yupObject({
-            old_password: yupString().defined(),
-            new_password: yupString().defined(),
+            email: yupString().defined(),
+            callback_url: yupString().defined(),
           }).defined(),
         },
-        output: { statusCode: [200], bodyType: 'success' },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({ nonce: yupString().defined() }).defined(),
+        },
+      },
+    },
+  },
+  '/auth/otp/sign-in': {
+    POST: {
+      default: {
+        input: { body: yupObject({ code: yupString().defined() }).defined() },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({
+            refresh_token: yupString().defined(),
+            access_token: yupString().defined(),
+            is_new_user: yupBoolean().defined(),
+            user_id: yupString().defined(),
+          }).defined(),
+        },
       },
     },
   },
@@ -4650,6 +4510,50 @@ export const endpointSchema = {
       },
     },
   },
+  '/auth/password/update': {
+    POST: {
+      client: {
+        input: {
+          body: yupObject({
+            old_password: yupString().defined(),
+            new_password: yupString().defined(),
+          }).defined(),
+        },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+      server: {
+        input: {
+          body: yupObject({
+            old_password: yupString().defined(),
+            new_password: yupString().defined(),
+          }).defined(),
+        },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+      admin: {
+        input: {
+          body: yupObject({
+            old_password: yupString().defined(),
+            new_password: yupString().defined(),
+          }).defined(),
+        },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+    },
+  },
+  '/auth/password/reset': {
+    POST: {
+      default: {
+        input: {
+          body: yupObject({
+            password: yupString().defined(),
+            code: yupString().defined(),
+          }).defined(),
+        },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+    },
+  },
   '/auth/password/send-reset-code': {
     POST: {
       client: {
@@ -4705,37 +4609,21 @@ export const endpointSchema = {
       },
     },
   },
-  '/auth/password/reset': {
+  '/auth/oauth/token': {
     POST: {
       default: {
         input: {
           body: yupObject({
-            password: yupString().defined(),
-            code: yupString().defined(),
-          }).defined(),
-        },
-        output: { statusCode: [200], bodyType: 'success' },
-      },
-    },
-  },
-  '/auth/passkey/sign-in': {
-    POST: {
-      default: {
-        input: {
-          body: yupObject({
-            authentication_response: yupMixed().defined(),
-            code: yupString().defined(),
+            grant_type: yupString()
+              .defined()
+              .oneOf(['authorization_code', 'refresh_token']),
           }).defined(),
         },
         output: {
-          statusCode: [200],
+          statusCode: [],
           bodyType: 'json',
-          body: yupObject({
-            refresh_token: yupString().defined(),
-            access_token: yupString().defined(),
-            is_new_user: yupBoolean().defined(),
-            user_id: yupString().defined(),
-          }).defined(),
+          headers: yupMixed().defined(),
+          body: yupMixed().defined(),
         },
       },
     },
@@ -4763,39 +4651,19 @@ export const endpointSchema = {
       },
     },
   },
-  '/auth/passkey/initiate-passkey-authentication': {
+  '/auth/passkey/register': {
     POST: {
-      client: {
-        input: {},
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
+      default: {
+        input: {
           body: yupObject({
-            options_json: yupMixed().defined(),
+            credential: yupMixed().defined(),
             code: yupString().defined(),
           }).defined(),
         },
-      },
-      server: {
-        input: {},
         output: {
           statusCode: [200],
           bodyType: 'json',
-          body: yupObject({
-            options_json: yupMixed().defined(),
-            code: yupString().defined(),
-          }).defined(),
-        },
-      },
-      admin: {
-        input: {},
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          body: yupObject({
-            options_json: yupMixed().defined(),
-            code: yupString().defined(),
-          }).defined(),
+          body: yupObject({ user_handle: yupString().defined() }).optional(),
         },
       },
     },
@@ -4837,46 +4705,52 @@ export const endpointSchema = {
       },
     },
   },
-  '/auth/passkey/register': {
+  '/auth/passkey/initiate-passkey-authentication': {
     POST: {
-      default: {
-        input: {
-          body: yupObject({
-            credential: yupMixed().defined(),
-            code: yupString().defined(),
-          }).defined(),
-        },
+      client: {
+        input: {},
         output: {
           statusCode: [200],
           bodyType: 'json',
-          body: yupObject({ user_handle: yupString().defined() }).optional(),
+          body: yupObject({
+            options_json: yupMixed().defined(),
+            code: yupString().defined(),
+          }).defined(),
+        },
+      },
+      server: {
+        input: {},
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({
+            options_json: yupMixed().defined(),
+            code: yupString().defined(),
+          }).defined(),
+        },
+      },
+      admin: {
+        input: {},
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({
+            options_json: yupMixed().defined(),
+            code: yupString().defined(),
+          }).defined(),
         },
       },
     },
   },
-  '/auth/oauth/token': {
+  '/auth/passkey/sign-in': {
     POST: {
       default: {
         input: {
           body: yupObject({
-            grant_type: yupString()
-              .defined()
-              .oneOf(['authorization_code', 'refresh_token']),
+            authentication_response: yupMixed().defined(),
+            code: yupString().defined(),
           }).defined(),
         },
-        output: {
-          statusCode: [],
-          bodyType: 'json',
-          headers: yupMixed().defined(),
-          body: yupMixed().defined(),
-        },
-      },
-    },
-  },
-  '/auth/otp/sign-in': {
-    POST: {
-      default: {
-        input: { body: yupObject({ code: yupString().defined() }).defined() },
         output: {
           statusCode: [200],
           bodyType: 'json',
@@ -4890,45 +4764,151 @@ export const endpointSchema = {
       },
     },
   },
-  '/auth/otp/send-sign-in-code': {
+  '/integrations/neon/webhooks': {
     POST: {
-      client: {
+      default: {
         input: {
           body: yupObject({
-            email: yupString().defined(),
-            callback_url: yupString().defined(),
+            url: yupString().defined(),
+            description: yupString().optional(),
           }).defined(),
         },
         output: {
           statusCode: [200],
           bodyType: 'json',
-          body: yupObject({ nonce: yupString().defined() }).defined(),
+          body: yupObject({ secret: yupString().defined() }).defined(),
         },
       },
-      server: {
+    },
+  },
+  '/integrations/neon/oauth-providers': {
+    GET: {
+      admin: {
         input: {
-          body: yupObject({
-            email: yupString().defined(),
-            callback_url: yupString().defined(),
-          }).defined(),
+          params: yupObject({
+            oauth_provider_id: yupString()
+              .optional()
+              .oneOf([
+                'google',
+                'github',
+                'microsoft',
+                'spotify',
+                'facebook',
+                'discord',
+                'gitlab',
+                'bitbucket',
+                'linkedin',
+                'apple',
+                'x',
+              ]),
+          }).optional(),
         },
         output: {
           statusCode: [200],
           bodyType: 'json',
-          body: yupObject({ nonce: yupString().defined() }).defined(),
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            items: yupArray(
+              yupObject({
+                id: yupString()
+                  .defined()
+                  .oneOf([
+                    'google',
+                    'github',
+                    'microsoft',
+                    'spotify',
+                    'facebook',
+                    'discord',
+                    'gitlab',
+                    'bitbucket',
+                    'linkedin',
+                    'apple',
+                    'x',
+                  ]),
+                type: yupString().defined().oneOf(['shared', 'standard']),
+                client_id: yupString().optional(),
+                client_secret: yupString().optional(),
+                facebook_config_id: yupString().optional(),
+                microsoft_tenant_id: yupString().optional(),
+              }).optional(),
+            ).defined(),
+            is_paginated: yupBoolean().defined(),
+            pagination: yupObject({
+              next_cursor: yupString().nullable(),
+            }).optional(),
+          }).defined(),
         },
       },
+    },
+    POST: {
       admin: {
         input: {
           body: yupObject({
-            email: yupString().defined(),
-            callback_url: yupString().defined(),
-          }).defined(),
+            id: yupString()
+              .defined()
+              .oneOf([
+                'google',
+                'github',
+                'microsoft',
+                'spotify',
+                'facebook',
+                'discord',
+                'gitlab',
+                'bitbucket',
+                'linkedin',
+                'apple',
+                'x',
+              ]),
+            type: yupString().optional().oneOf(['shared', 'standard']),
+            client_id: yupString().optional(),
+            client_secret: yupString().optional(),
+            facebook_config_id: yupString().optional(),
+            microsoft_tenant_id: yupString().optional(),
+          }).optional(),
+          params: yupObject({
+            oauth_provider_id: yupString()
+              .optional()
+              .oneOf([
+                'google',
+                'github',
+                'microsoft',
+                'spotify',
+                'facebook',
+                'discord',
+                'gitlab',
+                'bitbucket',
+                'linkedin',
+                'apple',
+                'x',
+              ]),
+          }).optional(),
         },
         output: {
-          statusCode: [200],
+          statusCode: [201],
           bodyType: 'json',
-          body: yupObject({ nonce: yupString().defined() }).defined(),
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            id: yupString()
+              .defined()
+              .oneOf([
+                'google',
+                'github',
+                'microsoft',
+                'spotify',
+                'facebook',
+                'discord',
+                'gitlab',
+                'bitbucket',
+                'linkedin',
+                'apple',
+                'x',
+              ]),
+            type: yupString().defined().oneOf(['shared', 'standard']),
+            client_id: yupString().optional(),
+            client_secret: yupString().optional(),
+            facebook_config_id: yupString().optional(),
+            microsoft_tenant_id: yupString().optional(),
+          }).optional(),
         },
       },
     },
@@ -5027,6 +5007,294 @@ export const endpointSchema = {
           bodyType: 'success',
           headers: yupObject({}).optional(),
           body: yupMixed().optional(),
+        },
+      },
+    },
+  },
+  '/connected-accounts/[user_id]/[provider_id]/access-token': {
+    POST: {
+      client: {
+        input: {
+          body: yupObject({ scope: yupString().optional() }).defined(),
+          params: yupObject({
+            provider_id: yupString().optional(),
+            user_id: yupString().optional(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [201],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({ access_token: yupString().defined() }).defined(),
+        },
+      },
+      server: {
+        input: {
+          body: yupObject({ scope: yupString().optional() }).defined(),
+          params: yupObject({
+            provider_id: yupString().optional(),
+            user_id: yupString().optional(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [201],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({ access_token: yupString().defined() }).defined(),
+        },
+      },
+      admin: {
+        input: {
+          body: yupObject({ scope: yupString().optional() }).defined(),
+          params: yupObject({
+            provider_id: yupString().optional(),
+            user_id: yupString().optional(),
+          }).optional(),
+        },
+        output: {
+          statusCode: [201],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({ access_token: yupString().defined() }).defined(),
+        },
+      },
+    },
+  },
+  '/contact-channels/[user_id]/[contact_channel_id]/send-verification-code': {
+    POST: {
+      client: {
+        input: {
+          body: yupObject({ callback_url: yupString().defined() }).defined(),
+          params: yupObject({
+            user_id: yupString().defined(),
+            contact_channel_id: yupString().defined(),
+          }).defined(),
+        },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+      server: {
+        input: {
+          body: yupObject({ callback_url: yupString().defined() }).defined(),
+          params: yupObject({
+            user_id: yupString().defined(),
+            contact_channel_id: yupString().defined(),
+          }).defined(),
+        },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+      admin: {
+        input: {
+          body: yupObject({ callback_url: yupString().defined() }).defined(),
+          params: yupObject({
+            user_id: yupString().defined(),
+            contact_channel_id: yupString().defined(),
+          }).defined(),
+        },
+        output: { statusCode: [200], bodyType: 'success' },
+      },
+    },
+  },
+  '/auth/sessions/current/refresh': {
+    POST: {
+      client: {
+        input: {},
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({ access_token: yupString().defined() }).defined(),
+        },
+      },
+      server: {
+        input: {},
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({ access_token: yupString().defined() }).defined(),
+        },
+      },
+      admin: {
+        input: {},
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({ access_token: yupString().defined() }).defined(),
+        },
+      },
+    },
+  },
+  '/auth/otp/sign-in/check-code': {
+    POST: {
+      default: {
+        input: { body: yupObject({ code: yupString().defined() }).defined() },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({
+            is_code_valid: yupBoolean().defined().oneOf([true]),
+          }).defined(),
+        },
+      },
+    },
+  },
+  '/auth/password/reset/check-code': {
+    POST: {
+      default: {
+        input: { body: yupObject({ code: yupString().defined() }).defined() },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({
+            is_code_valid: yupBoolean().defined().oneOf([true]),
+          }).defined(),
+        },
+      },
+    },
+  },
+  '/auth/oauth/callback/[provider_id]': {
+    GET: {
+      default: {
+        input: {
+          params: yupObject({ provider_id: yupString().defined() }).defined(),
+        },
+        output: {
+          statusCode: [307],
+          bodyType: 'json',
+          headers: yupMixed().defined(),
+          body: yupMixed().defined(),
+        },
+      },
+    },
+    POST: {
+      default: {
+        input: {
+          params: yupObject({ provider_id: yupString().defined() }).defined(),
+        },
+        output: {
+          statusCode: [307],
+          bodyType: 'json',
+          headers: yupMixed().defined(),
+          body: yupMixed().defined(),
+        },
+      },
+    },
+  },
+  '/integrations/neon/oauth': {
+    GET: {
+      default: {
+        input: {},
+        output: {
+          statusCode: [200],
+          bodyType: 'text',
+          body: yupString().defined(),
+        },
+      },
+    },
+  },
+  '/integrations/neon/api-keys': {
+    GET: {
+      admin: {
+        input: {
+          params: yupObject({ api_key_id: yupString().optional() }).optional(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          headers: yupObject({}).optional(),
+          body: yupObject({
+            items: yupArray(
+              yupObject({
+                publishable_client_key: yupObject({
+                  last_four: yupString().defined(),
+                }).optional(),
+                secret_server_key: yupObject({
+                  last_four: yupString().defined(),
+                }).optional(),
+                super_secret_admin_key: yupObject({
+                  last_four: yupString().defined(),
+                }).optional(),
+                id: yupString().defined(),
+                description: yupString().defined(),
+                expires_at_millis: yupNumber().defined(),
+                manually_revoked_at_millis: yupNumber().optional(),
+                created_at_millis: yupNumber().defined(),
+              }).optional(),
+            ).defined(),
+            is_paginated: yupBoolean().defined(),
+            pagination: yupObject({
+              next_cursor: yupString().nullable(),
+            }).optional(),
+          }).defined(),
+        },
+      },
+    },
+    POST: {
+      admin: {
+        input: {
+          body: yupObject({
+            description: yupString().defined(),
+            expires_at_millis: yupNumber().defined(),
+            has_publishable_client_key: yupBoolean().defined(),
+            has_secret_server_key: yupBoolean().defined(),
+            has_super_secret_admin_key: yupBoolean().defined(),
+          }).defined(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({
+            id: yupString().defined(),
+            description: yupString().defined(),
+            expires_at_millis: yupNumber().defined(),
+            manually_revoked_at_millis: yupNumber().optional(),
+            created_at_millis: yupNumber().defined(),
+            publishable_client_key: yupString().optional(),
+            secret_server_key: yupString().optional(),
+            super_secret_admin_key: yupString().optional(),
+          }).defined(),
+        },
+      },
+    },
+  },
+  '/auth/oauth/authorize/[provider_id]': {
+    GET: {
+      default: {
+        input: {
+          query: yupObject({
+            type: yupString().optional().oneOf(['authenticate', 'link']),
+            token: yupString().optional(),
+            provider_scope: yupString().optional(),
+            error_redirect_url: yupString().optional(),
+            error_redirect_uri: yupString().optional(),
+            after_callback_redirect_url: yupString().optional(),
+            client_id: yupString().defined(),
+            client_secret: yupString().defined(),
+            redirect_uri: yupString().defined(),
+            scope: yupString().defined(),
+            state: yupString().defined(),
+            grant_type: yupString().defined().oneOf(['authorization_code']),
+            code_challenge: yupString().defined(),
+            code_challenge_method: yupString().defined(),
+            response_type: yupString().defined(),
+          }).defined(),
+          params: yupObject({ provider_id: yupString().defined() }).defined(),
+        },
+        output: { statusCode: [302], bodyType: 'empty' },
+      },
+    },
+  },
+  '/integrations/neon/projects/provision': {
+    POST: {
+      default: {
+        input: {
+          body: yupObject({ display_name: yupString().defined() }).defined(),
+        },
+        output: {
+          statusCode: [200],
+          bodyType: 'json',
+          body: yupObject({
+            project_id: yupString().defined(),
+            super_secret_admin_key: yupString().defined(),
+          }).defined(),
         },
       },
     },
@@ -5136,23 +5404,6 @@ export const endpointSchema = {
       },
     },
   },
-  '/integrations/neon/projects/provision': {
-    POST: {
-      default: {
-        input: {
-          body: yupObject({ display_name: yupString().defined() }).defined(),
-        },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          body: yupObject({
-            project_id: yupString().defined(),
-            super_secret_admin_key: yupString().defined(),
-          }).defined(),
-        },
-      },
-    },
-  },
   '/integrations/neon/internal/confirm': {
     POST: {
       server: {
@@ -5160,6 +5411,7 @@ export const endpointSchema = {
           body: yupObject({
             interaction_uid: yupString().defined(),
             project_id: yupString().defined(),
+            neon_project_name: yupString().optional(),
           }).defined(),
         },
         output: {
@@ -5175,6 +5427,7 @@ export const endpointSchema = {
           body: yupObject({
             interaction_uid: yupString().defined(),
             project_id: yupString().defined(),
+            neon_project_name: yupString().optional(),
           }).defined(),
         },
         output: {
@@ -5184,6 +5437,36 @@ export const endpointSchema = {
             authorization_code: yupString().defined(),
           }).defined(),
         },
+      },
+    },
+  },
+  '/auth/oauth/connected-accounts/[provider_id]/access-token': {
+    POST: {
+      default: {
+        input: {
+          body: yupObject({ scope: yupString().optional() }).defined(),
+          params: yupObject({ provider_id: yupString().defined() }).defined(),
+        },
+        output: {
+          statusCode: [],
+          bodyType: 'json',
+          body: yupMixed().defined(),
+        },
+      },
+    },
+  },
+  '/integrations/neon/oauth/token': {
+    POST: {
+      default: {
+        input: {
+          body: yupObject({
+            grant_type: yupString().defined().oneOf(['authorization_code']),
+            code: yupString().defined(),
+            code_verifier: yupString().defined(),
+            redirect_uri: yupString().defined(),
+          }).defined(),
+        },
+        output: {},
       },
     },
   },
@@ -5198,21 +5481,6 @@ export const endpointSchema = {
             code_challenge: yupString().defined(),
             code_challenge_method: yupString().defined().oneOf(['S256']),
             response_type: yupString().defined().oneOf(['code']),
-          }).defined(),
-        },
-        output: {},
-      },
-    },
-  },
-  '/integrations/neon/oauth/token': {
-    POST: {
-      default: {
-        input: {
-          body: yupObject({
-            grant_type: yupString().defined().oneOf(['authorization_code']),
-            code: yupString().defined(),
-            code_verifier: yupString().defined(),
-            redirect_uri: yupString().defined(),
           }).defined(),
         },
         output: {},
@@ -5281,213 +5549,6 @@ export const endpointSchema = {
       },
     },
   },
-  '/connected-accounts/[user_id]/[provider_id]/access-token': {
-    POST: {
-      client: {
-        input: {
-          body: yupObject({ scope: yupString().optional() }).defined(),
-          params: yupObject({
-            provider_id: yupString().optional(),
-            user_id: yupString().optional(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [201],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({ access_token: yupString().defined() }).defined(),
-        },
-      },
-      server: {
-        input: {
-          body: yupObject({ scope: yupString().optional() }).defined(),
-          params: yupObject({
-            provider_id: yupString().optional(),
-            user_id: yupString().optional(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [201],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({ access_token: yupString().defined() }).defined(),
-        },
-      },
-      admin: {
-        input: {
-          body: yupObject({ scope: yupString().optional() }).defined(),
-          params: yupObject({
-            provider_id: yupString().optional(),
-            user_id: yupString().optional(),
-          }).optional(),
-        },
-        output: {
-          statusCode: [201],
-          bodyType: 'json',
-          headers: yupObject({}).optional(),
-          body: yupObject({ access_token: yupString().defined() }).defined(),
-        },
-      },
-    },
-  },
-  '/auth/sessions/current/refresh': {
-    POST: {
-      client: {
-        input: {},
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          body: yupObject({ access_token: yupString().defined() }).defined(),
-        },
-      },
-      server: {
-        input: {},
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          body: yupObject({ access_token: yupString().defined() }).defined(),
-        },
-      },
-      admin: {
-        input: {},
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          body: yupObject({ access_token: yupString().defined() }).defined(),
-        },
-      },
-    },
-  },
-  '/contact-channels/[user_id]/[contact_channel_id]/send-verification-code': {
-    POST: {
-      client: {
-        input: {
-          body: yupObject({ callback_url: yupString().defined() }).defined(),
-          params: yupObject({
-            user_id: yupString().defined(),
-            contact_channel_id: yupString().defined(),
-          }).defined(),
-        },
-        output: { statusCode: [200], bodyType: 'success' },
-      },
-      server: {
-        input: {
-          body: yupObject({ callback_url: yupString().defined() }).defined(),
-          params: yupObject({
-            user_id: yupString().defined(),
-            contact_channel_id: yupString().defined(),
-          }).defined(),
-        },
-        output: { statusCode: [200], bodyType: 'success' },
-      },
-      admin: {
-        input: {
-          body: yupObject({ callback_url: yupString().defined() }).defined(),
-          params: yupObject({
-            user_id: yupString().defined(),
-            contact_channel_id: yupString().defined(),
-          }).defined(),
-        },
-        output: { statusCode: [200], bodyType: 'success' },
-      },
-    },
-  },
-  '/auth/password/reset/check-code': {
-    POST: {
-      default: {
-        input: { body: yupObject({ code: yupString().defined() }).defined() },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          body: yupObject({
-            is_code_valid: yupBoolean().defined().oneOf([true]),
-          }).defined(),
-        },
-      },
-    },
-  },
-  '/auth/oauth/authorize/[provider_id]': {
-    GET: {
-      default: {
-        input: {
-          query: yupObject({
-            type: yupString().optional().oneOf(['authenticate', 'link']),
-            token: yupString().optional(),
-            provider_scope: yupString().optional(),
-            error_redirect_url: yupString().optional(),
-            error_redirect_uri: yupString().optional(),
-            after_callback_redirect_url: yupString().optional(),
-            client_id: yupString().defined(),
-            client_secret: yupString().defined(),
-            redirect_uri: yupString().defined(),
-            scope: yupString().defined(),
-            state: yupString().defined(),
-            grant_type: yupString().defined().oneOf(['authorization_code']),
-            code_challenge: yupString().defined(),
-            code_challenge_method: yupString().defined(),
-            response_type: yupString().defined(),
-          }).defined(),
-          params: yupObject({ provider_id: yupString().defined() }).defined(),
-        },
-        output: { statusCode: [302], bodyType: 'empty' },
-      },
-    },
-  },
-  '/auth/otp/sign-in/check-code': {
-    POST: {
-      default: {
-        input: { body: yupObject({ code: yupString().defined() }).defined() },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          body: yupObject({
-            is_code_valid: yupBoolean().defined().oneOf([true]),
-          }).defined(),
-        },
-      },
-    },
-  },
-  '/auth/oauth/callback/[provider_id]': {
-    GET: {
-      default: {
-        input: {
-          params: yupObject({ provider_id: yupString().defined() }).defined(),
-        },
-        output: {
-          statusCode: [307],
-          bodyType: 'json',
-          headers: yupMixed().defined(),
-          body: yupMixed().defined(),
-        },
-      },
-    },
-    POST: {
-      default: {
-        input: {
-          params: yupObject({ provider_id: yupString().defined() }).defined(),
-        },
-        output: {
-          statusCode: [307],
-          bodyType: 'json',
-          headers: yupMixed().defined(),
-          body: yupMixed().defined(),
-        },
-      },
-    },
-  },
-  '/integrations/neon/oauth/idp/[[...route]]': {},
-  '/integrations/neon/projects/transfer/confirm': {
-    POST: {
-      default: {
-        input: { body: yupObject({ code: yupString().defined() }).defined() },
-        output: {
-          statusCode: [200],
-          bodyType: 'json',
-          body: yupObject({ project_id: yupString().defined() }).defined(),
-        },
-      },
-    },
-  },
   '/integrations/neon/projects/transfer/initiate': {
     POST: {
       default: {
@@ -5504,19 +5565,17 @@ export const endpointSchema = {
       },
     },
   },
-  '/auth/oauth/connected-accounts/[provider_id]/access-token': {
+  '/integrations/neon/projects/transfer/confirm': {
     POST: {
       default: {
-        input: {
-          body: yupObject({ scope: yupString().optional() }).defined(),
-          params: yupObject({ provider_id: yupString().defined() }).defined(),
-        },
+        input: { body: yupObject({ code: yupString().defined() }).defined() },
         output: {
-          statusCode: [],
+          statusCode: [200],
           bodyType: 'json',
-          body: yupMixed().defined(),
+          body: yupObject({ project_id: yupString().defined() }).defined(),
         },
       },
     },
   },
+  '/integrations/neon/oauth/idp/[[...route]]': {},
 };

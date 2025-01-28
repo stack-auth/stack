@@ -40,7 +40,7 @@ export type EndpointsSchema = {
 export type EndpointHandlers = {
   [url: string]: {
     [method in (typeof allowedMethods)[number]]?: {
-      [overload: string]: (req: ParsedRequest<any, any>, options?: { params: Promise<Record<string, string>> }) => Promise<ParsedResponse<any>>,
+      [overload: string]: (req: ParsedRequest<any, any>, options?: { params: Promise<Record<string, string>> }) => Promise<ParsedResponse>,
     }
   },
 };
@@ -58,7 +58,7 @@ type ExtractInputOutputFromEndpointsSchema<
   O extends keyof S[U][M],
 > = NonNullable<S[U][M]>[O]
 
-type ParsedRequestFromSchema<
+export type ParsedRequestFromSchema<
   S extends EndpointsSchema,
   url extends keyof S,
   method extends (typeof allowedMethods)[number],
@@ -68,12 +68,16 @@ type ParsedRequestFromSchema<
   yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['input']['query']>
 >
 
-type ParsedResponseFromSchema<
+export type ParsedResponseFromSchema<
   S extends EndpointsSchema,
   url extends keyof S,
   method extends (typeof allowedMethods)[number],
   overload extends keyof S[url][method]
-> = ParsedResponse<yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['output']['body']>>
+> = {
+  bodyType: yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['output']['bodyType']>,
+  statusCode: yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['output']['statusCode']>,
+  body: yup.InferType<ExtractInputOutputFromEndpointsSchema<S, url, method, overload>['output']['body']>,
+}
 
 type EndpointHandlersFromSchema<S extends EndpointsSchema> = {
   [url in keyof S]: {
@@ -167,35 +171,11 @@ type ParsedRequest<Body, Query extends Record<string, string | undefined>> = {
   body: Body,
   query: Query,
 };
-type ParsedResponse<Body> = {
+type ParsedResponse = {
   statusCode: number,
-  headers?: Record<string, string[]>,
-} & (
-  | {
-    bodyType?: undefined,
-    body?: Body,
-  }
-  | {
-    bodyType: "empty",
-    body?: undefined,
-  }
-  | {
-    bodyType: "text",
-    body: string,
-  }
-  | {
-    bodyType: "json",
-    body: Body,
-  }
-  | {
-    bodyType: "binary",
-    body: ArrayBuffer,
-  }
-  | {
-    bodyType: "success",
-    body?: undefined,
-  }
-)
+  bodyType: "empty" | "text" | "json" | "binary" | "success" | undefined,
+  body?: any,
+}
 
 async function convertRawToParsedRequest<Body extends yup.Schema, Query extends yup.Schema>(
   req: NextRequest,
@@ -235,7 +215,7 @@ async function convertParsedRequestToRaw(req: ParsedRequest<any, Record<string, 
 
 async function convertParsedResponseToRaw(
   req: NextRequest,
-  response: ParsedResponse<any>,
+  response: ParsedResponse,
   schema: yup.Schema
 ): Promise<Response> {
   const requestId = generateSecureRandomString(80);
@@ -250,7 +230,11 @@ async function convertRawToParsedResponse<
 >(
   res: NextResponse,
   schema: EndpointOutputSchema<StatusCode, T, Body>
-): Promise<ParsedResponse<yup.InferType<Body>>> {
+): Promise<{
+  statusCode: StatusCode,
+  bodyType: T,
+  body: yup.InferType<Body>,
+}> {
   // TODO validate schema
   let contentType = res.headers.get("content-type");
   if (contentType) {
@@ -260,37 +244,37 @@ async function convertRawToParsedResponse<
   switch (contentType) {
     case "application/json": {
       return {
-        statusCode: res.status,
+        statusCode: res.status as StatusCode,
         body: await res.json(),
-        bodyType: "json",
+        bodyType: "json" as T,
       };
     }
     case "text/plain": {
       return {
-        statusCode: res.status,
+        statusCode: res.status as StatusCode,
         body: await res.text(),
-        bodyType: "text",
+        bodyType: "text" as T,
       };
     }
     case "binary": {
       return {
-        statusCode: res.status,
+        statusCode: res.status as StatusCode,
         body: await res.arrayBuffer(),
-        bodyType: "binary",
+        bodyType: "binary" as T,
       };
     }
     case "success": {
       return {
-        statusCode: res.status,
+        statusCode: res.status as StatusCode,
         body: undefined,
-        bodyType: "success",
+        bodyType: "success" as T,
       };
     }
     case undefined: {
       return {
-        statusCode: res.status,
+        statusCode: res.status as StatusCode,
         body: undefined,
-        bodyType: "empty",
+        bodyType: "empty" as T,
       };
     }
     default: {
@@ -331,7 +315,7 @@ function createEndpointHandlers<
   ) => (
     req: ParsedRequest<any, any>,
     options?: { params: Promise<Record<string, string>> }
-  ) => Promise<ParsedResponse<any>>,
+  ) => Promise<ParsedResponse>,
 ) {
   const endpointHandlers = {};
   for (const [url, endpointMethods] of typedEntries(oldEndpointsSchema)) {
@@ -368,7 +352,7 @@ export function createMigrationEndpointHandlers<
 ): EndpointHandlersFromSchema<Old> {
   return createEndpointHandlers(
     oldEndpointsSchema,
-    (url, method, overload, endpointSchema) => async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {
+    (url, method, overload, endpointSchema) => async (req: ParsedRequest<any, any>): Promise<ParsedResponse> => {
       // TODO add validation
       let transformedRequest = req;
       const transform = (transforms as any)[url]?.[method]?.[overload];
@@ -394,7 +378,7 @@ export function createEndpointHandlersFromRawEndpoints<
 >(rawEndpointHandlers: H, endpointsSchema: S): E {
   return createEndpointHandlers(
     endpointsSchema,
-    (url, method, overload, endpointSchema) => async (req: ParsedRequest<any, any>): Promise<ParsedResponse<any>> => {
+    (url, method, overload, endpointSchema) => async (req: ParsedRequest<any, any>): Promise<ParsedResponse> => {
       const endpoint = (rawEndpointHandlers as any)[url]?.[method];
 
       if (!endpoint) {

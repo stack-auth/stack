@@ -1,4 +1,4 @@
-import { EndpointTransforms, EndpointsSchema, RawEndpointsHandlers, TransformFn, createEndpointHandlersFromRawEndpoints, createMigrationEndpointHandlers } from "@/route-handlers/migration-handler";
+import { EndpointTransforms, EndpointsSchema, ParsedResponseFromSchema, RawEndpointsHandlers, TransformFn, createEndpointHandlersFromRawEndpoints, createMigrationEndpointHandlers } from "@/route-handlers/migration-handler";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,18 +7,18 @@ const schema1 = {
     'POST': {
       'default': {
         input: {
-          query: yupObject({}),
+          query: yupObject({}).defined(),
           body: yupObject({
             fullName: yupString().defined(),
-          }),
+          }).defined(),
         },
         output: {
-          statusCode: yupNumber(),
-          bodyType: yupString().oneOf(['json']),
+          statusCode: yupNumber().defined(),
+          bodyType: yupString().oneOf(['json']).defined(),
           body: yupObject({
             id: yupString().defined(),
             fullName: yupString().defined(),
-          }),
+          }).defined(),
         },
       },
     },
@@ -27,13 +27,13 @@ const schema1 = {
     'POST': {
       'default': {
         input: {
-          query: yupObject({}),
+          query: yupObject({}).defined(),
           body: yupObject({}),
         },
         output: {
-          statusCode: yupNumber(),
-          bodyType: yupString().oneOf(['json']),
-          body: yupObject({}),
+          statusCode: yupNumber().defined(),
+          bodyType: yupString().oneOf(['json']).defined(),
+          body: yupObject({}).defined(),
         },
       },
     },
@@ -44,17 +44,17 @@ const schema1 = {
         input: {
           query: yupObject({
             same: yupString().defined(),
-          }),
+          }).defined(),
           body: yupObject({
             same: yupString().defined(),
-          }),
+          }).defined(),
         },
         output: {
-          statusCode: yupNumber(),
+          statusCode: yupNumber().defined(),
           bodyType: yupString().oneOf(['json']),
           body: yupObject({
             same: yupString().defined(),
-          }),
+          }).defined(),
         },
       },
     },
@@ -67,31 +67,31 @@ const schema2 = {
     'POST': {
       'default': {
         input: {
-          query: yupObject({}),
+          query: yupObject({}).defined(),
           body: yupObject({
             firstName: yupString().defined(),
             lastName: yupString().defined(),
-          }),
+          }).defined(),
         },
         output: {
-          statusCode: yupNumber(),
-          bodyType: yupString().oneOf(['json']),
+          statusCode: yupNumber().defined(),
+          bodyType: yupString().oneOf(['json']).defined(),
           body: yupObject({
             id: yupString().defined(),
-          }),
+          }).defined(),
         },
       },
     },
     'GET': {
       'default': {
         input: {
-          query: yupObject({}),
-          body: yupObject({}),
+          query: yupObject({}).defined(),
+          body: yupObject({}).defined(),
         },
         output: {
-          statusCode: yupNumber(),
-          bodyType: yupString().oneOf(['json']),
-          body: yupObject({}),
+          statusCode: yupNumber().defined(),
+          bodyType: yupString().oneOf(['json']).defined(),
+          body: yupObject({}).defined(),
         },
       },
     },
@@ -102,17 +102,17 @@ const schema2 = {
         input: {
           query: yupObject({
             same: yupString().defined(),
-          }),
+          }).defined(),
           body: yupObject({
             same: yupString().defined(),
-          }),
+          }).defined(),
         },
         output: {
-          statusCode: yupNumber(),
-          bodyType: yupString().oneOf(['json']),
+          statusCode: yupNumber().defined(),
+          bodyType: yupString().oneOf(['json']).defined(),
           body: yupObject({
             same: yupString().defined(),
-          }),
+          }).defined(),
         },
       },
     },
@@ -151,6 +151,7 @@ const endpointHandlers1 = createMigrationEndpointHandlers(schema1, schema2, endp
             id: (result.body as any).id,
             fullName: req.body.fullName,
           },
+          bodyType: 'json',
         };
       },
     },
@@ -161,7 +162,24 @@ const endpointHandlers1 = createMigrationEndpointHandlers(schema1, schema2, endp
         return {
           statusCode: 200,
           headers: {},
-          body: {},
+          body: {
+            test: 'example-token',
+          },
+          bodyType: 'json',
+        };
+      },
+    },
+  },
+  '/same': {
+    'POST': {
+      'default': async ({ req, newEndpointHandlers }) => {
+        return {
+          statusCode: 200,
+          headers: {},
+          body: {
+            same: req.body.same,
+          },
+          bodyType: 'json',
         };
       },
     },
@@ -174,20 +192,35 @@ const y = null as unknown as x;
 
 const z = null as unknown as x['/users']['POST']['default'];
 
-type a = TransformFn<typeof schema1, typeof endpointHandlers1, '/users', 'POST', 'default'>;
+type a = Awaited<ReturnType<TransformFn<typeof schema1, typeof endpointHandlers1, '/users', 'POST', 'default'>>>;
+
+type b = ParsedResponseFromSchema<typeof schema1, '/users', 'POST', 'default'>
+
+const c = null as unknown as b;
+
+// endpointHandlers1['/tokens']['POST']['default']({
+//   url: 'http://localhost:3000/tokens',
+//   method: 'POST',
+//   headers: {},
+//   body: {},
+//   query: {},
+// }).then((res) => {
+//   console.log(res);
+// }).catch((err) => {
+//   console.error(err);
+// });
 
 
 endpointHandlers1['/users']['POST']['default']({
-  url: 'http://localhost:3000/users',
-  method: 'POST',
-  headers: {},
   body: {
-    fullName: 'Full Name',
+    fullName: 'John Doe',
   },
   query: {},
+  headers: {},
+  method: 'POST',
+  url: 'http://localhost:3000/users',
 }).then((res) => {
   console.log(res);
 }).catch((err) => {
   console.error(err);
 });
-
