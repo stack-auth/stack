@@ -47,6 +47,8 @@ type RequestLike = {
   },
 };
 
+type RedirectMethod = "window" | "nextjs";
+
 export type TokenStoreInit<HasTokenStore extends boolean = boolean> =
   HasTokenStore extends true ? (
     | "cookie"
@@ -110,19 +112,6 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
   };
 }
 
-async function _redirectTo(url: URL | string, options?: { replace?: boolean }) {
-  if (isReactServer) {
-    NextNavigation.redirect(url.toString(), options?.replace ? NextNavigation.RedirectType.replace : NextNavigation.RedirectType.push);
-  } else {
-    if (options?.replace) {
-      window.location.replace(url);
-    } else {
-      window.location.assign(url);
-    }
-    await wait(2000);
-  }
-}
-
 function getDefaultProjectId() {
   return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
 }
@@ -150,6 +139,7 @@ export type StackClientAppConstructorOptions<HasTokenStore extends boolean, Proj
   urls?: Partial<HandlerUrls>,
   oauthScopesOnSignIn?: Partial<OAuthScopesOnSignIn>,
   tokenStore: TokenStoreInit<HasTokenStore>,
+  redirectMethod?: RedirectMethod,
 
   /**
    * By default, the Stack app will automatically prefetch some data from Stack's server when this app is first
@@ -280,6 +270,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _uniqueIdentifier: string | undefined = undefined;
   protected _interface: StackClientInterface;
   protected readonly _tokenStoreInit: TokenStoreInit<HasTokenStore>;
+  protected readonly _redirectMethod: RedirectMethod | undefined;
   protected readonly _urlOptions: Partial<HandlerUrls>;
   protected readonly _oauthScopesOnSignIn: Partial<OAuthScopesOnSignIn>;
 
@@ -437,7 +428,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
     & (
       | StackClientAppConstructorOptions<HasTokenStore, ProjectId>
-      | Pick<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "tokenStore" | "urls" | "oauthScopesOnSignIn" | "noAutomaticPrefetch"> & {
+      | Exclude<StackClientAppConstructorOptions<HasTokenStore, ProjectId>, "baseUrl" | "projectId" | "publishableClientKey"> & {
         interface: StackClientInterface,
       }
     )
@@ -454,6 +445,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
 
     this._tokenStoreInit = _options.tokenStore;
+    this._redirectMethod = _options.redirectMethod;
     this._urlOptions = _options.urls ?? {};
     this._oauthScopesOnSignIn = _options.oauthScopesOnSignIn ?? {};
 
@@ -800,8 +792,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       clientMetadata: crud.client_metadata,
       clientReadOnlyMetadata: crud.client_read_only_metadata,
       async inviteUser(options: { email: string, callbackUrl?: string }) {
-        if (!options.callbackUrl && typeof window === "undefined") {
-          throw new Error("Cannot invite user without a callback URL from the server. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
+        if (!options.callbackUrl && !await app._getCurrentUrl()) {
+          throw new Error("Cannot invite user without a callback URL from the server or without a redirect method. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
         }
         await app._interface.sendTeamInvitation({
           teamId: crud.id,
@@ -883,7 +875,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const tokens = await this.currentSession.getTokens();
         return tokens;
       },
-      async registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>> {
+      async registerPasskey(options: { hostname?: string }): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>> {
+        const hostname = (await app._getCurrentUrl())?.hostname;
+        if (!hostname) {
+          throw new StackAssertionError("hostname must be provided if the Stack App does not have a redirect method");
+        }
 
         const initiationResult = await app._interface.initiatePasskeyRegistration({}, session);
 
@@ -897,7 +893,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         if (options_json.rp.id !== "THIS_VALUE_WILL_BE_REPLACED.example.com") {
           throw new StackAssertionError(`Expected returned RP ID from server to equal sentinel, but found ${options_json.rp.id}`);
         }
-        options_json.rp.id = window.location.hostname;
+
+        options_json.rp.id = hostname;
 
         let attResp;
         try {
@@ -1051,8 +1048,8 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         if (!crud.primary_email) {
           throw new StackAssertionError("User does not have a primary email");
         }
-        if (!options?.callbackUrl && typeof window === "undefined") {
-          throw new Error("Cannot send verification email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendVerificationEmail({ callbackUrl: ... })`");
+        if (!options?.callbackUrl && !await app._getCurrentUrl()) {
+          throw new Error("Cannot send verification email without a callback URL from the server or without a redirect method. Make sure you pass the `callbackUrl` option: `sendVerificationEmail({ callbackUrl: ... })`");
         }
         return await app._interface.sendVerificationEmail(crud.primary_email, options?.callbackUrl ?? constructRedirectUrl(app.urls.emailVerification), session);
       },
@@ -1148,11 +1145,35 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return getUrls(this._urlOptions);
   }
 
+  protected async _getCurrentUrl() {
+    if (!this._redirectMethod) {
+      return null;
+    }
+    return new URL(window.location.href);
+  }
+
+  protected async _redirectTo(options: { url: URL | string, replace?: boolean }) {
+    if (!this._redirectMethod) {
+      return;
+    }
+
+    if (isReactServer && this._redirectMethod === "nextjs") {
+      NextNavigation.redirect(options.url.toString(), options.replace ? NextNavigation.RedirectType.replace : NextNavigation.RedirectType.push);
+    } else {
+      if (options.replace) {
+        window.location.replace(options.url);
+      } else {
+        window.location.assign(options.url);
+      }
+      await wait(2000);
+    }
+  }
+
   protected async _redirectIfTrusted(url: string, options?: RedirectToOptions) {
     if (!await this._isTrusted(url)) {
       throw new Error(`Redirect URL ${url} is not trusted; should be relative.`);
     }
-    return await _redirectTo(url, options);
+    return await this._redirectTo({ url, ...options });
   }
 
   protected async _redirectToHandler(handlerName: keyof HandlerUrls, options?: RedirectToOptions) {
@@ -1209,15 +1230,15 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   async redirectToTeamInvitation(options?: RedirectToOptions) { return await this._redirectToHandler("teamInvitation", options); }
 
   async sendForgotPasswordEmail(email: string, options?: { callbackUrl?: string }): Promise<Result<undefined, KnownErrors["UserNotFound"]>> {
-    if (!options?.callbackUrl && typeof window === "undefined") {
-      throw new Error("Cannot send forgot password email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendForgotPasswordEmail({ email, callbackUrl: ... })`");
+    if (!options?.callbackUrl && !await this._getCurrentUrl()) {
+      throw new Error("Cannot send forgot password email without a callback URL from the server or without a redirect method. Make sure you pass the `callbackUrl` option: `sendForgotPasswordEmail({ email, callbackUrl: ... })`");
     }
     return await this._interface.sendForgotPasswordEmail(email, options?.callbackUrl ?? constructRedirectUrl(this.urls.passwordReset));
   }
 
   async sendMagicLinkEmail(email: string, options?: { callbackUrl?: string }): Promise<Result<{ nonce: string }, KnownErrors["RedirectUrlNotWhitelisted"]>> {
-    if (!options?.callbackUrl && typeof window === "undefined") {
-      throw new Error("Cannot send magic link email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendMagicLinkEmail({ email, callbackUrl: ... })`");
+    if (!options?.callbackUrl && !await this._getCurrentUrl()) {
+      throw new Error("Cannot send magic link email without a callback URL from the server or without a redirect method. Make sure you pass the `callbackUrl` option: `sendMagicLinkEmail({ email, callbackUrl: ... })`");
     }
     return await this._interface.sendMagicLinkEmail(email, options?.callbackUrl ?? constructRedirectUrl(this.urls.magicLinkCallback));
   }
@@ -1522,7 +1543,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       // TODO fix afterCallbackRedirectUrl for MFA (currently not passed because /mfa/sign-in doesn't return it)
       // or just get rid of afterCallbackRedirectUrl entirely tbh
       if ("afterCallbackRedirectUrl" in result.data && result.data.afterCallbackRedirectUrl) {
-        await _redirectTo(result.data.afterCallbackRedirectUrl, { replace: true });
+        await this._redirectTo({ url: result.data.afterCallbackRedirectUrl, replace: true });
         return true;
       } else if (result.data.newUser) {
         await this.redirectToAfterSignUp({ replace: true });
@@ -1539,7 +1560,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     await storeLock.withWriteLock(async () => {
       await this._interface.signOut(session);
       if (options?.redirectUrl) {
-        await _redirectTo(options.redirectUrl);
+        await this._redirectTo({ url: options.redirectUrl, replace: true });
       } else {
         await this.redirectToAfterSignOut();
       }
@@ -1786,8 +1807,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       isPrimary: crud.is_primary,
       usedForAuth: crud.used_for_auth,
       async sendVerificationEmail(options?: { callbackUrl?: string }) {
-        if (!options?.callbackUrl && typeof window === "undefined") {
-          throw new Error("Cannot send verification email without a callback URL from the server. Make sure you pass the `callbackUrl` option: `sendVerificationEmail({ callbackUrl: ... })`");
+        if (!options?.callbackUrl && !await app._getCurrentUrl()) {
+          throw new Error("Cannot send verification email without a callback URL from the server or without a redirect method. Make sure you pass the `callbackUrl` option: `sendVerificationEmail({ callbackUrl: ... })`");
         }
 
         await app._interface.sendServerContactChannelVerificationEmail(userId, crud.id, options?.callbackUrl ?? constructRedirectUrl(app.urls.emailVerification));
@@ -2062,8 +2083,8 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await app._serverTeamMemberProfilesCache.refresh([crud.id]);
       },
       async inviteUser(options: { email: string, callbackUrl?: string }) {
-        if (!options.callbackUrl && typeof window === "undefined") {
-          throw new Error("Cannot invite user without a callback URL from the server. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
+        if (!options.callbackUrl && !await app._getCurrentUrl()) {
+          throw new Error("Cannot invite user without a callback URL from the server or without a redirect method. Make sure you pass the `callbackUrl` option: `inviteUser({ email, callbackUrl: ... })`");
         }
 
         await app._interface.sendServerTeamInvitation({
@@ -2709,7 +2730,7 @@ type Auth = {
    * ```
    */
   getAuthJson(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
-  registerPasskey(): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>>,
+  registerPasskey(options: { hostname?: string }): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>>,
 };
 
 /**
