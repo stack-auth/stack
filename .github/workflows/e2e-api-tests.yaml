@@ -89,7 +89,7 @@ jobs:
         run: npx wait-on tcp:localhost:2500
 
       - name: Wait on Svix
-        run: npx wait-on tcp:http
+        run: npx wait-on tcp:localhost:8113
 
       - name: Initialize database
         run: pnpm run prisma -- migrate reset --force
