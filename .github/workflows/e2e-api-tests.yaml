@@ -34,6 +34,9 @@ jobs:
         with:
             version: 9.1.2
 
+      - name: Start Docker Compose
+        run: docker compose -f dependencies.compose.yaml up -d
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -70,17 +73,14 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Start Docker Compose
-        run: docker compose -f dependencies.compose.yaml up -d
-
       - name: Wait on Postgres
-        run: npx wait-on tcp:localhost:5432
+        run: pnpm run wait-until-postgres-is-ready:pg_isready
 
       - name: Wait on Inbucket
         run: npx wait-on tcp:localhost:2500
 
       - name: Wait on Svix
-        run: npx wait-on tcp:localhost:8113
+        run: npx wait-on tcp:http
 
       - name: Initialize database
         run: pnpm run prisma -- migrate reset --force
@@ -120,9 +120,6 @@ jobs:
         run: pnpm test
 
       - name: Run tests again, to make sure they are stable (attempt 2)
-        run: pnpm test
-
-      - name: Run tests again, to make sure they are stable (attempt 3)
         run: pnpm test
 
       - name: Verify data integrity
