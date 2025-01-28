@@ -207,32 +207,32 @@ const c = null as unknown as b;
 // });
 
 
-// endpointHandlers1['/users']['POST']['default']({
-//   body: {
-//     fullName: 'John Doe',
-//   },
-//   query: {},
-//   headers: {},
-//   method: 'POST',
-//   url: 'http://localhost:3000/users',
-// }).then((res) => {
-//   console.log(res);
-// }).catch((err) => {
-//   console.error(err);
-// });
-
-endpointHandlers1['/same']['POST']['default']({
+endpointHandlers1['/users']['POST']['default']({
   body: {
-    same: 'same',
+    fullName: 'John Doe',
   },
-  query: {
-    same: 'same',
-  },
+  query: {},
   headers: {},
   method: 'POST',
-  url: 'http://localhost:3000/same',
+  url: 'http://localhost:3000/users',
 }).then((res) => {
   console.log(res);
 }).catch((err) => {
   console.error(err);
 });
+
+// endpointHandlers1['/same']['POST']['default']({
+//   body: {
+//     same: 'same',
+//   },
+//   query: {
+//     same: 'same',
+//   },
+//   headers: {},
+//   method: 'POST',
+//   url: 'http://localhost:3000/same',
+// }).then((res) => {
+//   console.log(res);
+// }).catch((err) => {
+//   console.error(err);
+// });

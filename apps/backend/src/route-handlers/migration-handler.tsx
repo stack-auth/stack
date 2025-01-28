@@ -291,6 +291,31 @@ async function convertRawToParsedResponse<
   return result as any;
 }
 
+async function validateEndpointInput(input: EndpointInputSchema<any, any>, req: ParsedRequest<any, any>) {
+  try {
+    await yupValidate(input.body, req.body);
+    await yupValidate(input.query, req.query);
+  } catch (error) {
+    throw new Error(`Invalid request for ${req.method} ${req.url}\n\nOriginal error: ${error}`);
+  }
+}
+
+async function validateEndpointOutput(output: EndpointOutputSchema<any, any, any>, res: ParsedResponse) {
+  try {
+    await yupValidate(output.body, res.body);
+    if (!output.statusCode.includes(res.statusCode)) {
+      throw new Error(`Status code ${res.statusCode} not in ${output.statusCode.join(', ')}`);
+    }
+    if (output.bodyType !== res.bodyType) {
+      throw new Error(`Body type ${res.bodyType} not in ${output.bodyType}`);
+    }
+    return true;
+  } catch (error) {
+    throw new Error(`Invalid response for ${res.statusCode} ${res.bodyType}\n\nOriginal error: ${error}`);
+  }
+}
+
+
 export function createMigrationRoute(endpointHandlers: EndpointHandlers) {
   return typedFromEntries(allowedMethods.map((method) => {
     return [method, async (req: NextRequest) => {
@@ -319,7 +344,10 @@ function createEndpointHandlers<
     url: string,
     method: typeof allowedMethods[number],
     overload: string,
-    endpointSchema: EndpointInputSchema<any, any>
+    endpointSchema: {
+      input: EndpointInputSchema<any, any>,
+      output: EndpointOutputSchema<any, any, any>,
+    }
   ) => (
     req: ParsedRequest<any, any>,
     options?: { params: Promise<Record<string, string>> }
@@ -337,7 +365,10 @@ function createEndpointHandlers<
           url as string,
           method as typeof allowedMethods[number],
           overload as string,
-          endpointSchema as EndpointInputSchema<any, any>
+          endpointSchema as {
+            input: EndpointInputSchema<any, any>,
+            output: EndpointOutputSchema<any, any, any>,
+          }
         );
       }
       (urlHandlers as any)[method] = methodHandlers;
@@ -361,11 +392,14 @@ export function createMigrationEndpointHandlers<
   return createEndpointHandlers(
     oldEndpointsSchema,
     (url, method, overload, endpointSchema) => async (req: ParsedRequest<any, any>): Promise<ParsedResponse> => {
-      // TODO add validation
+
       let transformedRequest = req;
       const transform = (transforms as any)[url]?.[method]?.[overload];
       if (transform) {
-        return transform({ req, newEndpointHandlers: newEndpointsHandlers });
+        await validateEndpointInput(endpointSchema.input, transformedRequest);
+        const result = await transform({ req, newEndpointHandlers: newEndpointsHandlers });
+        await validateEndpointOutput(endpointSchema.output, result);
+        return result;
       } else {
         const endpoint = (newEndpointsHandlers as any)[url]?.[method];
 
@@ -395,7 +429,7 @@ export function createEndpointHandlersFromRawEndpoints<
 
       const rawRequest = await convertParsedRequestToRaw(req);
       const rawResponse = await endpoint(rawRequest);
-      return await convertRawToParsedResponse(rawResponse, (endpointSchema as any).output);
+      return await convertRawToParsedResponse(rawResponse, endpointSchema.output);
     }
   );
 }
