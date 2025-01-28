@@ -40,6 +40,8 @@ jobs:
         uses: JarvusInnovations/background-action@v1.0.7
         with:
           run: docker compose -f dependencies.compose.yaml up -d &
+          wait-on: |
+            file:/dev/null  # we don't need to wait on anything, just need to start the daemon
           tail: true
           wait-for: 30s
           log-output-if: true
