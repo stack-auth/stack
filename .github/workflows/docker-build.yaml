@@ -12,7 +12,7 @@ on:
 jobs:
   build-server:
     name: Docker Build and Push Server
-    runs-on: ubicloud-standard-8
+    runs-on: ubicloud-standard-16
     steps:
       - name: Checkout
         uses: actions/checkout@v4
