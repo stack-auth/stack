@@ -1,5 +1,6 @@
 {
-  "name": "@stackframe/js",
+  "name": "@stackframe/template",
+  "private": true,
   "version": "2.7.8",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -45,6 +46,21 @@
     "tsx": "^4.7.2",
     "yup": "^1.4.0"
   },
+  "peerDependencies": {
+    "@types/react": ">=18.2 || >=19.0.0-rc.0",
+    "@types/react-dom": ">=18.2 || >=19.0.0-rc.0",
+    "next": ">=14.1 || >=15.0.0-rc.0",
+    "react": ">=18.2 || >=19.0.0-rc.0",
+    "react-dom": ">=18.2 || >=19.0.0-rc.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    },
+    "@types/react-dom": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@quetzallabs/i18n": "^0.1.19",
     "@types/color": "^3.0.6",
@@ -57,6 +73,8 @@
     "i18next": "^23.14.0",
     "i18next-parser": "^9.0.2",
     "next": "^14.1.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "rimraf": "^5.0.5",
     "tsup": "^8.0.2"
   }

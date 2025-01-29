@@ -119,3 +119,8 @@ docs/docs/reference/adapter
 # Python
 __pycache__/
 .venv/
+
+# Generated packages
+packages/js
+packages/react
+packages/next

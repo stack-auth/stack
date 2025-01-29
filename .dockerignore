@@ -1,3 +1,30 @@
+# Docker ignore rules
+.changeset
+.git
+.github
+.turbo
+**/.turbo
+.vscode
+
+.env
+.env.*
+**/.env
+**/.env.*
+**/.next
+
+**/dist
+
+examples
+
+node_modules
+**/node_modules
+
+deploy
+!deploy/docker/**/entrypoint.sh
+docker-compose.yaml
+
+
+
 # Git ignore rules
 *.untracked
 *.untracked.*
@@ -113,27 +140,7 @@ docs/docs/reference/adapter
 __pycache__/
 .venv/
 
-# Docker ignore rules
-.changeset
-.git
-.github
-.turbo
-**/.turbo
-.vscode
-
-.env
-.env.*
-**/.env
-**/.env.*
-**/.next
-
-**/dist
-
-examples
-
-node_modules
-**/node_modules
-
-deploy
-!deploy/docker/**/entrypoint.sh
-docker-compose.yaml
+# Generated packages
+packages/js
+packages/react
+packages/next
