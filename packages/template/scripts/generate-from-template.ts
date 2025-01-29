@@ -82,7 +82,7 @@ function transformPackageJson(
   return JSON.stringify(json, null, 2);
 }
 
-function processMacros(content: string, env: string) {
+function processMacros(content: string, envs: string[]) {
   const lines = content.split('\n');
   const result: string[] = [];
   let skipUntil: string[] = [];
@@ -92,7 +92,7 @@ function processMacros(content: string, env: string) {
     const beginMatch = line.match(/.*BEGIN_ONLY\s+(.+)$/);
     if (beginMatch) {
       const envs = beginMatch[1].split(/\s+/);
-      if (!envs.map(e => e.trim().toLowerCase()).includes(env.toLowerCase())) {
+      if (!envs.map(e => e.trim().toLowerCase()).some(e => envs.includes(e.toLowerCase()))) {
         skipUntil.push('END_ONLY');
       }
       continue;
@@ -128,7 +128,7 @@ generateFromTemplate({
       return null;
     }
 
-    content = processMacros(content, "JS");
+    content = processMacros(content, ["JS"]);
 
     if (path === 'package.json') {
       return transformPackageJson({
@@ -149,13 +149,13 @@ generateFromTemplate({
 
 generateFromTemplate({
   src: currentDir,
-  dest: path.resolve(currentDir, "..", "next"),
+  dest: path.resolve(currentDir, "..", "stack"),
   editFn: (path, content) => {
-    content = processMacros(content, "NEXT");
+    content = processMacros(content, ["NEXT", "REACT-LIKE"]);
 
     if (path === 'package.json') {
       return transformPackageJson({
-        name: "@stackframe/next",
+        name: "@stackframe/stack",
         content,
       });
     }
