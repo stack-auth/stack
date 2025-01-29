@@ -1,10 +1,13 @@
 import { getEnvVariable, getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import { wait } from '@stackframe/stack-shared/dist/utils/promises';
+import apiVersions from './generated/api-versions.json';
+import routes from './generated/routes.json';
 import './polyfills';
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { SmartRouter } from './smart-router';
 
 const corsAllowedRequestHeaders = [
   // General
@@ -76,7 +79,29 @@ export async function middleware(request: NextRequest) {
     return new Response(null, responseInit);
   }
 
-  return NextResponse.next(responseInit);
+  // if no route is available for the requested version, rewrite to newer version
+  let newPathname = url.pathname;
+  outer: for (let i = 0; i < apiVersions.length - 1; i++) {
+    const version = apiVersions[i];
+    const nextVersion = apiVersions[i + 1];
+    if ((newPathname + "/").startsWith(`/api/${version}/`)) {
+      // okay, we're in an API version of the current version. let's check if a route matches this URL
+      for (const route of routes) {
+        if ((route.normalizedPath + "/").startsWith(`/api/${version}/`)) {
+          if (SmartRouter.matchNormalizedPath(newPathname, route.normalizedPath)) {
+            // if the route matches, we don't need to do anything
+            continue outer;
+          }
+        }
+      }
+      // if no route matches, rewrite to the next version
+      newPathname = newPathname.replace(`/api/${version}/`, `/api/${nextVersion}/`);
+    }
+  }
+
+  const newUrl = request.nextUrl.clone();
+  newUrl.pathname = newPathname;
+  return NextResponse.rewrite(newUrl, responseInit);
 }
 
 // See "Matching Paths" below to learn more

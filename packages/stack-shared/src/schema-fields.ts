@@ -14,6 +14,14 @@ declare module "yup" {
     nonEmpty(message?: string): StringSchema<TType, TContext, TDefault, TFlags>,
     empty(): StringSchema<TType, TContext, TDefault, TFlags>,
   }
+
+  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+  interface Schema<TType, TContext, TDefault, TFlags> {
+    getNested<K extends keyof TType>(path: K): yup.Schema<TType[K], TContext, TDefault, TFlags>,
+
+    // the default types for concat kinda suck, so let's fix that
+    concat<U extends yup.AnySchema>(schema: U): yup.Schema<Omit<TType, keyof yup.InferType<U>> & yup.InferType<U>, TContext, TDefault, TFlags>,
+  }
 }
 
 // eslint-disable-next-line no-restricted-syntax
@@ -27,6 +35,10 @@ yup.addMethod(yup.string, "nonEmpty", function (message?: string) {
   );
 });
 
+yup.addMethod(yup.Schema, "getNested", function (path: any) {
+  if (!path.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) throw new StackAssertionError(`yupSchema.getNested can currently only be used with alphanumeric keys. Fix this in the future. Provided key: ${path}`);
+  return yup.reach(this, path) as any;
+});
 
 export async function yupValidate<S extends yup.ISchema<any>>(
   schema: S,
