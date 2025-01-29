@@ -47,6 +47,7 @@ export function ForgotPasswordForm({ onSent }: { onSent?: () => void }) {
       <Input
         id="email"
         type="email"
+        autoComplete="email"
         {...register('email')}
         onChange={() => clearErrors('email')}
       />

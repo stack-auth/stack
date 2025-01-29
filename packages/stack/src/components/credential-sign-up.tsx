@@ -62,7 +62,7 @@ export function CredentialSignUp(props: { noPasswordRepeat?: boolean }) {
       noValidate
     >
       <Label htmlFor="email" className="mb-1">{t('Email')}</Label>
-      <Input id="email" type="email" {...register('email')}/>
+      <Input id="email" type="email" autoComplete="email" {...register('email')}/>
       <FormWarningText text={errors.email?.message?.toString()} />
 
       <Label htmlFor="password" className="mt-4 mb-1">{t('Password')}</Label>

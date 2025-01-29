@@ -141,3 +141,7 @@ tr.stack-clickable-row-missing {
 .fern-sidebar-link-content > svg:last-child {
   display: none;
 }
+
+.stack-white-image-showcase > img {
+  object-fit: contain;
+}

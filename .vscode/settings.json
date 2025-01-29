@@ -49,6 +49,7 @@
     "otlp",
     "pageleave",
     "pageview",
+    "pg_isready",
     "pkcco",
     "PKCE",
     "pooler",
