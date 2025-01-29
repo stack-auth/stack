@@ -846,6 +846,9 @@ importers:
       '@simplewebauthn/browser':
         specifier: ^11.0.0
         version: 11.0.0
+      '@stackframe/js':
+        specifier: workspace:*
+        version: link:../js
       '@stackframe/stack-sc':
         specifier: workspace:*
         version: link:../stack-sc

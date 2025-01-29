@@ -3405,7 +3405,7 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
   & AsyncStoreProperty<"project", [], Project, false>
   & { [K in `redirectTo${Capitalize<keyof Omit<HandlerUrls, 'handler' | 'oauthCallback'>>}`]: (options?: RedirectToOptions) => Promise<void> }
 );
-type StackClientAppConstructor = {
+export type StackClientAppConstructor = {
   new <
     TokenStoreType extends string,
     HasTokenStore extends (TokenStoreType extends {} ? true : boolean),
@@ -3447,7 +3447,7 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
   & AsyncStoreProperty<"teams", [], ServerTeam[], true>
   & StackClientApp<HasTokenStore, ProjectId>
 );
-type StackServerAppConstructor = {
+export type StackServerAppConstructor = {
   new <
     TokenStoreType extends string,
     HasTokenStore extends (TokenStoreType extends {} ? true : boolean),
@@ -3482,7 +3482,7 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
   }
   & StackServerApp<HasTokenStore, ProjectId>
 );
-type StackAdminAppConstructor = {
+export type StackAdminAppConstructor = {
   new <
     HasTokenStore extends boolean,
     ProjectId extends string
