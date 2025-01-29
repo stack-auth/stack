@@ -1,5 +1,5 @@
-import * as fs from "node:fs";
-import * as path from "node:path";
+import * as fs from "fs";
+import * as path from "path";
 
 export async function list(path: string) {
   return await fs.promises.readdir(path);

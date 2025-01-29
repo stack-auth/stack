@@ -1,5 +1,4 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
-import { SmartRouter } from "@/smart-router";
 import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 

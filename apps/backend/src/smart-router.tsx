@@ -1,9 +1,9 @@
 import { isTruthy } from "@stackframe/stack-shared/dist/utils/booleans";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import type { listRecursively as listRecursivelyFn } from "@stackframe/stack-shared/dist/utils/fs";
+import type * as fs from "@stackframe/stack-shared/dist/utils/fs";
 import { numberCompare } from "@stackframe/stack-shared/dist/utils/numbers";
 
-const listRecursively: typeof listRecursivelyFn = async (...args) => {
+const listRecursively: typeof fs.listRecursively = async (...args) => {
   // SmartRouter may be imported on the edge, so we can't import fs at the top level
   // hence, this wrapper function
   const m = await import("@stackframe/stack-shared/dist/utils/fs");
