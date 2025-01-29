@@ -18,9 +18,6 @@ export { MagicLinkSignIn as MagicLinkSignIn } from "./components/magic-link-sign
 export { MessageCard } from "./components/message-cards/message-card";
 export { OAuthButton } from "./components/oauth-button";
 export { OAuthButtonGroup } from "./components/oauth-button-group";
+export { SelectedTeamSwitcher } from "./components/selected-team-switcher";
 export { UserButton } from "./components/user-button";
-
-export {
-  SelectedTeamSwitcher
-} from "./components/selected-team-switcher";
 
