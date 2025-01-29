@@ -91,15 +91,25 @@ function processMacros(content: string, envs: string[]) {
     // Check for BEGIN_ONLY
     const beginMatch = line.match(/.*BEGIN_ONLY\s+(.+)$/);
     if (beginMatch) {
-      const envs = beginMatch[1].split(/\s+/);
-      if (!envs.map(e => e.trim().toLowerCase()).some(e => envs.includes(e.toLowerCase()))) {
+      const lineEnvs = beginMatch[1].split(/\s+/).map(e => e.trim().toLowerCase().replace(/[^a-z0-9-]/g, ''));
+      if (!lineEnvs.some(e => envs.includes(e.toLowerCase()))) {
         skipUntil.push('END_ONLY');
       }
       continue;
     }
 
+    // Check for NEXT_LINE_ONLY
+    const nextLineMatch = line.match(/.*NEXT_LINE_ONLY\s+(.+)$/);
+    if (nextLineMatch) {
+      const lineEnvs = nextLineMatch[1].split(/\s+/);
+      if (!lineEnvs.map(e => e.trim().toLowerCase()).some(e => envs.includes(e.toLowerCase()))) {
+        skipUntil.push('NEXT_LINE');
+      }
+      continue;
+    }
+
     // Check for END_ONLY
-    if (line.trim() === 'END_ONLY') {
+    if (line.includes('END_ONLY')) {
       if (skipUntil[skipUntil.length - 1] === 'END_ONLY') {
         skipUntil.pop();
       }
@@ -108,11 +118,14 @@ function processMacros(content: string, envs: string[]) {
 
     // Skip lines if we're inside a skipped block
     if (skipUntil.length > 0) {
+      if (skipUntil[skipUntil.length - 1] === 'NEXT_LINE') {
+        skipUntil.pop();
+      }
       continue;
     }
 
-    // Don't include BEGIN_ONLY/END_ONLY lines in output
-    if (!line.includes('BEGIN_ONLY') && !line.includes('END_ONLY')) {
+    // Don't include BEGIN_ONLY/END_ONLY/NEXT_LINE_ONLY lines in output
+    if (!line.includes('BEGIN_ONLY') && !line.includes('END_ONLY') && !line.includes('NEXT_LINE_ONLY')) {
       result.push(line);
     }
   }
@@ -128,18 +141,12 @@ generateFromTemplate({
       return null;
     }
 
-    content = processMacros(content, ["JS"]);
+    content = processMacros(content, ["js"]);
 
     if (path === 'package.json') {
       return transformPackageJson({
         name: "@stackframe/js",
         content,
-        transform: (json) => {
-          delete json.peerDependencies;
-          delete json.peerDependenciesMeta;
-          delete json.devDependencies.react;
-          delete json.devDependencies["react-dom"];
-        },
       });
     }
 
@@ -151,7 +158,7 @@ generateFromTemplate({
   src: currentDir,
   dest: path.resolve(currentDir, "..", "stack"),
   editFn: (path, content) => {
-    content = processMacros(content, ["NEXT", "REACT-LIKE"]);
+    content = processMacros(content, ["next", "react-like"]);
 
     if (path === 'package.json') {
       return transformPackageJson({
