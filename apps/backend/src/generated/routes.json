@@ -1,0 +1,518 @@
+[
+  {
+    "filePath": "src/app/.well-known/jwks.json/route.ts",
+    "normalizedPath": "/.well-known/jwks.json",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/[...notFoundPath]/route.ts",
+    "normalizedPath": "/api/[...notFoundPath]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/latest/breaking-change/route.ts",
+    "normalizedPath": "/api/latest/breaking-change",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/latest/latest-only/route.ts",
+    "normalizedPath": "/api/latest/latest-only",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/latest/route.ts",
+    "normalizedPath": "/api/latest",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/mfa/sign-in/route.tsx",
+    "normalizedPath": "/api/v1/auth/mfa/sign-in",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/oauth/authorize/[provider_id]/route.tsx",
+    "normalizedPath": "/api/v1/auth/oauth/authorize/[provider_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/oauth/callback/[provider_id]/route.tsx",
+    "normalizedPath": "/api/v1/auth/oauth/callback/[provider_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/oauth/connected-accounts/[provider_id]/access-token/route.tsx",
+    "normalizedPath": "/api/v1/auth/oauth/connected-accounts/[provider_id]/access-token",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/oauth/token/route.tsx",
+    "normalizedPath": "/api/v1/auth/oauth/token",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/otp/send-sign-in-code/route.tsx",
+    "normalizedPath": "/api/v1/auth/otp/send-sign-in-code",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/otp/sign-in/check-code/route.tsx",
+    "normalizedPath": "/api/v1/auth/otp/sign-in/check-code",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/otp/sign-in/route.tsx",
+    "normalizedPath": "/api/v1/auth/otp/sign-in",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/passkey/initiate-passkey-authentication/route.tsx",
+    "normalizedPath": "/api/v1/auth/passkey/initiate-passkey-authentication",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/passkey/initiate-passkey-registration/route.tsx",
+    "normalizedPath": "/api/v1/auth/passkey/initiate-passkey-registration",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/passkey/register/route.tsx",
+    "normalizedPath": "/api/v1/auth/passkey/register",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/passkey/sign-in/route.tsx",
+    "normalizedPath": "/api/v1/auth/passkey/sign-in",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/password/reset/check-code/route.tsx",
+    "normalizedPath": "/api/v1/auth/password/reset/check-code",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/password/reset/route.tsx",
+    "normalizedPath": "/api/v1/auth/password/reset",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/password/send-reset-code/route.tsx",
+    "normalizedPath": "/api/v1/auth/password/send-reset-code",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/password/set/route.tsx",
+    "normalizedPath": "/api/v1/auth/password/set",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/password/sign-in/route.tsx",
+    "normalizedPath": "/api/v1/auth/password/sign-in",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/password/sign-up/route.tsx",
+    "normalizedPath": "/api/v1/auth/password/sign-up",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/password/update/route.tsx",
+    "normalizedPath": "/api/v1/auth/password/update",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/sessions/current/refresh/route.tsx",
+    "normalizedPath": "/api/v1/auth/sessions/current/refresh",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/sessions/current/route.tsx",
+    "normalizedPath": "/api/v1/auth/sessions/current",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/auth/sessions/route.tsx",
+    "normalizedPath": "/api/v1/auth/sessions",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/check-feature-support/route.tsx",
+    "normalizedPath": "/api/v1/check-feature-support",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/check-version/route.ts",
+    "normalizedPath": "/api/v1/check-version",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/connected-accounts/[user_id]/[provider_id]/access-token/route.tsx",
+    "normalizedPath": "/api/v1/connected-accounts/[user_id]/[provider_id]/access-token",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/contact-channels/[user_id]/[contact_channel_id]/route.tsx",
+    "normalizedPath": "/api/v1/contact-channels/[user_id]/[contact_channel_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/contact-channels/[user_id]/[contact_channel_id]/send-verification-code/route.tsx",
+    "normalizedPath": "/api/v1/contact-channels/[user_id]/[contact_channel_id]/send-verification-code",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/contact-channels/route.tsx",
+    "normalizedPath": "/api/v1/contact-channels",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/contact-channels/send-verification-code/route.tsx",
+    "normalizedPath": "/api/v1/contact-channels/send-verification-code",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/contact-channels/verify/check-code/route.tsx",
+    "normalizedPath": "/api/v1/contact-channels/verify/check-code",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/contact-channels/verify/route.tsx",
+    "normalizedPath": "/api/v1/contact-channels/verify",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/email-templates/[type]/route.tsx",
+    "normalizedPath": "/api/v1/email-templates/[type]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/email-templates/route.tsx",
+    "normalizedPath": "/api/v1/email-templates",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/api-keys/[api_key_id]/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/api-keys/[api_key_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/api-keys/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/api-keys",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/internal/confirm/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/internal/confirm",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/oauth/authorize/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/oauth/authorize",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/oauth/idp/[[...route]]/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/oauth/idp/[[...route]]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/oauth/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/oauth",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/oauth/token/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/oauth/token",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/oauth-providers/[oauth_provider_id]/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/oauth-providers/[oauth_provider_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/oauth-providers/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/oauth-providers",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/projects/provision/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/projects/provision",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/projects/transfer/confirm/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/projects/transfer/confirm",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/projects/transfer/initiate/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/projects/transfer/initiate",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/integrations/neon/webhooks/route.tsx",
+    "normalizedPath": "/api/v1/integrations/neon/webhooks",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/internal/api-keys/[api_key_id]/route.tsx",
+    "normalizedPath": "/api/v1/internal/api-keys/[api_key_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/internal/api-keys/route.tsx",
+    "normalizedPath": "/api/v1/internal/api-keys",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/internal/metrics/route.tsx",
+    "normalizedPath": "/api/v1/internal/metrics",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/internal/projects/route.tsx",
+    "normalizedPath": "/api/v1/internal/projects",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/internal/send-test-email/route.tsx",
+    "normalizedPath": "/api/v1/internal/send-test-email",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/projects/[project_id]/.well-known/jwks.json/route.ts",
+    "normalizedPath": "/api/v1/projects/[project_id]/.well-known/jwks.json",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/projects/current/route.tsx",
+    "normalizedPath": "/api/v1/projects/current",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/route.ts",
+    "normalizedPath": "/api/v1",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-invitations/[id]/route.tsx",
+    "normalizedPath": "/api/v1/team-invitations/[id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-invitations/accept/check-code/route.tsx",
+    "normalizedPath": "/api/v1/team-invitations/accept/check-code",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-invitations/accept/details/route.tsx",
+    "normalizedPath": "/api/v1/team-invitations/accept/details",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-invitations/accept/route.tsx",
+    "normalizedPath": "/api/v1/team-invitations/accept",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-invitations/route.tsx",
+    "normalizedPath": "/api/v1/team-invitations",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-invitations/send-code/route.tsx",
+    "normalizedPath": "/api/v1/team-invitations/send-code",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-member-profiles/[team_id]/[user_id]/route.tsx",
+    "normalizedPath": "/api/v1/team-member-profiles/[team_id]/[user_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-member-profiles/route.tsx",
+    "normalizedPath": "/api/v1/team-member-profiles",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-memberships/[team_id]/[user_id]/route.tsx",
+    "normalizedPath": "/api/v1/team-memberships/[team_id]/[user_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-permission-definitions/[permission_id]/route.tsx",
+    "normalizedPath": "/api/v1/team-permission-definitions/[permission_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-permission-definitions/route.tsx",
+    "normalizedPath": "/api/v1/team-permission-definitions",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-permissions/[team_id]/[user_id]/[permission_id]/route.tsx",
+    "normalizedPath": "/api/v1/team-permissions/[team_id]/[user_id]/[permission_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/team-permissions/route.tsx",
+    "normalizedPath": "/api/v1/team-permissions",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/teams/[team_id]/route.tsx",
+    "normalizedPath": "/api/v1/teams/[team_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/teams/route.tsx",
+    "normalizedPath": "/api/v1/teams",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/users/[user_id]/route.tsx",
+    "normalizedPath": "/api/v1/users/[user_id]",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/users/me/route.tsx",
+    "normalizedPath": "/api/v1/users/me",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/users/route.tsx",
+    "normalizedPath": "/api/v1/users",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v1/webhooks/svix-token/route.tsx",
+    "normalizedPath": "/api/v1/webhooks/svix-token",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v2beta1/breaking-change/route.ts",
+    "normalizedPath": "/api/v2beta1/breaking-change",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v2beta1/latest-only/route.tsx",
+    "normalizedPath": "/api/v2beta1/latest-only",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v2beta1/v2beta1-only/route.tsx",
+    "normalizedPath": "/api/v2beta1/v2beta1-only",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/api/v2beta2/breaking-change/route.ts",
+    "normalizedPath": "/api/v2beta2/breaking-change",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/health/error-handler-debug/endpoint/route.tsx",
+    "normalizedPath": "/health/error-handler-debug/endpoint",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/health/error-handler-debug/page.tsx",
+    "normalizedPath": "/health/error-handler-debug",
+    "isRoute": false,
+    "isPage": true
+  },
+  {
+    "filePath": "src/app/health/route.tsx",
+    "normalizedPath": "/health",
+    "isRoute": true,
+    "isPage": false
+  },
+  {
+    "filePath": "src/app/page.tsx",
+    "normalizedPath": "/",
+    "isRoute": false,
+    "isPage": true
+  }
+]
