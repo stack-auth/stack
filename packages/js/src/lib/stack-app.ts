@@ -1359,6 +1359,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   async signInWithOAuth(provider: ProviderType) {
+    if (typeof window === "undefined") {
+      throw new Error("signInWithOAuth can currently only be called in a browser environment");
+    }
+
     this._ensurePersistentTokenStore();
     await signInWithOAuth(
       this._interface, {
@@ -1526,6 +1530,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
 
   async callOAuthCallback() {
+    if (typeof window === "undefined") {
+      throw new Error("callOAuthCallback can currently only be called in a browser environment");
+    }
+
     this._ensurePersistentTokenStore();
     let result;
     try {
