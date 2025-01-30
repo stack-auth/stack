@@ -7,33 +7,14 @@ const currentDir = path.resolve(__dirname, "..");
 
 const ignoredFiles = ['node_modules', 'dist', '.turbo', 'scripts/generate-from-template.ts'];
 
-function prepareTargetDir(dir: string) {
-  if (fs.existsSync(dir)) {
-    // Read directory contents
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
 
-    // Remove everything except node_modules and dist
-    for (const entry of entries) {
-      if (!ignoredFiles.includes(entry.name)) {
-        const fullPath = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          fs.rmSync(fullPath, { recursive: true, force: true });
-        } else {
-          fs.unlinkSync(fullPath);
-        }
-      }
-    }
-  } else {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-}
-
+/**
+ * Recursively remove empty folders in the given directory.
+ */
 function removeEmptyFolders(dir: string) {
   if (!fs.existsSync(dir)) return;
 
-  // Read directory contents efficiently
   const entries = fs.readdirSync(dir, { withFileTypes: true });
-
   let isEmpty = true;
 
   for (const entry of entries) {
@@ -43,94 +24,168 @@ function removeEmptyFolders(dir: string) {
       // Recursively remove empty subdirectories
       removeEmptyFolders(fullPath);
 
-      // Check again after recursion if the folder is now empty
+      // Check if the folder is now empty
       if (fs.existsSync(fullPath) && fs.readdirSync(fullPath).length === 0) {
         fs.rmSync(fullPath, { recursive: true, force: true });
       } else {
         isEmpty = false;
       }
     } else {
-      isEmpty = false; // Directory contains at least one file
+      // Directory contains at least one file
+      isEmpty = false;
     }
   }
 
-  // Remove the root directory if it is empty
+  // Remove the directory if it is empty
   if (isEmpty) {
     fs.rmSync(dir, { recursive: true, force: true });
   }
 }
 
-function generateFromTemplate(options: {
-  src: string,
-  dest: string,
-  editFn?: (path: string, content: string) => string | null,
-  topLevel?: boolean,
-}) {
-  prepareTargetDir(options.dest);
-
-  // Read directory contents
-  const entries = fs.readdirSync(options.src, { withFileTypes: true });
+/**
+ * Copy all files/directories from srcDir to destDir (recursively).
+ * - Skips copying `ignoredFiles`.
+ * - Skips `package.json` in src.
+ * - Renames `package-template.json` in src to `package.json` in dest.
+ * - Applies `editFn` if provided.
+ */
+function copyFromSrcToDest(
+  srcDir: string,
+  destDir: string,
+  editFn?: (relativePath: string, content: string) => string | null,
+  currentDir = process.cwd()
+) {
+  const entries = fs.readdirSync(srcDir, { withFileTypes: true });
 
   for (const entry of entries) {
-    const srcPath = path.join(options.src, entry.name);
-    const srcRelativePath = path.relative(currentDir, srcPath);
-    let destPath = path.join(options.dest, entry.name);
+    const srcPath = path.join(srcDir, entry.name);
+    const relativePath = path.relative(currentDir, srcPath);
 
-    // Skip node_modules and dist directories
-    if (ignoredFiles.includes(srcRelativePath)) {
+    // If this entry is ignored, skip
+    if (ignoredFiles.includes(entry.name) || ignoredFiles.includes(relativePath)) {
       continue;
     }
 
-    // Handle package.json and package-template.json
-    if (!entry.isDirectory()) {
-      if (entry.name === 'package.json') {
-        continue; // Skip package.json
-      } else if (entry.name === 'package-template.json') {
-        destPath = path.join(options.dest, 'package.json'); // Rename to package.json
-      }
+    // If this is package.json, skip copying from source
+    if (!entry.isDirectory() && entry.name === "package.json") {
+      continue;
+    }
+
+    // Calculate the destination path
+    let destPath = path.join(destDir, entry.name);
+
+    // Rename package-template.json -> package.json
+    if (!entry.isDirectory() && entry.name === "package-template.json") {
+      destPath = path.join(destDir, "package.json");
+    }
+
+    // Ensure the parent directory in dest exists
+    const destParent = path.dirname(destPath);
+    if (!fs.existsSync(destParent)) {
+      fs.mkdirSync(destParent, { recursive: true });
     }
 
     if (entry.isDirectory()) {
       // Recursively copy directory
-      generateFromTemplate({
-        src: srcPath,
-        dest: destPath,
-        editFn: options.editFn,
-        topLevel: false,
-      });
+      copyFromSrcToDest(srcPath, destPath, editFn, currentDir);
     } else {
-      // Copy file
+      // Copy and optionally edit file
       const content = fs.readFileSync(srcPath, "utf-8");
-      const editedContent = options.editFn?.(srcRelativePath, content);
+      const editedContent = editFn?.(relativePath, content);
 
-      // Skip file if editFn returns null
-      if (options.editFn && editedContent === null) {
+      // If editFn returns null, skip writing the file
+      if (editFn && editedContent === null) {
         continue;
       }
 
-      fs.writeFileSync(destPath, editedContent || content);
+      fs.writeFileSync(destPath, editedContent ?? content);
     }
   }
+}
 
-  if (options.topLevel === undefined || options.topLevel) {
-    // Clean up empty folders after generation
-    removeEmptyFolders(options.dest);
+/**
+ * Remove any files/directories in destDir that do not exist in srcDir
+ * (except those in ignoredFiles).
+ *
+ * The logic also accounts for the `package-template.json` -> `package.json` rename:
+ * If there's a `package.json` in dest but not in src, we do not immediately remove it
+ * if src has `package-template.json`.
+ */
+function removeExtraneousDestItems(
+  srcDir: string,
+  destDir: string,
+  currentDir = process.cwd()
+) {
+  if (!fs.existsSync(destDir)) return;
+
+  const destEntries = fs.readdirSync(destDir, { withFileTypes: true });
+
+  for (const entry of destEntries) {
+    const destPath = path.join(destDir, entry.name);
+
+    // If it's ignored, skip removing
+    if (ignoredFiles.includes(entry.name)) {
+      continue;
+    }
+
+    // Figure out the corresponding srcPath (for normal entries):
+    let correspondingSrc = path.join(srcDir, entry.name);
+
+    // Special case: if the dest item is `package.json`, we treat it
+    // as if it corresponds to `package-template.json` in src
+    // (since we renamed on copy).
+    if (entry.name === "package.json") {
+      const altSrc = path.join(srcDir, "package-template.json");
+      if (fs.existsSync(altSrc)) {
+        correspondingSrc = altSrc;
+      }
+    }
+
+    // Check if corresponding src item exists
+    if (!fs.existsSync(correspondingSrc)) {
+      // Remove from dest if src item does not exist
+      fs.rmSync(destPath, { recursive: true, force: true });
+    } else if (entry.isDirectory()) {
+      // Recursively check inside directories
+      removeExtraneousDestItems(correspondingSrc, destPath, currentDir);
+    }
   }
 }
 
-function transformPackageJson(
-  options: {
-    name: string,
-    transform?: (json: any) => void,
-    content: string,
-  },
-) {
-  let json = JSON.parse(options.content);
-  json.name = options.name;
-  delete json.private;
-  options.transform?.(json);
-  return JSON.stringify(json, null, 2);
+/**
+ * Main function to generate from template:
+ * 1. Ensures dest exists
+ * 2. Copies from src to dest (with optional editFn)
+ * 3. Removes any items in dest that aren't in src (except ignored)
+ * 4. Cleans up empty folders
+ */
+function generateFromTemplate(options: {
+  src: string;
+  dest: string;
+  editFn?: (relativePath: string, content: string) => string | null;
+  topLevel?: boolean;
+}) {
+  const { src, dest, editFn, topLevel = true } = options;
+
+  // Step 1: Ensure the destination directory exists
+  if (!fs.existsSync(dest)) {
+    fs.mkdirSync(dest, { recursive: true });
+  }
+
+  // Step 2: Copy everything from src to dest
+  copyFromSrcToDest(src, dest, editFn);
+
+  // Step 3: Remove anything in dest that isn't in src (except ignored)
+  removeExtraneousDestItems(src, dest);
+
+  // Step 4: Optionally clean up empty folders at the top level
+  if (topLevel) {
+    removeEmptyFolders(dest);
+  }
 }
+
+export { generateFromTemplate };
+
 
 function processMacros(content: string, envs: string[]): string {
   const lines = content.split('\n');
