@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 
+const allEnvs = ["next", "react-like", "js"];
+
 const currentDir = path.resolve(__dirname, "..");
 
 const ignoredFiles = ['node_modules', 'dist', '.turbo', 'scripts/generate-from-template.ts'];
@@ -89,24 +91,20 @@ function processMacros(content: string, envs: string[]) {
 
   for (const line of lines) {
     // Check for BEGIN_ONLY
-    const beginMatch = line.match(/.*BEGIN_ONLY\s+(.+)$/);
-    if (beginMatch) {
-      const lineEnvs = beginMatch[1].split(/\s+/).map(e => e.trim().toLowerCase().replace(/[^a-z0-9-]/g, ''));
-      if (!lineEnvs.some(e => envs.includes(e.toLowerCase()))) {
-        skipUntil.push('END_ONLY');
+    const processDirective = (match: RegExpMatchArray | null, skipType: string) => {
+      if (match) {
+        const lineEnvs = match[1].split(/\s+/).map(e => e.trim().toLowerCase().replace(/[^a-z0-9-]/g, ''));
+        if (!lineEnvs.some(e => envs.includes(e))) {
+          skipUntil.push(skipType);
+        }
+        return true;
       }
-      continue;
-    }
+      return false;
+    };
 
-    // Check for NEXT_LINE_ONLY
-    const nextLineMatch = line.match(/.*NEXT_LINE_ONLY\s+(.+)$/);
-    if (nextLineMatch) {
-      const lineEnvs = nextLineMatch[1].split(/\s+/);
-      if (!lineEnvs.map(e => e.trim().toLowerCase()).some(e => envs.includes(e.toLowerCase()))) {
-        skipUntil.push('NEXT_LINE');
-      }
-      continue;
-    }
+    // Check for BEGIN_ONLY and NEXT_LINE_ONLY
+    if (processDirective(line.match(/.*BEGIN_ONLY\s+(.+)$/), 'END_ONLY')) continue;
+    if (processDirective(line.match(/.*NEXT_LINE_ONLY\s+(.+)$/), 'NEXT_LINE')) continue;
 
     // Check for END_ONLY
     if (line.includes('END_ONLY')) {
@@ -133,26 +131,32 @@ function processMacros(content: string, envs: string[]) {
   return result.join('\n');
 }
 
-generateFromTemplate({
-  src: currentDir,
-  dest: path.resolve(currentDir, "..", "js"),
-  editFn: (path, content) => {
-    if (path.startsWith("scripts/")) {
-      return null;
-    }
+// Copy package-template.json to package.json and apply macros
+const packageTemplateContent = fs.readFileSync(path.join(currentDir, 'package-template.json'), 'utf-8');
+const processedPackageJson = processMacros(packageTemplateContent, allEnvs);
+fs.writeFileSync(path.join(currentDir, 'package.json'), processedPackageJson);
 
-    content = processMacros(content, ["js"]);
 
-    if (path === 'package.json') {
-      return transformPackageJson({
-        name: "@stackframe/js",
-        content,
-      });
-    }
+// generateFromTemplate({
+//   src: currentDir,
+//   dest: path.resolve(currentDir, "..", "js"),
+//   editFn: (path, content) => {
+//     if (path.startsWith("scripts/")) {
+//       return null;
+//     }
 
-    return content;
-  },
-});
+//     content = processMacros(content, ["js"]);
+
+//     if (path === 'package.json') {
+//       return transformPackageJson({
+//         name: "@stackframe/js",
+//         content,
+//       });
+//     }
+
+//     return content;
+//   },
+// });
 
 generateFromTemplate({
   src: currentDir,

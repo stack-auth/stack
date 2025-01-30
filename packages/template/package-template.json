@@ -47,30 +47,40 @@
     "@simplewebauthn/browser": "^11.0.0",
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
+    "//": "NEXT_LINE_ONLY react-like",
     "@stackframe/stack-ui": "workspace:*",
+    "//": "NEXT_LINE_ONLY react-like",
     "browser-image-compression": "^2.0.2",
     "color": "^4.2.3",
     "cookie": "^0.6.0",
     "jose": "^5.2.2",
     "js-cookie": "^3.0.5",
+    "//": "NEXT_LINE_ONLY react-like",
     "lucide-react": "^0.378.0",
     "oauth4webapi": "^2.10.3",
     "oslo": "^1.2.1",
     "qrcode": "^1.5.4",
+    "//": "NEXT_LINE_ONLY react-like",
     "react-avatar-editor": "^13.0.2",
+    "//": "NEXT_LINE_ONLY react-like",
     "react-hook-form": "^7.51.4",
     "rimraf": "^5.0.5",
+    "//": "NEXT_LINE_ONLY react-like",
     "tailwindcss-animate": "^1.0.7",
     "tsx": "^4.7.2",
     "yup": "^1.4.0"
   },
+  "//": "BEGIN_ONLY react-like",
   "peerDependencies": {
     "@types/react": ">=18.2 || >=19.0.0-rc.0",
     "@types/react-dom": ">=18.2 || >=19.0.0-rc.0",
+    "//": "NEXT_LINE_ONLY next",
     "next": ">=14.1 || >=15.0.0-rc.0",
     "react": ">=18.2 || >=19.0.0-rc.0",
     "react-dom": ">=18.2 || >=19.0.0-rc.0"
   },
+  "//": "END_ONLY",
+  "//": "BEGIN_ONLY react-like",
   "peerDependenciesMeta": {
     "@types/react": {
       "optional": true
@@ -79,6 +89,7 @@
       "optional": true
     }
   },
+  "//": "END_ONLY",
   "devDependencies": {
     "@quetzallabs/i18n": "^0.1.19",
     "@types/color": "^3.0.6",
@@ -95,6 +106,7 @@
     "postcss": "^8.4.38",
     "postcss-nested": "^6.0.1",
     "react": "^18.2.0",
+    "//": "NEXT_LINE_ONLY react-like",
     "react-dom": "^18.2.0",
     "rimraf": "^5.0.5",
     "tailwindcss": "^3.4.4",

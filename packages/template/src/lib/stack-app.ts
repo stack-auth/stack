@@ -875,7 +875,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const tokens = await this.currentSession.getTokens();
         return tokens;
       },
-      async registerPasskey(options: { hostname?: string }): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>> {
+      async registerPasskey(options?: { hostname?: string }): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>> {
         const hostname = (await app._getCurrentUrl())?.hostname;
         if (!hostname) {
           throw new StackAssertionError("hostname must be provided if the Stack App does not have a redirect method");
@@ -2738,7 +2738,7 @@ type Auth = {
    * ```
    */
   getAuthJson(): Promise<{ accessToken: string | null, refreshToken: string | null }>,
-  registerPasskey(options: { hostname?: string }): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>>,
+  registerPasskey(options?: { hostname?: string }): Promise<Result<undefined, KnownErrors["PasskeyRegistrationFailed"] | KnownErrors["PasskeyWebAuthnError"]>>,
 };
 
 /**
