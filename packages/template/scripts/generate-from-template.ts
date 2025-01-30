@@ -28,10 +28,43 @@ function prepareTargetDir(dir: string) {
   }
 }
 
+function removeEmptyFolders(dir: string) {
+  if (!fs.existsSync(dir)) return;
+
+  // Read directory contents efficiently
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  let isEmpty = true;
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      // Recursively remove empty subdirectories
+      removeEmptyFolders(fullPath);
+
+      // Check again after recursion if the folder is now empty
+      if (fs.existsSync(fullPath) && fs.readdirSync(fullPath).length === 0) {
+        fs.rmSync(fullPath, { recursive: true, force: true });
+      } else {
+        isEmpty = false;
+      }
+    } else {
+      isEmpty = false; // Directory contains at least one file
+    }
+  }
+
+  // Remove the root directory if it is empty
+  if (isEmpty) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 function generateFromTemplate(options: {
   src: string,
   dest: string,
   editFn?: (path: string, content: string) => string | null,
+  topLevel?: boolean,
 }) {
   prepareTargetDir(options.dest);
 
@@ -54,6 +87,7 @@ function generateFromTemplate(options: {
         src: srcPath,
         dest: destPath,
         editFn: options.editFn,
+        topLevel: false,
       });
     } else {
       // Copy file
@@ -67,6 +101,11 @@ function generateFromTemplate(options: {
 
       fs.writeFileSync(destPath, editedContent || content);
     }
+  }
+
+  if (options.topLevel === undefined || options.topLevel) {
+    // Clean up empty folders after generation
+    removeEmptyFolders(options.dest);
   }
 }
 
@@ -142,20 +181,22 @@ generateFromTemplate({
   dest: path.resolve(currentDir, "..", "js"),
   editFn: (path, content) => {
     const ignores = [
-      "scripts/",
-      "quetzal-translations",
-      "src/components/",
-      "src/components-page/",
-      "src/generated/",
-      "src/providers/",
-      "src/translations.tsx",
       "postcss.config.js",
       "tailwind.config.js",
       "quetzal.config.json",
       "components.json",
+      "scripts/",
+      "quetzal-translations/",
+      "src/components/",
+      "src/components-page/",
+      "src/generated/",
+      "src/providers/",
+      "src/global.css",
+      ".env",
+      ".env.local",
     ];
 
-    if (ignores.some(ignorePath => path.startsWith(ignorePath))) {
+    if (ignores.some(ignorePath => path.startsWith(ignorePath)) || path.endsWith('.tsx')) {
       return null;
     }
 
