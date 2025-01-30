@@ -28,11 +28,25 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist && rimraf node_modules",
     "lint": "eslint --ext .tsx,.ts .",
-    "//": "BEGIN_PLATFORM react-like",
+
+    "//": "BEGIN_PLATFORM template",
+    "build": "rimraf dist && pnpm run css && pnpm generate-from_template && tsup-node",
+    "dev": "rimraf dist && concurrently -n \"build,codegen\" -k \"tsup-node --watch\" \"pnpm run codegen:watch\"",
+    "codegen": "pnpm run css && pnpm run quetzal && pnpm run generate-from-template",
+    "codegen:watch": "concurrently -n \"css,quetzal,generate-from-template\" -k \"pnpm run css:watch\" \"pnpm run quetzal:watch\" \"pnpm run generate-from-template:watch\"",
+    "generate-from-template": "tsx ./scripts/generate-from-template.ts",
+    "generate-from-template:watch": "chokidar --silent './**/*' -i '**/node_modules/**' -i '**/dist/**' -i '**/.turbo/**' -c 'pnpm run generate-from-template'",
+    "//": "ELSE_IF_PLATFORM react-like",
     "build": "rimraf dist && pnpm run css && tsup-node",
+    "dev": "rimraf dist && concurrently -n \"build,codegen\" -k \"tsup-node --watch\" \"pnpm run codegen:watch\"",
     "codegen": "pnpm run css && pnpm run quetzal",
     "codegen:watch": "concurrently -n \"css,quetzal\" -k \"pnpm run css:watch\" \"pnpm run quetzal:watch\"",
-    "dev": "rimraf dist && concurrently -n \"build,codegen\" -k \"tsup-node --watch\" \"pnpm run codegen:watch\"",
+    "//": "ELSE_IF_PLATFORM js",
+    "build": "rimraf dist && tsup-node",
+    "dev": "rimraf dist && tsup-node --watch"
+    ,"//": "END_PLATFORM",
+
+    "//": "BEGIN_PLATFORM react-like",
     "css": "pnpm run css-tw && pnpm run css-sc",
     "css:watch": "concurrently -n \"tw,sc\" -k \"pnpm run css-tw:watch\" \"pnpm run css-sc:watch\"",
     "css-tw:watch": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css --watch",
@@ -43,9 +57,6 @@
     "quetzal": "rimraf quetzal-translations && pnpm run override-env-local-for-quetzal && quetzal-process-translations && tsx ./scripts/merge-quetzal-translations.ts",
     "quetzal:ignore-errors": "pnpm run quetzal || echo Quetzal failed, probably because the API key is missing. We will just ignore it",
     "quetzal:watch": "chokidar --silent \"src/**/*\" -i \"src/generated/quetzal-translations.ts\" -c 'pnpm run quetzal:ignore-errors'"
-    ,"//": "ELSE_PLATFORM",
-    "build": "rimraf dist && tsup-node",
-    "dev": "rimraf dist && tsup-node --watch"
     ,"//": "END_PLATFORM"
   },
   "files": [

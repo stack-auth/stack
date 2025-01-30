@@ -20,6 +20,21 @@ export type CookieHelper = {
   delete: (name: string, options: DeleteCookieOptions) => void,
 };
 
+export async function createEmptyCookieHelper(): Promise<CookieHelper> {
+  function throwError() {
+    throw new Error("Empty cookie helper is just a placeholder. This should never be called");
+  }
+  return {
+    get: () => {
+      throwError();
+      return null;
+    },
+    set: throwError,
+    setOrDelete: throwError,
+    delete: throwError,
+  };
+}
+
 export async function createCookieHelper(): Promise<CookieHelper> {
   if (isBrowserLike()) {
     return createBrowserCookieHelper();

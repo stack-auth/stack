@@ -36,7 +36,7 @@ import * as NextNavigationUnscrambled from "next/navigation"; // import the enti
 import React, { useCallback, useMemo } from "react";
 import { constructRedirectUrl } from "../utils/url";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
-import { CookieHelper, createBrowserCookieHelper, createCookieHelper, deleteCookieClient, getCookieClient, setOrDeleteCookie, setOrDeleteCookieClient } from "./cookie";
+import { CookieHelper, createBrowserCookieHelper, createCookieHelper, createEmptyCookieHelper, deleteCookieClient, getCookieClient, setOrDeleteCookie, setOrDeleteCookieClient } from "./cookie";
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
 
@@ -360,6 +360,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   );
 
+  protected async _createCookieHelper(): Promise<CookieHelper> {
+    if (this._tokenStoreInit === 'nextjs-cookie' || this._tokenStoreInit === 'cookie') {
+      return await createCookieHelper();
+    } else {
+      return await createEmptyCookieHelper();
+    }
+  }
+
   protected async _getUserOAuthConnectionCacheFn(options: {
     getUser: () => Promise<CurrentUserCrud['Client']['Read'] | null>,
     getOrWaitOAuthToken: () => Promise<{ accessToken: string } | null>,
@@ -650,12 +658,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
 
+  // BEGIN_PLATFORM react-like
   protected _useTokenStore(overrideTokenStoreInit?: TokenStoreInit): Store<TokenObject> {
     suspendIfSsr();
     const cookieHelper = createBrowserCookieHelper();
     const tokenStore = this._getOrCreateTokenStore(cookieHelper, overrideTokenStoreInit);
     return tokenStore;
   }
+  // END_PLATFORM react-like
 
   /**
    * A map from token stores and session keys to sessions.
@@ -697,7 +707,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   }
 
   protected async _getSession(overrideTokenStoreInit?: TokenStoreInit): Promise<InternalSession> {
-    const tokenStore = this._getOrCreateTokenStore(await createCookieHelper(), overrideTokenStoreInit);
+    const tokenStore = this._getOrCreateTokenStore(await this._createCookieHelper(), overrideTokenStoreInit);
     return this._getSessionFromTokenStore(tokenStore);
   }
 
@@ -719,7 +729,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (!("accessToken" in tokens) || !("refreshToken" in tokens)) {
       throw new StackAssertionError("Invalid tokens object; can't sign in with this", { tokens });
     }
-    const tokenStore = this._getOrCreateTokenStore(await createCookieHelper());
+    const tokenStore = this._getOrCreateTokenStore(await this._createCookieHelper());
     tokenStore.set(tokens);
   }
 

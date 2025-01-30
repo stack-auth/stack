@@ -21,10 +21,14 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist && rimraf node_modules",
     "lint": "eslint --ext .tsx,.ts .",
-    "build": "rimraf dist && pnpm run css && tsup-node",
-    "codegen": "pnpm run css && pnpm run quetzal",
-    "codegen:watch": "concurrently -n \"css,quetzal\" -k \"pnpm run css:watch\" \"pnpm run quetzal:watch\"",
+
+    "build": "rimraf dist && pnpm run css && pnpm generate-from_template && tsup-node",
     "dev": "rimraf dist && concurrently -n \"build,codegen\" -k \"tsup-node --watch\" \"pnpm run codegen:watch\"",
+    "codegen": "pnpm run css && pnpm run quetzal && pnpm run generate-from-template",
+    "codegen:watch": "concurrently -n \"css,quetzal,generate-from-template\" -k \"pnpm run css:watch\" \"pnpm run quetzal:watch\" \"pnpm run generate-from-template:watch\"",
+    "generate-from-template": "tsx ./scripts/generate-from-template.ts",
+    "generate-from-template:watch": "chokidar --silent './**/*' -i '**/node_modules/**' -i '**/dist/**' -i '**/.turbo/**' -c 'pnpm run generate-from-template'",
+
     "css": "pnpm run css-tw && pnpm run css-sc",
     "css:watch": "concurrently -n \"tw,sc\" -k \"pnpm run css-tw:watch\" \"pnpm run css-sc:watch\"",
     "css-tw:watch": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css --watch",

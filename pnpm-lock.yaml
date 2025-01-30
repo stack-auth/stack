@@ -624,6 +624,15 @@ importers:
         specifier: ^5
         version: 5.3.3
 
+  examples/js-example:
+    dependencies:
+      '@stackframe/js':
+        specifier: workspace:*
+        version: link:../../packages/js
+      dotenv-cli:
+        specifier: ^7.4.1
+        version: 7.4.1
+
   examples/middleware:
     dependencies:
       '@stackframe/stack':
@@ -755,18 +764,6 @@ importers:
       '@stackframe/stack-shared':
         specifier: workspace:*
         version: link:../stack-shared
-      '@stackframe/stack-ui':
-        specifier: workspace:*
-        version: link:../stack-ui
-      '@types/react':
-        specifier: ^18.2.0
-        version: 18.3.12
-      '@types/react-dom':
-        specifier: ^18.2.0
-        version: 18.3.1
-      browser-image-compression:
-        specifier: ^2.0.2
-        version: 2.0.2
       color:
         specifier: ^4.2.3
         version: 4.2.3
@@ -779,9 +776,6 @@ importers:
       js-cookie:
         specifier: ^3.0.5
         version: 3.0.5
-      lucide-react:
-        specifier: ^0.378.0
-        version: 0.378.0(react@18.3.1)
       oauth4webapi:
         specifier: ^2.10.3
         version: 2.10.4
@@ -791,18 +785,9 @@ importers:
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
-      react-avatar-editor:
-        specifier: ^13.0.2
-        version: 13.0.2(@babel/core@7.26.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react-hook-form:
-        specifier: ^7.51.4
-        version: 7.53.1(react@18.3.1)
       rimraf:
         specifier: ^5.0.5
         version: 5.0.10
-      tailwindcss-animate:
-        specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.14)
       tsx:
         specifier: ^4.7.2
         version: 4.16.2
@@ -812,7 +797,7 @@ importers:
     devDependencies:
       '@quetzallabs/i18n':
         specifier: ^0.1.19
-        version: 0.1.19(next@14.2.5(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+        version: 0.1.19(next@14.2.5(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@18.3.1))(react@18.3.1))
       '@types/color':
         specifier: ^3.0.6
         version: 3.0.6
@@ -845,7 +830,7 @@ importers:
         version: 9.0.2
       next:
         specifier: ^14.1.0
-        version: 14.2.5(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 14.2.5(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@18.3.1))(react@18.3.1)
       postcss:
         specifier: ^8.4.38
         version: 8.4.47
@@ -855,9 +840,6 @@ importers:
       react:
         specifier: ^18.2.0
         version: 18.3.1
-      react-dom:
-        specifier: ^18.2.0
-        version: 18.3.1(react@18.3.1)
       tailwindcss:
         specifier: ^3.4.4
         version: 3.4.14
@@ -13616,6 +13598,23 @@ snapshots:
       - next
       - supports-color
 
+  '@quetzallabs/i18n@0.1.19(next@14.2.5(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@18.3.1))(react@18.3.1))':
+    dependencies:
+      '@babel/parser': 7.25.6
+      '@babel/traverse': 7.25.6
+      axios: 1.7.4
+      dotenv: 10.0.0
+      i18next: 21.10.0
+      i18next-parser: 9.0.2
+      next-intl: 3.19.1(next@14.2.5(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@18.3.1))(react@18.3.1))(react@18.3.1)
+      path: 0.12.7
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+    transitivePeerDependencies:
+      - debug
+      - next
+      - supports-color
+
   '@radix-ui/colors@1.0.1': {}
 
   '@radix-ui/number@1.1.0': {}
@@ -19889,6 +19888,14 @@ snapshots:
       react: 18.3.1
       use-intl: 3.19.1(react@18.3.1)
 
+  next-intl@3.19.1(next@14.2.5(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@18.3.1))(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@formatjs/intl-localematcher': 0.5.4
+      negotiator: 0.6.3
+      next: 14.2.5(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@18.3.1))(react@18.3.1)
+      react: 18.3.1
+      use-intl: 3.19.1(react@18.3.1)
+
   next-themes@0.2.1(next@14.2.15(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       next: 14.2.15(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -19989,7 +19996,7 @@ snapshots:
       '@next/env': 14.2.5
       '@swc/helpers': 0.5.5
       busboy: 1.6.0
-      caniuse-lite: 1.0.30001696
+      caniuse-lite: 1.0.30001678
       graceful-fs: 4.2.11
       postcss: 8.4.31
       react: 18.2.0
@@ -20015,7 +20022,7 @@ snapshots:
       '@next/env': 14.2.5
       '@swc/helpers': 0.5.5
       busboy: 1.6.0
-      caniuse-lite: 1.0.30001696
+      caniuse-lite: 1.0.30001678
       graceful-fs: 4.2.11
       postcss: 8.4.31
       react: 18.2.0
@@ -20046,6 +20053,32 @@ snapshots:
       postcss: 8.4.31
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
+      styled-jsx: 5.1.1(@babel/core@7.26.0)(react@18.3.1)
+    optionalDependencies:
+      '@next/swc-darwin-arm64': 14.2.5
+      '@next/swc-darwin-x64': 14.2.5
+      '@next/swc-linux-arm64-gnu': 14.2.5
+      '@next/swc-linux-arm64-musl': 14.2.5
+      '@next/swc-linux-x64-gnu': 14.2.5
+      '@next/swc-linux-x64-musl': 14.2.5
+      '@next/swc-win32-arm64-msvc': 14.2.5
+      '@next/swc-win32-ia32-msvc': 14.2.5
+      '@next/swc-win32-x64-msvc': 14.2.5
+      '@opentelemetry/api': 1.9.0
+    transitivePeerDependencies:
+      - '@babel/core'
+      - babel-plugin-macros
+
+  next@14.2.5(@babel/core@7.26.0)(@opentelemetry/api@1.9.0)(react-dom@19.0.0(react@18.3.1))(react@18.3.1):
+    dependencies:
+      '@next/env': 14.2.5
+      '@swc/helpers': 0.5.5
+      busboy: 1.6.0
+      caniuse-lite: 1.0.30001678
+      graceful-fs: 4.2.11
+      postcss: 8.4.31
+      react: 18.3.1
+      react-dom: 19.0.0(react@18.3.1)
       styled-jsx: 5.1.1(@babel/core@7.26.0)(react@18.3.1)
     optionalDependencies:
       '@next/swc-darwin-arm64': 14.2.5
@@ -20836,6 +20869,11 @@ snapshots:
       loose-envify: 1.4.0
       react: 18.3.1
       scheduler: 0.23.2
+
+  react-dom@19.0.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
+      scheduler: 0.25.0
 
   react-dom@19.0.0(react@19.0.0):
     dependencies:
