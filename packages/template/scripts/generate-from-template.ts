@@ -137,26 +137,26 @@ const processedPackageJson = processMacros(packageTemplateContent, allEnvs);
 fs.writeFileSync(path.join(currentDir, 'package.json'), processedPackageJson);
 
 
-// generateFromTemplate({
-//   src: currentDir,
-//   dest: path.resolve(currentDir, "..", "js"),
-//   editFn: (path, content) => {
-//     if (path.startsWith("scripts/")) {
-//       return null;
-//     }
+generateFromTemplate({
+  src: currentDir,
+  dest: path.resolve(currentDir, "..", "js"),
+  editFn: (path, content) => {
+    if (path.startsWith("scripts/")) {
+      return null;
+    }
 
-//     content = processMacros(content, ["js"]);
+    content = processMacros(content, ["js"]);
 
-//     if (path === 'package.json') {
-//       return transformPackageJson({
-//         name: "@stackframe/js",
-//         content,
-//       });
-//     }
+    if (path === 'package.json') {
+      return transformPackageJson({
+        name: "@stackframe/js",
+        content,
+      });
+    }
 
-//     return content;
-//   },
-// });
+    return content;
+  },
+});
 
 generateFromTemplate({
   src: currentDir,
