@@ -5,7 +5,7 @@ const allEnvs = ["next", "react-like", "js"];
 
 const currentDir = path.resolve(__dirname, "..");
 
-const ignoredFiles = ['node_modules', 'dist', '.turbo', 'scripts/generate-from-template.ts'];
+const ignoredFiles = ['node_modules', 'dist', '.turbo', 'scripts/generate-from-template.ts', "package-template.json"];
 
 function prepareTargetDir(dir: string) {
   if (fs.existsSync(dir)) {
@@ -58,14 +58,14 @@ function generateFromTemplate(options: {
     } else {
       // Copy file
       const content = fs.readFileSync(srcPath, "utf-8");
-      const editedContent = options.editFn?.(srcRelativePath, content) ?? content;
+      const editedContent = options.editFn?.(srcRelativePath, content);
 
       // Skip file if editFn returns null
-      if (editedContent === null) {
+      if (options.editFn && editedContent === null) {
         continue;
       }
 
-      fs.writeFileSync(destPath, editedContent);
+      fs.writeFileSync(destPath, editedContent || content);
     }
   }
 }
@@ -141,7 +141,21 @@ generateFromTemplate({
   src: currentDir,
   dest: path.resolve(currentDir, "..", "js"),
   editFn: (path, content) => {
-    if (path.startsWith("scripts/")) {
+    const ignores = [
+      "scripts/",
+      "quetzal-translations",
+      "src/components/",
+      "src/components-page/",
+      "src/generated/",
+      "src/providers/",
+      "src/translations.tsx",
+      "postcss.config.js",
+      "tailwind.config.js",
+      "quetzal.config.json",
+      "components.json",
+    ];
+
+    if (ignores.some(ignorePath => path.startsWith(ignorePath)) || path.endsWith(".tsx")) {
       return null;
     }
 
