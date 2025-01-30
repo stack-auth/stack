@@ -1,6 +1,6 @@
 export * from './lib/stack-app';
 
-// BEGIN_ONLY react-like
+// BEGIN_PLATFORM react-like
 export { default as StackHandler } from "./components-page/stack-handler";
 export { useStackApp, useUser } from "./lib/hooks";
 export { default as StackProvider } from "./providers/stack-provider";
@@ -22,4 +22,4 @@ export { OAuthButton } from "./components/oauth-button";
 export { OAuthButtonGroup } from "./components/oauth-button-group";
 export { SelectedTeamSwitcher } from "./components/selected-team-switcher";
 export { UserButton } from "./components/user-button";
-// END_ONLY react-like
+// END_PLATFORM react-like

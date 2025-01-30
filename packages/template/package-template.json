@@ -1,5 +1,12 @@
 {
+  "//": "BEGIN_PLATFORM template",
   "name": "@stackframe/template",
+  "//": "ELSE_IF_PLATFORM js",
+  "name": "@stackframe/js",
+  "//": "ELSE_PLATFORM next",
+  "name": "@stackframe/stack",
+  "//": "END_PLATFORM",
+  "//": "NEXT_LINE_ONLY template",
   "private": true,
   "version": "2.7.8",
   "sideEffects": false,
@@ -19,6 +26,7 @@
   "homepage": "https://stack-auth.com",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "//": "BEGIN_PLATFORM react-like",
     "build": "rimraf dist && pnpm run css && tsup-node",
     "codegen": "pnpm run css && pnpm run quetzal",
     "codegen:watch": "concurrently -n \"css,quetzal\" -k \"pnpm run css:watch\" \"pnpm run quetzal:watch\"",
@@ -35,6 +43,9 @@
     "quetzal": "rimraf quetzal-translations && pnpm run override-env-local-for-quetzal && quetzal-process-translations && tsx ./scripts/merge-quetzal-translations.ts",
     "quetzal:ignore-errors": "pnpm run quetzal || echo Quetzal failed, probably because the API key is missing. We will just ignore it",
     "quetzal:watch": "chokidar --silent \"src/**/*\" -i \"src/generated/quetzal-translations.ts\" -c 'pnpm run quetzal:ignore-errors'"
+    ,"//": "ELSE_PLATFORM",
+    "build": "echo 'build'"
+    ,"//": "END_PLATFORM"
   },
   "files": [
     "README.md",
@@ -70,7 +81,7 @@
     "tsx": "^4.7.2",
     "yup": "^1.4.0"
   },
-  "//": "BEGIN_ONLY react-like",
+  "//": "BEGIN_PLATFORM react-like",
   "peerDependencies": {
     "@types/react": ">=18.2 || >=19.0.0-rc.0",
     "@types/react-dom": ">=18.2 || >=19.0.0-rc.0",
@@ -79,8 +90,8 @@
     "react": ">=18.2 || >=19.0.0-rc.0",
     "react-dom": ">=18.2 || >=19.0.0-rc.0"
   },
-  "//": "END_ONLY",
-  "//": "BEGIN_ONLY react-like",
+  "//": "END_PLATFORM",
+  "//": "BEGIN_PLATFORM react-like",
   "peerDependenciesMeta": {
     "@types/react": {
       "optional": true
@@ -89,7 +100,7 @@
       "optional": true
     }
   },
-  "//": "END_ONLY",
+  "//": "END_PLATFORM",
   "devDependencies": {
     "@quetzallabs/i18n": "^0.1.19",
     "@types/color": "^3.0.6",

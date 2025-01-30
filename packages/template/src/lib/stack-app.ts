@@ -190,7 +190,7 @@ function createEmptyTokenStore() {
 
 const cachePromiseByComponentId = new Map<string, ReactPromise<Result<unknown>>>();
 
-// BEGIN_ONLY react-like
+// BEGIN_PLATFORM react-like
 function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, Result<T>>, dependencies: D, caller: string): T {
   // we explicitly don't want to run this hook in SSR
   suspendIfSsr(caller);
@@ -232,7 +232,7 @@ function useAsyncCache<D extends any[], T>(cache: AsyncCache<D, Result<T>>, depe
   }
   return result.data;
 }
-// END_ONLY react-like
+// END_PLATFORM react-like
 
 /** @internal */
 export const stackAppInternalsSymbol = Symbol.for("StackAuth--DO-NOT-USE-OR-YOU-WILL-BE-FIRED--StackAppInternals");
@@ -329,9 +329,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return await this._getUserOAuthConnectionCacheFn({
         getUser: async () => Result.orThrow(await this._currentUserCache.getOrWait([session], "write-only")),
         getOrWaitOAuthToken: async () => Result.orThrow(await this._currentUserOAuthConnectionAccessTokensCache.getOrWait([session, providerId, scope || ""] as const, "write-only")),
-        // BEGIN_ONLY react-like
+        // BEGIN_PLATFORM react-like
         useOAuthToken: () => useAsyncCache(this._currentUserOAuthConnectionAccessTokensCache, [session, providerId, scope || ""] as const, "useOAuthToken"),
-        // END_ONLY react-like
+        // END_PLATFORM react-like
         providerId,
         scope,
         redirect,
@@ -363,9 +363,9 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected async _getUserOAuthConnectionCacheFn(options: {
     getUser: () => Promise<CurrentUserCrud['Client']['Read'] | null>,
     getOrWaitOAuthToken: () => Promise<{ accessToken: string } | null>,
-    // BEGIN_ONLY react-like
+    // BEGIN_PLATFORM react-like
     useOAuthToken: () => { accessToken: string } | null,
-    // END_ONLY react-like
+    // END_PLATFORM react-like
     providerId: ProviderType,
     scope: string | null,
   } & ({ redirect: true, session: InternalSession | null } | { redirect: false }),) {
@@ -409,7 +409,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         }
         return result;
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useAccessToken() {
         const result = options.useOAuthToken();
         if (!result) {
@@ -417,7 +417,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         }
         return result;
       }
-      // END_ONLY react-like
+      // END_PLATFORM react-like
     };
   }
 
@@ -701,7 +701,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._getSessionFromTokenStore(tokenStore);
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   protected _useSession(overrideTokenStoreInit?: TokenStoreInit): InternalSession {
     const tokenStore = this._useTokenStore(overrideTokenStoreInit);
     const subscribe = useCallback((cb: () => void) => {
@@ -713,7 +713,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     const getSnapshot = useCallback(() => this._getSessionFromTokenStore(tokenStore), [tokenStore]);
     return React.useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
   protected async _signInToAccountWithTokens(tokens: { accessToken: string | null, refreshToken: string }) {
     if (!("accessToken" in tokens) || !("refreshToken" in tokens)) {
@@ -813,22 +813,22 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const result = Result.orThrow(await app._teamMemberProfilesCache.getOrWait([session, crud.id], "write-only"));
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useUsers() {
         const result = useAsyncCache(app._teamMemberProfilesCache, [session, crud.id] as const, "team.useUsers()");
         return result.map((crud) => app._clientTeamUserFromCrud(crud));
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async listInvitations() {
         const result = Result.orThrow(await app._teamInvitationsCache.getOrWait([session, crud.id], "write-only"));
         return result.map((crud) => app._clientTeamInvitationFromCrud(session, crud));
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useInvitations() {
         const result = useAsyncCache(app._teamInvitationsCache, [session, crud.id] as const, "team.useInvitations()");
         return result.map((crud) => app._clientTeamInvitationFromCrud(session, crud));
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async update(data: TeamUpdateOptions){
         await app._interface.updateTeam({ data: teamUpdateOptionsToCrud(data), teamId: crud.id }, session);
         await app._currentUserTeamsCache.refresh([session]);
@@ -981,14 +981,14 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return Result.orThrow(await app._currentUserOAuthConnectionCache.getOrWait([session, id, scopeString || "", options?.or === 'redirect'], "write-only"));
     }
 
-    // BEGIN_ONLY react-like
+    // BEGIN_PLATFORM react-like
     function useConnectedAccount(id: ProviderType, options?: { scopes?: string[] }): OAuthConnection | null;
     function useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
     function useConnectedAccount(id: ProviderType, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
       const scopeString = options?.scopes?.join(" ");
       return useAsyncCache(app._currentUserOAuthConnectionCache, [session, id, scopeString || "", options?.or === 'redirect'] as const, "user.useConnectedAccount()");
     }
-    // END_ONLY react-like
+    // END_PLATFORM react-like
     return {
       setDisplayName(displayName: string) {
         return this.update({ displayName });
@@ -1006,24 +1006,24 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const teams = await this.listTeams();
         return teams.find((t) => t.id === teamId) ?? null;
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useTeam(teamId: string) {
         const teams = this.useTeams();
         return useMemo(() => {
           return teams.find((t) => t.id === teamId) ?? null;
         }, [teams, teamId]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async listTeams() {
         const teams = Result.orThrow(await app._currentUserTeamsCache.getOrWait([session], "write-only"));
         return teams.map((crud) => app._clientTeamFromCrud(crud, session));
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useTeams() {
         const teams = useAsyncCache(app._currentUserTeamsCache, [session], "user.useTeams()");
         return useMemo(() => teams.map((crud) => app._clientTeamFromCrud(crud, session)), [teams]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async createTeam(data: TeamCreateOptions) {
         const crud = await app._interface.createClientTeam({
           ...teamCreateOptionsToCrud(data),
@@ -1041,19 +1041,19 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const permissions = Result.orThrow(await app._currentUserPermissionsCache.getOrWait([session, scope.id, recursive], "write-only"));
         return permissions.map((crud) => app._clientTeamPermissionFromCrud(crud));
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       usePermissions(scope: Team, options?: { recursive?: boolean }): TeamPermission[] {
         const recursive = options?.recursive ?? true;
         const permissions = useAsyncCache(app._currentUserPermissionsCache, [session, scope.id, recursive] as const, "user.usePermissions()");
         return useMemo(() => permissions.map((crud) => app._clientTeamPermissionFromCrud(crud)), [permissions]);
       },
-      // END_ONLY react-like
-      // BEGIN_ONLY react-like
+      // END_PLATFORM react-like
+      // BEGIN_PLATFORM react-like
       usePermission(scope: Team, permissionId: string): TeamPermission | null {
         const permissions = this.usePermissions(scope);
         return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async getPermission(scope: Team, permissionId: string): Promise<TeamPermission | null> {
         const permissions = await this.listPermissions(scope);
         return permissions.find((p) => p.id === permissionId) ?? null;
@@ -1088,12 +1088,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const result = Result.orThrow(await app._currentUserTeamProfileCache.getOrWait([session, team.id], "write-only"));
         return app._editableTeamProfileFromCrud(result, session);
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useTeamProfile(team: Team) {
         const result = useAsyncCache(app._currentUserTeamProfileCache, [session, team.id] as const, "user.useTeamProfile()");
         return app._editableTeamProfileFromCrud(result, session);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async delete() {
         await app._interface.deleteCurrentUser(session);
         session.markInvalid();
@@ -1102,12 +1102,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const result = Result.orThrow(await app._clientContactChannelsCache.getOrWait([session], "write-only"));
         return result.map((crud) => app._clientContactChannelFromCrud(crud, session));
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useContactChannels() {
         const result = useAsyncCache(app._clientContactChannelsCache, [session] as const, "user.useContactChannels()");
         return result.map((crud) => app._clientContactChannelFromCrud(crud, session));
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async createContactChannel(data: ContactChannelCreateOptions) {
         const crud = await app._interface.createClientContactChannel(contactChannelCreateOptionsToCrud('me', data), session);
         await app._clientContactChannelsCache.refresh([session]);
@@ -1126,11 +1126,11 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       listOwnedProjects() {
         return app._listOwnedProjects(session);
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useOwnedProjects() {
         return app._useOwnedProjects(session);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
     };
   }
 
@@ -1346,7 +1346,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return crud && this._currentUserFromCrud(crud, session);
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>;
   useUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): ProjectCurrentUser<ProjectId>;
   useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentUser<ProjectId> | null;
@@ -1378,7 +1378,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return crud && this._currentUserFromCrud(crud, session);
     }, [crud, session, options?.or]);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
   protected async _updateClientUser(update: UserUpdateOptions, session: InternalSession) {
     const res = await this._interface.updateClientUser(userUpdateOptionsToCrud(update), session);
@@ -1615,12 +1615,12 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._clientProjectFromCrud(crud);
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useProject(): Project {
     const crud = useAsyncCache(this._currentProjectCache, [], "useProject()");
     return useMemo(() => this._clientProjectFromCrud(crud), [crud]);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
   protected async _listOwnedProjects(session: InternalSession): Promise<AdminOwnedProject[]> {
     this._ensureInternalProject();
@@ -1631,7 +1631,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     ));
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   protected _useOwnedProjects(session: InternalSession): AdminOwnedProject[] {
     this._ensureInternalProject();
     const projects = useAsyncCache(this._ownedProjectsCache, [session], "useOwnedProjects()");
@@ -1640,7 +1640,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       () => this._refreshOwnedProjects(session),
     )), [projects]);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
   protected async _createProject(session: InternalSession, newProject: AdminProjectUpdateOptions & { displayName: string }): Promise<AdminOwnedProject> {
     this._ensureInternalProject();
     const crud = await this._interface.createProject(adminProjectCreateOptionsToCrud(newProject), session);
@@ -1782,9 +1782,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return await this._getUserOAuthConnectionCacheFn({
         getUser: async () => Result.orThrow(await this._serverUserCache.getOrWait([userId], "write-only")),
         getOrWaitOAuthToken: async () => Result.orThrow(await this._serverUserOAuthConnectionAccessTokensCache.getOrWait([userId, providerId, scope || ""] as const, "write-only")),
-        // BEGIN_ONLY react-like
+        // BEGIN_PLATFORM react-like
         useOAuthToken: () => useAsyncCache(this._serverUserOAuthConnectionAccessTokensCache, [userId, providerId, scope || ""] as const, "user.useConnectedAccount()"),
-        // END_ONLY react-like
+        // END_PLATFORM react-like
         providerId,
         scope,
         redirect,
@@ -1901,14 +1901,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       return Result.orThrow(await app._serverUserOAuthConnectionCache.getOrWait([crud.id, id, scopeString || "", options?.or === 'redirect'], "write-only"));
     }
 
-    // BEGIN_ONLY react-like
+    // BEGIN_PLATFORM react-like
     function useConnectedAccount(id: ProviderType, options?: { scopes?: string[] }): OAuthConnection | null;
     function useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection;
     function useConnectedAccount(id: ProviderType, options?: { or?: 'redirect', scopes?: string[] }): OAuthConnection | null {
       const scopeString = options?.scopes?.join(" ");
       return useAsyncCache(app._serverUserOAuthConnectionCache, [crud.id, id, scopeString || "", options?.or === 'redirect'] as const, "user.useConnectedAccount()");
     }
-    // END_ONLY react-like
+    // END_PLATFORM react-like
 
     return {
       ...super._createBaseUser(crud),
@@ -1966,24 +1966,24 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const teams = await this.listTeams();
         return teams.find((t) => t.id === teamId) ?? null;
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useTeam(teamId: string) {
         const teams = this.useTeams();
         return useMemo(() => {
           return teams.find((t) => t.id === teamId) ?? null;
         }, [teams, teamId]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async listTeams() {
         const teams = Result.orThrow(await app._serverTeamsCache.getOrWait([crud.id], "write-only"));
         return teams.map((t) => app._serverTeamFromCrud(t));
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useTeams() {
         const teams = useAsyncCache(app._serverTeamsCache, [crud.id], "user.useTeams()");
         return useMemo(() => teams.map((t) => app._serverTeamFromCrud(t)), [teams]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       createTeam: async (data: ServerTeamCreateOptions) => {
         const team =  await app._interface.createServerTeam({
           ...serverTeamCreateOptionsToCrud(data),
@@ -2001,23 +2001,23 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const permissions = Result.orThrow(await app._serverTeamUserPermissionsCache.getOrWait([scope.id, crud.id, recursive], "write-only"));
         return permissions.map((crud) => app._serverPermissionFromCrud(crud));
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       usePermissions(scope: Team, options?: { recursive?: boolean }): AdminTeamPermission[] {
         const recursive = options?.recursive ?? true;
         const permissions = useAsyncCache(app._serverTeamUserPermissionsCache, [scope.id, crud.id, recursive] as const, "user.usePermissions()");
         return useMemo(() => permissions.map((crud) => app._serverPermissionFromCrud(crud)), [permissions]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async getPermission(scope: Team, permissionId: string): Promise<AdminTeamPermission | null> {
         const permissions = await this.listPermissions(scope);
         return permissions.find((p) => p.id === permissionId) ?? null;
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       usePermission(scope: Team, permissionId: string): AdminTeamPermission | null {
         const permissions = this.usePermissions(scope);
         return useMemo(() => permissions.find((p) => p.id === permissionId) ?? null, [permissions, permissionId]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async hasPermission(scope: Team, permissionId: string): Promise<boolean> {
         return await this.getPermission(scope, permissionId) !== null;
       },
@@ -2041,22 +2041,22 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const result = Result.orThrow(await app._serverUserTeamProfileCache.getOrWait([team.id, crud.id], "write-only"));
         return app._serverEditableTeamProfileFromCrud(result);
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useTeamProfile(team: Team) {
         const result = useAsyncCache(app._serverUserTeamProfileCache, [team.id, crud.id] as const, "user.useTeamProfile()");
         return useMemo(() => app._serverEditableTeamProfileFromCrud(result), [result]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async listContactChannels() {
         const result = Result.orThrow(await app._serverContactChannelsCache.getOrWait([crud.id], "write-only"));
         return result.map((data) => app._serverContactChannelFromCrud(crud.id, data));
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useContactChannels() {
         const result = useAsyncCache(app._serverContactChannelsCache, [crud.id] as const, "user.useContactChannels()");
         return useMemo(() => result.map((data) => app._serverContactChannelFromCrud(crud.id, data)), [result]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       createContactChannel: async (data: ServerContactChannelCreateOptions) => {
         const contactChannel = await app._interface.createServerContactChannel(serverContactChannelCreateOptionsToCrud(crud.id, data));
         await app._serverContactChannelsCache.refresh([crud.id]);
@@ -2120,12 +2120,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const result = Result.orThrow(await app._serverTeamMemberProfilesCache.getOrWait([crud.id], "write-only"));
         return result.map(u => app._serverTeamUserFromCrud(u));
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useUsers() {
         const result = useAsyncCache(app._serverTeamMemberProfilesCache, [crud.id] as const, "team.useUsers()");
         return useMemo(() => result.map(u => app._serverTeamUserFromCrud(u)), [result]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
       async addUser(userId) {
         await app._interface.addServerUserToTeam({
           teamId: crud.id,
@@ -2156,12 +2156,12 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         const result = Result.orThrow(await app._serverTeamInvitationsCache.getOrWait([crud.id], "write-only"));
         return result.map((crud) => app._serverTeamInvitationFromCrud(crud));
       },
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useInvitations() {
         const result = useAsyncCache(app._serverTeamInvitationsCache, [crud.id] as const, "team.useInvitations()");
         return useMemo(() => result.map((crud) => app._serverTeamInvitationFromCrud(crud)), [result]);
       },
-      // END_ONLY react-like
+      // END_PLATFORM react-like
     };
   }
 
@@ -2213,7 +2213,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return crud && this._serverUserFromCrud(crud);
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentServerUser<ProjectId>;
   useUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): ProjectCurrentServerUser<ProjectId>;
   useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentServerUser<ProjectId> | null;
@@ -2251,16 +2251,16 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       }, [crud, session, options?.or]);
     }
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useUserById(userId: string): ServerUser | null {
     const crud = useAsyncCache(this._serverUserCache, [userId], "useUserById()");
     return useMemo(() => {
       return crud && this._serverUserFromCrud(crud);
     }, [crud]);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
 
   async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { nextCursor: string | null }> {
@@ -2270,14 +2270,14 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return result as any;
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useUsers(options?: ServerListUsersOptions): ServerUser[] & { nextCursor: string | null } {
     const crud = useAsyncCache(this._serverUsersCache, [options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.query] as const, "useServerUsers()");
     const result: any = crud.items.map((j) => this._serverUserFromCrud(j));
     result.nextCursor = crud.pagination?.next_cursor ?? null;
     return result as any;
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
   _serverPermissionFromCrud(crud: TeamPermissionsCrud['Server']['Read']): AdminTeamPermission {
     return {
@@ -2304,28 +2304,28 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     return this._serverTeamFromCrud(team);
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useTeams(): ServerTeam[] {
     const teams = useAsyncCache(this._serverTeamsCache, [undefined], "useServerTeams()");
     return useMemo(() => {
       return teams.map((t) => this._serverTeamFromCrud(t));
     }, [teams]);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
   async getTeam(teamId: string): Promise<ServerTeam | null> {
     const teams = await this.listTeams();
     return teams.find((t) => t.id === teamId) ?? null;
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useTeam(teamId: string): ServerTeam | null {
     const teams = this.useTeams();
     return useMemo(() => {
       return teams.find((t) => t.id === teamId) ?? null;
     }, [teams, teamId]);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
   protected override async _refreshSession(session: InternalSession) {
     await Promise.all([
@@ -2483,7 +2483,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     );
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   override useProject(): AdminProject {
     const crud = useAsyncCache(this._adminProjectCache, [], "useProjectAdmin()");
     return useMemo(() => this._adminProjectFromCrud(
@@ -2491,7 +2491,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
       () => this._refreshProject()
     ), [crud]);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
   protected _createApiKeyBaseFromCrud(data: ApiKeyBaseCrudRead): ApiKeyBase {
     const app = this;
@@ -2540,14 +2540,14 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     return crud.map((j) => this._createApiKeyFromCrud(j));
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useApiKeys(): ApiKey[] {
     const crud = useAsyncCache(this._apiKeysCache, [], "useApiKeys()");
     return useMemo(() => {
       return crud.map((j) => this._createApiKeyFromCrud(j));
     }, [crud]);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
   async createApiKey(options: ApiKeyCreateOptions): Promise<ApiKeyFirstView> {
     const crud = await this._interface.createApiKey(apiKeyCreateOptionsToCrud(options));
@@ -2555,14 +2555,14 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     return this._createApiKeyFirstViewFromCrud(crud);
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useEmailTemplates(): AdminEmailTemplate[] {
     const crud = useAsyncCache(this._adminEmailTemplatesCache, [], "useEmailTemplates()");
     return useMemo(() => {
       return crud.map((j) => this._adminEmailTemplateFromCrud(j));
     }, [crud]);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
   async listEmailTemplates(): Promise<AdminEmailTemplate[]> {
     const crud = Result.orThrow(await this._adminEmailTemplatesCache.getOrWait([], "write-only"));
     return crud.map((j) => this._adminEmailTemplateFromCrud(j));
@@ -2599,21 +2599,21 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
   }
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useTeamPermissionDefinitions(): AdminTeamPermissionDefinition[] {
     const crud = useAsyncCache(this._adminTeamPermissionDefinitionsCache, [], "usePermissions()");
     return useMemo(() => {
       return crud.map((p) => this._serverTeamPermissionDefinitionFromCrud(p));
     }, [crud]);
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useSvixToken(): string {
     const crud = useAsyncCache(this._svixTokenCache, [], "useSvixToken()");
     return crud.token;
   }
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
   protected override async _refreshProject() {
     await Promise.all([
@@ -2629,11 +2629,11 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   get [stackAppInternalsSymbol]() {
     return {
       ...super[stackAppInternalsSymbol],
-      // BEGIN_ONLY react-like
+      // BEGIN_PLATFORM react-like
       useMetrics: (): any => {
         return useAsyncCache(this._metricsCache, [], "useMetrics()");
       }
-      // END_ONLY react-like
+      // END_PLATFORM react-like
     };
   }
 
@@ -2900,10 +2900,10 @@ type UserExtra = {
   getConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): Promise<OAuthConnection>,
   getConnectedAccount(id: ProviderType, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): Promise<OAuthConnection | null>,
 
-  // BEGIN_ONLY react-like
+  // BEGIN_PLATFORM react-like
   useConnectedAccount(id: ProviderType, options: { or: 'redirect', scopes?: string[] }): OAuthConnection,
   useConnectedAccount(id: ProviderType, options?: { or?: 'redirect' | 'throw' | 'return-null', scopes?: string[] }): OAuthConnection | null,
-  // END_ONLY react-like
+  // END_PLATFORM react-like
 
   hasPermission(scope: Team, permissionId: string): Promise<boolean>,
 
@@ -3475,11 +3475,11 @@ export type StackClientApp<HasTokenStore extends boolean = boolean, ProjectId ex
 
     redirectToOAuthCallback(): Promise<void>,
 
-    // BEGIN_ONLY react-like
+    // BEGIN_PLATFORM react-like
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentUser<ProjectId>,
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): ProjectCurrentUser<ProjectId>,
     useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentUser<ProjectId> | null,
-    // END_ONLY react-like
+    // END_PLATFORM react-like
 
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentUser<ProjectId>>,
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentUser<ProjectId>>,
@@ -3519,11 +3519,11 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
 
     createUser(options: ServerUserCreateOptions): Promise<ServerUser>,
 
-    // BEGIN_ONLY react-like
+    // BEGIN_PLATFORM react-like
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): ProjectCurrentServerUser<ProjectId>,
     useUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): ProjectCurrentServerUser<ProjectId>,
     useUser(options?: GetUserOptions<HasTokenStore>): ProjectCurrentServerUser<ProjectId> | null,
-    // END_ONLY react-like
+    // END_PLATFORM react-like
 
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'redirect' }): Promise<ProjectCurrentServerUser<ProjectId>>,
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>,
