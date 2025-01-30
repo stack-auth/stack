@@ -318,7 +318,7 @@ function TestSendingDialog(props: {
     }}
     render={(form) => (
       <>
-        <InputField label="Email" name="email" control={form.control} type="email" required/>
+        <InputField label="Email" name="email" control={form.control} type="email" autoComplete="email" required/>
         {error && <Alert variant="destructive">{error}</Alert>}
       </>
     )}
