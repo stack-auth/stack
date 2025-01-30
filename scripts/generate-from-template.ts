@@ -2,11 +2,10 @@ import fs from "fs";
 import path from "path";
 
 const allEnvs = ["next", "react-like", "js", "template"];
-
-const currentDir = path.resolve(__dirname, "..");
-
 const ignoredFiles = ['node_modules', 'dist', '.turbo', 'scripts/generate-from-template.ts'];
 
+const baseDir = path.resolve(__dirname, "..", "packages");
+const srcDir = path.resolve(baseDir, "template");
 
 /**
  * Recursively remove empty folders in the given directory.
@@ -204,7 +203,7 @@ function processMacros(content: string, envs: string[]): string {
   //       }
   //
   //    - parentActive = whether the block's parent is active. If false, this block can never produce output.
-  //    - hasMatched   = if any branch in this block has matched so far (BEGIN_PLATFORM or ELSE_IF).
+  //    - hasMatched   = if any branch in this block has matched so far (IF_PLATFORM or ELSE_IF).
   //    - isActive     = if the *current branch* in this block is active right now.
   //
   interface IFBlockState {
@@ -265,7 +264,7 @@ function processMacros(content: string, envs: string[]): string {
   }
 
   /**
-   * Parse environment tokens from a directive substring (the part after BEGIN_PLATFORM, ELSE_IF_PLATFORM, etc.).
+   * Parse environment tokens from a directive substring (the part after IF_PLATFORM, ELSE_IF_PLATFORM, etc.).
    * We do a basic split on whitespace, then remove punctuation except for letters/numbers/hyphens.
    */
   function parseEnvList(envString: string): string[] {
@@ -277,7 +276,7 @@ function processMacros(content: string, envs: string[]): string {
 
   /**
    * We define flexible regexes that look for these directives *anywhere* in the line:
-   *   - BEGIN_PLATFORM
+   *   - IF_PLATFORM
    *   - ELSE_IF_PLATFORM
    *   - ELSE_PLATFORM
    *   - END_PLATFORM
@@ -286,17 +285,17 @@ function processMacros(content: string, envs: string[]): string {
    * And then capture everything after that keyword up to the end of the line.
    *
    * Examples:
-   *   "blah blah BEGIN_PLATFORM env1 env2 ???"  => captures "env1 env2 ???"
+   *   "blah blah IF_PLATFORM env1 env2 ???"  => captures "env1 env2 ???"
    *   "adsfasdf ELSE_PLATFORM blabla"         => captures "blabla"
    */
-  const reBeginOnly = /\bBEGIN_PLATFORM\s+(.+)/i;
+  const reBeginOnly = /\bIF_PLATFORM\s+(.+)/i;
   const reElseIf    = /\bELSE_IF_PLATFORM\s+(.+)/i;
   const reElse      = /\bELSE_PLATFORM\b/i;
   const reEndOnly   = /\bEND_PLATFORM\b/i;
   const reNextLine  = /\bNEXT_LINE_ONLY\s+(.+)/i;
 
   for (const line of lines) {
-    // 1) Try detecting BEGIN_PLATFORM ...
+    // 1) Try detecting IF_PLATFORM ...
     const beginMatch = line.match(reBeginOnly);
     if (beginMatch) {
       const parentBlock = getCurrentIFBlock();
@@ -415,14 +414,14 @@ function processMacros(content: string, envs: string[]): string {
 
 
 // Copy package-template.json to package.json and apply macros
-const packageTemplateContent = fs.readFileSync(path.join(currentDir, 'package-template.json'), 'utf-8');
+const packageTemplateContent = fs.readFileSync(path.join(srcDir, 'package-template.json'), 'utf-8');
 const processedPackageJson = processMacros(packageTemplateContent, allEnvs);
-fs.writeFileSync(path.join(currentDir, 'package.json'), processedPackageJson);
+fs.writeFileSync(path.join(srcDir, 'package.json'), processedPackageJson);
 
 
 generateFromTemplate({
-  src: currentDir,
-  dest: path.resolve(currentDir, "..", "js"),
+  src: srcDir,
+  dest: path.resolve(baseDir, "js"),
   editFn: (path, content) => {
     const ignores = [
       "postcss.config.js",
@@ -452,8 +451,8 @@ generateFromTemplate({
 });
 
 generateFromTemplate({
-  src: currentDir,
-  dest: path.resolve(currentDir, "..", "stack"),
+  src: srcDir,
+  dest: path.resolve(baseDir, "stack"),
   editFn: (path, content) => {
     // ignore the generated folder as the files are big and not needed
     if (path.startsWith('src/generated')) {

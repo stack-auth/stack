@@ -1,6 +1,6 @@
 export * from './lib/stack-app';
 
-// BEGIN_PLATFORM react-like
+// IF_PLATFORM react-like
 export { default as StackHandler } from "./components-page/stack-handler";
 export { useStackApp, useUser } from "./lib/hooks";
 export { default as StackProvider } from "./providers/stack-provider";
