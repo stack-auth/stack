@@ -155,7 +155,7 @@ generateFromTemplate({
       "components.json",
     ];
 
-    if (ignores.some(ignorePath => path.startsWith(ignorePath)) || path.endsWith(".tsx")) {
+    if (ignores.some(ignorePath => path.startsWith(ignorePath))) {
       return null;
     }
 
@@ -176,6 +176,11 @@ generateFromTemplate({
   src: currentDir,
   dest: path.resolve(currentDir, "..", "stack"),
   editFn: (path, content) => {
+    // ignore the generated folder as the files are big and not needed
+    if (path.includes('/generated')) {
+      return content;
+    }
+
     content = processMacros(content, ["next", "react-like"]);
 
     if (path === 'package.json') {
