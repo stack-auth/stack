@@ -445,7 +445,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
 
     this._tokenStoreInit = _options.tokenStore;
-    this._redirectMethod = _options.redirectMethod || "window";
+    this._redirectMethod = _options.redirectMethod || "none";
     // NEXT_LINE_ONLY next
     this._redirectMethod = _options.redirectMethod || "nextjs";
     this._urlOptions = _options.urls ?? {};
