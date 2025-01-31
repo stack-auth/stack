@@ -33,6 +33,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.3.3
         version: 4.3.3(vite@5.4.10(@types/node@20.17.6)(terser@5.31.1))
+      chokidar-cli:
+        specifier: ^3.0.0
+        version: 3.0.0
       concurrently:
         specifier: ^8.2.2
         version: 8.2.2
