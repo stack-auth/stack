@@ -17,6 +17,7 @@ import { hashPassword, isPasswordHashValid } from "@stackframe/stack-shared/dist
 import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToLowercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { isUuid, ZERO_UUID } from "@stackframe/stack-shared/dist/utils/uuids";
 import { teamPrismaToCrud, teamsCrudHandlers } from "../teams/crud";
 
 export const userFullInclude = {
@@ -467,7 +468,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         OR: [
           {
             userId: {
-              equals: query.query,
+              equals: isUuid(query.query) ? query.query : ZERO_UUID, // TODO: There is definitely a cleaner way to do this
             }
           },
           {
