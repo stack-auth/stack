@@ -31,6 +31,20 @@ export const POST = createSmartRouteHandler({
     const createdProject = await createProject([], {
       display_name: req.body.display_name,
       description: "Created with Neon",
+      config: {
+        oauth_providers: [
+          {
+            id: "google",
+            type: "shared",
+            enabled: true,
+          },
+          {
+            id: "github",
+            type: "shared",
+            enabled: true,
+          },
+        ],
+      },
     });
 
     await prismaClient.neonProvisionedProject.create({

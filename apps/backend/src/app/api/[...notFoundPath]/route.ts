@@ -18,7 +18,7 @@ const handler = createSmartRouteHandler({
       body: deindent`
         404 — this page does not exist in Stack Auth's API.
         
-        Did you mean to visit https://app.stack-auth.com?
+        Please see the API documentation at https://docs.stack-auth.com, or visit the Stack Auth dashboard at https://app.stack-auth.com.
 
         URL: ${req.url}
       `,
