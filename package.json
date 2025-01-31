@@ -4,7 +4,7 @@
   "private": true,
   "repository": "",
   "scripts": {
-    "preinstall": "npx -y only-allow pnpm",
+    "preinstall": "npx -y only-allow pnpm && npx tsx ./scripts/generate-from-template.ts",
     "install": "echo \"install\"",
     "typecheck": "only-allow pnpm && turbo typecheck",
     "build:dev": "NODE_ENV=development pnpm run build",
