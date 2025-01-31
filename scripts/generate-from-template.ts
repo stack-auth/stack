@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 const allEnvs = ["next", "react-like", "js", "template"];
-const ignoredFiles = ['node_modules', 'dist', '.turbo', 'scripts/generate-from-template.ts'];
+const ignoredFiles = ['node_modules', 'dist', '.turbo', '.gitignore'];
 
 const baseDir = path.resolve(__dirname, "..", "packages");
 const srcDir = path.resolve(baseDir, "template");
