@@ -467,8 +467,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       ...query.query ? {
         OR: [
           {
-            userId: {
-              equals: isUuid(query.query) ? query.query : ZERO_UUID, // TODO: There is definitely a cleaner way to do this
+            projectUserId: {
+              equals: isUuid(query.query) ? query.query : ZERO_UUID, // TODO: There is definitely a more idiomatic way to do this
             }
           },
           {
