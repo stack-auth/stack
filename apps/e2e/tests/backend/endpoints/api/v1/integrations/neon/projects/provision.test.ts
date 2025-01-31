@@ -1,5 +1,5 @@
 import { it } from "../../../../../../../helpers";
-import { niceBackendFetch } from "../../../../../../backend-helpers";
+import { backendContext, niceBackendFetch } from "../../../../../../backend-helpers";
 
 export async function provisionProject() {
   return await niceBackendFetch("/api/v1/integrations/neon/projects/provision", {
@@ -21,6 +21,65 @@ it("should be able to provision a new project if neon client details are correct
       "body": {
         "project_id": "<stripped UUID>",
         "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+
+
+  // test API keys
+  backendContext.set({
+    projectKeys: {
+      projectId: response.body.project_id,
+      superSecretAdminKey: response.body.super_secret_admin_key,
+    },
+  });
+  const project = await niceBackendFetch(`/api/v1/projects/current`, {
+    method: "GET",
+    accessType: "admin",
+  });
+  expect(project).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": {
+        "config": {
+          "allow_localhost": true,
+          "client_team_creation_enabled": false,
+          "client_user_deletion_enabled": false,
+          "create_team_on_sign_up": false,
+          "credential_enabled": true,
+          "domains": [],
+          "email_config": { "type": "shared" },
+          "enabled_oauth_providers": [
+            { "id": "github" },
+            { "id": "google" },
+          ],
+          "id": "<stripped UUID>",
+          "legacy_global_jwt_signing": false,
+          "magic_link_enabled": false,
+          "oauth_providers": [
+            {
+              "enabled": true,
+              "id": "github",
+              "type": "shared",
+            },
+            {
+              "enabled": true,
+              "id": "google",
+              "type": "shared",
+            },
+          ],
+          "passkey_enabled": false,
+          "sign_up_enabled": true,
+          "team_creator_default_permissions": [{ "id": "admin" }],
+          "team_member_default_permissions": [{ "id": "member" }],
+        },
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "description": "Created with Neon",
+        "display_name": "Test project",
+        "id": "<stripped UUID>",
+        "is_production_mode": false,
+        "user_count": 0,
       },
       "headers": Headers { <some fields may have been hidden> },
     }

@@ -123,6 +123,7 @@ export function MagicLinkSignIn() {
         <Input
           id="email"
           type="email"
+          autoComplete="email"
           {...register('email')}
         />
         <FormWarningText text={errors.email?.message?.toString()} />
