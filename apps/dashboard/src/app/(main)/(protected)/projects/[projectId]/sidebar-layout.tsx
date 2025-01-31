@@ -382,7 +382,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
 
   return (
     <div className="w-full flex">
-      <div className="flex-col border-r w-[240px] h-screen sticky top-0 hidden md:flex">
+      <div className="flex-col border-r min-w-[240px] h-screen sticky top-0 hidden md:flex">
         <SidebarContent projectId={props.projectId} />
       </div>
       <div className="flex flex-col flex-grow w-0">
