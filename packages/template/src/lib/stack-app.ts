@@ -2262,7 +2262,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }
   }
   // END_PLATFORM react-like
-
   // IF_PLATFORM react-like
   useUserById(userId: string): ServerUser | null {
     const crud = useAsyncCache(this._serverUserCache, [userId], "useUserById()");
@@ -2271,7 +2270,6 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     }, [crud]);
   }
   // END_PLATFORM react-like
-
 
   async listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { nextCursor: string | null }> {
     const crud = Result.orThrow(await this._serverUsersCache.getOrWait([options?.cursor, options?.limit, options?.orderBy, options?.desc, options?.query], "write-only"));
@@ -2617,7 +2615,6 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
     }, [crud]);
   }
   // END_PLATFORM react-like
-
   // IF_PLATFORM react-like
   useSvixToken(): string {
     const crud = useAsyncCache(this._svixTokenCache, [], "useSvixToken()");
