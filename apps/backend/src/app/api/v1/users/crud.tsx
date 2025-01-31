@@ -466,6 +466,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       ...query.query ? {
         OR: [
           {
+            userId: {
+              equals: query.query,
+            }
+          },
+          {
             displayName: {
               contains: query.query,
               mode: 'insensitive',
