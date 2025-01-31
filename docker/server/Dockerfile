@@ -15,12 +15,15 @@ ENV PATH=$PNPM_HOME:$PATH
 RUN corepack enable
 RUN corepack prepare pnpm@10.0.0 --activate
 RUN pnpm add -g turbo
+RUN pnpm add -g tsx
 
 
 # Prune stage
 FROM base AS pruner
 
 COPY . .
+
+RUN tsx ./scripts/generate-from-template.ts
 
 # https://turbo.build/repo/docs/guides/tools/docker
 RUN turbo prune --scope=@stackframe/stack-backend --scope=@stackframe/stack-dashboard --docker
