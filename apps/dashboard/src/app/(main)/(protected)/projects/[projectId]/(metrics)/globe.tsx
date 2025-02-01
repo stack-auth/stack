@@ -134,7 +134,8 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
     >
       <div className='absolute top-[-64px] right-0' style={{
         width: globeSize?.[0] ?? 64,
-        height: (globeWindowSize?.height ?? 64) + 16 + 2 * 64,
+        height: (globeWindowSize?.height ?? 64) + 16 + 64,
+        overflow: 'hidden',
       }}>
         {!isGlobeReady && (
           <Skeleton style={{
@@ -157,7 +158,7 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
                 : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAAD5Ip3+AAAADUlEQVQIHWPgF9f8DwAB1wFPLWQXmAAAAABJRU5ErkJggg=='
             }
             width={globeSize?.[0] ?? 64}
-            height={globeSize?.[1] ?? 64}
+            height={64 + (globeSize?.[1] ?? 0)}
             onGlobeReady={() => {
               setTimeout(() => setIsGlobeReady(true), 100);
               const current = globeRef.current;
@@ -168,14 +169,15 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
               const controls = current.controls();
               controls.maxDistance = 1000;
               controls.minDistance = 120;
-              controls.dampingFactor = 0.3;
+              controls.dampingFactor = 0.2;
               // even though rendering is resumed by default, we want to pause it after 200ms, so call resumeRender()
               resumeRender();
             }}
             onZoom={() => {
               resumeRender();
             }}
-            animateIn={false}
+            animateIn={true}
+
 
             polygonsData={countries.features}
             polygonCapColor={() => "transparent"}
@@ -205,9 +207,9 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
                   } else {
                     if (value === null && maxColorValue < 0.0001) {
                       // if there are no users at all, in dark mode, show the globe in a slightly lighter color
-                      return `hsl(271, 84%, ${highlight ? '30%' : '20%'})`;
+                      return `hsl(240, 84%, ${highlight ? '30%' : '20%'})`;
                     } else {
-                      return `hsl(271, 84%, ${highlight ? '25%' : '15%'})`;
+                      return `hsl(240, 84%, ${highlight ? '25%' : '15%'})`;
                     }
                   }
                 }
@@ -215,7 +217,7 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
                 if (isLightMode) {
                   return `hsl(${175 * (1 - scaled)}, 100%, ${20 + 40 * scaled + (highlight ? 10 : 0)}%)`;
                 } else {
-                  return `hsl(271, 84%, ${24 + 60 * scaled + (highlight ? 10 : 0)}%)`;
+                  return `hsl(240, 84%, ${24 + 60 * scaled + (highlight ? 10 : 0)}%)`;
                 }
               };
               const color = createColor(colorValues.get(country.properties.ISO_A2_EH) ?? null);

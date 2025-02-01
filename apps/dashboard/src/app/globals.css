@@ -160,6 +160,22 @@
   );
 }
 
+.bg-primary {
+  background-image: radial-gradient(
+    circle at bottom right,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(95, 174, 247, 1) 120%
+  );
+}
+
+.ice {
+  background-color: rgba(95, 174, 247, 0.15) !important;
+}
+
+.ice-hover:hover {
+  background-color: rgba(95, 174, 247, 0.2) !important;
+}
+
 @media (min-width: 800px) {
   .loader > .loader-inner {
     width: 20%;

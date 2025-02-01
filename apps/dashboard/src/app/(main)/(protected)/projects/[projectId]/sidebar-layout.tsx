@@ -227,7 +227,8 @@ function TeamMemberBreadcrumbItem(props: { teamId: string }) {
 function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: () => void}) {
   const pathname = usePathname();
   const selected = useMemo(() => {
-    return item.regex.test(pathname);
+    let pathnameWithoutTrailingSlash = pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+    return item.regex.test(pathnameWithoutTrailingSlash);
   }, [item.regex, pathname]);
 
   return (
@@ -235,8 +236,9 @@ function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: 
       href={href}
       className={cn(
         buttonVariants({ variant: 'ghost', size: "sm" }),
-        selected && "bg-muted",
+        "ice-hover",
         "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
+        selected && "ice",
       )}
       onClick={onClick}
       prefetch={true}
