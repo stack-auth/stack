@@ -455,6 +455,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     return user;
   },
   onList: async ({ auth, query }) => {
+    const queryWithoutSpecialChars = query.query?.replace(/[^a-zA-Z0-9\-_.]/g, '');
+
     const where = {
       projectId: auth.project.id,
       ...query.team_id ? {
@@ -466,9 +468,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       } : {},
       ...query.query ? {
         OR: [
-          ...(isUuid(query.query) ? [{
-            equals: query.query
-          }] : []),
+          ...isUuid(queryWithoutSpecialChars) ? [{
+            projectUserId: {
+              equals: queryWithoutSpecialChars
+            },
+          }] : [],
           {
             displayName: {
               contains: query.query,
