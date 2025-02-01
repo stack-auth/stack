@@ -72,7 +72,7 @@ type SendEmailOptions = {
 
 export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): Promise<Result<undefined, {
   rawError: any,
-  errorType: 'UNKNOWN' | 'HOST_NOT_FOUND' | 'AUTH_FAILED' | 'SOCKET_CLOSED' | 'TEMPORARY' | 'INVALID_EMAIL_ADDRESS',
+  errorType: string,
   canRetry: boolean,
   message?: string,
 }>> {
