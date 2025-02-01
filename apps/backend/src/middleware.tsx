@@ -84,18 +84,20 @@ export async function middleware(request: NextRequest) {
   outer: for (let i = 0; i < apiVersions.length - 1; i++) {
     const version = apiVersions[i];
     const nextVersion = apiVersions[i + 1];
-    if ((newPathname + "/").startsWith(`/api/${version}/`)) {
+    if ((newPathname + "/").startsWith(version.servedRoute + "/")) {
       // okay, we're in an API version of the current version. let's check if a route matches this URL
       for (const route of routes) {
-        if ((route.normalizedPath + "/").startsWith(`/api/${version}/`)) {
+        if (nextVersion.migrationFolder && (route.normalizedPath + "/").startsWith(nextVersion.migrationFolder + "/")) {
           if (SmartRouter.matchNormalizedPath(newPathname, route.normalizedPath)) {
-            // if the route matches, we don't need to do anything
-            continue outer;
+            // success! we found a route that matches the request
+            // rewrite request to the migration folder
+            newPathname = newPathname.replace(version.servedRoute, nextVersion.migrationFolder);
+            break outer;
           }
         }
       }
       // if no route matches, rewrite to the next version
-      newPathname = newPathname.replace(`/api/${version}/`, `/api/${nextVersion}/`);
+      newPathname = newPathname.replace(version.servedRoute, nextVersion.servedRoute);
     }
   }
 

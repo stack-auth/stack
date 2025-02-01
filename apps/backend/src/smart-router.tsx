@@ -1,14 +1,21 @@
 import { isTruthy } from "@stackframe/stack-shared/dist/utils/booleans";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import type * as fs from "@stackframe/stack-shared/dist/utils/fs";
 import { numberCompare } from "@stackframe/stack-shared/dist/utils/numbers";
 
-const listRecursively: typeof fs.listRecursively = async (...args) => {
+
+// SmartRouter may be imported on the edge, so we can't import fs at the top level
+// hence, we define some wrapper functions
+const listRecursively: typeof import("@stackframe/stack-shared/dist/utils/fs").listRecursively = async (...args) => {
   // SmartRouter may be imported on the edge, so we can't import fs at the top level
   // hence, this wrapper function
   const m = await import("@stackframe/stack-shared/dist/utils/fs");
   return await m.listRecursively(...args);
 };
+const readFile = async (path: string) => {
+  const fs = await import("fs");
+  return await fs.promises.readFile(path, "utf-8");
+};
+
 
 export const SmartRouter = {
   listRoutes: async () => {
@@ -37,19 +44,52 @@ export const SmartRouter = {
   },
 
   listApiVersions: async () => {
-    const apiVersions = await listRecursively("src/app/api", { excludeDirectories: true });
-    return [
+    const allFiles = await listRecursively("src/app/api/migrations", { excludeDirectories: true });
+    return await Promise.all([
+      "v1",
       ...new Set(
-      apiVersions.map((path) => path.match(/src\/app\/api\/(v[^/]+)/)?.[1])
-        .filter(isTruthy)
-        .sort((a, b) => {
-          const parsedA = parseApiVersionStringToArray(a!);
-          const parsedB = parseApiVersionStringToArray(b!);
-          return numberCompare(parsedA[0], parsedB[0]) * 2 + numberCompare(parsedA[1], parsedB[1]);
-        })
+        allFiles.map((path) => path.match(/src\/app\/api\/migrations\/(v[^/]+)/)?.[1])
+          .filter(isTruthy)
+          .sort((a, b) => {
+            const parsedA = parseApiVersionStringToArray(a!);
+            const parsedB = parseApiVersionStringToArray(b!);
+            return numberCompare(parsedA[0], parsedB[0]) * 2 + numberCompare(parsedA[1], parsedB[1]);
+          })
       ),
       "latest",
-    ];
+    ].map(async (version) => {
+      if (version === "latest") {
+        return {
+          name: version,
+          changes: undefined,
+          betaChanges: undefined,
+          migrationFolder: "/api/latest",
+          servedRoute: "/api/latest",
+        } as const;
+      } else if (version === "v1") {
+        return {
+          name: version,
+          changes: "Initial release.\n",
+          betaChanges: "Initial release.\n",
+          migrationFolder: undefined,
+          servedRoute: "/api/v1",
+        } as const;
+      } else {
+        if (!allFiles.includes(`src/app/api/migrations/${version}/beta-changes.txt`)) {
+          throw new StackAssertionError(`API version ${version} does not have a beta-changes.txt file. The beta-changes.txt file should contain the changes since the last beta release.`);
+        }
+        if (!version.includes("beta") && !allFiles.includes(`src/app/api/migrations/${version}/changes.txt`)) {
+          throw new StackAssertionError(`API version ${version} does not have a changes.txt file. The changes.txt file should contain the changes since the last full (non-beta) release.`);
+        }
+        return {
+          name: version,
+          changes: !version.includes("beta") ? await readFile(`src/app/api/migrations/${version}/changes.txt`) : undefined,
+          betaChanges: await readFile(`src/app/api/migrations/${version}/beta-changes.txt`),
+          migrationFolder: `/api/migrations/${version}`,
+          servedRoute: `/api/${version}`,
+        };
+      }
+    }));
   },
 
   matchNormalizedPath: (path: string, normalizedPath: string) => matchPath(path, normalizedPath),
