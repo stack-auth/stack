@@ -111,10 +111,13 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
   const maxColorValue = Math.max(0, ...[...colorValues.values()].filter((v): v is number => v !== null));
 
 
-  return <div ref={sectionContainerRef} className='flex w-full gap-4 flex-row select-none'>
+  return <div
+    ref={sectionContainerRef}
+    className='flex w-full gap-4 flex-row select-none'
+  >
     <div
       ref={globeContainerRef}
-      className='absolute top-0 left-0 right-0 overflow-hidden'
+      className='absolute top-0 left-0 right-0'
       style={{
         height: (globeWindowSize?.height ?? 64) + 16,
       }}
@@ -129,9 +132,9 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
         resumeRender();
       }}
     >
-      <div className='absolute top-0 right-0' style={{
+      <div className='absolute top-[-64px] right-0' style={{
         width: globeSize?.[0] ?? 64,
-        height: (globeWindowSize?.height ?? 64) + 16,
+        height: (globeWindowSize?.height ?? 64) + 16 + 2 * 64,
       }}>
         {!isGlobeReady && (
           <Skeleton style={{

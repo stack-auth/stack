@@ -7,7 +7,7 @@
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100% / 0.5;
     --card-foreground: 240 10% 3.9%;
 
     --popover: 0 0% 100%;
@@ -47,7 +47,7 @@
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 9.4%;
+    --card: 240 10% 9.4% / 0.5;
     --card-foreground: 0 0% 98%;
 
     --popover: 240 10% 3.9%;
@@ -93,12 +93,14 @@
 
 .bg-card {
   box-shadow: 0 0 3px 3px rgba(0, 0, 0, 0.02);
-  background-image: radial-gradient(ellipse at top, #fdfdfd, transparent), radial-gradient(ellipse at bottom, #ffffff, transparent);
+  backdrop-filter: blur(12px);
+  background-image: radial-gradient(ellipse at top, #fdfdfd88, transparent), radial-gradient(ellipse at bottom, #ffffff88, transparent);
 }
 
 .dark .bg-card {
   box-shadow: none;
-  background-image: radial-gradient(ellipse at top, #181822, transparent), radial-gradient(ellipse at bottom, #191919, transparent);
+  backdrop-filter: blur(12px);
+  background-image: radial-gradient(ellipse at top, #18182288, transparent), radial-gradient(ellipse at bottom, #19191988, transparent);
 }
 
 .bg-card > * {
