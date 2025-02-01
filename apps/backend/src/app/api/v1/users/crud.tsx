@@ -468,7 +468,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       } : {},
       ...query.query ? {
         OR: [
-          ...isUuid(queryWithoutSpecialChars) ? [{
+          ...isUuid(queryWithoutSpecialChars!) ? [{
             projectUserId: {
               equals: queryWithoutSpecialChars
             },
