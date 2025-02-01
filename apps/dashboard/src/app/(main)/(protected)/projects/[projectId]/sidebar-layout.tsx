@@ -236,9 +236,8 @@ function NavItem({ item, href, onClick }: { item: Item, href: string, onClick?: 
       href={href}
       className={cn(
         buttonVariants({ variant: 'ghost', size: "sm" }),
-        "ice-hover",
         "flex-grow justify-start text-md text-zinc-800 dark:text-zinc-300 px-2",
-        selected && "ice",
+        selected && "bg-muted",
       )}
       onClick={onClick}
       prefetch={true}

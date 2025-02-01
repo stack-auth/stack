@@ -164,14 +164,6 @@ body:has(.show-site-loading-indicator) .site-loading-indicator {
   );
 }
 
-.ice {
-  background-color: rgba(95, 174, 247, 0.15) !important;
-}
-
-.ice-hover:hover {
-  background-color: rgba(95, 174, 247, 0.2) !important;
-}
-
 @media (min-width: 800px) {
   .site-loading-indicator > .site-loading-indicator-inner {
     width: 20%;
