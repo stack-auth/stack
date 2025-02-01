@@ -157,6 +157,15 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
             } as const);
           }
 
+          if (responseCode === 554 || code === 'EENVELOPE') {
+            return Result.error({
+              rawError: error,
+              errorType: 'REJECTED',
+              canRetry: false,
+              message: 'The email server rejected the email. Please check your email configuration and try again later.\n\nError:' + getServerResponse(error),
+            } as const);
+          }
+
           if (code === 'ETIMEDOUT') {
             return Result.error({
               rawError: error,
