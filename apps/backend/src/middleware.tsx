@@ -80,29 +80,31 @@ export async function middleware(request: NextRequest) {
   }
 
   // if no route is available for the requested version, rewrite to newer version
-  let newPathname = url.pathname;
+  let pathname = url.pathname;
   outer: for (let i = 0; i < apiVersions.length - 1; i++) {
     const version = apiVersions[i];
     const nextVersion = apiVersions[i + 1];
-    if ((newPathname + "/").startsWith(version.servedRoute + "/")) {
-      // okay, we're in an API version of the current version. let's check if a route matches this URL
+    if ((pathname + "/").startsWith(version.servedRoute + "/")) {
+      const nextPathname = pathname.replace(version.servedRoute, nextVersion.servedRoute);
+      const migrationPathname = nextPathname.replace(nextVersion.servedRoute, nextVersion.migrationFolder);
+      // okay, we're in an API version of the current version. let's check if at least one route matches this URL (doesn't matter which)
       for (const route of routes) {
         if (nextVersion.migrationFolder && (route.normalizedPath + "/").startsWith(nextVersion.migrationFolder + "/")) {
-          if (SmartRouter.matchNormalizedPath(newPathname, route.normalizedPath)) {
+          if (SmartRouter.matchNormalizedPath(migrationPathname, route.normalizedPath)) {
             // success! we found a route that matches the request
             // rewrite request to the migration folder
-            newPathname = newPathname.replace(version.servedRoute, nextVersion.migrationFolder);
+            pathname = migrationPathname;
             break outer;
           }
         }
       }
       // if no route matches, rewrite to the next version
-      newPathname = newPathname.replace(version.servedRoute, nextVersion.servedRoute);
+      pathname = nextPathname;
     }
   }
 
   const newUrl = request.nextUrl.clone();
-  newUrl.pathname = newPathname;
+  newUrl.pathname = pathname;
   return NextResponse.rewrite(newUrl, responseInit);
 }
 

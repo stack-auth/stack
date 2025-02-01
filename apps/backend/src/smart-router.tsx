@@ -63,7 +63,7 @@ export const SmartRouter = {
           name: version,
           changes: undefined,
           betaChanges: undefined,
-          migrationFolder: "/api/latest",
+          migrationFolder: "/api/v1", // TODO replace with /api/latest
           servedRoute: "/api/latest",
         } as const;
       } else if (version === "v1") {
