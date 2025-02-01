@@ -12,7 +12,7 @@ import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { StackAdaptSentinel, yupValidate } from "@stackframe/stack-shared/dist/schema-fields";
 import { groupBy, typedIncludes } from "@stackframe/stack-shared/dist/utils/arrays";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, captureError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 import { NextRequest } from "next/server";
 import * as yup from "yup";
@@ -166,7 +166,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     const result = await decodeAccessToken(options.token);
     if (result.status === "error") {
       if (result.error instanceof KnownErrors.AccessTokenExpired) {
-        throw new KnownErrors.AdminAccessTokenExpired();
+        throw new KnownErrors.AdminAccessTokenExpired(result.error.constructorArgs[0]);
       } else {
         throw new KnownErrors.UnparsableAdminAccessToken();
       }
@@ -179,7 +179,9 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     const user = await getUser({ projectId: 'internal', userId: result.data.userId });
     if (!user) {
       // this is the case when access token is still valid, but the user is deleted from the database
-      throw new KnownErrors.AdminAccessTokenExpired();
+      // this should be very rare, let's log it on Sentry when it happens
+      captureError("admin-access-token-expiration", new StackAssertionError("User not found for admin access token. This may not be a bug, but it's worth investigating"));
+      throw new StatusError(401, "The user associated with the admin access token is no longer valid. Please refresh the admin access token and try again.");
     }
 
     const allProjects = listManagedProjectIds(user);

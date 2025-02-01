@@ -69,6 +69,50 @@ describe("with client access", () => {
     `);
   });
 
+  it.todo("should not be able to read own user if access token uses an incorrect signature", async ({ expect }) => {
+    // TODO we should hardcode an access token generated with a different signature here
+    backendContext.set({ userAuth: { accessToken: "replace this with an access token that uses a different signature" } });
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "UNPARSABLE_ACCESS_TOKEN",
+          "error": "Access token is not parsable.",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "UNPARSABLE_ACCESS_TOKEN",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it.todo("should not be able to read own user if access token is expired", async ({ expect }) => {
+    // TODO instead of hardcoding an access token here, we should generate one that is short-lived and wait for it to expire
+    // this test will fail in some environments because the signature is incorrect
+    backendContext.set({ userAuth: { ...backendContext.value.userAuth, accessToken: "eyJhbGciOiJFUzI1NiIsImtpZCI6IkVYVkNzT01NRkpBMiJ9.eyJzdWIiOiIzM2U3YzA0My1kMmQxLTQxODctYWNkMy1mOTFiNWVkNjRiNDYiLCJpc3MiOiJodHRwczovL2FjY2Vzcy10b2tlbi5qd3Qtc2lnbmF0dXJlLnN0YWNrLWF1dGguY29tIiwiaWF0IjoxNzM4Mzc0OTU4LCJhdWQiOiJpbnRlcm5hbCIsImV4cCI6MTczODM3NDk4OH0.8USE-ELS4IYjFbzA5yNppNKKQGhdNQ0cUUBW7DMG8xHSfqEGw0Bm19u5uUZV6j0tGZypxRbIftgGaVdBRAOCig" } });
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "client",
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "ACCESS_TOKEN_EXPIRED",
+          "details": { "expired_at_millis": 1738374988000 },
+          "error": "Access token has expired. Please refresh it and try again. (The access token expired at 2025-02-01T01:56:28.000Z.)",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "ACCESS_TOKEN_EXPIRED",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
   it("should be able to read own user if signed in", async ({ expect }) => {
     await Auth.Otp.signIn();
     const response = await niceBackendFetch("/api/v1/users/me", {
