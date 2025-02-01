@@ -2,6 +2,7 @@
 
 import { UserTable } from "@/components/data-table/user-table";
 import { StyledLink } from "@/components/link";
+import { SiteLoadingIndicator } from "@/components/site-loading-indicator";
 import { UserDialog } from "@/components/user-dialog";
 import { Alert, Button } from "@stackframe/stack-ui";
 import { PageLayout } from "../page-layout";
@@ -26,6 +27,7 @@ export default function PageClient() {
           Congratulations on starting your project! Check the <StyledLink href="https://docs.stack-auth.com">documentation</StyledLink> to add your first users.
         </Alert>
       )}
+      <SiteLoadingIndicator />
 
       <UserTable />
     </PageLayout>

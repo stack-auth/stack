@@ -115,14 +115,16 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 24px;
   position: fixed;
   background: transparent;
   overflow: hidden;
   z-index: 9999;
+  /*pointer-events: none;
+  touch-action: none;
+  user-select: none;*/
 }
-.loader::after {
-  content: '';
+.loader > .loader-inner {
   width: 40%;
   height: 3px;
   position: absolute;
@@ -130,11 +132,36 @@
   left: 0;
   box-sizing: border-box;
   animation: animloader 1s linear infinite;
-  @apply bg-primary;
+  border-radius: 1.5px;
+  background-image: linear-gradient(90deg, 
+    rgba(95, 174, 247, 0) 0%,
+    rgba(95, 174, 247, 1) 64.8%,
+    rgba(107, 93, 247, 1) 84%,
+    rgba(255, 255, 255, 1) 100%
+  );
+}
+.loader > .loader-inner > .loader-inner-glow {
+  position: absolute;
+  inset: -32px;
+  filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.loader > .loader-inner > .loader-inner-glow::after {
+  content: '';
+  position: absolute;
+  inset: 28px;
+  background-image: linear-gradient(90deg, 
+    rgba(95, 174, 247, 0) 0%,
+    rgba(95, 174, 247, 1) 64.8%,
+    rgba(107, 93, 247, 1) 84%,
+    rgba(255, 255, 255, 1) 100%
+  );
 }
 
 @media (min-width: 800px) {
-  .loader::after {
+  .loader > .loader-inner {
     width: 20%;
     animation: animloader 2s linear infinite;
   }
