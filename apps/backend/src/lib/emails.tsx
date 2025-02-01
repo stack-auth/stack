@@ -72,7 +72,7 @@ type SendEmailOptions = {
 
 export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): Promise<Result<undefined, {
   rawError: any,
-  errorType: 'UNKNOWN' | 'HOST_NOT_FOUND' | 'AUTH_FAILED' | 'SOCKET_CLOSED' | 'TEMPORARY' | 'INVALID_EMAIL_ADDRESS',
+  errorType: string,
   canRetry: boolean,
   message?: string,
 }>> {
@@ -154,6 +154,24 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
               errorType: 'INVALID_EMAIL_ADDRESS',
               canRetry: false,
               message: 'The email address provided is invalid. Please verify both the recipient and sender email addresses configuration are correct.\n\nError:' + getServerResponse(error),
+            } as const);
+          }
+
+          if (responseCode === 554 || code === 'EENVELOPE') {
+            return Result.error({
+              rawError: error,
+              errorType: 'REJECTED',
+              canRetry: false,
+              message: 'The email server rejected the email. Please check your email configuration and try again later.\n\nError:' + getServerResponse(error),
+            } as const);
+          }
+
+          if (code === 'ETIMEDOUT') {
+            return Result.error({
+              rawError: error,
+              errorType: 'TIMEOUT',
+              canRetry: true,
+              message: 'The email server timed out while sending the email. This could be due to a temporary network issue or a temporary block on the email server. Please try again later.',
             } as const);
           }
 
