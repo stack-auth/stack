@@ -157,6 +157,15 @@ export async function sendEmailWithKnownErrorTypes(options: SendEmailOptions): P
             } as const);
           }
 
+          if (code === 'ETIMEDOUT') {
+            return Result.error({
+              rawError: error,
+              errorType: 'TIMEOUT',
+              canRetry: true,
+              message: 'The email server timed out while sending the email. This could be due to a temporary network issue or a temporary block on the email server. Please try again later.',
+            } as const);
+          }
+
           if (error.message.includes('Unexpected socket close')) {
             return Result.error({
               rawError: error,
