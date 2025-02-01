@@ -32,7 +32,7 @@ import { getRelativePart, isRelative } from "@stackframe/stack-shared/dist/utils
 import { generateUuid } from "@stackframe/stack-shared/dist/utils/uuids";
 import * as cookie from "cookie";
 import * as NextNavigationUnscrambled from "next/navigation"; // import the entire module to get around some static compiler warnings emitted by Next.js in some cases
-// NEXT_LINE_ONLY react-like
+// NEXT_LINE_PLATFORM react-like
 import React, { useCallback, useMemo } from "react";
 import { constructRedirectUrl } from "../utils/url";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
@@ -454,7 +454,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
 
     this._tokenStoreInit = _options.tokenStore;
     this._redirectMethod = _options.redirectMethod || "none";
-    // NEXT_LINE_ONLY next
+    // NEXT_LINE_PLATFORM next
     this._redirectMethod = _options.redirectMethod || "nextjs";
     this._urlOptions = _options.urls ?? {};
     this._oauthScopesOnSignIn = _options.oauthScopesOnSignIn ?? {};
@@ -1010,7 +1010,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         await this.update({ selectedTeamId: team?.id ?? null });
       },
       getConnectedAccount,
-      // NEXT_LINE_ONLY react-like
+      // NEXT_LINE_PLATFORM react-like
       useConnectedAccount,
       async getTeam(teamId: string) {
         const teams = await this.listTeams();
@@ -1969,7 +1969,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return await this.update({ selectedTeamId: team?.id ?? null });
       },
       getConnectedAccount,
-      // NEXT_LINE_ONLY react-like
+      // NEXT_LINE_PLATFORM react-like
       useConnectedAccount,
       selectedTeam: crud.selected_team ? app._serverTeamFromCrud(crud.selected_team) : null,
       async getTeam(teamId: string) {
@@ -2897,7 +2897,7 @@ type UserExtra = {
    */
   update(update: UserUpdateOptions): Promise<void>,
 
-  // NEXT_LINE_ONLY react-like
+  // NEXT_LINE_PLATFORM react-like
   useContactChannels(): ContactChannel[],
   listContactChannels(): Promise<ContactChannel[]>,
   createContactChannel(data: ContactChannelCreateOptions): Promise<ContactChannel>,
@@ -2920,7 +2920,7 @@ type UserExtra = {
   leaveTeam(team: Team): Promise<void>,
 
   getTeamProfile(team: Team): Promise<EditableTeamMemberProfile>,
-  // NEXT_LINE_ONLY react-like
+  // NEXT_LINE_PLATFORM react-like
   useTeamProfile(team: Team): EditableTeamMemberProfile,
 }
 & AsyncStoreProperty<"team", [id: string], Team | null, false>
@@ -2973,7 +2973,7 @@ type ServerBaseUser = {
   setServerMetadata(metadata: any): Promise<void>,
   setClientReadOnlyMetadata(metadata: any): Promise<void>,
 
-  // NEXT_LINE_ONLY react-like
+  // NEXT_LINE_PLATFORM react-like
   useContactChannels(): ServerContactChannel[],
   listContactChannels(): Promise<ServerContactChannel[]>,
   createContactChannel(data: ServerContactChannelCreateOptions): Promise<ServerContactChannel>,
@@ -3316,10 +3316,10 @@ export type Team = {
   clientReadOnlyMetadata: any,
   inviteUser(options: { email: string, callbackUrl?: string }): Promise<void>,
   listUsers(): Promise<TeamUser[]>,
-  // NEXT_LINE_ONLY react-like
+  // NEXT_LINE_PLATFORM react-like
   useUsers(): TeamUser[],
   listInvitations(): Promise<TeamInvitation[]>,
-  // NEXT_LINE_ONLY react-like
+  // NEXT_LINE_PLATFORM react-like
   useInvitations(): TeamInvitation[],
   update(update: TeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,
@@ -3361,7 +3361,7 @@ export type ServerTeam = {
   createdAt: Date,
   serverMetadata: any,
   listUsers(): Promise<ServerTeamUser[]>,
-  // NEXT_LINE_ONLY react-like
+  // NEXT_LINE_PLATFORM react-like
   useUsers(): ServerUser[],
   update(update: ServerTeamUpdateOptions): Promise<void>,
   delete(): Promise<void>,
@@ -3444,7 +3444,7 @@ export type Connection = {
 
 export type OAuthConnection = {
   getAccessToken(): Promise<{ accessToken: string }>,
-  // NEXT_LINE_ONLY react-like
+  // NEXT_LINE_PLATFORM react-like
   useAccessToken(): { accessToken: string },
 } & Connection;
 
@@ -3536,7 +3536,7 @@ export type StackServerApp<HasTokenStore extends boolean = boolean, ProjectId ex
     getUser(options: GetUserOptions<HasTokenStore> & { or: 'throw' }): Promise<ProjectCurrentServerUser<ProjectId>>,
     getUser(options?: GetUserOptions<HasTokenStore>): Promise<ProjectCurrentServerUser<ProjectId> | null>,
 
-    // NEXT_LINE_ONLY react-like
+    // NEXT_LINE_PLATFORM react-like
     useUsers(options?: ServerListUsersOptions): ServerUser[] & { nextCursor: string | null },
     listUsers(options?: ServerListUsersOptions): Promise<ServerUser[] & { nextCursor: string | null }>,
   }
@@ -3561,7 +3561,7 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
   & AsyncStoreProperty<"apiKeys", [], ApiKey[], true>
   & AsyncStoreProperty<"teamPermissionDefinitions", [], AdminTeamPermissionDefinition[], true>
   & {
-    // NEXT_LINE_ONLY react-like
+    // NEXT_LINE_PLATFORM react-like
     useEmailTemplates(): AdminEmailTemplate[],
     listEmailTemplates(): Promise<AdminEmailTemplate[]>,
     updateEmailTemplate(type: EmailTemplateType, data: AdminEmailTemplateUpdateOptions): Promise<void>,
@@ -3573,7 +3573,7 @@ export type StackAdminApp<HasTokenStore extends boolean = boolean, ProjectId ext
     updateTeamPermissionDefinition(permissionId: string, data: AdminTeamPermissionDefinitionUpdateOptions): Promise<void>,
     deleteTeamPermissionDefinition(permissionId: string): Promise<void>,
 
-    // NEXT_LINE_ONLY react-like
+    // NEXT_LINE_PLATFORM react-like
     useSvixToken(): string,
 
     sendTestEmail(options: {
@@ -3621,7 +3621,7 @@ type RedirectToOptions = {
 
 type AsyncStoreProperty<Name extends string, Args extends any[], Value, IsMultiple extends boolean> =
   & { [key in `${IsMultiple extends true ? "list" : "get"}${Capitalize<Name>}`]: (...args: Args) => Promise<Value> }
-  // NEXT_LINE_ONLY react-like
+  // NEXT_LINE_PLATFORM react-like
   & { [key in `use${Capitalize<Name>}`]: (...args: Args) => Value }
 
 type EmailConfig = {

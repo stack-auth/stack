@@ -280,7 +280,7 @@ function processMacros(content: string, envs: string[]): string {
    *   - ELSE_IF_PLATFORM
    *   - ELSE_PLATFORM
    *   - END_PLATFORM
-   *   - NEXT_LINE_ONLY
+   *   - NEXT_LINE_PLATFORM
    *
    * And then capture everything after that keyword up to the end of the line.
    *
@@ -292,7 +292,7 @@ function processMacros(content: string, envs: string[]): string {
   const reElseIf    = /\bELSE_IF_PLATFORM\s+(.+)/i;
   const reElse      = /\bELSE_PLATFORM\b/i;
   const reEndOnly   = /\bEND_PLATFORM\b/i;
-  const reNextLine  = /\bNEXT_LINE_ONLY\s+(.+)/i;
+  const reNextLine  = /\bNEXT_LINE_PLATFORM\s+(.+)/i;
 
   for (const line of lines) {
     // 1) Try detecting IF_PLATFORM ...
@@ -387,7 +387,7 @@ function processMacros(content: string, envs: string[]): string {
       continue;
     }
 
-    // 5) Try detecting NEXT_LINE_ONLY ...
+    // 5) Try detecting NEXT_LINE_PLATFORM ...
     const nextLineMatch = line.match(reNextLine);
     if (nextLineMatch) {
       const envList = parseEnvList(nextLineMatch[1]);
