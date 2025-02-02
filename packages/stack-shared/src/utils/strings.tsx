@@ -227,14 +227,19 @@ export function nicify(
       return JSON.stringify(value);
     }
     case "string": {
-      if (deindent(value) === value && value.includes("\n")) {
-        return deindent`
-          deindent\`
+      const isDeindentable = (v: string) => deindent(v) === v && v.includes("\n");
+      const wrapInDeindent = (v: string) => deindent`
+        deindent\`
           ${currentIndent + lineIndent}${escapeTemplateLiteral(value).replaceAll("\n", nl + lineIndent)}
           ${currentIndent}\`
-        `;
+      `;
+      if (isDeindentable(value)) {
+        return wrapInDeindent(value);
+      } else if (value.endsWith("\n") && isDeindentable(value.slice(0, -1))) {
+        return wrapInDeindent(value.slice(0, -1)) + ' + "\\n"';
+      } else {
+        return JSON.stringify(value);
       }
-      return JSON.stringify(value);
     }
     case "undefined": {
       return "undefined";
