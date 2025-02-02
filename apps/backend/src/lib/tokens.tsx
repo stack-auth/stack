@@ -38,9 +38,10 @@ export const oauthCookieSchema = yupObject({
 const jwtIssuer = "https://access-token.jwt-signature.stack-auth.com";
 
 export async function decodeAccessToken(accessToken: string) {
-  let payload;
+  let payload: jose.JWTPayload;
+  let decoded: jose.JWTPayload | undefined;
   try {
-    const decoded = jose.decodeJwt(accessToken);
+    decoded = jose.decodeJwt(accessToken);
 
     if (!decoded.aud) {
       payload = await legacyVerifyGlobalJWT(jwtIssuer, accessToken);
@@ -52,7 +53,7 @@ export async function decodeAccessToken(accessToken: string) {
     }
   } catch (error) {
     if (error instanceof JWTExpired) {
-      return Result.error(new KnownErrors.AccessTokenExpired());
+      return Result.error(new KnownErrors.AccessTokenExpired(decoded?.exp ? new Date(decoded.exp * 1000) : undefined));
     } else if (error instanceof JOSEError) {
       return Result.error(new KnownErrors.UnparsableAccessToken());
     }

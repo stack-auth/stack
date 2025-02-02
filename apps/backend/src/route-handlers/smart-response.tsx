@@ -36,7 +36,7 @@ export type SmartResponse = {
   }
 );
 
-async function validate<T>(req: NextRequest | null, obj: unknown, schema: yup.Schema<T>): Promise<T> {
+export async function validateSmartResponse<T>(req: NextRequest | null, obj: unknown, schema: yup.Schema<T>): Promise<T> {
   try {
     return await schema.validate(obj, {
       abortEarly: false,
@@ -57,10 +57,8 @@ function isBinaryBody(body: unknown): body is BodyInit {
     || ArrayBuffer.isView(body);
 }
 
-export async function createResponse<T extends SmartResponse>(req: NextRequest | null, requestId: string, obj: T, schema: yup.Schema<T>): Promise<Response> {
-  const validated = await validate(req, obj, schema);
-
-  let status = validated.statusCode;
+export async function createResponse<T extends SmartResponse>(req: NextRequest | null, requestId: string, obj: T): Promise<Response> {
+  let status = obj.statusCode;
   const headers = new Map<string, string[]>();
 
   let arrayBufferBody;
@@ -68,29 +66,29 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
   // if we have something that resembles a browser, prettify JSON outputs
   const jsonIndent = req?.headers.get("Accept")?.includes("text/html") ? 2 : undefined;
 
-  const bodyType = validated.bodyType ?? (validated.body === undefined ? "empty" : isBinaryBody(validated.body) ? "binary" : "json");
+  const bodyType = obj.bodyType ?? (obj.body === undefined ? "empty" : isBinaryBody(obj.body) ? "binary" : "json");
   switch (bodyType) {
     case "empty": {
       arrayBufferBody = new ArrayBuffer(0);
       break;
     }
     case "json": {
-      if (validated.body === undefined || !deepPlainEquals(validated.body, JSON.parse(JSON.stringify(validated.body)), { ignoreUndefinedValues: true })) {
-        throw new StackAssertionError("Invalid JSON body is not JSON", { body: validated.body });
+      if (obj.body === undefined || !deepPlainEquals(obj.body, JSON.parse(JSON.stringify(obj.body)), { ignoreUndefinedValues: true })) {
+        throw new StackAssertionError("Invalid JSON body is not JSON", { body: obj.body });
       }
       headers.set("content-type", ["application/json; charset=utf-8"]);
-      arrayBufferBody = new TextEncoder().encode(JSON.stringify(validated.body, null, jsonIndent));
+      arrayBufferBody = new TextEncoder().encode(JSON.stringify(obj.body, null, jsonIndent));
       break;
     }
     case "text": {
       headers.set("content-type", ["text/plain; charset=utf-8"]);
-      if (typeof validated.body !== "string") throw new Error(`Invalid body, expected string, got ${validated.body}`);
-      arrayBufferBody = new TextEncoder().encode(validated.body);
+      if (typeof obj.body !== "string") throw new Error(`Invalid body, expected string, got ${obj.body}`);
+      arrayBufferBody = new TextEncoder().encode(obj.body);
       break;
     }
     case "binary": {
-      if (!isBinaryBody(validated.body)) throw new Error(`Invalid body, expected ArrayBuffer, got ${validated.body}`);
-      arrayBufferBody = validated.body;
+      if (!isBinaryBody(obj.body)) throw new Error(`Invalid body, expected ArrayBuffer, got ${obj.body}`);
+      arrayBufferBody = obj.body;
       break;
     }
     case "success": {
@@ -117,7 +115,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
   // If the x-stack-override-error-status header is given, override error statuses to 200
   if (req?.headers.has("x-stack-override-error-status") && status >= 400 && status < 600) {
     status = 200;
-    headers.set("x-stack-actual-status", [validated.statusCode.toString()]);
+    headers.set("x-stack-actual-status", [obj.statusCode.toString()]);
   }
 
   return new Response(
@@ -127,7 +125,7 @@ export async function createResponse<T extends SmartResponse>(req: NextRequest |
       headers: [
         ...Object.entries({
           ...Object.fromEntries(headers),
-          ...validated.headers ?? {}
+          ...obj.headers ?? {}
         }).flatMap(([key, values]) => values.map(v => [key.toLowerCase(), v!] as [string, string])),
       ],
     },
