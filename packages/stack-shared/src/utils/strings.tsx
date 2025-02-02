@@ -230,8 +230,8 @@ export function nicify(
       const isDeindentable = (v: string) => deindent(v) === v && v.includes("\n");
       const wrapInDeindent = (v: string) => deindent`
         deindent\`
-          ${currentIndent + lineIndent}${escapeTemplateLiteral(value).replaceAll("\n", nl + lineIndent)}
-          ${currentIndent}\`
+        ${currentIndent + lineIndent}${escapeTemplateLiteral(value).replaceAll("\n", nl + lineIndent)}
+        ${currentIndent}\`
       `;
       if (isDeindentable(value)) {
         return wrapInDeindent(value);
