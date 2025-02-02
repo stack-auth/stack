@@ -197,6 +197,11 @@ export function yupUnion<T extends yup.ISchema<any>[]>(...args: T): yup.MixedSch
   });
 }
 
+export function ensureObjectSchema<T extends yup.AnyObject>(schema: yup.Schema<T>): yup.ObjectSchema<T> & typeof schema {
+  if (!(schema instanceof yup.ObjectSchema)) throw new StackAssertionError(`assertObjectSchema: schema is not an ObjectSchema: ${schema.describe().type}`);
+  return schema as any;
+}
+
 // Common
 export const adaptSchema = yupMixed<StackAdaptSentinel>();
 /**

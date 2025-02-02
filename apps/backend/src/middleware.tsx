@@ -84,6 +84,9 @@ export async function middleware(request: NextRequest) {
   outer: for (let i = 0; i < apiVersions.length - 1; i++) {
     const version = apiVersions[i];
     const nextVersion = apiVersions[i + 1];
+    if (!nextVersion.migrationFolder) {
+      throw new StackAssertionError(`No migration folder found for version ${nextVersion.name}. This is a bug because every version except the first should have a migration folder.`);
+    }
     if ((pathname + "/").startsWith(version.servedRoute + "/")) {
       const nextPathname = pathname.replace(version.servedRoute, nextVersion.servedRoute);
       const migrationPathname = nextPathname.replace(nextVersion.servedRoute, nextVersion.migrationFolder);

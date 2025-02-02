@@ -3,11 +3,11 @@ import { yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/s
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const GET = createSmartRouteHandler({
+  metadata: {
+    hidden: true,
+  },
   request: yupObject({
     url: yupString().defined(),
-    query: yupObject({
-      l: yupString().defined(),
-    }),
   }),
   response: yupObject({
     statusCode: yupNumber().oneOf([200]).defined(),
@@ -19,11 +19,11 @@ export const GET = createSmartRouteHandler({
       statusCode: 200,
       bodyType: "text",
       body: deindent`
-        Welcome to breaking-change! This endpoint is available since v1, but has a breaking change in v2beta1. Namely, the query parameter "q" is newly required.
+        You are on ${req.url}. Please pick a migration test.
 
-        Value of "q": ${req.query.l}
-
-        URL: ${req.url}
+        ${[
+          "./smart-route-handler",
+        ].map((path) => `- ${new URL(path, req.url)}`).join("\n")}
       `,
     };
   },

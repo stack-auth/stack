@@ -41,7 +41,7 @@ function catchError(error: unknown): StatusError {
   if (error instanceof Error) {
     const digest = (error as any)?.digest;
     if (typeof digest === "string") {
-      if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE"].some(m => digest.startsWith(m))) {
+      if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE", "NEXT_NOT_FOUND"].some(m => digest.startsWith(m))) {
         throw error;
       }
     }
