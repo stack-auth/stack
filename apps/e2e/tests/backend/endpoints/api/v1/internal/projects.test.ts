@@ -11,7 +11,11 @@ it("should not have have access to the project", async ({ expect }) => {
       "body": {
         "code": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
         "details": { "request_type": "client" },
-        "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
+        "error": deindent\`
+          The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.
+          
+          For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
+        \`,
       },
       "headers": Headers {
         "x-stack-known-error": "ACCESS_TYPE_WITHOUT_PROJECT_ID",

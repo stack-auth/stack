@@ -106,8 +106,16 @@ it("should not update passwords without old password", async ({ expect }) => {
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on POST /api/v1/auth/password/update:\\n  - body.old_password must be defined" },
-        "error": "Request validation failed on POST /api/v1/auth/password/update:\\n  - body.old_password must be defined",
+        "details": {
+          "message": deindent\`
+            Request validation failed on POST /api/v1/auth/password/update:
+              - body.old_password must be defined
+          \`,
+        },
+        "error": deindent\`
+          Request validation failed on POST /api/v1/auth/password/update:
+            - body.old_password must be defined
+        \`,
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",
@@ -183,8 +191,16 @@ it("should not update password when not logged in", async ({ expect }) => {
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on POST /api/v1/auth/password/update:\\n  - auth.user must be defined" },
-        "error": "Request validation failed on POST /api/v1/auth/password/update:\\n  - auth.user must be defined",
+        "details": {
+          "message": deindent\`
+            Request validation failed on POST /api/v1/auth/password/update:
+              - auth.user must be defined
+          \`,
+        },
+        "error": deindent\`
+          Request validation failed on POST /api/v1/auth/password/update:
+            - auth.user must be defined
+        \`,
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",

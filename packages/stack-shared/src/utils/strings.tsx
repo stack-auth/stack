@@ -119,6 +119,7 @@ export function deindent(strings: string | readonly string[], ...values: any[]):
 }
 
 export function extractScopes(scope: string, removeDuplicates=true): string[] {
+  // TODO what is this for? can we move this into the OAuth code in the backend?
   const trimmedString = scope.trim();
   const scopesArray = trimmedString.split(/\s+/);
   const filtered = scopesArray.filter(scope => scope.length > 0);
@@ -126,10 +127,14 @@ export function extractScopes(scope: string, removeDuplicates=true): string[] {
 }
 
 export function mergeScopeStrings(...scopes: string[]): string {
+  // TODO what is this for? can we move this into the OAuth code in the backend?
   const allScope = scopes.map((s) => extractScopes(s)).flat().join(" ");
   return extractScopes(allScope).join(" ");
 }
 
+export function escapeTemplateLiteral(s: string): string {
+  return s.replaceAll("`", "\\`").replaceAll("\\", "\\\\").replaceAll("$", "\\$");
+}
 
 /**
  * Some classes have different constructor names in different environments (eg. `Headers` is sometimes called `_Headers`,
@@ -218,7 +223,17 @@ export function nicify(
   };
 
   switch (typeof value) {
-    case "string": case "boolean": case "number": {
+    case "boolean": case "number": {
+      return JSON.stringify(value);
+    }
+    case "string": {
+      if (deindent(value) === value && value.includes("\n")) {
+        return deindent`
+          deindent\`
+          ${currentIndent + lineIndent}${escapeTemplateLiteral(value).replaceAll("\n", nl + lineIndent)}
+          ${currentIndent}\`
+        `;
+      }
       return JSON.stringify(value);
     }
     case "undefined": {
@@ -251,7 +266,7 @@ export function nicify(
         }
       }
       if (value instanceof URL) {
-        return `URL(${JSON.stringify(value.toString())})`;
+        return `URL(${nicify(value.toString())})`;
       }
       if (ArrayBuffer.isView(value)) {
         return `${value.constructor.name}([${value.toString()}])`;

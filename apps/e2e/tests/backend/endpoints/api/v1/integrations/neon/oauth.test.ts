@@ -232,8 +232,16 @@ it(`should not exchange the authorization code when the client secret is incorre
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on POST /api/v1/integrations/neon/oauth/token:\\n  - Invalid client_id:client_secret values; did you use the correct values for the Neon integration?" },
-        "error": "Request validation failed on POST /api/v1/integrations/neon/oauth/token:\\n  - Invalid client_id:client_secret values; did you use the correct values for the Neon integration?",
+        "details": {
+          "message": deindent\`
+            Request validation failed on POST /api/v1/integrations/neon/oauth/token:
+              - Invalid client_id:client_secret values; did you use the correct values for the Neon integration?
+          \`,
+        },
+        "error": deindent\`
+          Request validation failed on POST /api/v1/integrations/neon/oauth/token:
+            - Invalid client_id:client_secret values; did you use the correct values for the Neon integration?
+        \`,
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",
