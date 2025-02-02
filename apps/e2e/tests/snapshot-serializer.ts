@@ -26,6 +26,7 @@ const hideHeaders = [
   "content-encoding",
   "etag",
   "x-stack-request-id",
+  "x-middleware-rewrite",
 ] as const;
 
 const stripHeaders = [] as const;
