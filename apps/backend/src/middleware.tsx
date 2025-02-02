@@ -1,10 +1,13 @@
 import { getEnvVariable, getNodeEnvironment } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
 import { wait } from '@stackframe/stack-shared/dist/utils/promises';
+import apiVersions from './generated/api-versions.json';
+import routes from './generated/routes.json';
 import './polyfills';
 
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { SmartRouter } from './smart-router';
 
 const corsAllowedRequestHeaders = [
   // General
@@ -76,7 +79,36 @@ export async function middleware(request: NextRequest) {
     return new Response(null, responseInit);
   }
 
-  return NextResponse.next(responseInit);
+  // if no route is available for the requested version, rewrite to newer version
+  let pathname = url.pathname;
+  outer: for (let i = 0; i < apiVersions.length - 1; i++) {
+    const version = apiVersions[i];
+    const nextVersion = apiVersions[i + 1];
+    if (!nextVersion.migrationFolder) {
+      throw new StackAssertionError(`No migration folder found for version ${nextVersion.name}. This is a bug because every version except the first should have a migration folder.`);
+    }
+    if ((pathname + "/").startsWith(version.servedRoute + "/")) {
+      const nextPathname = pathname.replace(version.servedRoute, nextVersion.servedRoute);
+      const migrationPathname = nextPathname.replace(nextVersion.servedRoute, nextVersion.migrationFolder);
+      // okay, we're in an API version of the current version. let's check if at least one route matches this URL (doesn't matter which)
+      for (const route of routes) {
+        if (nextVersion.migrationFolder && (route.normalizedPath + "/").startsWith(nextVersion.migrationFolder + "/")) {
+          if (SmartRouter.matchNormalizedPath(migrationPathname, route.normalizedPath)) {
+            // success! we found a route that matches the request
+            // rewrite request to the migration folder
+            pathname = migrationPathname;
+            break outer;
+          }
+        }
+      }
+      // if no route matches, rewrite to the next version
+      pathname = nextPathname;
+    }
+  }
+
+  const newUrl = request.nextUrl.clone();
+  newUrl.pathname = pathname;
+  return NextResponse.rewrite(newUrl, responseInit);
 }
 
 // See "Matching Paths" below to learn more
