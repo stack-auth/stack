@@ -12,4 +12,3 @@ export const GET = createSmartRouteHandler({
 });
 
 
-console.log(GET.initArgs[0].request.describe());
