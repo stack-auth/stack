@@ -147,8 +147,16 @@ it("cannot create sessions with an expiry date larger than a year away", async (
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on POST /api/v1/auth/sessions:\\n  - body.expires_in_millis must be less than or equal to 31708800000" },
-        "error": "Request validation failed on POST /api/v1/auth/sessions:\\n  - body.expires_in_millis must be less than or equal to 31708800000",
+        "details": {
+          "message": deindent\`
+            Request validation failed on POST /api/v1/auth/sessions:
+              - body.expires_in_millis must be less than or equal to 31708800000
+          \`,
+        },
+        "error": deindent\`
+          Request validation failed on POST /api/v1/auth/sessions:
+            - body.expires_in_millis must be less than or equal to 31708800000
+        \`,
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",

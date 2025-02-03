@@ -165,8 +165,16 @@ it("can't list invitations across teams", async ({ expect }) => {
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on GET /api/v1/team-invitations:\\n  - query.team_id must be defined" },
-        "error": "Request validation failed on GET /api/v1/team-invitations:\\n  - query.team_id must be defined",
+        "details": {
+          "message": deindent\`
+            Request validation failed on GET /api/v1/team-invitations:
+              - query.team_id must be defined
+          \`,
+        },
+        "error": deindent\`
+          Request validation failed on GET /api/v1/team-invitations:
+            - query.team_id must be defined
+        \`,
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",
