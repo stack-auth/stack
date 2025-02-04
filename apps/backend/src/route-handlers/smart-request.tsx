@@ -252,6 +252,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
 
   const project = queriesResults.project;
   if (!project) {
+    // This happens when the JWT tokens are still valid, but the project has been deleted
     throw new KnownErrors.ProjectNotFound(projectId);
   }
 
