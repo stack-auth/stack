@@ -252,7 +252,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
 
   const project = queriesResults.project;
   if (!project) {
-    throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", { projectId });
+    throw new KnownErrors.ProjectNotFound(projectId);
   }
 
   return {
