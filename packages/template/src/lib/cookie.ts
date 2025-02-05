@@ -22,7 +22,7 @@ export type CookieHelper = {
 
 export async function createEmptyCookieHelper(): Promise<CookieHelper> {
   function throwError() {
-    throw new Error("Empty cookie helper is just a placeholder. This should never be called");
+    throw new StackAssertionError("Empty cookie helper is just a placeholder. This should never be called");
   }
   return {
     get: () => {
