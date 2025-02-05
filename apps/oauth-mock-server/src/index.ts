@@ -63,7 +63,7 @@ const renderLoginView = ({ uid, debugInfo }: { uid: string, debugInfo: unknown }
         <h1 class="text-2xl font-bold mb-6 text-center">Mock OAuth Sign-in</h1>
         <form method="post" action="/interaction/${uid}/login" class="space-y-4">
           <div>
-            <label for="login" class="block text-gray-700">Login (Email):</label>
+            <label for="login" class="block text-gray-700">Email</label>
             <input id="login" type="email" name="login" required
               class="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300" />
           </div>
