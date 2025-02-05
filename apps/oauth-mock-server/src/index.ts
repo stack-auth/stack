@@ -1,23 +1,11 @@
-/* eslint-disable no-console, camelcase, no-unused-vars */
-import express, { urlencoded } from 'express';
-import { strict as assert } from 'node:assert';
-import * as querystring from 'node:querystring';
-import { inspect } from 'node:util';
+import { strict as assert } from 'assert';
+import express from 'express';
 import Provider, { errors } from 'oidc-provider';
 
 const { SessionNotFound } = errors;
 
-// A simple dummy Account implementation.
-// In production, replace this with your actual account model.
-class Account {
-  static async findByLogin(login) {
-    // For testing, we simply use the provided login (email) as the accountId.
-    return { accountId: login };
-  }
-}
-
 const port = process.env.PORT || 8114;
-const mockedProviders = [
+const providerIds = [
   'github',
   'facebook',
   'google',
@@ -28,245 +16,139 @@ const mockedProviders = [
   'bitbucket',
   'x',
 ];
-
-const clients = mockedProviders.map((providerId) => ({
-  client_id: providerId,
+const clients = providerIds.map((id) => ({
+  client_id: id,
   client_secret: 'MOCK-SERVER-SECRET',
-  redirect_uris: [
-    `http://localhost:8102/api/v1/auth/oauth/callback/${providerId}`,
-  ],
+  redirect_uris: [`http://localhost:8102/api/v1/auth/oauth/callback/${id}`],
 }));
 
-// OIDC provider configuration with a custom findAccount function.
 const configuration = {
   clients,
-  ttl: {
-    Session: 60,
-  },
-  findAccount: async (ctx, id) => {
-    return {
-      accountId: id,
-      async claims(use, scope) {
-        return { sub: id, email: id };
-      },
-    };
-  },
+  ttl: { Session: 60 },
+  findAccount: async (ctx: any, sub: string) => ({
+    accountId: sub,
+    async claims() {
+      return { sub, email: sub };
+    },
+  }),
 };
 
 const oidc = new Provider(`http://localhost:${port}`, configuration);
-
 const app = express();
-app.use(urlencoded({ extended: false }));
 
-// -------------------------------------------------------------------------
-// Minimal view engine
-// We define a simple app.render function that will render two templates:
-// 'login' for the login form and 'interaction' for the consent form.
-app.render = (view, locals, callback) => {
-  let html = '';
-  if (view === 'login') {
-    html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${locals.title}</title>
-        </head>
-        <body>
-          <h1>${locals.title}</h1>
-          <form method="post" action="/interaction/${locals.uid}/login">
-            <label>Login (Email): <input type="email" name="login" required /></label>
-            <button type="submit">Sign in</button>
-          </form>
-          <div>
-            <h3>Debug</h3>
-            <pre>${locals.dbg ? `Params: ${locals.dbg.params}\nPrompt: ${locals.dbg.prompt}` : ''}</pre>
-          </div>
-        </body>
-      </html>
-    `;
-  } else if (view === 'interaction') {
-    html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${locals.title}</title>
-        </head>
-        <body>
-          <h1>${locals.title}</h1>
-          <form method="post" action="/interaction/${locals.uid}/confirm">
-            <button type="submit">Approve</button>
-          </form>
-          <form method="get" action="/interaction/${locals.uid}/abort">
-            <button type="submit">Deny</button>
-          </form>
-          <div>
-            <h3>Debug</h3>
-            <pre>${locals.dbg ? `Params: ${locals.dbg.params}\nPrompt: ${locals.dbg.prompt}` : ''}</pre>
-          </div>
-        </body>
-      </html>
-    `;
-  } else if (view === '_layout') {
-    // Layout simply wraps the content; here we just output the body.
-    html = locals.body;
-  }
-  callback(null, html);
-};
+app.use(express.urlencoded({ extended: false }));
 
-// Middleware to override res.render using our simple view engine.
-app.use((req, res, next) => {
-  const origRender = res.render;
-  res.render = (view, locals) => {
-    app.render(view, locals, (err, html) => {
-      if (err) throw err;
-      origRender.call(res, '_layout', {
-        ...locals,
-        body: html,
-      });
-    });
-  };
-  next();
-});
 
-// -------------------------------------------------------------------------
-// Custom implementation of isEmpty, replacing lodash's isEmpty
+const renderLoginView = ({ title, uid, debugInfo }: { title: string, uid: string, debugInfo: any }) => `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>${title}</title>
+  </head>
+  <body>
+    <h1>${title}</h1>
+    <form method="post" action="/interaction/${uid}/login">
+      <label>
+        Login (Email):
+        <input type="email" name="login" required />
+      </label>
+      <button type="submit">Sign in</button>
+    </form>
+    <div>
+      <h3>Debug</h3>
+      <pre>${JSON.stringify(debugInfo, null, 2)}</pre>
+    </div>
+  </body>
+</html>
+`;
 
-/**
- * Checks if the provided value is "empty".
- *
- * - For `null` or `undefined`, returns `true`.
- * - For strings and arrays, returns `true` if the length is 0.
- * - For objects, returns `true` if it has no own enumerable properties.
- *
- * @param {*} value - The value to check.
- * @returns {boolean} - Returns true if the value is empty.
- */
-function isEmpty(value: any) {
-  if (value == null) return true;
-  if (typeof value === 'string' || Array.isArray(value)) return value.length === 0;
-  if (typeof value === 'object') return Object.keys(value).length === 0;
-  return false;
-}
+const renderConsentView = ({ title, uid, debugInfo }: { title: string, uid: string, debugInfo: any }) => `
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>${title}</title>
+  </head>
+  <body>
+    <h1>${title}</h1>
+    <form method="post" action="/interaction/${uid}/confirm">
+      <button type="submit">Approve</button>
+    </form>
+    <form method="get" action="/interaction/${uid}/abort">
+      <button type="submit">Deny</button>
+    </form>
+    <div>
+      <h3>Debug</h3>
+      <pre>${JSON.stringify(debugInfo, null, 2)}</pre>
+    </div>
+  </body>
+</html>
+`;
 
-// Debug helper function (similar to the snippet you provided)
-const keys = new Set();
-const debug = (obj) =>
-  querystring.stringify(
-    Object.entries(obj).reduce((acc, [key, value]) => {
-      keys.add(key);
-      if (isEmpty(value)) return acc;
-      acc[key] = inspect(value, { depth: null });
-      return acc;
-    }, {}),
-    '<br/>',
-    ': ',
-    {
-      encodeURIComponent(value) {
-        return keys.has(value) ? `<strong>${value}</strong>` : value;
-      },
-    }
-  );
-
-// No-cache middleware to ensure fresh interactions.
-function setNoCache(req, res, next) {
+const setNoCache = (req: express.Request, res: express.Response, next: express.NextFunction) => {
   res.set('cache-control', 'no-store');
   next();
-}
+};
 
-// -------------------------------------------------------------------------
-// Interaction routes
-
-// GET /interaction/:uid - Render login or consent view based on the prompt.
-app.get('/interaction/:uid', setNoCache, async (req, res, next) => {
+app.get('/interaction/:uid', setNoCache, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const { uid, prompt, params, session } = await oidc.interactionDetails(req, res);
-    const client = await oidc.Client.find(params.client_id);
-    switch (prompt.name) {
-      case 'login': {
-        return res.render('login', {
-          client,
-          uid,
-          details: prompt.details,
-          params,
-          title: 'Sign-in',
-          session: session ? debug(session) : undefined,
-          dbg: {
-            params: debug(params),
-            prompt: debug(prompt),
-          },
-        });
-      }
-      case 'consent': {
-        return res.render('interaction', {
-          client,
-          uid,
-          details: prompt.details,
-          params,
-          title: 'Authorize',
-          session: session ? debug(session) : undefined,
-          dbg: {
-            params: debug(params),
-            prompt: debug(prompt),
-          },
-        });
-      }
-      default: {
-        return res.send('Unknown prompt');
-      }
+    const debugInfo = { params, prompt, session };
+
+    if (prompt.name === 'login') {
+      res.send(renderLoginView({
+        title: 'Sign-in',
+        uid,
+        debugInfo,
+      }));
+    } else if (prompt.name === 'consent') {
+      res.send(renderConsentView({
+        title: 'Authorize',
+        uid,
+        debugInfo,
+      }));
+    } else {
+      res.send('Unknown prompt');
     }
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
 app.post('/interaction/:uid/login', setNoCache, async (req, res, next) => {
   try {
     const { prompt } = await oidc.interactionDetails(req, res);
-    assert.equal(prompt.name, 'login');
-    const result = {
-      login: {
-        accountId: req.body.login
-      },
-    };
+    assert.strictEqual(prompt.name, 'login', 'Expected login prompt');
+    const result = { login: { accountId: req.body.login } };
     await oidc.interactionFinished(req, res, result, { mergeWithLastSubmission: false });
   } catch (err) {
     next(err);
   }
 });
 
-// POST /interaction/:uid/confirm - Handle consent approval.
 app.post('/interaction/:uid/confirm', setNoCache, async (req, res, next) => {
   try {
-    const interactionDetails = await oidc.interactionDetails(req, res);
-    if (!interactionDetails.session) {
-      throw new Error('No session found');
-    }
+    const { prompt, params, session, grantId } = await oidc.interactionDetails(req, res);
+    if (!session) throw new Error('No session found');
+    assert.strictEqual(prompt.name, 'consent', 'Expected consent prompt');
 
-    const { prompt: { name, details }, params } = interactionDetails;
-    const accountId = interactionDetails.session.accountId;
-    assert.equal(name, 'consent');
+    const accountId = session.accountId;
+    const { details } = prompt;
 
-    let { grantId } = interactionDetails;
-    let grant;
-    if (grantId) {
-      // Modifying an existing grant.
-      grant = await oidc.Grant.find(grantId);
-    } else {
-      // Creating a new grant.
-      grant = new oidc.Grant({
-        accountId,
-        clientId: params.client_id as string,
-      });
-    }
+    // Create or update a grant
+    let grant = grantId
+      ? await oidc.Grant.find(grantId)
+      : new oidc.Grant({ accountId, clientId: params.client_id as string });
 
     if (!grant) {
       throw new Error('Failed to create or find grant');
     }
 
-    if (details.missingOIDCScope && Array.isArray(details.missingOIDCScope)) {
+    if (Array.isArray(details.missingOIDCScope)) {
       grant.addOIDCScope(details.missingOIDCScope.join(' '));
     }
-    if (details.missingOIDCClaims && Array.isArray(details.missingOIDCClaims)) {
+    if (Array.isArray(details.missingOIDCClaims)) {
       grant.addOIDCClaims(details.missingOIDCClaims);
     }
     if (details.missingResourceScopes && typeof details.missingResourceScopes === 'object') {
@@ -277,20 +159,17 @@ app.post('/interaction/:uid/confirm', setNoCache, async (req, res, next) => {
       }
     }
 
-    grantId = await grant.save();
+    const newGrantId = await grant.save();
     const consent: { grantId?: string } = {};
-    if (!interactionDetails.grantId) {
-      consent.grantId = grantId;
-    }
+    if (!grantId) consent.grantId = newGrantId;
+
     const result = { consent };
-    console.log('result', result);
     await oidc.interactionFinished(req, res, result, { mergeWithLastSubmission: true });
   } catch (err) {
     next(err);
   }
 });
 
-// GET /interaction/:uid/abort - Handle user aborting the interaction.
 app.get('/interaction/:uid/abort', setNoCache, async (req, res, next) => {
   try {
     const result = {
@@ -303,21 +182,16 @@ app.get('/interaction/:uid/abort', setNoCache, async (req, res, next) => {
   }
 });
 
-// Error handling middleware.
-app.use((err, req, res, next) => {
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err instanceof SessionNotFound) {
-    // Session expired or not found.
     res.status(410).send('Session not found or expired');
   } else {
     next(err);
   }
 });
 
-// -------------------------------------------------------------------------
-// Mount the oidc-provider callback middleware.
 app.use(oidc.callback());
 
-// Start the server.
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
