@@ -3,8 +3,6 @@ import express from 'express';
 import handlebars from 'handlebars';
 import Provider, { errors } from 'oidc-provider';
 
-const { SessionNotFound } = errors;
-
 const port = process.env.PORT || 8114;
 const providerIds = [
   'github',
@@ -225,7 +223,7 @@ app.get('/interaction/:uid/abort', setNoCache, async (req: express.Request, res:
 });
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction): void => {
-  if (err instanceof SessionNotFound) {
+  if (err instanceof errors.SessionNotFound) {
     res.status(410).send('Session not found or expired');
   } else {
     next(err);
