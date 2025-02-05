@@ -1,6 +1,6 @@
 {
   "name": "@stackframe/example-partial-prerendering",
-  "version": "2.7.11",
+  "version": "2.7.12",
   "private": true,
   "scripts": {
     "dev": "next dev --port 8109",
