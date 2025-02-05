@@ -10,8 +10,11 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@types/oidc-provider": "^8.5.1",
     "@stackframe/stack-shared": "workspace:*",
+    "@types/express": "^5.0.0",
+    "@types/oidc-provider": "^8.5.1",
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2",
     "oidc-provider": "^8.5.1"
   },
   "devDependencies": {
