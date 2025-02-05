@@ -1,14 +1,11 @@
 #!/usr/bin/env node
 
-import * as stackSharedStrings from '@stackframe/stack-shared/dist/utils/strings';
+import { deindent, templateIdentity } from '@stackframe/stack-shared/dist/utils/strings';
 import * as child_process from "child_process";
 import * as fs from "fs";
 import inquirer from "inquirer";
 import open from "open";
 import * as path from "path";
-
-// stackSharedStrings is a CommonJS module, so we need to import it differently
-const { templateIdentity, deindent } = stackSharedStrings;
 
 const jsLikeFileExtensions = [
   "mtsx",

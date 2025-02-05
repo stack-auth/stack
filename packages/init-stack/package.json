@@ -3,6 +3,7 @@
   "version": "2.7.10",
   "description": "The setup wizard for Stack. https://stack-auth.com",
   "main": "index.mjs",
+  "type": "module",
   "bin": "./index.mjs",
   "scripts": {
     "clean": "rimraf test-run-output && rimraf node_modules",
