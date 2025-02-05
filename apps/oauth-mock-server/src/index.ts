@@ -1,5 +1,6 @@
 import { strict as assert } from 'assert';
 import express from 'express';
+import handlebars from 'handlebars';
 import Provider, { errors } from 'oidc-provider';
 
 const { SessionNotFound } = errors;
@@ -38,111 +39,115 @@ const app = express();
 
 app.use(express.urlencoded({ extended: false }));
 
-const renderLoginView = ({ uid, debugInfo }: { uid: string, debugInfo: unknown }): string => {
-  return `
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Sign-in</title>
-      <script src="https://cdn.tailwindcss.com"></script>
-      <style>
-        body {
-          background-color: #f8f9fa;
-        }
-        .card {
+const loginTemplateSource = `
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign-in</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .card {
         background-color: #fff;
-          border-radius: 0.5rem;
-          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
-      </style>
-    </head>
-    <body class="min-h-screen flex items-center justify-center p-4">
-      <div class="card w-full max-w-md p-8">
-        <h1 class="text-2xl font-bold mb-6 text-center">Mock OAuth Sign-in</h1>
-        <form method="post" action="/interaction/${uid}/login" class="space-y-4">
-          <div>
-            <label for="login" class="block text-gray-700">Email</label>
-            <input id="login" type="email" name="login" required
-              class="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300" />
-          </div>
-          <button type="submit"
-            class="w-full bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded">
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex items-center justify-center p-4">
+    <div class="card w-full max-w-md p-8">
+      <h1 class="text-2xl font-bold mb-6 text-center">Mock OAuth Sign-in</h1>
+      <form method="post" action="/interaction/{{uid}}/login" class="space-y-4">
+        <div>
+          <label for="login" class="block text-gray-700">Email</label>
+          <input id="login" type="email" name="login" required
+            class="mt-1 block w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300" />
+        </div>
+        <button type="submit"
+          class="w-full bg-black hover:bg-gray-800 text-white font-semibold py-2 px-4 rounded">
           Sign in
-          </button>
-        </form>
-        <!-- Container for displaying stored account emails -->
-        <div id="stored-accounts" class="mt-4"></div>
-        <details class="mt-6 bg-gray-50 rounded p-2">
-          <summary class="cursor-pointer text-sm text-gray-600">Debug</summary>
-          <pre class="mt-1 text-xs text-gray-500 overflow-x-auto">${JSON.stringify(debugInfo, null, 2)}</pre>
-        </details>
-        <script>
-          document.addEventListener("DOMContentLoaded", () => {
-            const storedAccountsContainer = document.getElementById('stored-accounts');
-            const emailInput = document.getElementById('login');
-            if (!storedAccountsContainer || !emailInput) return;
-            
-            // Retrieve stored accounts from localStorage or initialize as an empty array
-            let storedAccounts = JSON.parse(localStorage.getItem('previousAccounts') || '[]');
+        </button>
+      </form>
+      <!-- Container for displaying stored account emails -->
+      <div id="stored-accounts" class="mt-4"></div>
+      <details class="mt-6 bg-gray-50 rounded p-2">
+        <summary class="cursor-pointer text-sm text-gray-600">Debug</summary>
+        <pre class="mt-1 text-xs text-gray-500 overflow-x-auto">{{debugInfo}}</pre>
+      </details>
+      <script>
+        document.addEventListener("DOMContentLoaded", () => {
+          const storedAccountsContainer = document.getElementById('stored-accounts');
+          const emailInput = document.getElementById('login');
+          if (!storedAccountsContainer || !emailInput) return;
           
-            // Get the form element to submit later
-            const form = document.querySelector('form');
-            if (!form) return;
-          
-            // Render the list of stored accounts and add direct submission on click.
-            const renderStoredAccounts = () => {
-              if (storedAccounts.length > 0) {
-                let listHtml = '<h2 class="text-lg font-medium text-gray-700 mb-2">Previously Used Accounts</h2>';
-                listHtml += '<div class="grid gap-2">';
-                storedAccounts.forEach((account) => {
-                  listHtml += \`
-                    <div class="p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-shadow cursor-pointer" data-email="\${account}">
-                      <div class="flex items-center">
-                        <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center mr-3">
-                          <span class="text-gray-600 font-medium">\${account.charAt(0).toUpperCase()}</span>
-                        </div>
-                        <span class="text-gray-700">\${account}</span>
+          // Retrieve stored accounts from localStorage or initialize as an empty array
+          let storedAccounts = JSON.parse(localStorage.getItem('previousAccounts') || '[]');
+        
+          // Get the form element to submit later
+          const form = document.querySelector('form');
+          if (!form) return;
+        
+          // Render the list of stored accounts and add direct submission on click.
+          const renderStoredAccounts = () => {
+            if (storedAccounts.length > 0) {
+              let listHtml = '<h2 class="text-lg font-medium text-gray-700 mb-2">Previously Used Accounts</h2>';
+              listHtml += '<div class="grid gap-2">';
+              storedAccounts.forEach((account) => {
+                listHtml += \`
+                  <div class="p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:bg-gray-50 transition-shadow cursor-pointer" data-email="\${account}">
+                    <div class="flex items-center">
+                      <div class="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                        <span class="text-gray-600 font-medium">\${account.charAt(0).toUpperCase()}</span>
                       </div>
+                      <span class="text-gray-700">\${account}</span>
                     </div>
-                  \`;
+                  </div>
+                \`;
+              });
+              listHtml += '</div>';
+              storedAccountsContainer.innerHTML = listHtml;
+        
+              // Add click event listeners that set the email and submit the form directly.
+              storedAccountsContainer.querySelectorAll('[data-email]').forEach(card => {
+                card.addEventListener('click', () => {
+                  const selectedEmail = card.getAttribute('data-email') || '';
+                  emailInput.value = selectedEmail;
+                  form.submit();
                 });
-                listHtml += '</div>';
-                storedAccountsContainer.innerHTML = listHtml;
-          
-                // Add click event listeners that set the email and submit the form directly.
-                storedAccountsContainer.querySelectorAll('[data-email]').forEach(card => {
-                  card.addEventListener('click', () => {
-                    const selectedEmail = card.getAttribute('data-email') || '';
-                    emailInput.value = selectedEmail;
-                    form.submit();
-                  });
-                });
-              } else {
-                storedAccountsContainer.innerHTML = '';
-              }
-            };
-          
-            renderStoredAccounts();
-          
-            // On form submission, store the email if it's not already stored.
-            form.addEventListener('submit', () => {
-              const email = emailInput.value.trim();
-              if (email && !storedAccounts.includes(email)) {
-                storedAccounts.push(email);
-                localStorage.setItem('previousAccounts', JSON.stringify(storedAccounts));
-              }
-            });
+              });
+            } else {
+              storedAccountsContainer.innerHTML = '';
+            }
+          };
+        
+          renderStoredAccounts();
+        
+          // On form submission, store the email if it's not already stored.
+          form.addEventListener('submit', () => {
+            const email = emailInput.value.trim();
+            if (email && !storedAccounts.includes(email)) {
+              storedAccounts.push(email);
+              localStorage.setItem('previousAccounts', JSON.stringify(storedAccounts));
+            }
           });
-        </script>
-      </div>
-    </body>
-  </html>
-  `;
+        });
+      </script>
+    </div>
+  </body>
+</html>
+`;
+
+const loginTemplate = handlebars.compile(loginTemplateSource);
+
+const renderLoginView = ({ uid, debugInfo }: { uid: string, debugInfo: string }): string => {
+  return loginTemplate({ uid, debugInfo });
 };
 
-const setNoCache = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+const setNoCache = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
   res.set('cache-control', 'no-store');
   next();
 };
@@ -150,7 +155,7 @@ const setNoCache = (req: express.Request, res: express.Response, next: express.N
 app.get('/interaction/:uid', setNoCache, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const { uid, prompt, params, session, grantId } = await oidc.interactionDetails(req, res);
-    const debugInfo = { params, prompt, session };
+    const debugInfo = JSON.stringify({ params, prompt, session }, null, 2);
 
     if (prompt.name === 'login') {
       res.send(renderLoginView({
@@ -195,7 +200,7 @@ app.get('/interaction/:uid', setNoCache, async (req: express.Request, res: expre
   }
 });
 
-app.post('/interaction/:uid/login', setNoCache, async (req, res, next) => {
+app.post('/interaction/:uid/login', setNoCache, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const { prompt } = await oidc.interactionDetails(req, res);
     assert.strictEqual(prompt.name, 'login', 'Expected login prompt');
@@ -207,8 +212,7 @@ app.post('/interaction/:uid/login', setNoCache, async (req, res, next) => {
 });
 
 // The POST consent route has been removed as consent is now auto-approved.
-
-app.get('/interaction/:uid/abort', setNoCache, async (req, res, next) => {
+app.get('/interaction/:uid/abort', setNoCache, async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   try {
     const result = {
       error: 'access_denied',
@@ -220,7 +224,7 @@ app.get('/interaction/:uid/abort', setNoCache, async (req, res, next) => {
   }
 });
 
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction): void => {
   if (err instanceof SessionNotFound) {
     res.status(410).send('Session not found or expired');
   } else {

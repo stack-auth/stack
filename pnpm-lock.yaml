@@ -431,6 +431,9 @@ importers:
       express:
         specifier: ^4.21.2
         version: 4.21.2
+      handlebars:
+        specifier: ^4.7.8
+        version: 4.7.8
       oidc-provider:
         specifier: ^8.5.1
         version: 8.5.1
