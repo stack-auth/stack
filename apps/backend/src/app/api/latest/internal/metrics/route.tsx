@@ -1,7 +1,7 @@
+import { Tenancy } from "@/lib/tenancies";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { adaptSchema, adminAuthTypeSchema, yupArray, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import yup from 'yup';
@@ -133,7 +133,7 @@ async function loadLoginMethods(tenancyId: string): Promise<{method: string, cou
   `;
 }
 
-async function loadRecentlyActiveUsers(tenancy: ProjectsCrud["Admin"]["Read"]): Promise<UsersCrud["Admin"]["Read"][]> {
+async function loadRecentlyActiveUsers(tenancy: Tenancy): Promise<UsersCrud["Admin"]["Read"][]> {
   // use the Events table to get the most recent activity
   const events = await prismaClient.$queryRaw<{ data: any, eventStartedAt: Date }[]>`
     WITH RankedEvents AS (
@@ -144,7 +144,8 @@ async function loadRecentlyActiveUsers(tenancy: ProjectsCrud["Admin"]["Read"]): 
           ORDER BY "eventStartedAt" DESC
         ) as rn
       FROM "Event"
-      WHERE "data"->>'tenancyId' = ${tenancy.id}
+      WHERE "data"->>'projectId' = ${tenancy.project.id}
+        AND "data"->>'branchId' = ${tenancy.branchId}
         AND '$user-activity' = ANY("systemEventTypeIds"::text[])
     )
     SELECT "data", "eventStartedAt"

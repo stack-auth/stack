@@ -3,7 +3,6 @@ import { Tenancy } from "@/lib/tenancies";
 import { prismaClient } from "@/prisma-client";
 import { Prisma, VerificationCodeType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { adaptSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
@@ -51,7 +50,7 @@ type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}, SendCodeRetu
 };
 
 type ProjectBranchCombo = (
-  | { project: ProjectsCrud["Admin"]["Read"], branchId: string, tenancy?: undefined }
+  | { project: Tenancy, branchId: string, tenancy?: undefined }
   | { tenancy: Tenancy, project?: undefined, branchId?: undefined }
 );
 
@@ -61,7 +60,7 @@ function parseProjectBranchCombo(params: ProjectBranchCombo) {
   } else if (params.tenancy) {
     return { project: params.tenancy.project, branchId: params.tenancy.branchId };
   } else {
-    throw new StackAssertionError("Must specify either project+branch or tenancy");
+    throw new StackAssertionError("Must specify either tenancy+branch or tenancy");
   }
 }
 
@@ -94,21 +93,21 @@ export function createVerificationCodeHandler<
     sendOptions: SendCodeExtraOptions,
   ): Promise<SendCodeReturnType>,
   validate?(
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     method: Method,
     data: Data,
     body: RequestBody,
     user: UsersCrud["Admin"]["Read"] | undefined
   ): Promise<void>,
   handler(
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     method: Method,
     data: Data,
     body: RequestBody,
     user: UsersCrud["Admin"]["Read"] | undefined,
   ): Promise<Response>,
   details?: DetailsResponse extends SmartResponse ? ((
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     method: Method,
     data: Data,
     body: RequestBody,
@@ -119,6 +118,7 @@ export function createVerificationCodeHandler<
     metadata: options.metadata?.[handlerType],
     request: yupObject({
       auth: yupObject({
+        tenancy: adaptSchema.defined(),
         project: adaptSchema.defined(),
         user: adaptSchema,
       }).defined(),
@@ -146,8 +146,9 @@ export function createVerificationCodeHandler<
 
       const verificationCode = await prismaClient.verificationCode.findUnique({
         where: {
-          projectId_code: {
+          projectId_branchId_code: {
             projectId: auth.project.id,
+            branchId: auth.tenancy.branchId,
             code,
           },
           type: options.type,
@@ -158,6 +159,7 @@ export function createVerificationCodeHandler<
       await prismaClient.verificationCode.updateMany({
         where: {
           projectId: auth.project.id,
+          branchId: auth.tenancy.branchId,
           code: {
             endsWith: code.slice(6),
           }
@@ -180,15 +182,16 @@ export function createVerificationCodeHandler<
       });
 
       if (options.validate) {
-        await options.validate(auth.project, validatedMethod, validatedData, requestBody as any, auth.user as any);
+        await options.validate(auth.tenancy, validatedMethod, validatedData, requestBody as any, auth.user as any);
       }
 
       switch (handlerType) {
         case 'post': {
           await prismaClient.verificationCode.update({
             where: {
-              projectId_code: {
+              projectId_branchId_code: {
                 projectId: auth.project.id,
+                branchId: auth.tenancy.branchId,
                 code,
               },
               type: options.type,
@@ -198,7 +201,7 @@ export function createVerificationCodeHandler<
             },
           });
 
-          return await options.handler(auth.project, validatedMethod, validatedData, requestBody as any, auth.user);
+          return await options.handler(auth.tenancy, validatedMethod, validatedData, requestBody as any, auth.user);
         }
         case 'check': {
           return {
@@ -210,7 +213,7 @@ export function createVerificationCodeHandler<
           };
         }
         case 'details': {
-          return await options.details?.(auth.project, validatedMethod, validatedData, requestBody as any, auth.user as any) as any;
+          return await options.details?.(auth.tenancy, validatedMethod, validatedData, requestBody as any, auth.user as any) as any;
         }
       }
     },

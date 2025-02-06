@@ -1,9 +1,9 @@
+import { Tenancy } from "@/lib/tenancies";
 import { createAuthTokens } from "@/lib/tokens";
 import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { signInResponseSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { TOTPController } from "oslo/otp";
@@ -56,7 +56,7 @@ export const mfaVerificationCodeHandler = createVerificationCodeHandler({
   },
   async handler(tenancy, {}, data, body) {
     const { refreshToken, accessToken } = await createAuthTokens({
-      tenancyId: tenancy.id,
+      tenancy,
       projectUserId: data.user_id,
       useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
     });
@@ -74,7 +74,7 @@ export const mfaVerificationCodeHandler = createVerificationCodeHandler({
   },
 });
 
-export async function createMfaRequiredError(options: { tenancy: ProjectsCrud["Admin"]["Read"], isNewUser: boolean, userId: string }) {
+export async function createMfaRequiredError(options: { tenancy: Tenancy, isNewUser: boolean, userId: string }) {
   const attemptCode = await mfaVerificationCodeHandler.createCode({
     expiresInMs: 1000 * 60 * 5,
     tenancy: options.tenancy,

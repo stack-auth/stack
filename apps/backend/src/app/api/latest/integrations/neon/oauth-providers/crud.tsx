@@ -1,8 +1,8 @@
+import { Tenancy } from "@/lib/tenancies";
 import { prismaClient, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
 import { CrudTypeOf, createCrud } from "@stackframe/stack-shared/dist/crud";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import * as schemaFields from "@stackframe/stack-shared/dist/schema-fields";
 import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
@@ -75,7 +75,7 @@ const oauthProvidersCrud = createCrud({
 
 type OAuthProvidersCrud = CrudTypeOf<typeof oauthProvidersCrud>;
 
-const getProvider = (tenancy: ProjectsCrud['Admin']['Read'], id: string, enabledRequired: boolean) => {
+const getProvider = (tenancy: Tenancy, id: string, enabledRequired: boolean) => {
   return tenancy.config.oauth_providers
     .filter(provider => enabledRequired ? provider.enabled : true)
     .find(provider => provider.id === id);
@@ -99,7 +99,7 @@ function oauthProviderPrismaToCrud(db: Prisma.OAuthProviderConfigGetPayload<{ in
 
 async function createOrUpdateProvider(
   options: {
-    tenancy: ProjectsCrud['Admin']['Read'],
+    tenancy: Tenancy,
   } & ({
     type: 'create',
     data: OAuthProvidersCrud['Admin']['Create'],

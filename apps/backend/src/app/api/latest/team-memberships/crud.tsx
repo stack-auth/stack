@@ -1,12 +1,12 @@
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { ensureTeamExists, ensureTeamMembershipDoesNotExist, ensureTeamMembershipExists, ensureUserExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
+import { Tenancy } from "@/lib/tenancies";
 import { PrismaTransaction } from "@/lib/types";
 import { sendTeamMembershipCreatedWebhook, sendTeamMembershipDeletedWebhook } from "@/lib/webhooks";
 import { retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
@@ -14,7 +14,7 @@ import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 
 export async function addUserToTeam(tx: PrismaTransaction, options: {
-  tenancy: ProjectsCrud['Admin']['Read'],
+  tenancy: Tenancy,
   teamId: string,
   userId: string,
   type: 'member' | 'creator',
@@ -101,7 +101,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
     };
 
     runAsynchronouslyAndWaitUntil(sendTeamMembershipCreatedWebhook({
-      tenancyId: auth.tenancy.id,
+      projectId: auth.project.id,
       data,
     }));
 
@@ -144,7 +144,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
     });
 
     runAsynchronouslyAndWaitUntil(sendTeamMembershipDeletedWebhook({
-      tenancyId: auth.tenancy.id,
+      projectId: auth.project.id,
       data: {
         team_id: params.team_id,
         user_id: params.user_id,

@@ -8,6 +8,7 @@ import { Result } from '@stackframe/stack-shared/dist/utils/results';
 import * as jose from 'jose';
 import { JOSEError, JWTExpired } from 'jose/errors';
 import { SystemEventTypes, logEvent } from './events';
+import { Tenancy } from './tenancies';
 
 export const authorizationHeaderSchema = yupString().matches(/^StackSession [^ ]+$/);
 
@@ -63,6 +64,7 @@ export async function decodeAccessToken(accessToken: string) {
   const result = await accessTokenSchema.validate({
     projectId: payload.aud || payload.projectId,
     userId: payload.sub,
+    branchId: payload.branchId ?? "main",  // TODO remove this once old tokens have expired
     refreshTokenId: payload.refreshTokenId,
     exp: payload.exp,
   });
@@ -71,30 +73,37 @@ export async function decodeAccessToken(accessToken: string) {
 }
 
 export async function generateAccessToken(options: {
-  projectId: string,
-  useLegacyGlobalJWT: boolean,
+  tenancy: Tenancy,
   userId: string,
+  useLegacyGlobalJWT: boolean,
 }) {
-  await logEvent([SystemEventTypes.UserActivity], { projectId: options.projectId, userId: options.userId });
+  await logEvent(
+    [SystemEventTypes.UserActivity],
+    {
+      projectId: options.tenancy.project.id,
+      branchId: options.tenancy.branchId,
+      userId: options.userId,
+    }
+  );
 
   if (options.useLegacyGlobalJWT) {
     return await legacySignGlobalJWT(
       jwtIssuer,
-      { projectId: options.projectId, sub: options.userId },
+      { projectId: options.tenancy.project.id, sub: options.userId, branchId: options.tenancy.branchId },
       getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "10min")
     );
   } else {
     return await signJWT({
       issuer: jwtIssuer,
-      audience: options.projectId,
-      payload: { sub: options.userId },
+      audience: options.tenancy.project.id,
+      payload: { sub: options.userId, branchId: options.tenancy.branchId },
       expirationTime: getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "10min"),
     });
   }
 }
 
 export async function createAuthTokens(options: {
-  projectId: string,
+  tenancy: Tenancy,
   projectUserId: string,
   useLegacyGlobalJWT: boolean,
   expiresAt?: Date,
@@ -103,14 +112,14 @@ export async function createAuthTokens(options: {
 
   const refreshToken = generateSecureRandomString();
   const accessToken = await generateAccessToken({
-    projectId: options.projectId,
+    tenancy: options.tenancy,
     userId: options.projectUserId,
     useLegacyGlobalJWT: options.useLegacyGlobalJWT,
   });
 
   await prismaClient.projectUserRefreshToken.create({
     data: {
-      tenancyId: options.projectId,
+      tenancyId: options.tenancy.id,
       projectUserId: options.projectUserId,
       refreshToken: refreshToken,
       expiresAt: options.expiresAt,
