@@ -54,6 +54,8 @@ function OTP(props: {
         <Typography className='mb-2' >{t('Enter the code from your email')}</Typography>
         <InputOTP
           maxLength={6}
+          type="text"
+          inputMode="text"
           pattern={"^[a-zA-Z0-9]+$"}
           value={otp}
           onChange={value => setOtp(value.toUpperCase())}
@@ -121,6 +123,7 @@ export function MagicLinkSignIn() {
         <Input
           id="email"
           type="email"
+          autoComplete="email"
           {...register('email')}
         />
         <FormWarningText text={errors.email?.message?.toString()} />

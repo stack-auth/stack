@@ -65,6 +65,45 @@ it("should be able to transfer a project exactly once", async ({ expect }) => {
   `);
 });
 
+it("should be able to initiate multiple transfers for the same project, but only one can be confirmed", async ({ expect }) => {
+  const provisioned = await provisionProject();
+  const projectId = provisioned.body.project_id;
+  const { code: code1 } = await initiateTransfer(projectId);
+  const { code: code2 } = await initiateTransfer(projectId);
+  await Auth.Otp.signIn();
+  const response1 = await niceBackendFetch(`/api/v1/integrations/neon/projects/transfer/confirm`, {
+    method: "POST",
+    accessType: "client",
+    body: {
+      code: code1,
+    },
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "project_id": "<stripped UUID>" },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+  expect(response1.body.project_id).toBe(projectId);
+
+  // but only one confirmation!
+  const response2 = await niceBackendFetch(`/api/v1/integrations/neon/projects/transfer/confirm`, {
+    method: "POST",
+    accessType: "client",
+    body: {
+      code: code2,
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": "The project to transfer was not provisioned by Neon or has already been transferred.",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
 it("should fail if the project to transfer was not provisioned by Neon", async ({ expect }) => {
   await Auth.Otp.signIn();
   const createdProject = await Project.create();
@@ -99,8 +138,16 @@ it("should fail if the neon client details are missing", async ({ expect }) => {
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on POST /api/v1/integrations/neon/projects/transfer/initiate:\\n  - headers.authorization must be defined" },
-        "error": "Request validation failed on POST /api/v1/integrations/neon/projects/transfer/initiate:\\n  - headers.authorization must be defined",
+        "details": {
+          "message": deindent\`
+            Request validation failed on POST /api/v1/integrations/neon/projects/transfer/initiate:
+              - headers.authorization must be defined
+          \`,
+        },
+        "error": deindent\`
+          Request validation failed on POST /api/v1/integrations/neon/projects/transfer/initiate:
+            - headers.authorization must be defined
+        \`,
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",
@@ -125,7 +172,11 @@ it("should fail to transfer project if the user is not signed in", async ({ expe
       "status": 400,
       "body": {
         "code": "ACCESS_TYPE_REQUIRED",
-        "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
+        "error": deindent\`
+          You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.
+          
+          For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
+        \`,
       },
       "headers": Headers {
         "x-stack-known-error": "ACCESS_TYPE_REQUIRED",

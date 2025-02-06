@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubicloud-standard-16
+    runs-on: depot-ubuntu-22.04-16
     env:
       NODE_ENV: test
       STACK_ENABLE_HARDCODED_PASSKEY_CHALLENGE_FOR_TESTING: yes
@@ -33,6 +33,18 @@ jobs:
         uses: pnpm/action-setup@v3
         with:
             version: 9.1.2
+
+      # Even just starting the Docker Compose as a daemon is slow because we have to download and build the images
+      # so, we run it in the background
+      - name: Start Docker Compose in background
+        uses: JarvusInnovations/background-action@v1.0.7
+        with:
+          run: docker compose -f dependencies.compose.yaml up -d &
+          # we don't need to wait on anything, just need to start the daemon
+          wait-on: /dev/null
+          tail: true
+          wait-for: 3s
+          log-output-if: true
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -70,11 +82,8 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Start Docker Compose
-        run: docker compose -f dependencies.compose.yaml up -d
-
       - name: Wait on Postgres
-        run: npx wait-on tcp:localhost:5432
+        run: pnpm run wait-until-postgres-is-ready:pg_isready
 
       - name: Wait on Inbucket
         run: npx wait-on tcp:localhost:2500
@@ -120,9 +129,6 @@ jobs:
         run: pnpm test
 
       - name: Run tests again, to make sure they are stable (attempt 2)
-        run: pnpm test
-
-      - name: Run tests again, to make sure they are stable (attempt 3)
         run: pnpm test
 
       - name: Verify data integrity

@@ -176,7 +176,6 @@ export namespace Auth {
     const accessToken = backendContext.value.userAuth?.accessToken;
     if (accessToken) {
       const aud = jose.decodeJwt(accessToken).aud;
-      console.log(accessToken, jose.decodeJwt(accessToken));
       const jwks = jose.createRemoteJWKSet(new URL(`api/v1/projects/${aud}/.well-known/jwks.json`, STACK_BACKEND_BASE_URL));
       const { payload } = await jose.jwtVerify(accessToken, jwks);
       expect(payload).toEqual({

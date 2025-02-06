@@ -399,8 +399,16 @@ it("should not be able to update team client read only metadata on the client", 
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on PATCH /api/v1/teams/<stripped UUID>:\\n  - body contains unknown properties: client_read_only_metadata" },
-        "error": "Request validation failed on PATCH /api/v1/teams/<stripped UUID>:\\n  - body contains unknown properties: client_read_only_metadata",
+        "details": {
+          "message": deindent\`
+            Request validation failed on PATCH /api/v1/teams/<stripped UUID>:
+              - body contains unknown properties: client_read_only_metadata
+          \`,
+        },
+        "error": deindent\`
+          Request validation failed on PATCH /api/v1/teams/<stripped UUID>:
+            - body contains unknown properties: client_read_only_metadata
+        \`,
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",

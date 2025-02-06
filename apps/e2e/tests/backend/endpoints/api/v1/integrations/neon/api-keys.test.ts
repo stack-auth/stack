@@ -8,7 +8,7 @@ describe("without project access", () => {
     projectKeys: 'no-project'
   });
 
-  it("should not have have access to api keys", async ({ expect }) => {
+  it("should not have access to api keys", async ({ expect }) => {
     const response = await niceBackendFetch("/api/v1/integrations/neon/api-keys", { accessType: "client" });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
@@ -16,7 +16,11 @@ describe("without project access", () => {
         "body": {
           "code": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
           "details": { "request_type": "client" },
-          "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
+          "error": deindent\`
+            The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.
+            
+            For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
+          \`,
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
@@ -150,8 +154,21 @@ describe("with admin access to a non-internal project", () => {
 
   it("creates, list, updates, revokes api keys", async ({ expect }) => {
     const { adminAccessToken } = await Project.createAndGetAdminToken();
-    const { createApiKeyResponse: response1 } = await ApiKey.create(adminAccessToken);
-    expect(response1).toMatchInlineSnapshot(`
+    const createApiKeyResponse = await niceBackendFetch("/api/v1/integrations/neon/api-keys", {
+      accessType: "admin",
+      method: "POST",
+      body: {
+        description: "test api key",
+        has_publishable_client_key: true,
+        has_secret_server_key: true,
+        has_super_secret_admin_key: true,
+        expires_at_millis: new Date().getTime() + 1000 * 60 * 60 * 24,
+      },
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
+    });
+    expect(createApiKeyResponse).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
         "body": {
@@ -167,8 +184,28 @@ describe("with admin access to a non-internal project", () => {
       }
     `);
 
+    // ensure the api key works
+    const response1 = await niceBackendFetch(`/api/v1/users`, {
+      accessType: "admin",
+      headers: {
+        'x-stack-super-secret-admin-key': createApiKeyResponse.body.super_secret_admin_key,
+      }
+    });
+    expect(response1).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "is_paginated": true,
+          "items": [],
+          "pagination": { "next_cursor": null },
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+
+
     // update api key description
-    const response2 = await niceBackendFetch(`/api/v1/integrations/neon/api-keys/${response1.body.id}`, {
+    const response2 = await niceBackendFetch(`/api/v1/integrations/neon/api-keys/${createApiKeyResponse.body.id}`, {
       accessType: "admin",
       method: "PATCH",
       body: {
@@ -196,12 +233,33 @@ describe("with admin access to a non-internal project", () => {
     `);
 
     // create another api key
-    await ApiKey.create(adminAccessToken, {
-      description: 'key2',
-      has_publishable_client_key: false,
-      has_secret_server_key: true,
-      has_super_secret_admin_key: false
+    const createApiKeyResponse2 = await niceBackendFetch("/api/v1/integrations/neon/api-keys", {
+      accessType: "admin",
+      method: "POST",
+      body: {
+        description: 'key2',
+        has_publishable_client_key: false,
+        has_secret_server_key: true,
+        has_super_secret_admin_key: false,
+        expires_at_millis: new Date().getTime() + 1000 * 60 * 60 * 24,
+      },
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
     });
+    expect(createApiKeyResponse2).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "key2",
+          "expires_at_millis": <stripped field 'expires_at_millis'>,
+          "id": "<stripped UUID>",
+          "secret_server_key": <stripped field 'secret_server_key'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
 
     // list api keys
     const response3 = await niceBackendFetch("/api/v1/integrations/neon/api-keys", {
@@ -239,7 +297,7 @@ describe("with admin access to a non-internal project", () => {
     `);
 
     // revoke api key
-    const response4 = await niceBackendFetch(`/api/v1/integrations/neon/api-keys/${response1.body.id}`, {
+    const response4 = await niceBackendFetch(`/api/v1/integrations/neon/api-keys/${createApiKeyResponse.body.id}`, {
       accessType: "admin",
       method: "PATCH",
       body: {
@@ -258,6 +316,97 @@ describe("with admin access to a non-internal project", () => {
           "expires_at_millis": <stripped field 'expires_at_millis'>,
           "id": "<stripped UUID>",
           "manually_revoked_at_millis": <stripped field 'manually_revoked_at_millis'>,
+          "publishable_client_key": { "last_four": <stripped field 'last_four'> },
+          "secret_server_key": { "last_four": <stripped field 'last_four'> },
+          "super_secret_admin_key": { "last_four": <stripped field 'last_four'> },
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+
+    // ensure the api key no longer works
+    const response5 = await niceBackendFetch(`/api/v1/users`, {
+      accessType: "admin",
+      headers: {
+        'x-stack-super-secret-admin-key': createApiKeyResponse.body.super_secret_admin_key,
+      }
+    });
+    expect(response5).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 401,
+        "body": {
+          "code": "INVALID_SUPER_SECRET_ADMIN_KEY",
+          "details": { "project_id": "<stripped UUID>" },
+          "error": "The super secret admin key is not valid for the project \\"<stripped UUID>\\". Does the project and/or the key exist?",
+        },
+        "headers": Headers {
+          "x-stack-known-error": "INVALID_SUPER_SECRET_ADMIN_KEY",
+          <some fields may have been hidden>,
+        },
+      }
+    `);
+  });
+
+  it("can read API keys created with the internal (non-Neon) API", async ({ expect }) => {
+    const { adminAccessToken } = await Project.createAndGetAdminToken();
+    const { createApiKeyResponse } = await ApiKey.create(adminAccessToken);
+    expect(createApiKeyResponse).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "test api key",
+          "expires_at_millis": <stripped field 'expires_at_millis'>,
+          "id": "<stripped UUID>",
+          "publishable_client_key": <stripped field 'publishable_client_key'>,
+          "secret_server_key": <stripped field 'secret_server_key'>,
+          "super_secret_admin_key": <stripped field 'super_secret_admin_key'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+
+    const listResponse = await niceBackendFetch("/api/v1/integrations/neon/api-keys", {
+      accessType: "admin",
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
+    });
+    expect(listResponse).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "is_paginated": false,
+          "items": [
+            {
+              "created_at_millis": <stripped field 'created_at_millis'>,
+              "description": "test api key",
+              "expires_at_millis": <stripped field 'expires_at_millis'>,
+              "id": "<stripped UUID>",
+              "publishable_client_key": { "last_four": <stripped field 'last_four'> },
+              "secret_server_key": { "last_four": <stripped field 'last_four'> },
+              "super_secret_admin_key": { "last_four": <stripped field 'last_four'> },
+            },
+          ],
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+
+    const response = await niceBackendFetch(`/api/v1/integrations/neon/api-keys/${createApiKeyResponse.body.id}`, {
+      accessType: "admin",
+      headers: {
+        'x-stack-admin-access-token': adminAccessToken,
+      }
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "created_at_millis": <stripped field 'created_at_millis'>,
+          "description": "test api key",
+          "expires_at_millis": <stripped field 'expires_at_millis'>,
+          "id": "<stripped UUID>",
           "publishable_client_key": { "last_four": <stripped field 'last_four'> },
           "secret_server_key": { "last_four": <stripped field 'last_four'> },
           "super_secret_admin_key": { "last_four": <stripped field 'last_four'> },

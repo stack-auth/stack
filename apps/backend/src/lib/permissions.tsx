@@ -3,7 +3,7 @@ import { KnownErrors } from "@stackframe/stack-shared";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-permissions";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
-import { typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { stringCompare, typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { PrismaTransaction } from "./types";
 
 export const fullPermissionInclude = {
@@ -36,16 +36,31 @@ const descriptionMap: Record<DBTeamSystemPermission, string> = {
   "INVITE_MEMBERS": "Invite other users to the team",
 };
 
-export function teamPermissionDefinitionJsonFromDbType(db: Prisma.PermissionGetPayload<{ include: typeof fullPermissionInclude }>): TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string }{
+type ExtendedTeamPermissionDefinition = TeamPermissionDefinitionsCrud["Admin"]["Read"] & {
+  __database_id: string,
+  __is_default_team_member_permission?: boolean,
+  __is_default_team_creator_permission?: boolean,
+};
+
+export function teamPermissionDefinitionJsonFromDbType(db: Prisma.PermissionGetPayload<{ include: typeof fullPermissionInclude }>): ExtendedTeamPermissionDefinition {
+  return teamPermissionDefinitionJsonFromRawDbType(db);
+}
+
+/**
+ * Can either take a Prisma permission object or a raw SQL `to_jsonb` result.
+ */
+export function teamPermissionDefinitionJsonFromRawDbType(db: any | Prisma.PermissionGetPayload<{ include: typeof fullPermissionInclude }>): ExtendedTeamPermissionDefinition {
   if (!db.projectConfigId && !db.teamId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId`, { db });
   if (db.projectConfigId && db.teamId) throw new StackAssertionError(`Permission DB object should have either projectConfigId or teamId, not both`, { db });
   if (db.scope === "GLOBAL" && db.teamId) throw new StackAssertionError(`Permission DB object should not have teamId when scope is GLOBAL`, { db });
 
   return {
     __database_id: db.dbId,
+    __is_default_team_member_permission: db.isDefaultTeamMemberPermission,
+    __is_default_team_creator_permission: db.isDefaultTeamCreatorPermission,
     id: db.queryableId,
     description: db.description || undefined,
-    contained_permission_ids: db.parentEdges.map((edge) => {
+    contained_permission_ids: db.parentEdges?.map((edge: any) => {
       if (edge.parentPermission) {
         return edge.parentPermission.queryableId;
       } else if (edge.parentTeamSystemPermission) {
@@ -53,13 +68,19 @@ export function teamPermissionDefinitionJsonFromDbType(db: Prisma.PermissionGetP
       } else {
         throw new StackAssertionError(`Permission edge should have either parentPermission or parentSystemPermission`, { edge });
       }
-    }).sort(),
+    }).sort() ?? [],
   } as const;
 }
 
-export function teamPermissionDefinitionJsonFromTeamSystemDbType(db: DBTeamSystemPermission): TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string } {
+export function teamPermissionDefinitionJsonFromTeamSystemDbType(db: DBTeamSystemPermission, projectConfig: { teamCreateDefaultSystemPermissions: string[] | null, teamMemberDefaultSystemPermissions: string[] | null }): ExtendedTeamPermissionDefinition {
+  if ((["teamMemberDefaultSystemPermissions", "teamCreateDefaultSystemPermissions"] as const).some(key => projectConfig[key] !== null && !Array.isArray(projectConfig[key]))) {
+    throw new StackAssertionError(`Project config should have (nullable) array values for teamMemberDefaultSystemPermissions and teamCreateDefaultSystemPermissions`, { projectConfig });
+  }
+
   return {
     __database_id: '$' + typedToLowercase(db),
+    __is_default_team_member_permission: projectConfig.teamMemberDefaultSystemPermissions?.includes(db) ?? false,
+    __is_default_team_creator_permission: projectConfig.teamCreateDefaultSystemPermissions?.includes(db) ?? false,
     id: '$' + typedToLowercase(db),
     description: descriptionMap[db],
     contained_permission_ids: [] as string[],
@@ -146,11 +167,7 @@ export async function listUserTeamPermissions(
   }
 
   return finalResults
-    .sort((a, b) => {
-      if (a.team_id !== b.team_id) return a.team_id.localeCompare(b.team_id);
-      if (a.user_id !== b.user_id) return a.user_id.localeCompare(b.user_id);
-      return a.id.localeCompare(b.id);
-    })
+    .sort((a, b) => stringCompare(a.team_id, b.team_id) || stringCompare(a.user_id, b.user_id) || stringCompare(a.id, b.id))
     .filter(p => options.permissionId ? p.id === options.permissionId : true);
 }
 
@@ -307,25 +324,23 @@ export async function listTeamPermissionDefinitions(
   tx: PrismaTransaction,
   project: ProjectsCrud["Admin"]["Read"]
 ): Promise<(TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string })[]> {
-  const res = await tx.permission.findMany({
+  const projectConfig = await tx.projectConfig.findUnique({
     where: {
-      projectConfig: {
-        projects: {
-          some: {
-            id: project.id,
-          }
-        }
-      },
-      scope: "TEAM",
+      id: project.config.id,
     },
-    orderBy: { queryableId: 'asc' },
-    include: fullPermissionInclude,
+    include: {
+      permissions: {
+        include: fullPermissionInclude,
+      },
+    },
   });
+  if (!projectConfig) throw new StackAssertionError(`Couldn't find project config`, { project });
+  const res = projectConfig.permissions;
   const nonSystemPermissions = res.map(db => teamPermissionDefinitionJsonFromDbType(db));
 
-  const systemPermissions = Object.values(DBTeamSystemPermission).map(db => teamPermissionDefinitionJsonFromTeamSystemDbType(db));
+  const systemPermissions = Object.values(DBTeamSystemPermission).map(db => teamPermissionDefinitionJsonFromTeamSystemDbType(db, projectConfig));
 
-  return [...nonSystemPermissions, ...systemPermissions];
+  return [...nonSystemPermissions, ...systemPermissions].sort((a, b) => stringCompare(a.id, b.id));
 }
 
 export async function createTeamPermissionDefinition(

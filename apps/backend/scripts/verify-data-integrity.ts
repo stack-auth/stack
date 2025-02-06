@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { filterUndefined } from "@stackframe/stack-shared/dist/utils/objects";
 import { wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
@@ -70,7 +70,7 @@ async function main() {
   for (let i = 0; i < projects.length; i++) {
     const projectId = projects[i].id;
     await recurse(`[project ${i + 1}/${projects.length}] ${projectId} ${projects[i].displayName}`, async (recurse) => {
-      await Promise.all([
+      const [currentProject, users] = await Promise.all([
         expectStatusCode(200, `/api/v1/projects/current`, {
           method: "GET",
           headers: {
@@ -88,6 +88,21 @@ async function main() {
           },
         }),
       ]);
+      if (users.pagination?.next_cursor) throwErr("Users are paginated? Please update the verify-data-integrity.ts script to handle this.");
+
+      for (let j = 0; j < users.items.length; j++) {
+        const user = users.items[j];
+        await recurse(`[user ${j + 1}/${users.items.length}] ${user.display_name ?? user.primary_email}`, async (recurse) => {
+          await expectStatusCode(200, `/api/v1/users/${user.id}`, {
+            method: "GET",
+            headers: {
+              "x-stack-project-id": projectId,
+              "x-stack-access-type": "admin",
+              "x-stack-development-override-key": getEnvVariable("STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY"),
+            },
+          });
+        });
+      }
     });
   }
 

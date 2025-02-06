@@ -1,5 +1,6 @@
 import "../polyfills";
 
+import { traceSpan } from "@/utils/telemetry";
 import { CrudSchema, CrudTypeOf, CrudlOperation } from "@stackframe/stack-shared/dist/crud";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
@@ -246,18 +247,20 @@ export function createCrudHandlers<
                 allowedErrorTypes?: (new (...args: any) => any)[],
               }) => {
                 try {
-                  return await invoke({
-                    params,
-                    query: query ?? {} as any,
-                    data,
-                    auth: {
-                      user,
-                      project,
-                      type: accessType,
-                    },
+                  return await traceSpan("invoking CRUD handler programmatically", async () => {
+                    return await invoke({
+                      params,
+                      query: query ?? {} as any,
+                      data,
+                      auth: {
+                        user,
+                        project,
+                        type: accessType,
+                      },
+                    });
                   });
                 } catch (error) {
-                  if (allowedErrorTypes?.some((a) => error instanceof a)) {
+                  if (allowedErrorTypes?.some((a) => error instanceof a) || error instanceof StackAssertionError) {
                     throw error;
                   }
                   throw new CrudHandlerInvocationError(error);

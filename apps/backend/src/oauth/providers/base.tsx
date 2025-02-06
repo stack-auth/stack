@@ -153,11 +153,14 @@ export abstract class OAuthBaseProvider {
         // to catch the case where our own client is not properly implemented, we capture the error here
         // TODO is the comment above actually true? This is inner OAuth, not outer OAuth, so why does the client implementation matter?
         // Though a reasonable scenario where this might happen is eg. if the authorization code expires before we can exchange it, or the page is reloaded so we try to reuse a code that was already used
-        captureError("inner-oauth-callback", error);
+        captureError("inner-oauth-callback", { error, params });
         throw new StatusError(400, "Inner OAuth callback failed due to invalid grant. Please try again.");
       }
       if (error?.error === 'access_denied') {
         throw new KnownErrors.OAuthProviderAccessDenied();
+      }
+      if (error?.error === 'invalid_client') {
+        throw new StatusError(400, `Invalid client credentials for this OAuth provider. Please ensure the configuration in the Stack Auth dashboard is correct.`);
       }
       throw new StackAssertionError(`Inner OAuth callback failed due to error: ${error}`, { params, cause: error });
     }

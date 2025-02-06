@@ -1,10 +1,10 @@
+import { deepPlainEquals } from '@stackframe/stack-shared/dist/utils/objects';
 import { useEffect, useMemo } from 'react';
+import { EmailTemplateMetadata, convertEmailTemplateMetadataExampleValues } from '../utils';
+import { TEditorConfiguration } from './documents/editor/core';
 import { resetDocument, setDocument, setMetadata, setSubject, useDocument, useSubject } from './documents/editor/editor-context';
 import InspectorDrawer from './sidebar';
 import TemplatePanel from './template-panel';
-import { TEditorConfiguration } from './documents/editor/core';
-import _ from 'lodash';
-import { EmailTemplateMetadata, convertEmailTemplateMetadataExampleValues } from '../utils';
 
 export default function EmailEditor(props: {
   document: TEditorConfiguration,
@@ -33,7 +33,7 @@ export default function EmailEditor(props: {
   }, [props.resetSignal]);
 
   const edited = useMemo(() => {
-    return !_.isEqual(props.document, document) || props.subject !== subject;
+    return !deepPlainEquals(props.document, document) || props.subject !== subject;
   }, [props.document, document, props.subject, subject]);
 
   useEffect(() => {

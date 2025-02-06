@@ -5,6 +5,7 @@ import { SmartFormDialog } from "@/components/form-dialog";
 import { SelectField } from "@/components/form-fields";
 import { ApiKeyFirstView } from "@stackframe/stack";
 import { ActionDialog, Button, Typography } from "@stackframe/stack-ui";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -14,8 +15,10 @@ import { useAdminApp } from "../use-admin-app";
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const apiKeySets = stackAdminApp.useApiKeys();
+  const params = useSearchParams();
+  const create = params.get("create") === "true";
 
-  const [isNewApiKeyDialogOpen, setIsNewApiKeyDialogOpen] = useState(false);
+  const [isNewApiKeyDialogOpen, setIsNewApiKeyDialogOpen] = useState(create);
   const [returnedApiKey, setReturnedApiKey] = useState<ApiKeyFirstView | null>(null);
 
   return (
@@ -53,21 +56,23 @@ const expiresInOptions = {
   [neverInMs]: "Never",
 } as const;
 
-const formSchema = yup.object({
-  description: yup.string().defined().label("Description"),
-  expiresIn: yup.string().default(neverInMs.toString()).label("Expires in").meta({
-    stackFormFieldRender: (props) => (
-      <SelectField {...props} options={Object.entries(expiresInOptions).map(([value, label]) => ({ value, label }))} />
-    )
-  }),
-});
-
 function CreateDialog(props: {
   open: boolean,
   onOpenChange: (open: boolean) => void,
   onKeyCreated?: (key: ApiKeyFirstView) => void,
 }) {
   const stackAdminApp = useAdminApp();
+  const params = useSearchParams();
+  const defaultDescription = params.get("description");
+
+  const formSchema = yup.object({
+    description: yup.string().defined().label("Description").default(defaultDescription || ""),
+    expiresIn: yup.string().default(neverInMs.toString()).label("Expires in").meta({
+      stackFormFieldRender: (props) => (
+        <SelectField {...props} options={Object.entries(expiresInOptions).map(([value, label]) => ({ value, label }))} />
+      )
+    }),
+  });
 
   return <SmartFormDialog
     open={props.open}

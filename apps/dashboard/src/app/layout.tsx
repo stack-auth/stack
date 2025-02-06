@@ -1,5 +1,6 @@
 import { DevErrorNotifier } from '@/components/dev-error-notifier';
 import { RouterProvider } from '@/components/router';
+import { SiteLoadingIndicatorDisplay } from '@/components/site-loading-indicator';
 import { StyleLink } from '@/components/style-link';
 import { ThemeProvider } from '@/components/theme-provider';
 import { cn } from '@/lib/utils';
@@ -106,6 +107,7 @@ export default function RootLayout({
           </ThemeProvider>
           <DevErrorNotifier />
           <Toaster />
+          <SiteLoadingIndicatorDisplay />
         </body>
       </CSPostHogProvider>
     </html>

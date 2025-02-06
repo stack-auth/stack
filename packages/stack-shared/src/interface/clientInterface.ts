@@ -245,10 +245,10 @@ export class StackClientInterface {
     /**
      * `tokenObj === null` means the session is invalid/not logged in
      */
-    let tokenObj = await session.getPotentiallyExpiredTokens();
+    let tokenObj = await session.getOrFetchLikelyValidTokens(20_000);
 
     let adminSession = "projectOwnerSession" in this.options ? this.options.projectOwnerSession : null;
-    let adminTokenObj = adminSession ? await adminSession.getPotentiallyExpiredTokens() : null;
+    let adminTokenObj = adminSession ? await adminSession.getOrFetchLikelyValidTokens(20_000) : null;
 
     // all requests should be dynamic to prevent Next.js caching
     await cookies?.();
@@ -356,9 +356,11 @@ export class StackClientInterface {
       // Rate limited, so retry if we can
       const retryAfter = res.headers.get("Retry-After");
       if (retryAfter !== null) {
+        console.log(`Rate limited while sending request to ${url}. Will retry after ${retryAfter} seconds...`);
         await wait(Number(retryAfter) * 1000);
         return Result.error(new Error(`Rate limited, retrying after ${retryAfter} seconds`));
       }
+      console.log(`Rate limited while sending request to ${url}, no retry-after header received. Retrying...`);
       return Result.error(new Error("Rate limited, no retry-after header received"));
     } else {
       const error = await res.text();
@@ -908,7 +910,7 @@ export class StackClientInterface {
     }
 
     if (options.type === "link") {
-      const tokens = await options.session.getPotentiallyExpiredTokens();
+      const tokens = await options.session.getOrFetchLikelyValidTokens(20_000);
       url.searchParams.set("token", tokens?.accessToken.token || "");
 
       if (options.providerScope) {
@@ -970,7 +972,7 @@ export class StackClientInterface {
   }
 
   async signOut(session: InternalSession): Promise<void> {
-    const tokenObj = await session.getPotentiallyExpiredTokens();
+    const tokenObj = await session.getOrFetchLikelyValidTokens(20_000);
     if (tokenObj) {
       const resOrError = await this.sendClientRequestAndCatchKnownError(
         "/auth/sessions/current",

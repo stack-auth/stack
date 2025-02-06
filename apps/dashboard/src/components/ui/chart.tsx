@@ -37,12 +37,17 @@ function useChart() {
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
+    /**
+     * Some browsers follow the spec more closely and `height: 100%` does not inherit max-height (eg. Safari), so we
+     * need to set the maxHeight for both the outer container and the ResponsiveContainer.
+     */
+    maxHeight?: number,
     config: ChartConfig,
     children: React.ComponentProps<
       typeof RechartsPrimitive.ResponsiveContainer
     >["children"],
   }
->(({ id, className, children, config, ...props }, ref) => {
+>(({ id, className, children, config, maxHeight, ...props }, ref) => {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
@@ -56,16 +61,20 @@ const ChartContainer = React.forwardRef<
           className
         )}
         {...props}
+        style={{
+          ...props.style,
+          maxHeight,
+        }}
       >
         <ChartStyle id={chartId} config={config} />
-        <RechartsPrimitive.ResponsiveContainer>
+        <RechartsPrimitive.ResponsiveContainer maxHeight={maxHeight}>
           {children}
         </RechartsPrimitive.ResponsiveContainer>
       </div>
     </ChartContext.Provider>
   );
 });
-ChartContainer.displayName = "Chart";
+ChartContainer.displayName = "ChartContainer";
 
 const ChartStyle = ({ id, config }: { id: string, config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(

@@ -1,6 +1,7 @@
 import { globalVar } from "./globals";
 import { Json } from "./json";
 import { pick } from "./objects";
+import { nicify } from "./strings";
 
 
 export function throwErr(errorMessage: string, extraData?: any): never;
@@ -81,10 +82,10 @@ StackAssertionError.prototype.name = "StackAssertionError";
 
 export function errorToNiceString(error: unknown): string {
   if (!(error instanceof Error)) return `${typeof error}<${error}>`;
-  const stack = error.stack ?? "";
+  let stack = error.stack ?? "";
   const toString = error.toString();
-  if (stack.startsWith(toString)) return stack;
-  return `${toString}\n${stack}`;
+  if (!stack.startsWith(toString)) stack = `${toString}\n${stack}`;  // some browsers don't include the error message in the stack, some do
+  return `${stack} ${nicify(Object.fromEntries(Object.entries(error)), { maxDepth: 8 })}`;
 }
 
 

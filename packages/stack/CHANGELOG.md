@@ -1,5 +1,109 @@
 # @stackframe/stack
 
+## 2.7.12
+
+### Patch Changes
+
+- Various changes
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.12
+  - @stackframe/stack-sc@2.7.12
+  - @stackframe/stack-ui@2.7.12
+
+## 2.7.11
+
+### Patch Changes
+
+- @stackframe/stack-sc@2.7.11
+- @stackframe/stack-shared@2.7.11
+- @stackframe/stack-ui@2.7.11
+
+## 2.7.10
+
+### Patch Changes
+
+- Various changes
+- Updated dependencies
+  - @stackframe/stack-sc@2.7.10
+  - @stackframe/stack-shared@2.7.10
+  - @stackframe/stack-ui@2.7.10
+
+## 2.7.9
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.9
+  - @stackframe/stack-ui@2.7.9
+  - @stackframe/stack-sc@2.7.9
+
+## 2.7.8
+
+### Patch Changes
+
+- Various changes
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.8
+  - @stackframe/stack-sc@2.7.8
+  - @stackframe/stack-ui@2.7.8
+
+## 2.7.7
+
+### Patch Changes
+
+- Various changes
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.7
+  - @stackframe/stack-ui@2.7.7
+  - @stackframe/stack-sc@2.7.7
+
+## 2.7.6
+
+### Patch Changes
+
+- Fixed bugs, updated Neon requirements
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.6
+  - @stackframe/stack-sc@2.7.6
+  - @stackframe/stack-ui@2.7.6
+
+## 2.7.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.5
+  - @stackframe/stack-ui@2.7.5
+  - @stackframe/stack-sc@2.7.5
+
+## 2.7.4
+
+### Patch Changes
+
+- Various changes
+  - @stackframe/stack-sc@2.7.4
+  - @stackframe/stack-shared@2.7.4
+  - @stackframe/stack-ui@2.7.4
+
+## 2.7.3
+
+### Patch Changes
+
+- Various changes
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.3
+  - @stackframe/stack-ui@2.7.3
+  - @stackframe/stack-sc@2.7.3
+
+## 2.7.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.2
+  - @stackframe/stack-ui@2.7.2
+  - @stackframe/stack-sc@2.7.2
+
 ## 2.7.1
 
 ### Patch Changes

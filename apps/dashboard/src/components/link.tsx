@@ -11,6 +11,7 @@ type LinkProps = {
   className?: string,
   target?: string,
   onClick?: () => void,
+  style?: React.CSSProperties,
   prefetch?: boolean,
 };
 
@@ -23,6 +24,7 @@ export function Link(props: LinkProps) {
     target={props.target}
     className={props.className}
     prefetch={props.prefetch}
+    style={props.style}
     onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
       if (needConfirm) {
         e.preventDefault();

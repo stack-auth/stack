@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
-import inquirer from "inquirer";
-import * as fs from "fs";
 import * as child_process from "child_process";
-import * as path from "path";
+import * as fs from "fs";
+import inquirer from "inquirer";
 import open from "open";
+import * as path from "path";
 
 const jsLikeFileExtensions = [
   "mtsx",
@@ -31,15 +31,25 @@ class UserError extends Error {
 let savedProjectPath = process.argv[2] || undefined;
 
 const isDryRun = process.argv.includes("--dry-run");
+const isNeon = process.argv.includes("--neon");
 
 const ansis = {
   red: "\x1b[31m",
   blue: "\x1b[34m",
   green: "\x1b[32m",
   yellow: "\x1b[33m",
+
   clear: "\x1b[0m",
   bold: "\x1b[1m",
 };
+
+const colorize = {
+  red: (strings, ...values) => ansis.red + templateIdentity(strings, ...values) + ansis.clear,
+  blue: (strings, ...values) => ansis.blue + templateIdentity(strings, ...values) + ansis.clear,
+  green: (strings, ...values) => ansis.green + templateIdentity(strings, ...values) + ansis.clear,
+  yellow: (strings, ...values) => ansis.yellow + templateIdentity(strings, ...values) + ansis.clear,
+  bold: (strings, ...values) => ansis.bold + templateIdentity(strings, ...values) + ansis.clear,
+}
 
 const filesCreated = [];
 const filesModified = [];
@@ -103,18 +113,15 @@ async function main() {
     );
   }
 
-  const envPath = path.join(projectPath, ".env");
-  const envDevelopmentPath = path.join(projectPath, ".env.development");
-  const envDefaultPath = path.join(projectPath, ".env.default");
-  const envDefaultsPath = path.join(projectPath, ".env.defaults");
-  const envExamplePath = path.join(projectPath, ".env.example");
+
   const envLocalPath = path.join(projectPath, ".env.local");
+
   const potentialEnvLocations = [
-    envPath,
-    envDevelopmentPath,
-    envDefaultPath,
-    envDefaultsPath,
-    envExamplePath,
+    path.join(projectPath, ".env"),
+    path.join(projectPath, ".env.development"),
+    path.join(projectPath, ".env.default"),
+    path.join(projectPath, ".env.defaults"),
+    path.join(projectPath, ".env.example"),
     envLocalPath,
   ];
 
@@ -184,8 +191,6 @@ async function main() {
 
   const packageManager = await getPackageManager();
   const versionCommand = `${packageManager} --version`;
-  const installCommand =
-    packageManager === "yarn" ? "yarn add" : `${packageManager} install`;
 
   try {
     await shellNicelyFormatted(versionCommand, { shell: true, quiet: true });
@@ -194,8 +199,6 @@ async function main() {
       `Could not run the package manager command '${versionCommand}'. Please make sure ${packageManager} is installed on your system.`
     );
   }
-
-  const stackPackageName = process.env.STACK_PACKAGE_NAME_OVERRIDE || "@stackframe/stack";
 
   const isReady = await inquirer.prompt([
     {
@@ -210,14 +213,20 @@ async function main() {
   }
 
   console.log();
-  console.log(`${ansis.bold}Installing dependencies...${ansis.clear}`);
-  await shellNicelyFormatted(`${installCommand} ${stackPackageName}`, {
+  console.log(colorize.bold`Installing dependencies...`);
+  const packagesToInstall = [process.env.STACK_PACKAGE_NAME_OVERRIDE || "@stackframe/stack"];
+  if (isNeon) {
+    packagesToInstall.push('@neondatabase/serverless');
+  }
+
+  const installCommand = packageManager === "yarn" ? "yarn add" : `${packageManager} install`;
+  await shellNicelyFormatted(`${installCommand} ${packagesToInstall.join(' ')}`, {
     shell: true,
     cwd: projectPath,
   });
 
   console.log();
-  console.log(`${ansis.bold}Writing files...${ansis.clear}`);
+  console.log(colorize.bold`Writing files...`);
   console.log();
   if (potentialEnvLocations.every((p) => !fs.existsSync(p))) {
     await writeFile(
@@ -240,62 +249,42 @@ async function main() {
     `import "server-only";\n\nimport { StackServerApp } from "@stackframe/stack";\n\nexport const stackServerApp = new StackServerApp({\n${ind}tokenStore: "nextjs-cookie",\n});\n`
   );
   await writeFile(layoutPath, updatedLayoutContent);
-  console.log(`${ansis.green}√${ansis.clear} Done writing files`);
+  console.log(`${colorize.green`√`} Done writing files`);
 
-  console.log();
-  console.log();
-  console.log();
-  console.log(
-    `${ansis.bold}${ansis.green}Installation succeeded!${ansis.clear}`
-  );
+  console.log('\n\n\n');
+  console.log(colorize.bold`${colorize.green`Installation succeeded!`}`);
   console.log();
   console.log("Commands executed:");
   for (const command of commandsExecuted) {
-    console.log(`  ${ansis.blue}${command}${ansis.clear}`);
+    console.log(`  ${colorize.blue`${command}`}`);
   }
   console.log();
   console.log("Files written:");
   for (const file of filesModified) {
-    console.log(`  ${ansis.yellow}${file}${ansis.clear}`);
+    console.log(`  ${colorize.yellow`${file}`}`);
   }
   for (const file of filesCreated) {
-    console.log(`  ${ansis.green}${file}${ansis.clear}`);
+    console.log(`  ${colorize.green`${file}`}`);
   }
 }
 main()
   .then(async () => {
-    console.log();
-    console.log();
-    console.log();
-    console.log();
-    console.log(
-      `${ansis.green}===============================================${ansis.clear}`
-    );
-    console.log();
-    console.log(
-      `${ansis.green}Successfully installed Stack! 🚀🚀🚀${ansis.clear}`
-    );
-    console.log();
-    console.log("Next steps:");
-    console.log(
-      "  1. Create an account and project on https://app.stack-auth.com"
-    );
-    console.log(
-      "  2. Copy the environment variables from the new API key into your .env.local file"
-    );
-    console.log();
-    console.log(
-      "Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!"
-    );
-    console.log();
-    console.log(
-      `${ansis.green}===============================================${ansis.clear}`
-    );
-    console.log();
-    console.log(
-      "For more information, please visit https://docs.stack-auth.com/getting-started/setup"
-    );
-    console.log();
+    console.log(`
+${colorize.green`===============================================`}
+
+${colorize.green`Successfully installed Stack! 🚀🚀🚀`}
+
+Next steps:
+
+1. Create an account and project on https://app.stack-auth.com
+2. Copy the environment variables from the new API key into your .env.local file
+
+Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!
+
+${colorize.green`===============================================`}
+
+For more information, please visit https://docs.stack-auth.com/getting-started/setup
+    `.trim());
     if (!process.env.STACK_DISABLE_INTERACTIVE) {
       await open("https://app.stack-auth.com/wizard-congrats");
     }
@@ -304,23 +293,16 @@ main()
     if (!(err instanceof UserError)) {
       console.error(err);
     }
-    console.error();
-    console.error();
-    console.error();
-    console.error();
-    console.error(
-      `${ansis.red}===============================================${ansis.clear}`
-    );
+    console.error('\n\n\n\n');
+    console.log(colorize.red`===============================================`);
     console.error();
     if (err instanceof UserError) {
-      console.error(`${ansis.red}ERROR!${ansis.clear} ${err.message}`);
+      console.error(`${colorize.red`ERROR!`} ${err.message}`);
     } else {
       console.error("An error occurred during the initialization process.");
     }
     console.error();
-    console.error(
-      `${ansis.red}===============================================${ansis.clear}`
-    );
+    console.log(colorize.red`===============================================`);
     console.error();
     console.error(
       "If you need assistance, please try installing Stack manually as described in https://docs.stack-auth.com/getting-started/setup or join our Discord where we're happy to help: https://discord.stack-auth.com"
@@ -483,14 +465,12 @@ async function shellNicelyFormatted(command, { quiet, ...options }) {
   const ui = new inquirer.ui.BottomBar();
   let dots = 4;
   ui.updateBottomBar(
-    `${ansis.blue}Running command: ${command}...${ansis.clear}`
+    colorize.blue`Running command: ${command}...`
   );
   const interval = setInterval(() => {
     if (!isDryRun) {
       ui.updateBottomBar(
-        `${ansis.blue}Running command: ${command}${".".repeat(dots++ % 5)}${
-          ansis.clear
-        }`
+        colorize.blue`Running command: ${command}${".".repeat(dots++ % 5)}`
       );
     }
   }, 700);
@@ -523,7 +503,7 @@ async function shellNicelyFormatted(command, { quiet, ...options }) {
     ui.updateBottomBar(
       quiet
         ? ""
-        : `${ansis.green}√${ansis.clear} Command ${command} succeeded\n`
+        : `${colorize.green`√`} Command ${command} succeeded\n`
     );
     ui.close();
   }
@@ -564,10 +544,14 @@ async function writeFileIfNotExists(fullPath, content) {
   }
 }
 
-async function wait(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 function throwErr(message) {
   throw new Error(message);
+}
+
+// TODO import this function from stack-shared instead (but that would require us to fix the build to let us import it)
+export function templateIdentity(strings, ...values) {
+  if (strings.length === 0) return "";
+  if (values.length !== strings.length - 1) throw new Error("Invalid number of values; must be one less than strings");
+
+  return strings.slice(1).reduce((result, string, i) => `${result}${values[i] ?? "n/a"}${string}`, strings[0]);
 }

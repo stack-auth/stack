@@ -23,3 +23,7 @@ export function prettyPrintWithMagnitudes(num: number): string {
 export function toFixedMax(num: number, maxDecimals: number): string {
   return num.toFixed(maxDecimals).replace(/\.?0+$/, "");
 }
+
+export function numberCompare(a: number, b: number): number {
+  return Math.sign(a - b);
+}
