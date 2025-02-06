@@ -10,7 +10,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     url: yupString().defined(),
     auth: yupObject({
-      tenancy: yupObject({
+      project: yupObject({
         id: yupString().oneOf(["internal"]).defined(),
       }).defined(),
       type: serverOrHigherAuthTypeSchema.defined(),
@@ -32,7 +32,7 @@ export const POST = createSmartRouteHandler({
     // Create an admin API key for the tenancy
     const set = await prismaClient.apiKeySet.create({
       data: {
-        tenancyId: req.body.project_id,
+        projectId: req.body.project_id,
         description: `Auto-generated for Neon${req.body.neon_project_name ? ` (${req.body.neon_project_name})` : ""}`,
         expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 100),
         superSecretAdminKey: `sak_${generateSecureRandomString()}`,

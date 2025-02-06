@@ -1,14 +1,13 @@
 import { usersCrudHandlers } from "@/app/api/latest/users/crud";
 import { getAuthContactChannel } from "@/lib/contact-channel";
-import { getProject } from "@/lib/projects";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
+import { Tenancy, getTenancy } from "@/lib/tenancies";
 import { oauthCookieSchema } from "@/lib/tokens";
 import { getProvider, oauthServer } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { InvalidClientError, InvalidScopeError, Request as OAuthRequest, Response as OAuthResponse } from "@node-oauth/oauth2-server";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, StatusError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { deindent, extractScopes } from "@stackframe/stack-shared/dist/utils/strings";
@@ -16,7 +15,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { oauthResponseToSmartResponse } from "../../oauth-helpers";
 
-const redirectOrThrowError = (error: KnownError, tenancy: ProjectsCrud["Admin"]["Read"], errorRedirectUrl?: string) => {
+const redirectOrThrowError = (error: KnownError, tenancy: Tenancy, errorRedirectUrl?: string) => {
   if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, tenancy.config.domains, tenancy.config.allow_localhost)) {
     throw error;
   }
@@ -81,9 +80,9 @@ const handler = createSmartRouteHandler({
       afterCallbackRedirectUrl,
     } = outerInfo;
 
-    const tenancy = await getProject(tenancyId);
+    const tenancy = await getTenancy(tenancyId);
     if (!tenancy) {
-      throw new StackAssertionError("Project in outerInfo not found; has it been deleted?", { tenancyId });
+      throw new StackAssertionError("Tenancy in outerInfo not found; has it been deleted?", { tenancyId });
     }
 
     try {

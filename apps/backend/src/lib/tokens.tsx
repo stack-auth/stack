@@ -18,7 +18,7 @@ const accessTokenSchema = yupObject({
 });
 
 export const oauthCookieSchema = yupObject({
-  projectId: yupString().defined(),
+  tenancyId: yupString().defined(),
   publishableClientKey: yupString().defined(),
   innerCodeVerifier: yupString().defined(),
   redirectUri: yupString().defined(),
@@ -110,7 +110,7 @@ export async function createAuthTokens(options: {
 
   await prismaClient.projectUserRefreshToken.create({
     data: {
-      projectId: options.projectId,
+      tenancyId: options.projectId,
       projectUserId: options.projectUserId,
       refreshToken: refreshToken,
       expiresAt: options.expiresAt,

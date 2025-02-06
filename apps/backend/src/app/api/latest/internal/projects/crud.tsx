@@ -7,10 +7,10 @@ import { projectIdSchema, yupObject } from "@stackframe/stack-shared/dist/schema
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
-// if one of these users creates a tenancy, the others will be added as owners
+// if one of these users creates a project, the others will be added as owners
 const ownerPacks: Set<string>[] = [];
 
-// if the user is in this list, the tenancy will not have sign-up enabled on creation
+// if the user is in this list, the project will not have sign-up enabled on creation
 const disableSignUpByDefault = new Set([
   "c2c03bd1-5cbe-4493-8e3f-17d1e2d7ca43",
   "60b859bf-e148-4eff-9985-fe6e31c58a2a",
@@ -19,13 +19,13 @@ const disableSignUpByDefault = new Set([
 
 export const internalProjectsCrudHandlers = createLazyProxy(() => createCrudHandlers(internalProjectsCrud, {
   paramsSchema: yupObject({
-    tenancyId: projectIdSchema.defined(),
+    projectId: projectIdSchema.defined(),
   }),
   onPrepare: async ({ auth }) => {
     if (!auth.user) {
       throw new KnownErrors.UserAuthenticationRequired;
     }
-    if (auth.tenancy.id !== "internal") {
+    if (auth.project.id !== "internal") {
       throw new KnownErrors.ExpectedInternalProject();
     }
   },

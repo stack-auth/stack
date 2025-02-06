@@ -23,9 +23,8 @@ model Project {
   isProductionMode Boolean
 
   apiKeySets        ApiKeySet[]
-
+  projectUsers   ProjectUser[]
   neonProvisionedProject NeonProvisionedProject?
-
   tenancies Tenancy[]
 }
 
@@ -227,6 +226,11 @@ model ProjectUser {
   tenancyId     String @db.Uuid
   projectUserId String @default(uuid()) @db.Uuid
 
+  // User IDs must be unique across all organizations (but not necessarily across all branches).
+  // To model this in the DB, we add two columns that are always equal to tenancy.projectId and tenancy.branchId.
+  mirroredProjectId String
+  mirroredBranchId  String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -239,6 +243,7 @@ model ProjectUser {
   totpSecret             Bytes?
 
   tenancy                       Tenancy                        @relation("TenancyProjectUsers", fields: [tenancyId], references: [id], onDelete: Cascade)
+  project                       Project                        @relation(fields: [mirroredProjectId], references: [id], onDelete: Cascade)
   projectUserRefreshTokens      ProjectUserRefreshToken[]
   projectUserAuthorizationCodes ProjectUserAuthorizationCode[]
   projectUserOAuthAccounts      ProjectUserOAuthAccount[]
@@ -254,6 +259,8 @@ model ProjectUser {
   oauthAuthMethod               OAuthAuthMethod[]
 
   @@id([tenancyId, projectUserId])
+
+  @@unique([mirroredProjectId, mirroredBranchId, projectUserId])
 
   // indices for sorting and filtering
   @@index([tenancyId, displayName(sort: Asc)], name: "ProjectUser_displayName_asc")

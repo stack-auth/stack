@@ -56,7 +56,7 @@ export const fullProjectInclude = {
   },
   _count: {
     select: {
-      users: true, // Count the users related to the project
+      projectUsers: true,
     },
   },
 } as const satisfies Prisma.ProjectInclude;
@@ -118,7 +118,7 @@ export function projectPrismaToCrud(
     display_name: prisma.displayName,
     description: prisma.description ?? "",
     created_at_millis: prisma.createdAt.getTime(),
-    user_count: prisma._count.users,
+    user_count: prisma._count.projectUsers,
     is_production_mode: prisma.isProductionMode,
     config: {
       id: prisma.config.id,
@@ -570,6 +570,15 @@ export async function createProject(ownerIds: string[], data: InternalProjectsCr
       include: fullProjectInclude,
     });
 
+    const tenancy = await tx.tenancy.create({
+      data: {
+        projectId: project.id,
+        branchId: "main",
+        organizationId: null,
+        hasNoOrganization: "TRUE",
+      },
+    });
+
     // all oauth providers are created as auth methods for backwards compatibility
     await tx.projectConfig.update({
       where: {
@@ -638,7 +647,7 @@ export async function createProject(ownerIds: string[], data: InternalProjectsCr
 
     await tx.permission.create({
       data: {
-        projectId: project.id,
+        tenancyId: tenancy.id,
         projectConfigId: project.config.id,
         queryableId: "member",
         description: "Default permission for team members",
@@ -654,7 +663,7 @@ export async function createProject(ownerIds: string[], data: InternalProjectsCr
 
     await tx.permission.create({
       data: {
-        projectId: project.id,
+        tenancyId: tenancy.id,
         projectConfigId: project.config.id,
         queryableId: "admin",
         description: "Default permission for team creators",
@@ -672,8 +681,9 @@ export async function createProject(ownerIds: string[], data: InternalProjectsCr
     for (const userId of ownerIds) {
       const projectUserTx = await tx.projectUser.findUnique({
         where: {
-          projectId_projectUserId: {
-            projectId: "internal",
+          mirroredProjectId_mirroredBranchId_projectUserId: {
+            mirroredProjectId: "internal",
+            mirroredBranchId: "main",
             projectUserId: userId,
           },
         },
@@ -687,8 +697,9 @@ export async function createProject(ownerIds: string[], data: InternalProjectsCr
 
       await tx.projectUser.update({
         where: {
-          projectId_projectUserId: {
-            projectId: "internal",
+          mirroredProjectId_mirroredBranchId_projectUserId: {
+            mirroredProjectId: "internal",
+            mirroredBranchId: "main",
             projectUserId: projectUserTx.projectUserId,
           },
         },

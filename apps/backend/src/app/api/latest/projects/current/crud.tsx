@@ -5,7 +5,7 @@ import { retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
-import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { ensureStandardProvider } from "../../../../../lib/request-checks";
@@ -13,7 +13,7 @@ import { ensureStandardProvider } from "../../../../../lib/request-checks";
 export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(projectsCrud, {
   paramsSchema: yupObject({}),
   onUpdate: async ({ auth, data }) => {
-    const oldProject = auth.tenancy;
+    const oldProject = auth.project;
 
     const result = await retryTransaction(async (tx) => {
       // ======================= update default team permissions =======================
@@ -446,7 +446,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
       }
 
       return await tx.project.update({
-        where: { id: auth.tenancy.id },
+        where: { id: auth.project.id },
         data: {
           displayName: data.display_name,
           description: data.description,
@@ -476,13 +476,13 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
     return projectPrismaToCrud(result);
   },
   onRead: async ({ auth }) => {
-    return auth.tenancy;
+    return auth.project;
   },
   onDelete: async ({ auth }) => {
     await retryTransaction(async (tx) => {
       const configs = await tx.projectConfig.findMany({
         where: {
-          id: auth.tenancy.config.id
+          id: auth.project.config.id
         },
         include: {
           projects: true
@@ -490,35 +490,36 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
       });
 
       if (configs.length !== 1) {
-        throw new StatusError(StatusError.NotFound, 'Project config not found');
+        throw new StackAssertionError("Project config should be unique", { configs });
       }
 
       await tx.projectConfig.delete({
         where: {
-          id: auth.tenancy.config.id
+          id: auth.project.config.id
         },
       });
 
       // delete managed ids from users
       const users = await tx.projectUser.findMany({
         where: {
-          tenancyId: 'internal',
+          mirroredProjectId: 'internal',
           serverMetadata: {
             path: ['managedProjectIds'],
-            array_contains: auth.tenancy.id
+            array_contains: auth.project.id
           }
         }
       });
 
       for (const user of users) {
         const updatedManagedProjectIds = (user.serverMetadata as any).managedProjectIds.filter(
-          (id: any) => id !== auth.tenancy.id
+          (id: any) => id !== auth.project.id
         ) as string[];
 
         await tx.projectUser.update({
           where: {
-            tenancyId_projectUserId: {
-              tenancyId: 'internal',
+            mirroredProjectId_mirroredBranchId_projectUserId: {
+              mirroredProjectId: 'internal',
+              mirroredBranchId: user.mirroredBranchId,
               projectUserId: user.projectUserId
             }
           },

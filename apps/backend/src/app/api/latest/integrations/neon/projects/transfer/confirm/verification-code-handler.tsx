@@ -26,23 +26,24 @@ export const neonIntegrationProjectTransferCodeHandler = createVerificationCodeH
     }).defined(),
   }),
   async handler(tenancy, method, data, body, user) {
-    if (tenancy.id !== "internal") throw new StatusError(400, "This endpoint is only available for internal projects.");
+    const project = tenancy.project;
+    if (project.id !== "internal") throw new StatusError(400, "This endpoint is only available for internal projects.");
     if (!user) throw new KnownErrors.UserAuthenticationRequired;
 
     await prismaClient.$transaction(async (tx) => {
       const neonProvisionedProject = await tx.neonProvisionedProject.deleteMany({
         where: {
-          tenancyId: data.project_id,
+          projectId: data.project_id,
           neonClientId: data.neon_client_id,
         },
       });
 
-      if (neonProvisionedProject.count === 0) throw new StatusError(400, "The tenancy to transfer was not provisioned by Neon or has already been transferred.");
+      if (neonProvisionedProject.count === 0) throw new StatusError(400, "The project to transfer was not provisioned by Neon or has already been transferred.");
 
       const recentDbUser = await tx.projectUser.findUnique({
         where: {
-          tenancyId_projectUserId: {
-            tenancyId: "internal",
+          projectId_projectUserId: {
+            projectId: "internal",
             projectUserId: user.id,
           },
         },
@@ -51,8 +52,8 @@ export const neonIntegrationProjectTransferCodeHandler = createVerificationCodeH
 
       await tx.projectUser.update({
         where: {
-          tenancyId_projectUserId: {
-            tenancyId: "internal",
+          projectId_projectUserId: {
+            projectId: "internal",
             projectUserId: user.id,
           },
         },

@@ -12,7 +12,7 @@ export const GET = createSmartRouteHandler({
     auth: yupObject({
       type: adaptSchema,
       user: adaptSchema,
-      tenancy: adaptSchema,
+      project: adaptSchema,
     }).nullable(),
     query: yupObject({
       // No query parameters
@@ -43,7 +43,7 @@ export const GET = createSmartRouteHandler({
         Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.
 
         Authentication: ${!req.auth ? "None" : deindent` ${typedCapitalize(req.auth.type)}
-          Project: ${req.auth.tenancy.id}
+          Project: ${req.auth.project.id}
           User: ${req.auth.user ? req.auth.user.primary_email ?? req.auth.user.id : "None"}
         `}
       `,
