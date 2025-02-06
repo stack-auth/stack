@@ -20,7 +20,11 @@ describe("without project access", () => {
         "status": 400,
         "body": {
           "code": "ACCESS_TYPE_REQUIRED",
-          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
+          "error": deindent\`
+            You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.
+            
+            For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
+          \`,
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
@@ -38,7 +42,11 @@ describe("without project access", () => {
         "status": 400,
         "body": {
           "code": "ACCESS_TYPE_REQUIRED",
-          "error": "You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
+          "error": deindent\`
+            You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.
+            
+            For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
+          \`,
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_REQUIRED",
@@ -307,8 +315,16 @@ describe("with client access", () => {
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body contains unknown properties: server_metadata" },
-          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body contains unknown properties: server_metadata",
+          "details": {
+            "message": deindent\`
+              Request validation failed on PATCH /api/v1/users/me:
+                - body contains unknown properties: server_metadata
+            \`,
+          },
+          "error": deindent\`
+            Request validation failed on PATCH /api/v1/users/me:
+              - body contains unknown properties: server_metadata
+          \`,
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",
@@ -483,8 +499,16 @@ describe("with client access", () => {
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.totp_secret_base64 is not valid base64" },
-          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.totp_secret_base64 is not valid base64",
+          "details": {
+            "message": deindent\`
+              Request validation failed on PATCH /api/v1/users/me:
+                - body.totp_secret_base64 is not valid base64
+            \`,
+          },
+          "error": deindent\`
+            Request validation failed on PATCH /api/v1/users/me:
+              - body.totp_secret_base64 is not valid base64
+          \`,
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",
@@ -600,8 +624,16 @@ describe("with client access", () => {
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body contains unknown properties: client_read_only_metadata" },
-          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body contains unknown properties: client_read_only_metadata",
+          "details": {
+            "message": deindent\`
+              Request validation failed on PATCH /api/v1/users/me:
+                - body contains unknown properties: client_read_only_metadata
+            \`,
+          },
+          "error": deindent\`
+            Request validation failed on PATCH /api/v1/users/me:
+              - body contains unknown properties: client_read_only_metadata
+          \`,
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",
@@ -1821,8 +1853,16 @@ describe("with server access", () => {
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.profile_image_url is not a valid URL" },
-          "error": "Request validation failed on PATCH /api/v1/users/me:\\n  - body.profile_image_url is not a valid URL",
+          "details": {
+            "message": deindent\`
+              Request validation failed on PATCH /api/v1/users/me:
+                - body.profile_image_url is not a valid URL
+            \`,
+          },
+          "error": deindent\`
+            Request validation failed on PATCH /api/v1/users/me:
+              - body.profile_image_url is not a valid URL
+          \`,
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",

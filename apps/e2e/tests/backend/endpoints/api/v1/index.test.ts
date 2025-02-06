@@ -13,7 +13,11 @@ describe("without project ID", () => {
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
         "status": 200,
-        "body": "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.\\n\\nAuthentication: None",
+        "body": deindent\`
+          Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.
+          
+          Authentication: None
+        \`,
         "headers": Headers { <some fields may have been hidden> },
       }
     `);
@@ -26,8 +30,16 @@ describe("without project ID", () => {
         "status": 400,
         "body": {
           "code": "SCHEMA_ERROR",
-          "details": { "message": "Request validation failed on GET /api/v1:\\n  - query contains unknown properties: extra" },
-          "error": "Request validation failed on GET /api/v1:\\n  - query contains unknown properties: extra",
+          "details": {
+            "message": deindent\`
+              Request validation failed on GET /api/v1:
+                - query contains unknown properties: extra
+            \`,
+          },
+          "error": deindent\`
+            Request validation failed on GET /api/v1:
+              - query contains unknown properties: extra
+          \`,
         },
         "headers": Headers {
           "x-stack-known-error": "SCHEMA_ERROR",
@@ -47,7 +59,11 @@ describe("without project ID", () => {
         "body": {
           "code": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
           "details": { "request_type": "client" },
-          "error": "The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.\\n\\nFor more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication",
+          "error": deindent\`
+            The x-stack-access-type header was 'client', but the x-stack-project-id header was not provided.
+            
+            For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
+          \`,
         },
         "headers": Headers {
           "x-stack-known-error": "ACCESS_TYPE_WITHOUT_PROJECT_ID",
@@ -172,7 +188,13 @@ describe("with internal project ID", async () => {
       expect(response).toMatchInlineSnapshot(`
         NiceResponse {
           "status": 200,
-          "body": "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.\\n\\nAuthentication: Client\\n         Project: internal\\n         User: None",
+          "body": deindent\`
+            Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.
+            
+            Authentication: Client
+                     Project: internal
+                     User: None
+          \`,
           "headers": Headers { <some fields may have been hidden> },
         }
       `);
@@ -185,7 +207,13 @@ describe("with internal project ID", async () => {
       expect(response).toMatchInlineSnapshot(`
         NiceResponse {
           "status": 200,
-          "body": "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.\\n\\nAuthentication: Server\\n         Project: internal\\n         User: None",
+          "body": deindent\`
+            Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.
+            
+            Authentication: Server
+                     Project: internal
+                     User: None
+          \`,
           "headers": Headers { <some fields may have been hidden> },
         }
       `);
@@ -198,7 +226,13 @@ describe("with internal project ID", async () => {
       expect(response).toMatchInlineSnapshot(`
         NiceResponse {
           "status": 200,
-          "body": "Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.\\n\\nAuthentication: Admin\\n         Project: internal\\n         User: None",
+          "body": deindent\`
+            Welcome to the Stack API endpoint! Please refer to the documentation at https://docs.stack-auth.com.
+            
+            Authentication: Admin
+                     Project: internal
+                     User: None
+          \`,
           "headers": Headers { <some fields may have been hidden> },
         }
       `);

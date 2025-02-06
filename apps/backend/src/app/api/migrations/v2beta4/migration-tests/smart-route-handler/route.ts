@@ -1,4 +1,4 @@
-import { GET as latestHandler } from "@/app/api/v1/migration-tests/smart-route-handler/route";
+import { GET as latestHandler } from "@/app/api/latest/migration-tests/smart-route-handler/route";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { ensureObjectSchema, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 

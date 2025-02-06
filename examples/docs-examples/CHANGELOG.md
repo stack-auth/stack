@@ -1,5 +1,42 @@
 # @stackframe/docs-examples
 
+## 2.7.12
+
+### Patch Changes
+
+- Various changes
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.12
+  - @stackframe/stack-ui@2.7.12
+  - @stackframe/stack@2.7.12
+
+## 2.7.11
+
+### Patch Changes
+
+- @stackframe/stack@2.7.11
+- @stackframe/stack-shared@2.7.11
+- @stackframe/stack-ui@2.7.11
+
+## 2.7.10
+
+### Patch Changes
+
+- Various changes
+- Updated dependencies
+  - @stackframe/stack@2.7.10
+  - @stackframe/stack-shared@2.7.10
+  - @stackframe/stack-ui@2.7.10
+
+## 2.7.9
+
+### Patch Changes
+
+- Updated dependencies
+  - @stackframe/stack-shared@2.7.9
+  - @stackframe/stack-ui@2.7.9
+  - @stackframe/stack@2.7.9
+
 ## 2.7.8
 
 ### Patch Changes

@@ -5,7 +5,6 @@ import * as fs from "fs";
 import inquirer from "inquirer";
 import open from "open";
 import * as path from "path";
-import { templateIdentity, deindent } from '@stackframe/stack-shared/dist/utils/strings'
 
 const jsLikeFileExtensions = [
   "mtsx",
@@ -270,22 +269,22 @@ async function main() {
 }
 main()
   .then(async () => {
-    console.log(deindent`
-      ${colorize.green`===============================================`}
+    console.log(`
+${colorize.green`===============================================`}
 
-      ${colorize.green`Successfully installed Stack! 🚀🚀🚀`}
+${colorize.green`Successfully installed Stack! 🚀🚀🚀`}
 
-      Next steps:
+Next steps:
 
-      1. Create an account and project on https://app.stack-auth.com
-      2. Copy the environment variables from the new API key into your .env.local file
+1. Create an account and project on https://app.stack-auth.com
+2. Copy the environment variables from the new API key into your .env.local file
 
-      Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!
+Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!
 
-      ${colorize.green`===============================================`}
+${colorize.green`===============================================`}
 
-      For more information, please visit https://docs.stack-auth.com/getting-started/setup
-    `);
+For more information, please visit https://docs.stack-auth.com/getting-started/setup
+    `.trim());
     if (!process.env.STACK_DISABLE_INTERACTIVE) {
       await open("https://app.stack-auth.com/wizard-congrats");
     }
@@ -547,4 +546,12 @@ async function writeFileIfNotExists(fullPath, content) {
 
 function throwErr(message) {
   throw new Error(message);
+}
+
+// TODO import this function from stack-shared instead (but that would require us to fix the build to let us import it)
+export function templateIdentity(strings, ...values) {
+  if (strings.length === 0) return "";
+  if (values.length !== strings.length - 1) throw new Error("Invalid number of values; must be one less than strings");
+
+  return strings.slice(1).reduce((result, string, i) => `${result}${values[i] ?? "n/a"}${string}`, strings[0]);
 }

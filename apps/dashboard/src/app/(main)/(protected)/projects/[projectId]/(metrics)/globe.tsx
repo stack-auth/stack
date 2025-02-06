@@ -1,8 +1,8 @@
 import useResizeObserver from '@react-hook/resize-observer';
 import { useUser } from '@stackframe/stack';
 import { getFlagEmoji } from '@stackframe/stack-shared/dist/utils/unicode';
-import { Skeleton, Typography } from '@stackframe/stack-ui';
-import { RefObject, use, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Typography } from '@stackframe/stack-ui';
+import { RefObject, use, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import Globe, { GlobeMethods } from 'react-globe.gl';
 const countriesPromise = import('./country-data.geo.json');
 
@@ -84,6 +84,12 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
     return () => clearInterval(interval);
   }, [isLightMode]);
 
+  // Chromium's WebGL is much faster than other browsers, so we can do some extra animations
+  const [isFastEngine, setIsFastEngine] = useState<boolean | null>(null);
+  useEffect(() => {
+    setIsFastEngine("chrome" in window && window.navigator.userAgent.includes("Chrome") && !window.navigator.userAgent.match(/Android|Mobi/));
+  }, []);
+
   // calculate color values for each country
   const totalUsersInCountries = Object.values(countryData).reduce((acc, curr) => acc + curr, 0);
   const totalPopulationInCountries = countries.features.reduce((acc, curr) => acc + curr.properties.POP_EST, 0);
@@ -111,10 +117,13 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
   const maxColorValue = Math.max(0, ...[...colorValues.values()].filter((v): v is number => v !== null));
 
 
-  return <div ref={sectionContainerRef} className='flex w-full gap-4 flex-row select-none'>
+  return <div
+    ref={sectionContainerRef}
+    className='flex w-full gap-4 flex-row select-none'
+  >
     <div
       ref={globeContainerRef}
-      className='absolute top-0 left-0 right-0 overflow-hidden'
+      className='absolute top-0 left-0 right-0'
       style={{
         height: (globeWindowSize?.height ?? 64) + 16,
       }}
@@ -129,22 +138,19 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
         resumeRender();
       }}
     >
-      <div className='absolute top-0 right-0' style={{
+      <div className='absolute top-[-64px] right-0' style={{
         width: globeSize?.[0] ?? 64,
-        height: (globeWindowSize?.height ?? 64) + 16,
+        height: (globeWindowSize?.height ?? 64) + 16 + 64,
+        overflow: 'hidden',
       }}>
         {!isGlobeReady && (
-          <Skeleton style={{
-            width: Math.min(globeSize?.[0] ?? 64, (globeWindowSize?.height ?? 64) + 16) * 1.9 / 3,
-            height: Math.min(globeSize?.[0] ?? 64, (globeWindowSize?.height ?? 64) + 16) * 1.9 / 3,
-            borderRadius: '100%',
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-          }} />
+          <div className='absolute top-1/2 left-1/2'>
+            <div className='-translate-x-1/2 -translate-y-1/2'>
+              <PlanetLoader />
+            </div>
+          </div>
         )}
-        {isLightMode !== null && (
+        {isLightMode !== null && isFastEngine !== null && (
           <Globe
             ref={globeRef}
             backgroundColor='#00000000'
@@ -154,7 +160,7 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
                 : 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAERlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAAaADAAQAAAABAAAAAQAAAAD5Ip3+AAAADUlEQVQIHWPgF9f8DwAB1wFPLWQXmAAAAABJRU5ErkJggg=='
             }
             width={globeSize?.[0] ?? 64}
-            height={globeSize?.[1] ?? 64}
+            height={128 + (globeSize?.[1] ?? 0)}
             onGlobeReady={() => {
               setTimeout(() => setIsGlobeReady(true), 100);
               const current = globeRef.current;
@@ -165,14 +171,15 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
               const controls = current.controls();
               controls.maxDistance = 1000;
               controls.minDistance = 120;
-              controls.dampingFactor = 0.3;
+              controls.dampingFactor = 0.2;
               // even though rendering is resumed by default, we want to pause it after 200ms, so call resumeRender()
               resumeRender();
             }}
             onZoom={() => {
               resumeRender();
             }}
-            animateIn={false}
+            animateIn={isFastEngine}
+
 
             polygonsData={countries.features}
             polygonCapColor={() => "transparent"}
@@ -188,13 +195,12 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
             }}
 
             hexPolygonsData={countries.features}
-            hexPolygonResolution={3}
+            hexPolygonResolution={isFastEngine ? 3 : 2}
             hexPolygonMargin={0.2}
             hexPolygonAltitude={0.003}
             hexPolygonColor={(country: any) => {
               const createColor = (value: number | null) => {
-              // Chrome's WebGL is pretty fast so we can afford to do on-hover highlights
-                const highlight = "chrome" in window && country.properties.ISO_A2_EH === selectedCountry?.code;
+                const highlight = isFastEngine && country.properties.ISO_A2_EH === selectedCountry?.code;
 
                 if (Number.isNaN(value) || value === null || maxColorValue < 0.0001) {
                   if (isLightMode) {
@@ -202,9 +208,9 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
                   } else {
                     if (value === null && maxColorValue < 0.0001) {
                       // if there are no users at all, in dark mode, show the globe in a slightly lighter color
-                      return `hsl(271, 84%, ${highlight ? '30%' : '20%'})`;
+                      return `hsl(240, 84%, ${highlight ? '30%' : '20%'})`;
                     } else {
-                      return `hsl(271, 84%, ${highlight ? '25%' : '15%'})`;
+                      return `hsl(240, 84%, ${highlight ? '25%' : '15%'})`;
                     }
                   }
                 }
@@ -212,7 +218,7 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
                 if (isLightMode) {
                   return `hsl(${175 * (1 - scaled)}, 100%, ${20 + 40 * scaled + (highlight ? 10 : 0)}%)`;
                 } else {
-                  return `hsl(271, 84%, ${24 + 60 * scaled + (highlight ? 10 : 0)}%)`;
+                  return `hsl(240, 84%, ${24 + 60 * scaled + (highlight ? 10 : 0)}%)`;
                 }
               };
               const color = createColor(colorValues.get(country.properties.ISO_A2_EH) ?? null);
@@ -302,5 +308,49 @@ export function GlobeSection({ countryData, totalUsers, children }: {countryData
     {children && <div className='relative h-full flex flex-col gap-4 z-1'>
       {children}
     </div>}
+  </div>;
+}
+
+function PlanetLoader() {
+  const id = `planet-loader-${useId().replace(/:/g, '-')}`;
+  return <div id={`${id}`}>
+    <style>{`
+      #${id} {
+        width: 70px;
+        height: 70px;
+        aspect-ratio: 1;
+        background:
+          radial-gradient(farthest-side,rgba(95, 174, 247, 1) 90%,#0000) center/16px 16px,
+          radial-gradient(farthest-side,rgba(107, 93, 247, 1)   90%,#0000) bottom/12px 12px;
+        background-repeat: no-repeat;
+        animation: anim-${id} 2s infinite linear;
+        position: relative;
+        opacity: 1;
+      }
+      #${id}::before {    
+        content:"";
+        position: absolute;
+        width: 8px;
+        aspect-ratio: 1;
+        inset: auto 0 16px;
+        margin: auto;
+        background: #ccc;
+        border-radius: 50%;
+        transform-origin: 50% calc(100% + 10px);
+        animation: inherit;
+        animation-duration: 1s;
+        opacity: 1;
+      }
+      @keyframes anim-${id} {
+        50% {
+          opacity: 0.6;
+          transform: rotate(0.5turn);
+        }
+        100% {
+          opacity: 1;
+          transform: rotate(1turn);
+        }
+      }
+    `}</style>
   </div>;
 }

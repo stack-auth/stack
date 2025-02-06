@@ -1,4 +1,4 @@
-import { createMfaRequiredError } from "@/app/api/v1/auth/mfa/sign-in/verification-code-handler";
+import { createMfaRequiredError } from "@/app/api/latest/auth/mfa/sign-in/verification-code-handler";
 import { checkApiKeySet } from "@/lib/api-keys";
 import { fullProjectInclude, getProject, projectPrismaToCrud } from "@/lib/projects";
 import { validateRedirectUrl } from "@/lib/redirect-urls";

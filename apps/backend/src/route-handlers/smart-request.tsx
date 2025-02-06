@@ -1,6 +1,6 @@
 import "../polyfills";
 
-import { getUser, getUserQuery } from "@/app/api/v1/users/crud";
+import { getUser, getUserQuery } from "@/app/api/latest/users/crud";
 import { checkApiKeySet, checkApiKeySetQuery } from "@/lib/api-keys";
 import { getProjectQuery, listManagedProjectIds } from "@/lib/projects";
 import { decodeAccessToken } from "@/lib/tokens";
@@ -252,7 +252,8 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
 
   const project = queriesResults.project;
   if (!project) {
-    throw new StackAssertionError("Project not found; this should never happen because passing the checks until here should guarantee that the project exists and that access to it is granted", { projectId });
+    // This happens when the JWT tokens are still valid, but the project has been deleted
+    throw new KnownErrors.ProjectNotFound(projectId);
   }
 
   return {

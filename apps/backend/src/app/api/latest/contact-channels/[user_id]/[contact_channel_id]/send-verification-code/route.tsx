@@ -1,4 +1,4 @@
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { usersCrudHandlers } from "@/app/api/latest/users/crud";
 import { prismaClient } from "@/prisma-client";
 import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
