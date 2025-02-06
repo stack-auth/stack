@@ -60,7 +60,7 @@ model Tenancy {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projectId String @db.Uuid
+  projectId String
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   branchId String @db.Uuid
@@ -170,7 +170,7 @@ model Permission {
   dbId            String  @id @default(uuid()) @db.Uuid
   // exactly one of [projectConfigId && projectConfig] or [projectId && teamId && team] must be set
   projectConfigId String? @db.Uuid
-  tenancyId       String?
+  tenancyId       String? @db.Uuid
   teamId          String? @db.Uuid
 
   createdAt DateTime @default(now())
