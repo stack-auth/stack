@@ -3,13 +3,14 @@ import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { AdminDomainConfig, AdminProject } from "@stackframe/stack";
-import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { isValidUrl } from "@stackframe/stack-shared/dist/utils/urls";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import React from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
+
+const DOMAIN_REGEX = /^(((?!-))(xn--|_)?[a-z0-9-]{0,61}[a-z0-9]{1,1}\.)*(xn--)?([a-z0-9][a-z0-9\-]{0,60}|[a-z0-9-]{1,30}\.[a-z]{2,})$/;
 
 function EditDialog(props: {
   open?: boolean,
@@ -31,7 +32,7 @@ function EditDialog(props: {
 )) {
   const domainFormSchema = yup.object({
     domain: yup.string()
-      // .url("Invalid URL")
+      .matches(DOMAIN_REGEX, "Invalid domain")
       .notOneOf(
         props.domains
           .filter((_, i) => (props.type === 'update' && i !== props.editIndex) || props.type === 'create')

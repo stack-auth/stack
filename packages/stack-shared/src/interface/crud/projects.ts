@@ -57,7 +57,8 @@ export const emailConfigSchema = yupObject({
 });
 
 const domainSchema = yupObject({
-  domain: schemaFields.urlSchema.defined(),
+  domain: schemaFields.urlSchema.defined()
+    .meta({ openapiField: { description: 'URL. Must either start with https:// or', exampleValue: 'https://example.com' } }),
   handler_path: schemaFields.handlerPathSchema.defined(),
 });
 
