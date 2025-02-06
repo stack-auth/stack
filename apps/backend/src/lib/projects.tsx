@@ -54,7 +54,6 @@ export const fullProjectInclude = {
       domains: true,
     },
   },
-  configOverride: true,
   _count: {
     select: {
       users: true, // Count the users related to the project

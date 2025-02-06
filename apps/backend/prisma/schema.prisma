@@ -20,7 +20,6 @@ model Project {
   description      String?                @default("")
   configId         String                 @db.Uuid
   config           ProjectConfig          @relation(fields: [configId], references: [id], onDelete: Cascade)
-  configOverride   ProjectConfigOverride?
   isProductionMode Boolean
 
   users             ProjectUser[]      @relation("ProjectUsers")
@@ -31,10 +30,10 @@ model Project {
   connectedAccounts ConnectedAccount[]
 
   neonProvisionedProject NeonProvisionedProject?
+
+  tenancies Tenancy[]
 }
 
-// Contains all the configuration for a project.
-// More specifically, "configuration" is what we call those settings that only depend on environment variables and overrides between different deployments.
 model ProjectConfig {
   id String @id @default(uuid()) @db.Uuid
 
@@ -60,6 +59,25 @@ model ProjectConfig {
   connectedAccountConfigs            ConnectedAccountConfig[]
 }
 
+model Tenancy {
+  id String @id @default(uuid()) @db.Uuid
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projectId String @db.Uuid
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  branchId String @db.Uuid
+
+  // If organizationId is NULL, hasNoOrganization must be TRUE. If organizationId is not NULL, hasNoOrganization must be NULL.
+  organizationId String? @db.Uuid
+  hasNoOrganization BooleanTrue?
+
+  @@unique([projectId, branchId, organizationId])
+  @@unique([projectId, branchId, hasNoOrganization])
+}
+
 model ProjectDomain {
   projectConfigId String @db.Uuid
 
@@ -72,22 +90,6 @@ model ProjectDomain {
   projectConfig ProjectConfig @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
 
   @@unique([projectConfigId, domain])
-}
-
-// Environment-specific overrides for a configuration.
-//
-// This is a quick and dirty way to allow for environment-specific overrides of the configuration.
-//
-// For most cases, you should prefer to use environment variables.
-//
-// Note: Overrides (and environment variables) are currently unimplemented, so this model is empty.
-model ProjectConfigOverride {
-  projectId String @id
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 model Team {
