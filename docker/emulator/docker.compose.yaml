@@ -2,7 +2,7 @@ services:
 
   # ================= Stack Auth Server =================
 
-  stack-auth-server:
+  server:
     build:
       context: ../..
       dockerfile: docker/server/Dockerfile
@@ -10,7 +10,20 @@ services:
       - 8101:8101
       - 8102:8102
     environment:
-      DATABASE_URL: postgres://postgres:PASSWORD-PLACEHOLDER--uqfEC1hmmv@db:5432/stackframe
+      NEXT_PUBLIC_STACK_API_URL: http://localhost:8102
+      NEXT_PUBLIC_STACK_DASHBOARD_URL: http://localhost:8101
+      STACK_DATABASE_CONNECTION_STRING: postgres://postgres:PASSWORD-PLACEHOLDER--uqfEC1hmmv@host.docker.internal:5432/stackframe
+      STACK_DIRECT_DATABASE_CONNECTION_STRING: postgres://postgres:PASSWORD-PLACEHOLDER--uqfEC1hmmv@host.docker.internal:5432/stackframe
+      STACK_SERVER_SECRET: 23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
+      STACK_SEED_INTERNAL_PROJECT_ALLOW_LOCALHOST: true
+      STACK_RUN_MIGRATIONS: true
+      STACK_RUN_SEED_SCRIPT: true
+      STACK_EMULATOR_ENABLED: true
+      NEXT_PUBLIC_STACK_EMULATOR_ENABLED: true
+      STACK_EMULATOR_PROJECT_ID: dff88d17-6d39-4b08-b4e2-c87c81f7218a
+      NEXT_PUBLIC_STACK_EMULATOR_PROJECT_ID: dff88d17-6d39-4b08-b4e2-c87c81f7218a
+    depends_on:
+      - db
 
   # ================= PostgreSQL =================
 
