@@ -1,4 +1,4 @@
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { usersCrudHandlers } from "@/app/api/latest/users/crud";
 import { getAuthContactChannel } from "@/lib/contact-channel";
 import { getProject } from "@/lib/projects";
 import { validateRedirectUrl } from "@/lib/redirect-urls";
