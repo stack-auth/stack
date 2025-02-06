@@ -3,7 +3,9 @@ services:
   # ================= Stack Auth Server =================
 
   stack-auth-server:
-    build: ../server
+    build:
+      context: ../..
+      dockerfile: docker/server/Dockerfile
     ports:
       - 8101:8101
       - 8102:8102
