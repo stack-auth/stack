@@ -101,8 +101,16 @@ it("should fail if the neon client details are incorrect", async ({ expect }) =>
       "status": 400,
       "body": {
         "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on POST /api/v1/integrations/neon/projects/provision:\\n  - Invalid client_id:client_secret values; did you use the correct values for the Neon integration?" },
-        "error": "Request validation failed on POST /api/v1/integrations/neon/projects/provision:\\n  - Invalid client_id:client_secret values; did you use the correct values for the Neon integration?",
+        "details": {
+          "message": deindent\`
+            Request validation failed on POST /api/v1/integrations/neon/projects/provision:
+              - Invalid client_id:client_secret values; did you use the correct values for the Neon integration?
+          \`,
+        },
+        "error": deindent\`
+          Request validation failed on POST /api/v1/integrations/neon/projects/provision:
+            - Invalid client_id:client_secret values; did you use the correct values for the Neon integration?
+        \`,
       },
       "headers": Headers {
         "x-stack-known-error": "SCHEMA_ERROR",
@@ -121,17 +129,25 @@ it("should fail if the neon client details are missing", async ({ expect }) => {
     },
   });
   expect(response).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 400,
-      "body": {
-        "code": "SCHEMA_ERROR",
-        "details": { "message": "Request validation failed on POST /api/v1/integrations/neon/projects/provision:\\n  - headers.authorization must be defined" },
-        "error": "Request validation failed on POST /api/v1/integrations/neon/projects/provision:\\n  - headers.authorization must be defined",
+  NiceResponse {
+    "status": 400,
+    "body": {
+      "code": "SCHEMA_ERROR",
+      "details": {
+        "message": deindent\`
+          Request validation failed on POST /api/v1/integrations/neon/projects/provision:
+            - headers.authorization must be defined
+        \`,
       },
-      "headers": Headers {
-        "x-stack-known-error": "SCHEMA_ERROR",
-        <some fields may have been hidden>,
-      },
-    }
-  `);
+      "error": deindent\`
+        Request validation failed on POST /api/v1/integrations/neon/projects/provision:
+          - headers.authorization must be defined
+      \`,
+    },
+    "headers": Headers {
+      "x-stack-known-error": "SCHEMA_ERROR",
+      <some fields may have been hidden>,
+    },
+  }
+`);
 });

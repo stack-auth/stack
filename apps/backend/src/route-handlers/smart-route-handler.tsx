@@ -4,7 +4,6 @@ import { traceSpan } from "@/utils/telemetry";
 import * as Sentry from "@sentry/nextjs";
 import { EndpointDocumentation } from "@stackframe/stack-shared/dist/crud";
 import { KnownError, KnownErrors } from "@stackframe/stack-shared/dist/known-errors";
-import { yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { getNodeEnvironment } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, StatusError, captureError, errorToNiceString } from "@stackframe/stack-shared/dist/utils/errors";
@@ -12,13 +11,13 @@ import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/pro
 import { NextRequest } from "next/server";
 import * as yup from "yup";
 import { DeepPartialSmartRequestWithSentinel, MergeSmartRequest, SmartRequest, createSmartRequest, validateSmartRequest } from "./smart-request";
-import { SmartResponse, createResponse } from "./smart-response";
+import { SmartResponse, createResponse, validateSmartResponse } from "./smart-response";
 
 class InternalServerError extends StatusError {
   constructor(error: unknown) {
     super(
       StatusError.InternalServerError,
-      ["development", "test"].includes(getNodeEnvironment()) ? `Internal Server Error. The error message follows, but will be stripped in production. ${(error as any)?.stack ?? error}` : `Something went wrong. Please make sure the data you entered is correct.`,
+      ["development", "test"].includes(getNodeEnvironment()) ? `Internal Server Error. The error message follows, but will be stripped in production. ${errorToNiceString(error)}` : `Something went wrong. Please make sure the data you entered is correct.`,
     );
   }
 }
@@ -42,7 +41,7 @@ function catchError(error: unknown): StatusError {
   if (error instanceof Error) {
     const digest = (error as any)?.digest;
     if (typeof digest === "string") {
-      if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE"].some(m => digest.startsWith(m))) {
+      if (["NEXT_REDIRECT", "DYNAMIC_SERVER_USAGE", "NEXT_NOT_FOUND"].some(m => digest.startsWith(m))) {
         throw error;
       }
     }
@@ -133,7 +132,7 @@ export function handleApiRequest(handler: (req: NextRequest, options: any, reque
           headers: {
             ...statusError.getHeaders(),
           },
-        }, yupMixed<any>());
+        });
         return res;
       } finally {
         hasRequestFinished = true;
@@ -164,9 +163,11 @@ export type SmartRouteHandler<
   OverloadParam = unknown,
   Req extends DeepPartialSmartRequestWithSentinel = DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse = SmartResponse,
+  InitArgs extends [readonly OverloadParam[], SmartRouteHandlerOverloadGenerator<OverloadParam, Req, Res>] | [SmartRouteHandlerOverload<Req, Res>] = any,
 > = ((req: NextRequest, options: any) => Promise<Response>) & {
   overloads: Map<OverloadParam, SmartRouteHandlerOverload<Req, Res>>,
-  invoke: (smartRequest: SmartRequest) => Promise<Response>,
+  invoke: (smartRequest: SmartRequest) => Promise<Res>,
+  initArgs: InitArgs,
 }
 
 function getSmartRouteHandlerSymbol() {
@@ -182,7 +183,7 @@ export function createSmartRouteHandler<
   Res extends SmartResponse,
 >(
   handler: SmartRouteHandlerOverload<Req, Res>,
-): SmartRouteHandler<void, Req, Res>
+): SmartRouteHandler<void, Req, Res, [typeof handler]>
 export function createSmartRouteHandler<
   OverloadParam,
   Req extends DeepPartialSmartRequestWithSentinel,
@@ -190,7 +191,7 @@ export function createSmartRouteHandler<
 >(
   overloadParams: readonly OverloadParam[],
   overloadGenerator: SmartRouteHandlerOverloadGenerator<OverloadParam, Req, Res>
-): SmartRouteHandler<OverloadParam, Req, Res>
+): SmartRouteHandler<OverloadParam, Req, Res, [typeof overloadParams, typeof overloadGenerator]>
 export function createSmartRouteHandler<
   Req extends DeepPartialSmartRequestWithSentinel,
   Res extends SmartResponse,
@@ -251,9 +252,9 @@ export function createSmartRouteHandler<
       return await handler.handler(smartReq as any, fullReq);
     });
 
-    return await traceSpan('creating smart response', async () => {
-      return await createResponse(nextRequest, requestId, smartRes, handler.response);
-    });
+    const validated = await validateSmartResponse(nextRequest, smartRes, handler.response);
+
+    return validated;
   };
 
   return Object.assign(handleApiRequest(async (req, options, requestId) => {
@@ -262,11 +263,16 @@ export function createSmartRouteHandler<
 
     Sentry.setContext("stack-full-smart-request", smartRequest);
 
-    return await invoke(req, requestId, smartRequest, true);
+    const smartRes = await invoke(req, requestId, smartRequest, true);
+
+    return await traceSpan('transforming smart response into HTTP response', async () => {
+      return await createResponse(req, requestId, smartRes);
+    });
   }), {
     [getSmartRouteHandlerSymbol()]: true,
     invoke: (smartRequest: SmartRequest) => invoke(null, "custom-endpoint-invocation", smartRequest),
     overloads,
+    initArgs: args,
   });
 }
 

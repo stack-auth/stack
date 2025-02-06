@@ -7,7 +7,7 @@
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100% / 0.5;
     --card-foreground: 240 10% 3.9%;
 
     --popover: 0 0% 100%;
@@ -17,12 +17,15 @@
     --primary-foreground: 0 0% 98%;
 
     --secondary: 240 4.8% 95.9%;
+    --secondary-in-card: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
 
     --muted: 240 4.8% 95.9%;
+    --muted-in-card: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
 
     --accent: 240 4.8% 95.9%;
+    --accent-in-card: 240 4.8% 95.9%;
     --accent-foreground: 240 5.9% 10%;
 
     --destructive: 0 84.2% 60.2%;
@@ -32,7 +35,9 @@
     --success-foreground: 0 0% 98%;
 
     --border: 240 5.9% 90%;
+    --border-in-card: 240 5.9% 90%;
     --input: 240 5.9% 90%;
+    --input-in-card: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
 
     --radius: 0.5rem;
@@ -42,7 +47,7 @@
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 3.9%;
+    --card: 240 10% 9.4% / 0.5;
     --card-foreground: 0 0% 98%;
 
     --popover: 240 10% 3.9%;
@@ -52,12 +57,15 @@
     --primary-foreground: 240 5.9% 10%;
 
     --secondary: 240 3.7% 15.9%;
+    --secondary-in-card: 240 3.7% 23.9%;
     --secondary-foreground: 0 0% 98%;
 
     --muted: 240 3.7% 15.9%;
+    --muted-in-card: 240 3.7% 23.9%;
     --muted-foreground: 240 5% 64.9%;
 
     --accent: 240 3.7% 15.9%;
+    --accent-in-card: 240 3.7% 23.9%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 50%;
@@ -67,7 +75,9 @@
     --success-foreground: 0 0% 98%;
 
     --border: 240 3.7% 15.9%;
+    --border-in-card: 240 3.7% 23.9%;
     --input: 240 3.7% 15.9%;
+    --input-in-card: 240 3.7% 23.9%;
     --ring: 240 4.9% 83.9%;
   }
 }
@@ -81,36 +91,87 @@
   }
 }
 
-.loader {
+.bg-card {
+  box-shadow: 0 0 3px 3px rgba(0, 0, 0, 0.02);
+  backdrop-filter: blur(12px);
+  background-image: radial-gradient(ellipse at top, #fdfdfd88, transparent), radial-gradient(ellipse at bottom, #ffffff88, transparent);
+}
+
+.dark .bg-card {
+  box-shadow: none;
+  backdrop-filter: blur(12px);
+  background-image: radial-gradient(ellipse at top, #18182288, transparent), radial-gradient(ellipse at bottom, #19191988, transparent);
+}
+
+.bg-card > * {
+  --secondary: var(--secondary-in-card);
+  --muted: var(--muted-in-card);
+  --accent: var(--accent-in-card);
+  --input: var(--input-in-card);
+  --border: var(--border-in-card);
+}
+
+.site-loading-indicator {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 24px;
   position: fixed;
   background: transparent;
   overflow: hidden;
   z-index: 9999;
+  pointer-events: none;
+  touch-action: none;
+  user-select: none;
+  display: none;
 }
-.loader::after {
-  content: '';
+body:has(.show-site-loading-indicator) .site-loading-indicator {
+  display: block;
+}
+.site-loading-indicator > .site-loading-indicator-inner {
   width: 40%;
   height: 3px;
   position: absolute;
   top: 0;
   left: 0;
   box-sizing: border-box;
-  animation: animloader 1s linear infinite;
-  @apply bg-primary;
+  animation: animsite-loading-indicator 1s linear infinite;
+  border-radius: 1.5px;
+  background-image: linear-gradient(90deg, 
+    rgba(95, 174, 247, 0) 0%,
+    rgba(95, 174, 247, 1) 64.8%,
+    rgba(107, 93, 247, 1) 84%,
+    rgba(255, 255, 255, 1) 100%
+  );
+}
+.site-loading-indicator > .site-loading-indicator-inner > .site-loading-indicator-inner-glow {
+  position: absolute;
+  inset: -32px;
+  filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.site-loading-indicator > .site-loading-indicator-inner > .site-loading-indicator-inner-glow::after {
+  content: '';
+  position: absolute;
+  inset: 28px;
+  background-image: linear-gradient(90deg, 
+    rgba(95, 174, 247, 0) 0%,
+    rgba(95, 174, 247, 1) 64.8%,
+    rgba(107, 93, 247, 1) 84%,
+    rgba(255, 255, 255, 1) 100%
+  );
 }
 
 @media (min-width: 800px) {
-  .loader::after {
+  .site-loading-indicator > .site-loading-indicator-inner {
     width: 20%;
-    animation: animloader 2s linear infinite;
+    animation: animsite-loading-indicator 2s linear infinite;
   }
 }
 
-@keyframes animloader {
+@keyframes animsite-loading-indicator {
   0% {
     left: 0;
     transform: translateX(-100%);

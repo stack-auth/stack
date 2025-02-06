@@ -340,11 +340,12 @@ const UnparsableAdminAccessToken = createKnownErrorConstructor(
 const AdminAccessTokenExpired = createKnownErrorConstructor(
   InvalidAdminAccessToken,
   "ADMIN_ACCESS_TOKEN_EXPIRED",
-  () => [
+  (expiredAt: Date | undefined) => [
     401,
-    "Admin access token has expired. Please refresh it and try again.",
+    `Admin access token has expired. Please refresh it and try again.${expiredAt ? ` (The access token expired at ${expiredAt.toISOString()}.)`: ""}`,
+    { expired_at_millis: expiredAt?.getTime() ?? null },
   ] as const,
-  () => [] as const,
+  (json: any) => [json.expired_at_millis ?? undefined] as const,
 );
 
 const InvalidProjectForAdminAccessToken = createKnownErrorConstructor(
@@ -500,11 +501,12 @@ const UnparsableAccessToken = createKnownErrorConstructor(
 const AccessTokenExpired = createKnownErrorConstructor(
   InvalidAccessToken,
   "ACCESS_TOKEN_EXPIRED",
-  () => [
+  (expiredAt: Date | undefined) => [
     401,
-    "Access token has expired. Please refresh it and try again.",
+    `Access token has expired. Please refresh it and try again.${expiredAt ? ` (The access token expired at ${expiredAt.toISOString()}.)`: ""}`,
+    { expired_at_millis: expiredAt?.getTime() ?? null },
   ] as const,
-  () => [] as const,
+  (json: any) => [json.expired_at_millis ?? undefined] as const,
 );
 
 const InvalidProjectForAccessToken = createKnownErrorConstructor(

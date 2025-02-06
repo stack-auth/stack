@@ -1,4 +1,3 @@
-import React from "react";
 import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
 
 import { cn } from "../../lib/utils";
@@ -100,4 +99,5 @@ const CardFooter = forwardRefIfNeeded<
 ));
 CardFooter.displayName = "CardFooter";
 
-export { Card, ClickableCard, CardHeader, CardFooter, CardTitle, CardDescription, CardContent, CardSubtitle };
+export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardSubtitle, CardTitle, ClickableCard };
+
