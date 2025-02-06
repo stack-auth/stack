@@ -3,7 +3,7 @@ services:
   # ================= PostgreSQL =================
 
   db:
-    build: ./docker/dependencies/postgres-with-extensions
+    build: ./postgres-with-extensions
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: PASSWORD-PLACEHOLDER--uqfEC1hmmv

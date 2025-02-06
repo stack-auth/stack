@@ -39,7 +39,7 @@ jobs:
       - name: Start Docker Compose in background
         uses: JarvusInnovations/background-action@v1.0.7
         with:
-          run: docker compose -f dependencies.compose.yaml up -d &
+          run: docker compose -f docker/dependencies/docker.compose.yaml up -d &
           # we don't need to wait on anything, just need to start the daemon
           wait-on: /dev/null
           tail: true
@@ -136,4 +136,4 @@ jobs:
 
       - name: Print Docker Compose logs
         if: always()
-        run: docker compose -f dependencies.compose.yaml logs
+        run: docker compose -f docker/dependencies/docker.compose.yaml logs
