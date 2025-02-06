@@ -26,6 +26,7 @@ model Project {
   projectUsers   ProjectUser[]
   neonProvisionedProject NeonProvisionedProject?
   tenancies Tenancy[]
+  verificationCodes VerificationCode[]
 }
 
 model ProjectConfig {
@@ -96,6 +97,11 @@ model Team {
   tenancyId String @db.Uuid
   teamId    String @default(uuid()) @db.Uuid
 
+  // Team IDs must be unique across all organizations (but not necessarily across all branches).
+  // To model this in the DB, we add two columns that are always equal to tenancy.projectId and tenancy.branchId.
+  mirroredProjectId String
+  mirroredBranchId  String
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -110,6 +116,7 @@ model Team {
   teamMembers TeamMember[]
 
   @@id([tenancyId, teamId])
+  @@unique([mirroredProjectId, mirroredBranchId, teamId])
 }
 
 // This is used for fields that are boolean but only the true value is part of a unique constraint.
@@ -701,7 +708,10 @@ model ProjectUserAuthorizationCode {
 
 model VerificationCode {
   projectId String
+  branchId  String
   id        String @default(uuid()) @db.Uuid
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -715,8 +725,8 @@ model VerificationCode {
   data         Json
   attemptCount Int                  @default(0)
 
-  @@id([projectId, id])
-  @@unique([projectId, code])
+  @@id([projectId, branchId, id])
+  @@unique([projectId, branchId, code])
   @@index([data(ops: JsonbPathOps)], type: Gin)
 }
 

@@ -1,4 +1,5 @@
 import { validateRedirectUrl } from "@/lib/redirect-urls";
+import { Tenancy } from "@/lib/tenancies";
 import { prismaClient } from "@/prisma-client";
 import { Prisma, VerificationCodeType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -15,21 +16,18 @@ import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, createSmartRouteH
 
 const MAX_ATTEMPTS_PER_CODE = 20;
 
-type CreateCodeOptions<Data, Method extends {}, CallbackUrl extends string | URL | undefined> = {
-  project: ProjectsCrud["Admin"]["Read"],
+type CreateCodeOptions<Data, Method extends {}, CallbackUrl extends string | URL | undefined> = ProjectBranchCombo & {
   method: Method,
   expiresInMs?: number,
   data: Data,
   callbackUrl: CallbackUrl,
 };
 
-type ListCodesOptions<Data> = {
-  project: ProjectsCrud["Admin"]["Read"],
+type ListCodesOptions<Data> = ProjectBranchCombo & {
   dataFilter?: Prisma.JsonFilter<"VerificationCode"> | undefined,
 }
 
-type RevokeCodeOptions = {
-  project: ProjectsCrud["Admin"]["Read"],
+type RevokeCodeOptions = ProjectBranchCombo & {
   id: string,
 }
 
@@ -51,6 +49,21 @@ type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}, SendCodeRetu
   checkHandler: SmartRouteHandler<any, any, any>,
   detailsHandler: HasDetails extends true ? SmartRouteHandler<any, any, any> : undefined,
 };
+
+type ProjectBranchCombo = (
+  | { project: ProjectsCrud["Admin"]["Read"], branchId: string, tenancy?: undefined }
+  | { tenancy: Tenancy, project?: undefined, branchId?: undefined }
+);
+
+function parseProjectBranchCombo(params: ProjectBranchCombo) {
+  if (params.project && params.branchId) {
+    return { project: params.project, branchId: params.branchId };
+  } else if (params.tenancy) {
+    return { project: params.tenancy.project, branchId: params.tenancy.branchId };
+  } else {
+    throw new StackAssertionError("Must specify either project+branch or tenancy");
+  }
+}
 
 /**
  * Make sure to always check that the method is the same as the one in the data.
@@ -204,7 +217,8 @@ export function createVerificationCodeHandler<
   });
 
   return {
-    async createCode({ project, method, data, callbackUrl, expiresInMs }) {
+    async createCode({ method, data, callbackUrl, expiresInMs, ...params }) {
+      const { project, branchId } = parseProjectBranchCombo(params);
       const validatedData = await options.data.validate(data, {
         strict: true,
       });
@@ -220,6 +234,7 @@ export function createVerificationCodeHandler<
       const verificationCodePrisma = await prismaClient.verificationCode.create({
         data: {
           projectId: project.id,
+          branchId,
           type: options.type,
           code: generateSecureRandomString(),
           redirectUrl: callbackUrl?.toString(),
@@ -239,9 +254,11 @@ export function createVerificationCodeHandler<
       return await options.send(codeObj, createOptions, sendOptions);
     },
     async listCodes(listOptions) {
+      const { project, branchId } = parseProjectBranchCombo(listOptions);
       const codes = await prismaClient.verificationCode.findMany({
         where: {
-          projectId: listOptions.project.id,
+          projectId: project.id,
+          branchId,
           type: options.type,
           data: listOptions.dataFilter,
           expiresAt: {
@@ -253,10 +270,12 @@ export function createVerificationCodeHandler<
       return codes.map(code => createCodeObjectFromPrismaCode(code));
     },
     async revokeCode(options) {
+      const { project, branchId } = parseProjectBranchCombo(options);
       await prismaClient.verificationCode.delete({
         where: {
-          projectId_id: {
-            projectId: options.project.id,
+          projectId_branchId_id: {
+            projectId: project.id,
+            branchId,
             id: options.id,
           },
         },

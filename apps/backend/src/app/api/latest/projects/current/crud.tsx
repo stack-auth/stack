@@ -33,7 +33,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
         },
       ] as const;
 
-      const permissions = await listTeamPermissionDefinitions(tx, oldProject);
+      const permissions = await listTeamPermissionDefinitions(tx, auth.tenancy);
 
 
       for (const param of dbParams) {

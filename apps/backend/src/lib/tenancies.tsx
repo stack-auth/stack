@@ -13,14 +13,28 @@ export function tenancyPrismaToCrud(prisma: Prisma.TenancyGetPayload<{ include: 
   return {
     id: prisma.id,
     config: projectCrud.config,
-    projectId: prisma.projectId,
     branchId: prisma.branchId,
-    organizationId: prisma.organizationId,
+    organization: {
+      // TODO actual organization type
+      id: prisma.organizationId,
+    },
     project: projectCrud,
   };
 }
 
 export type Tenancy = Awaited<ReturnType<typeof tenancyPrismaToCrud>>;
+
+/**
+  * @deprecated This is a temporary function for the situation where every project has exactly one tenancy. Later,
+  * we will support multiple tenancies per project, and all uses of this function will be refactored.
+  */
+export async function getDefaultTenancyFromProject(projectId: string) {
+  const tenancy = await getTenancyFromProject(projectId, 'main', null);
+  if (!tenancy) {
+    throw new StackAssertionError("No tenancy found for project", { projectId });
+  }
+  return tenancy;
+}
 
 export async function getTenancy(tenancyId: string) {
   const prisma = await prismaClient.tenancy.findUniqueOrThrow({

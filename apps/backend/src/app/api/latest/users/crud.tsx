@@ -396,7 +396,11 @@ export function getUserQuery(tenancyId: string, userId: string): RawQuery<UsersC
   };
 }
 
-export async function getUser(options: { tenancyId: string, userId: string }) {
+export async function getUser(options: { userId: string } & ({ projectId: string, branchId: string } | { tenancyId: string })) {
+  if ("projectId" in options) {
+    const tenancy = await getDefaultTenancyFromProject(options.projectId);
+  }
+
   const result = await rawQuery(getUserQuery(options.tenancyId, options.userId));
 
   // In non-prod environments, let's also call the legacy function and ensure the result is the same

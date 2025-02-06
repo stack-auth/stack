@@ -3,6 +3,7 @@ import "../polyfills";
 import { getUser, getUserQuery } from "@/app/api/latest/users/crud";
 import { checkApiKeySet, checkApiKeySetQuery } from "@/lib/api-keys";
 import { getProjectQuery, listManagedProjectIds } from "@/lib/projects";
+import { Tenancy } from "@/lib/tenancies";
 import { decodeAccessToken } from "@/lib/tokens";
 import { rawQueryAll } from "@/prisma-client";
 import { withTraceSpan } from "@/utils/telemetry";
@@ -21,6 +22,7 @@ const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as c
 
 export type SmartRequestAuth = {
   project: ProjectsCrud["Admin"]["Read"],
+  tenancy: Tenancy,
   user?: UsersCrud["Admin"]["Read"] | undefined,
   type: "client" | "server" | "admin",
 };
@@ -176,7 +178,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
       throw new KnownErrors.AdminAccessTokenIsNotAdmin();
     }
 
-    const user = await getUser({ projectId: 'internal', userId: result.data.userId });
+    const user = await getUser({ projectId: 'internal', branchId: 'main', userId: result.data.userId });
     if (!user) {
       // this is the case when access token is still valid, but the user is deleted from the database
       // this should be very rare, let's log it on Sentry when it happens
