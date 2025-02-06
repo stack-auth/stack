@@ -1,5 +1,6 @@
 import { prismaClient } from "@/prisma-client";
 import { Prisma } from "@prisma/client";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { fullProjectInclude, projectPrismaToCrud } from "./projects";
 
 export const fullTenancyInclude = {
@@ -37,7 +38,7 @@ export async function getDefaultTenancyFromProject(projectId: string) {
 }
 
 export async function getTenancy(tenancyId: string) {
-  const prisma = await prismaClient.tenancy.findUniqueOrThrow({
+  const prisma = await prismaClient.tenancy.findUnique({
     where: { id: tenancyId },
     include: fullTenancyInclude,
   });
@@ -46,7 +47,7 @@ export async function getTenancy(tenancyId: string) {
 }
 
 export async function getTenancyFromProject(projectId: string, branchId: string, organizationId: string | null) {
-  const prisma = await prismaClient.tenancy.findUniqueOrThrow({
+  const prisma = await prismaClient.tenancy.findUnique({
     where: {
       ...(organizationId === null ? {
         projectId_branchId_hasNoOrganization: {
