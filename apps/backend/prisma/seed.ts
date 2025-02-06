@@ -22,8 +22,12 @@ async function seed() {
   const allowLocalhost = process.env.STACK_SEED_INTERNAL_PROJECT_ALLOW_LOCALHOST === 'true';
   const clientTeamCreation = process.env.STACK_SEED_INTERNAL_PROJECT_CLIENT_TEAM_CREATION === 'true';
 
+  const emulatorEnabled = process.env.STACK_EMULATOR_ENABLED === 'true';
+  const emulatorProjectId = process.env.STACK_EMULATOR_PROJECT_ID;
+
   const apiKeyId = '3142e763-b230-44b5-8636-aa62f7489c26';
   const defaultUserId = '33e7c043-d2d1-4187-acd3-f91b5ed64b46';
+  const emulatorUserId = '63abbc96-5329-454a-ba56-e0460173c6c1';
 
   let internalProject = await prisma.project.findUnique({
     where: {
@@ -316,6 +320,138 @@ async function seed() {
     } else if (!allowLocalhost) {
       throw new Error('Cannot use localhost as a trusted domain if STACK_SEED_INTERNAL_PROJECT_ALLOW_LOCALHOST is not set to true');
     }
+  }
+
+  if (emulatorEnabled) {
+    if (!emulatorProjectId) {
+      throw new Error('STACK_EMULATOR_PROJECT_ID is not set');
+    }
+
+    console.log('Creating emulator admin user...');
+
+    await prisma.$transaction(async (tx) => {
+      const existingUser = await tx.projectUser.findFirst({
+        where: {
+          projectId: 'internal',
+          projectUserId: emulatorUserId,
+        }
+      });
+
+      if (existingUser) {
+        console.log('Emulator user already exists, skipping creation');
+      } else {
+        const hashedPassword = await hashPassword('LocalEmulatorPassword123');
+
+        const passwordConfig = await tx.authMethodConfig.findFirst({
+          where: {
+            projectConfigId: (internalProject as any).configId,
+            passwordConfig: {
+              isNot: null
+            }
+          },
+        });
+
+        if (!passwordConfig) {
+          throw new Error('Password auth method config not found');
+        }
+
+        // Implementing the TODO: Create a local emulator user
+        const newEmulatorUser = await tx.projectUser.create({
+          data: {
+            displayName: 'Local Emulator User',
+            projectUserId: emulatorUserId,
+            projectId: 'internal',
+            serverMetadata: {
+              managedProjectIds: [emulatorProjectId],
+            },
+          }
+        });
+
+        await tx.contactChannel.create({
+          data: {
+            projectUserId: newEmulatorUser.projectUserId,
+            projectId: 'internal',
+            type: 'EMAIL' as const,
+            value: 'local-emulator@email.com',
+            isVerified: false,
+            isPrimary: 'TRUE',
+            usedForAuth: 'TRUE',
+          }
+        });
+
+        await tx.authMethod.create({
+          data: {
+            projectId: 'internal',
+            projectConfigId: (internalProject as any).configId,
+            projectUserId: newEmulatorUser.projectUserId,
+            authMethodConfigId: passwordConfig.id,
+            passwordAuthMethod: {
+              create: {
+                passwordHash: hashedPassword,
+                projectUserId: newEmulatorUser.projectUserId,
+              }
+            }
+          }
+        });
+
+        console.log('Created emulator user');
+      }
+    });
+
+    console.log('Creating emulator project...');
+
+    await prisma.project.upsert({
+      where: {
+        id: emulatorProjectId,
+      },
+      update: {},
+      create: {
+        id: emulatorProjectId,
+        displayName: 'Local Emulator Project',
+        description: 'Project for local development with emulator',
+        isProductionMode: false,
+        config: {
+          create: {
+            allowLocalhost: true,
+            emailServiceConfig: {
+              create: {
+                proxiedEmailServiceConfig: {
+                  create: {}
+                }
+              }
+            },
+            createTeamOnSignUp: false,
+            clientTeamCreationEnabled: false,
+            authMethodConfigs: {
+              create: [
+                {
+                  passwordConfig: {
+                    create: {},
+                  }
+                }
+              ],
+            },
+            oauthProviderConfigs: {
+              create: [
+                {
+                  id: 'google',
+                  proxiedOAuthConfig: {
+                    create: {
+                      type: 'GOOGLE'
+                    }
+                  },
+                  projectUserOAuthAccounts: {
+                    create: []
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    });
+
+    console.log('Created emulator project');
   }
 
   console.log('Seeding complete!');
