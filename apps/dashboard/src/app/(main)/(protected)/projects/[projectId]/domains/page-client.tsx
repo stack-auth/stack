@@ -3,7 +3,7 @@ import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { AdminDomainConfig, AdminProject } from "@stackframe/stack";
-import { isValidUrl } from "@stackframe/stack-shared/dist/utils/urls";
+import { createUrlIfValid, isValidUrl } from "@stackframe/stack-shared/dist/utils/urls";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import React from "react";
 import * as yup from "yup";
@@ -33,6 +33,12 @@ function EditDialog(props: {
   const domainFormSchema = yup.object({
     domain: yup.string()
       .matches(DOMAIN_REGEX, "Invalid domain")
+      .test('is-domain', (domain) => {
+        if (!domain) {
+          return true;
+        }
+        const urlIfValid = createUrlIfValid(`https://${domain}`);
+        return !!urlIfValid && urlIfValid.hostname === domain; })
       .notOneOf(
         props.domains
           .filter((_, i) => (props.type === 'update' && i !== props.editIndex) || props.type === 'create')
