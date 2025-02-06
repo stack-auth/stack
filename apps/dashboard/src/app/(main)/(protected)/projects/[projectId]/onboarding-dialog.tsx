@@ -44,7 +44,7 @@ export function OnboardingDialog() {
     >
       <div className="flex flex-col gap-2">
         <Typography className="mb-4">
-          Congratulations on creating your new project! We have automatically created an API key for you. Please copy it to your <InlineCode>.env.local</InlineCode> file. Get more information in the <StyledLink target="_blank" href="https://docs.stack-auth.com">getting started guide</StyledLink>.
+          Congratulations on creating your new project! We have automatically created an API key for you. Please copy it to your <InlineCode>.env.local</InlineCode> file. Get more information in the <StyledLink target="_blank" href="https://docs.stack-auth.com">Getting Started guide</StyledLink>.
         </Typography>
         <EnvKeys projectId={project.id} publishableClientKey={apiKey?.publishableClientKey} secretServerKey={apiKey?.secretServerKey} />
         <Typography type="label">
