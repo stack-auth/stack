@@ -29,7 +29,7 @@ export type Tenancy = Awaited<ReturnType<typeof tenancyPrismaToCrud>>;
   * @deprecated This is a temporary function for the situation where every project has exactly one tenancy. Later,
   * we will support multiple tenancies per project, and all uses of this function will be refactored.
   */
-export async function getDefaultTenancyFromProject(projectId: string) {
+export async function getSoleTenancyFromProject(projectId: string) {
   const tenancy = await getTenancyFromProject(projectId, 'main', null);
   if (!tenancy) {
     throw new StackAssertionError("No tenancy found for project", { projectId });

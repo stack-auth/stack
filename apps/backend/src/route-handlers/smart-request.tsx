@@ -3,7 +3,7 @@ import "../polyfills";
 import { getUser, getUserQuery } from "@/app/api/latest/users/crud";
 import { checkApiKeySet, checkApiKeySetQuery } from "@/lib/api-keys";
 import { getProjectQuery, listManagedProjectIds } from "@/lib/projects";
-import { Tenancy } from "@/lib/tenancies";
+import { Tenancy, getSoleTenancyFromProject } from "@/lib/tenancies";
 import { decodeAccessToken } from "@/lib/tokens";
 import { rawQueryAll } from "@/prisma-client";
 import { withTraceSpan } from "@/utils/telemetry";
@@ -260,6 +260,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
 
   return {
     project,
+    tenancy: await getSoleTenancyFromProject(project.id),
     user: queriesResults.user ?? undefined,
     type: requestType,
   };

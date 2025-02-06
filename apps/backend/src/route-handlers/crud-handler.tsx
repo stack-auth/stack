@@ -1,6 +1,6 @@
 import "../polyfills";
 
-import { Tenancy, getDefaultTenancyFromProject } from "@/lib/tenancies";
+import { Tenancy, getSoleTenancyFromProject } from "@/lib/tenancies";
 import { traceSpan } from "@/utils/telemetry";
 import { CrudSchema, CrudTypeOf, CrudlOperation } from "@stackframe/stack-shared/dist/crud";
 import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
@@ -253,7 +253,7 @@ export function createCrudHandlers<
                 } else if (tenancy) {
                   project = tenancy.project;
                 } else if (project) {
-                  tenancy = await getDefaultTenancyFromProject(project.id);
+                  tenancy = await getSoleTenancyFromProject(project.id);
                 } else {
                   throw new StackAssertionError("Must specify either project or tenancy");
                 }
