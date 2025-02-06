@@ -15,7 +15,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: adminAuthTypeSchema,
-      project: adaptSchema.defined(),
+      tenancy: adaptSchema.defined(),
     }).defined(),
     body: apiKeysCreateInputSchema.defined(),
     method: yupString().oneOf(["POST"]).defined(),
@@ -29,7 +29,7 @@ export const POST = createSmartRouteHandler({
     const set = await prismaClient.apiKeySet.create({
       data: {
         id: generateUuid(),
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         description: body.description,
         expiresAt: new Date(body.expires_at_millis),
         publishableClientKey: body.has_publishable_client_key ? `pck_${generateSecureRandomString()}` : undefined,

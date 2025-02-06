@@ -1,9 +1,9 @@
+import { createAuthTokens } from "@/lib/tokens";
+import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { yupObject, adaptSchema, yupString, yupNumber, serverOrHigherAuthTypeSchema, userIdOrMeSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { adaptSchema, serverOrHigherAuthTypeSchema, userIdOrMeSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { usersCrudHandlers } from "../../users/crud";
-import { CrudHandlerInvocationError } from "@/route-handlers/crud-handler";
-import { createAuthTokens } from "@/lib/tokens";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -14,7 +14,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: serverOrHigherAuthTypeSchema,
-      project: adaptSchema.defined(),
+      tenancy: adaptSchema.defined(),
     }).defined(),
     body: yupObject({
       user_id: userIdOrMeSchema.defined(),
@@ -29,12 +29,12 @@ export const POST = createSmartRouteHandler({
       access_token: yupString().defined(),
     }).defined(),
   }),
-  async handler({ auth: { project }, body: { user_id: userId, expires_in_millis: expiresInMillis } }) {
+  async handler({ auth: { tenancy }, body: { user_id: userId, expires_in_millis: expiresInMillis } }) {
     let user;
     try {
       user = await usersCrudHandlers.adminRead({
         user_id: userId,
-        project: project,
+        tenancy: tenancy,
       });
     } catch (e) {
       if (e instanceof CrudHandlerInvocationError && e.cause instanceof KnownErrors.UserNotFound) {
@@ -44,9 +44,9 @@ export const POST = createSmartRouteHandler({
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({
-      projectId: project.id,
+      tenancyId: tenancy.id,
       projectUserId: user.id,
-      useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
+      useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
       expiresAt: new Date(Date.now() + expiresInMillis),
     });
 

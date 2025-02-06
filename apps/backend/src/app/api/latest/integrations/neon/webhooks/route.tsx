@@ -8,7 +8,7 @@ export const POST = createSmartRouteHandler({
   },
   request: yupObject({
     auth: yupObject({
-      project: adaptSchema.defined(),
+      tenancy: adaptSchema.defined(),
     }).defined(),
     body: yupObject({
       url: urlSchema.defined(),
@@ -27,9 +27,9 @@ export const POST = createSmartRouteHandler({
   }),
   handler: async ({ auth, body }) => {
     const svix = getSvixClient();
-    await svix.application.getOrCreate({ uid: auth.project.id, name: auth.project.id });
-    const endpoint = await svix.endpoint.create(auth.project.id, { url: body.url, description: body.description });
-    const secret = await svix.endpoint.getSecret(auth.project.id, endpoint.id);
+    await svix.application.getOrCreate({ uid: auth.tenancy.id, name: auth.tenancy.id });
+    const endpoint = await svix.endpoint.create(auth.tenancy.id, { url: body.url, description: body.description });
+    const secret = await svix.endpoint.getSecret(auth.tenancy.id, endpoint.id);
 
     return {
       statusCode: 200,

@@ -15,7 +15,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema,
+      tenancy: adaptSchema,
       user: adaptSchema.defined(),
     }).defined(),
     body: yupObject({
@@ -27,8 +27,8 @@ export const POST = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).defined(),
     bodyType: yupString().oneOf(["success"]).defined(),
   }),
-  async handler({ auth: { project, user }, body: { password } }) {
-    if (!project.config.credential_enabled) {
+  async handler({ auth: { tenancy, user }, body: { password } }) {
+    if (!tenancy.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
@@ -40,7 +40,7 @@ export const POST = createSmartRouteHandler({
     await retryTransaction(async (tx) => {
       const authMethodConfig = await tx.passwordAuthMethodConfig.findMany({
         where: {
-          projectConfigId: project.config.id,
+          projectConfigId: tenancy.config.id,
           authMethodConfig: {
             enabled: true,
           },
@@ -48,7 +48,7 @@ export const POST = createSmartRouteHandler({
       });
 
       if (authMethodConfig.length > 1) {
-        throw new StackAssertionError("Project has multiple password auth method configs.", { projectId: project.id });
+        throw new StackAssertionError("Project has multiple password auth method configs.", { tenancyId: tenancy.id });
       }
 
       if (authMethodConfig.length === 0) {
@@ -57,14 +57,14 @@ export const POST = createSmartRouteHandler({
 
       const authMethods = await tx.passwordAuthMethod.findMany({
         where: {
-          projectId: project.id,
+          tenancyId: tenancy.id,
           projectUserId: user.id,
         },
       });
 
       if (authMethods.length > 1) {
         throw new StackAssertionError("User has multiple password auth methods.", {
-          projectId: project.id,
+          tenancyId: tenancy.id,
           projectUserId: user.id,
         });
       } else if (authMethods.length === 1) {
@@ -73,9 +73,9 @@ export const POST = createSmartRouteHandler({
 
       await tx.authMethod.create({
         data: {
-          projectId: project.id,
+          tenancyId: tenancy.id,
           projectUserId: user.id,
-          projectConfigId: project.config.id,
+          projectConfigId: tenancy.config.id,
           authMethodConfigId: authMethodConfig[0].authMethodConfigId,
           passwordAuthMethod: {
             create: {

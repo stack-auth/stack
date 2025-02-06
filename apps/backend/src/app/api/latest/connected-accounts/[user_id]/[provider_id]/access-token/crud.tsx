@@ -20,7 +20,7 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
       throw new StatusError(StatusError.Forbidden, "Client can only access its own connected accounts");
     }
 
-    const provider = auth.project.config.oauth_providers.find((p) => p.id === params.provider_id);
+    const provider = auth.tenancy.config.oauth_providers.find((p) => p.id === params.provider_id);
     if (!provider || !provider.enabled) {
       throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
     }
@@ -29,7 +29,7 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
       throw new KnownErrors.OAuthAccessTokenNotAvailableWithSharedOAuthKeys();
     }
 
-    const user = await usersCrudHandlers.adminRead({ project: auth.project, user_id: params.user_id });
+    const user = await usersCrudHandlers.adminRead({ tenancy: auth.tenancy, user_id: params.user_id });
     if (!user.oauth_providers.map(x => x.id).includes(params.provider_id)) {
       throw new KnownErrors.OAuthConnectionNotConnectedToUser();
     }
@@ -38,7 +38,7 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
 
     const accessTokens = await prismaClient.oAuthAccessToken.findMany({
       where: {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         oAuthProviderConfigId: params.provider_id,
         projectUserOAuthAccount: {
           projectUserId: params.user_id,
@@ -60,7 +60,7 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
 
     const refreshTokens = await prismaClient.oAuthToken.findMany({
       where: {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         oAuthProviderConfigId: params.provider_id,
         projectUserOAuthAccount: {
           projectUserId: params.user_id,
@@ -87,7 +87,7 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
 
     await prismaClient.oAuthAccessToken.create({
       data: {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         oAuthProviderConfigId: provider.id,
         accessToken: tokenSet.accessToken,
         providerAccountId: filteredRefreshTokens[0].providerAccountId,
@@ -105,7 +105,7 @@ export const connectedAccountAccessTokenCrudHandlers = createLazyProxy(() =>crea
       });
       await prismaClient.oAuthToken.create({
         data: {
-          projectId: auth.project.id,
+          tenancyId: auth.tenancy.id,
           oAuthProviderConfigId: provider.id,
           refreshToken: tokenSet.refreshToken,
           providerAccountId: filteredRefreshTokens[0].providerAccountId,

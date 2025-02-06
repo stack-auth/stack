@@ -13,13 +13,13 @@ export const apiKeyCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers
   baseFields: async () => ({}),
   where: async ({ auth }) => {
     return {
-      projectId: auth.project.id,
+      tenancyId: auth.tenancy.id,
     };
   },
   whereUnique: async ({ params, auth }) => {
     return {
-      projectId_id: {
-        projectId: auth.project.id,
+      tenancyId_id: {
+        tenancyId: auth.tenancy.id,
         id: params.api_key_id,
       },
     };
@@ -38,8 +38,8 @@ export const apiKeyCrudHandlers = createLazyProxy(() => createPrismaCrudHandlers
     if (type === 'create') {
       old = await prismaClient.apiKeySet.findUnique({
         where: {
-          projectId_id: {
-            projectId: auth.project.id,
+          tenancyId_id: {
+            tenancyId: auth.tenancy.id,
             id: params.api_key_id ?? throwErr('params.apiKeyId is required for update')
           },
         },

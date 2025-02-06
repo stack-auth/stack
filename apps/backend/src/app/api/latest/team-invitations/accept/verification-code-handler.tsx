@@ -47,12 +47,12 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
   }),
   async send(codeObj, createOptions, sendOptions){
     const team = await teamsCrudHandlers.adminRead({
-      project: createOptions.project,
+      tenancy: createOptions.tenancy,
       team_id: createOptions.data.team_id,
     });
 
     await sendEmailFromTemplate({
-      project: createOptions.project,
+      tenancy: createOptions.tenancy,
       user: null,
       email: createOptions.method.email,
       templateType: "team_invitation",
@@ -64,13 +64,13 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
 
     return codeObj;
   },
-  async handler(project, {}, data, body, user) {
+  async handler(tenancy, {}, data, body, user) {
     if (!user) throw new KnownErrors.UserAuthenticationRequired;
 
     const oldMembership = await prismaClient.teamMember.findUnique({
       where: {
-        projectId_projectUserId_teamId: {
-          projectId: project.id,
+        tenancyId_projectUserId_teamId: {
+          tenancyId: tenancy.id,
           projectUserId: user.id,
           teamId: data.team_id,
         },
@@ -79,7 +79,7 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
 
     if (!oldMembership) {
       await teamMembershipsCrudHandlers.adminCreate({
-        project,
+        tenancy,
         team_id: data.team_id,
         user_id: user.id,
         data: {},
@@ -92,11 +92,11 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       body: {}
     };
   },
-  async details(project, {}, data, body, user) {
+  async details(tenancy, {}, data, body, user) {
     if (!user) throw new KnownErrors.UserAuthenticationRequired;
 
     const team = await teamsCrudHandlers.adminRead({
-      project,
+      tenancy,
       team_id: data.team_id,
     });
 

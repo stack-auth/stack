@@ -36,7 +36,7 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
     await sendEmailFromTemplate({
-      project: createOptions.project,
+      tenancy: createOptions.tenancy,
       user: sendOptions.user,
       email: createOptions.method.email,
       templateType: "password_reset",
@@ -45,8 +45,8 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
       },
     });
   },
-  async handler(project, { email }, data, { password }) {
-    if (!project.config.credential_enabled) {
+  async handler(tenancy, { email }, data, { password }) {
+    if (!tenancy.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
@@ -56,7 +56,7 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
     }
 
     await usersCrudHandlers.adminUpdate({
-      project,
+      tenancy,
       user_id: data.user_id,
       data: {
         password,

@@ -1,13 +1,13 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import {
-  generateRegistrationOptions,
-  GenerateRegistrationOptionsOpts,
+    generateRegistrationOptions,
+    GenerateRegistrationOptionsOpts,
 } from '@simplewebauthn/server';
-const { isoUint8Array } = require('@simplewebauthn/server/helpers');
 import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { registerVerificationCodeHandler } from "../register/verification-code-handler";
 import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { registerVerificationCodeHandler } from "../register/verification-code-handler";
+const { isoUint8Array } = require('@simplewebauthn/server/helpers');
 export const POST = createSmartRouteHandler({
   metadata: {
     summary: "Initialize registration of new passkey",
@@ -19,7 +19,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema,
+      tenancy: adaptSchema,
       user: adaptSchema.defined(),
     }).defined()
   }),
@@ -31,15 +31,15 @@ export const POST = createSmartRouteHandler({
       code: yupString().defined(),
     }),
   }),
-  async handler({ auth: { project, user } }) {
-    if (!project.config.passkey_enabled) {
+  async handler({ auth: { tenancy, user } }) {
+    if (!tenancy.config.passkey_enabled) {
       throw new KnownErrors.PasskeyAuthenticationNotEnabled();
     }
 
     const REGISTRATION_TIMEOUT_MS = 60000;
 
     const opts: GenerateRegistrationOptionsOpts = {
-      rpName: project.display_name,
+      rpName: tenancy.display_name,
       rpID: "THIS_VALUE_WILL_BE_REPLACED.example.com", // HACK: will be overridden in the frontend to be the actual domain, this is a temporary solution until we have a primary authentication domain
       // Here we set the userId to the user's id, this will cause to have the browser always store only one passkey per user! (browser stores one passkey per userId/rpID pair)
       userID: isoUint8Array.fromUTF8String(user.id),
@@ -57,7 +57,7 @@ export const POST = createSmartRouteHandler({
     const registrationOptions = await generateRegistrationOptions(opts);
 
     const { code } = await registerVerificationCodeHandler.createCode({
-      project,
+      tenancy,
       method: {},
       expiresInMs: REGISTRATION_TIMEOUT_MS + 5000,
       data: {

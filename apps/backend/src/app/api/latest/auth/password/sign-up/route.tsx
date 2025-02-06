@@ -17,7 +17,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema,
+      tenancy: adaptSchema,
     }).defined(),
     body: yupObject({
       email: signInEmailSchema.defined(),
@@ -34,8 +34,8 @@ export const POST = createSmartRouteHandler({
       user_id: yupString().defined(),
     }).defined(),
   }),
-  async handler({ auth: { project }, body: { email, password, verification_callback_url: verificationCallbackUrl } }, fullReq) {
-    if (!project.config.credential_enabled) {
+  async handler({ auth: { tenancy }, body: { email, password, verification_callback_url: verificationCallbackUrl } }, fullReq) {
+    if (!tenancy.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
@@ -44,12 +44,12 @@ export const POST = createSmartRouteHandler({
       throw passwordError;
     }
 
-    if (!project.config.sign_up_enabled) {
+    if (!tenancy.config.sign_up_enabled) {
       throw new KnownErrors.SignUpNotEnabled();
     }
 
     const createdUser = await usersCrudHandlers.adminCreate({
-      project,
+      tenancy,
       data: {
         primary_email: email,
         primary_email_verified: false,
@@ -61,7 +61,7 @@ export const POST = createSmartRouteHandler({
 
     try {
       await contactChannelVerificationCodeHandler.sendCode({
-        project,
+        tenancy,
         data: {
           user_id: createdUser.id,
         },
@@ -85,16 +85,16 @@ export const POST = createSmartRouteHandler({
 
     if (createdUser.requires_totp_mfa) {
       throw await createMfaRequiredError({
-        project,
+        tenancy,
         isNewUser: true,
         userId: createdUser.id,
       });
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({
-      projectId: project.id,
+      tenancyId: tenancy.id,
       projectUserId: createdUser.id,
-      useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
+      useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
     });
 
     return {

@@ -31,7 +31,7 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
     await sendEmailFromTemplate({
-      project: createOptions.project,
+      tenancy: createOptions.tenancy,
       user: sendOptions.user,
       email: createOptions.method.email,
       templateType: "email_verification",
@@ -40,11 +40,11 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
       },
     });
   },
-  async handler(project, { email }, data) {
+  async handler(tenancy, { email }, data) {
     await prismaClient.contactChannel.update({
       where: {
-        projectId_projectUserId_type_value: {
-          projectId: project.id,
+        tenancyId_projectUserId_type_value: {
+          tenancyId: tenancy.id,
           projectUserId: data.user_id,
           type: "EMAIL",
           value: email,

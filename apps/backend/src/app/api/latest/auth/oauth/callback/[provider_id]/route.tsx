@@ -16,8 +16,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { oauthResponseToSmartResponse } from "../../oauth-helpers";
 
-const redirectOrThrowError = (error: KnownError, project: ProjectsCrud["Admin"]["Read"], errorRedirectUrl?: string) => {
-  if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, project.config.domains, project.config.allow_localhost)) {
+const redirectOrThrowError = (error: KnownError, tenancy: ProjectsCrud["Admin"]["Read"], errorRedirectUrl?: string) => {
+  if (!errorRedirectUrl || !validateRedirectUrl(errorRedirectUrl, tenancy.config.domains, tenancy.config.allow_localhost)) {
     throw error;
   }
 
@@ -72,7 +72,7 @@ const handler = createSmartRouteHandler({
     }
 
     const {
-      projectId,
+      tenancyId,
       innerCodeVerifier,
       type,
       projectUserId,
@@ -81,9 +81,9 @@ const handler = createSmartRouteHandler({
       afterCallbackRedirectUrl,
     } = outerInfo;
 
-    const project = await getProject(projectId);
-    if (!project) {
-      throw new StackAssertionError("Project in outerInfo not found; has it been deleted?", { projectId });
+    const tenancy = await getProject(tenancyId);
+    if (!tenancy) {
+      throw new StackAssertionError("Project in outerInfo not found; has it been deleted?", { tenancyId });
     }
 
     try {
@@ -91,7 +91,7 @@ const handler = createSmartRouteHandler({
         throw new KnownErrors.OuterOAuthTimeout();
       }
 
-      const provider = project.config.oauth_providers.find((p) => p.id === params.provider_id);
+      const provider = tenancy.config.oauth_providers.find((p) => p.id === params.provider_id);
       if (!provider || !provider.enabled) {
         throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
       }
@@ -109,7 +109,7 @@ const handler = createSmartRouteHandler({
         });
       } catch (error) {
         if (error instanceof KnownErrors['OAuthProviderAccessDenied']) {
-          redirectOrThrowError(error, project, errorRedirectUrl);
+          redirectOrThrowError(error, tenancy, errorRedirectUrl);
         }
         throw error;
       }
@@ -123,8 +123,8 @@ const handler = createSmartRouteHandler({
 
         const user = await prismaClient.projectUser.findUnique({
           where: {
-            projectId_projectUserId: {
-              projectId,
+            tenancyId_projectUserId: {
+              tenancyId,
               projectUserId,
             },
           },
@@ -151,7 +151,7 @@ const handler = createSmartRouteHandler({
         body: {},
         method: "GET",
         query: {
-          client_id: outerInfo.projectId,
+          client_id: outerInfo.tenancyId,
           client_secret: outerInfo.publishableClientKey,
           redirect_uri: outerInfo.redirectUri,
           state: outerInfo.state,
@@ -167,7 +167,7 @@ const handler = createSmartRouteHandler({
         if (tokenSet.refreshToken) {
           await prismaClient.oAuthToken.create({
             data: {
-              projectId: outerInfo.projectId,
+              tenancyId: outerInfo.tenancyId,
               oAuthProviderConfigId: provider.id,
               refreshToken: tokenSet.refreshToken,
               providerAccountId: userInfo.accountId,
@@ -178,7 +178,7 @@ const handler = createSmartRouteHandler({
 
         await prismaClient.oAuthAccessToken.create({
           data: {
-            projectId: outerInfo.projectId,
+            tenancyId: outerInfo.tenancyId,
             oAuthProviderConfigId: provider.id,
             accessToken: tokenSet.accessToken,
             providerAccountId: userInfo.accountId,
@@ -198,8 +198,8 @@ const handler = createSmartRouteHandler({
               handle: async () => {
                 const oldAccount = await prismaClient.projectUserOAuthAccount.findUnique({
                   where: {
-                    projectId_oauthProviderConfigId_providerAccountId: {
-                      projectId: outerInfo.projectId,
+                    tenancyId_oauthProviderConfigId_providerAccountId: {
+                      tenancyId: outerInfo.tenancyId,
                       oauthProviderConfigId: provider.id,
                       providerAccountId: userInfo.accountId,
                     },
@@ -227,15 +227,15 @@ const handler = createSmartRouteHandler({
                         providerConfig: {
                           connect: {
                             projectConfigId_id: {
-                              projectConfigId: project.config.id,
+                              projectConfigId: tenancy.config.id,
                               id: provider.id,
                             },
                           },
                         },
                         projectUser: {
                           connect: {
-                            projectId_projectUserId: {
-                              projectId: outerInfo.projectId,
+                            tenancyId_projectUserId: {
+                              tenancyId: outerInfo.tenancyId,
                               projectUserId: projectUserId,
                             },
                           },
@@ -266,7 +266,7 @@ const handler = createSmartRouteHandler({
 
                   // ========================== sign up user ==========================
 
-                  if (!project.config.sign_up_enabled) {
+                  if (!tenancy.config.sign_up_enabled) {
                     throw new KnownErrors.SignUpNotEnabled();
                   }
 
@@ -277,7 +277,7 @@ const handler = createSmartRouteHandler({
                     const oldContactChannel = await getAuthContactChannel(
                       prismaClient,
                       {
-                        projectId: outerInfo.projectId,
+                        tenancyId: outerInfo.tenancyId,
                         type: 'EMAIL',
                         value: userInfo.email,
                       }
@@ -291,7 +291,7 @@ const handler = createSmartRouteHandler({
                   }
 
                   const newAccount = await usersCrudHandlers.adminCreate({
-                    project,
+                    tenancy,
                     data: {
                       display_name: userInfo.displayName,
                       profile_image_url: userInfo.profileImageUrl || undefined,
@@ -339,7 +339,7 @@ const handler = createSmartRouteHandler({
       return oauthResponseToSmartResponse(oauthResponse);
     } catch (error) {
       if (error instanceof KnownError) {
-        redirectOrThrowError(error, project, errorRedirectUrl);
+        redirectOrThrowError(error, tenancy, errorRedirectUrl);
       }
       throw error;
     }

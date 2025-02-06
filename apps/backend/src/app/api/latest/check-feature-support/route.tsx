@@ -1,7 +1,7 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
+import { yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { StackAssertionError, captureError } from "@stackframe/stack-shared/dist/utils/errors";
-import { deindent, typedCapitalize } from "@stackframe/stack-shared/dist/utils/strings";
-import { yupObject, yupString, yupNumber, yupMixed } from "@stackframe/stack-shared/dist/schema-fields";
+import { deindent } from "@stackframe/stack-shared/dist/utils/strings";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -11,7 +11,7 @@ export const POST = createSmartRouteHandler({
     auth: yupObject({
       type: yupMixed(),
       user: yupMixed(),
-      project: yupMixed(),
+      tenancy: yupMixed(),
     }).nullable(),
     method: yupString().oneOf(["POST"]).defined(),
     body: yupMixed(),

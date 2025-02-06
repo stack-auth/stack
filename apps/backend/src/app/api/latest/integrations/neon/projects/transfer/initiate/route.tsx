@@ -29,23 +29,23 @@ export const POST = createSmartRouteHandler({
   handler: async (req) => {
     const { authorization } = req.headers;
     const [clientId, clientSecret] = decodeBasicAuthorizationHeader(authorization[0])!;
-    const internalProject = await getProject("internal") ?? throwErr("Internal project not found");
+    const internalProject = await getProject("internal") ?? throwErr("Internal tenancy not found");
 
     const neonProvisionedProject = await prismaClient.neonProvisionedProject.findUnique({
       where: {
-        projectId: req.body.project_id,
+        tenancyId: req.body.project_id,
         neonClientId: clientId,
       },
     });
     if (!neonProvisionedProject) {
-      throw new StatusError(400, "This project either doesn't exist or the current Neon client is not authorized to transfer it. Note that projects can only be transferred once.");
+      throw new StatusError(400, "This tenancy either doesn't exist or the current Neon client is not authorized to transfer it. Note that projects can only be transferred once.");
     }
 
     const transferCodeObj = await neonIntegrationProjectTransferCodeHandler.createCode({
-      project: internalProject,
+      tenancy: internalProject,
       method: {},
       data: {
-        project_id: neonProvisionedProject.projectId,
+        project_id: neonProvisionedProject.tenancyId,
         neon_client_id: neonProvisionedProject.neonClientId,
       },
       callbackUrl: new URL("/integrations/neon/projects/transfer/confirm", getEnvVariable("NEXT_PUBLIC_STACK_DASHBOARD_URL")),

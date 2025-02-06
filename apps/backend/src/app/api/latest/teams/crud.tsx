@@ -43,8 +43,8 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
       throw new KnownErrors.UserAuthenticationRequired;
     }
 
-    if (auth.type === 'client' && !auth.project.config.client_team_creation_enabled) {
-      throw new StatusError(StatusError.Forbidden, 'Client team creation is disabled for this project');
+    if (auth.type === 'client' && !auth.tenancy.config.client_team_creation_enabled) {
+      throw new StatusError(StatusError.Forbidden, 'Client team creation is disabled for this tenancy');
     }
 
     if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
@@ -55,7 +55,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
       const db = await tx.team.create({
         data: {
           displayName: data.display_name,
-          projectId: auth.project.id,
+          tenancyId: auth.tenancy.id,
           profileImageUrl: data.profile_image_url,
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
           clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
@@ -81,7 +81,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
       if (addUserId) {
         await addUserToTeam(tx, {
-          project: auth.project,
+          tenancy: auth.tenancy,
           teamId: db.teamId,
           userId: addUserId,
           type: 'creator',
@@ -94,7 +94,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     const result = teamPrismaToCrud(db);
 
     runAsynchronouslyAndWaitUntil(sendTeamCreatedWebhook({
-      projectId: auth.project.id,
+      tenancyId: auth.tenancy.id,
       data: result,
     }));
 
@@ -103,7 +103,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
   onRead: async ({ params, auth }) => {
     if (auth.type === 'client') {
       await ensureTeamMembershipExists(prismaClient, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         teamId: params.team_id,
         userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired),
       });
@@ -111,8 +111,8 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
     const db = await prismaClient.team.findUnique({
       where: {
-        projectId_teamId: {
-          projectId: auth.project.id,
+        tenancyId_teamId: {
+          tenancyId: auth.tenancy.id,
           teamId: params.team_id,
         },
       },
@@ -132,7 +132,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
       if (auth.type === 'client') {
         await ensureUserTeamPermissionExists(tx, {
-          project: auth.project,
+          tenancy: auth.tenancy,
           teamId: params.team_id,
           userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired),
           permissionId: "$update_team",
@@ -141,12 +141,12 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
         });
       }
 
-      await ensureTeamExists(tx, { projectId: auth.project.id, teamId: params.team_id });
+      await ensureTeamExists(tx, { tenancyId: auth.tenancy.id, teamId: params.team_id });
 
       return await tx.team.update({
         where: {
-          projectId_teamId: {
-            projectId: auth.project.id,
+          tenancyId_teamId: {
+            tenancyId: auth.tenancy.id,
             teamId: params.team_id,
           },
         },
@@ -163,7 +163,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     const result = teamPrismaToCrud(db);
 
     runAsynchronouslyAndWaitUntil(sendTeamUpdatedWebhook({
-      projectId: auth.project.id,
+      tenancyId: auth.tenancy.id,
       data: result,
     }));
 
@@ -173,7 +173,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     await retryTransaction(async (tx) => {
       if (auth.type === 'client') {
         await ensureUserTeamPermissionExists(tx, {
-          project: auth.project,
+          tenancy: auth.tenancy,
           teamId: params.team_id,
           userId: auth.user?.id ?? throwErr(new KnownErrors.UserAuthenticationRequired),
           permissionId: "$delete_team",
@@ -181,12 +181,12 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
           recursive: true,
         });
       }
-      await ensureTeamExists(tx, { projectId: auth.project.id, teamId: params.team_id });
+      await ensureTeamExists(tx, { tenancyId: auth.tenancy.id, teamId: params.team_id });
 
       await tx.team.delete({
         where: {
-          projectId_teamId: {
-            projectId: auth.project.id,
+          tenancyId_teamId: {
+            tenancyId: auth.tenancy.id,
             teamId: params.team_id,
           },
         },
@@ -194,7 +194,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     });
 
     runAsynchronouslyAndWaitUntil(sendTeamDeletedWebhook({
-      projectId: auth.project.id,
+      tenancyId: auth.tenancy.id,
       data: {
         id: params.team_id,
       },
@@ -211,7 +211,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
     const db = await prismaClient.team.findMany({
       where: {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         ...query.user_id ? {
           teamMembers: {
             some: {

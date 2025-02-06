@@ -13,7 +13,7 @@ import { ensureStandardProvider } from "../../../../../lib/request-checks";
 export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(projectsCrud, {
   paramsSchema: yupObject({}),
   onUpdate: async ({ auth, data }) => {
-    const oldProject = auth.project;
+    const oldProject = auth.tenancy;
 
     const result = await retryTransaction(async (tx) => {
       // ======================= update default team permissions =======================
@@ -446,7 +446,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
       }
 
       return await tx.project.update({
-        where: { id: auth.project.id },
+        where: { id: auth.tenancy.id },
         data: {
           displayName: data.display_name,
           description: data.description,
@@ -476,13 +476,13 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
     return projectPrismaToCrud(result);
   },
   onRead: async ({ auth }) => {
-    return auth.project;
+    return auth.tenancy;
   },
   onDelete: async ({ auth }) => {
     await retryTransaction(async (tx) => {
       const configs = await tx.projectConfig.findMany({
         where: {
-          id: auth.project.config.id
+          id: auth.tenancy.config.id
         },
         include: {
           projects: true
@@ -495,30 +495,30 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
 
       await tx.projectConfig.delete({
         where: {
-          id: auth.project.config.id
+          id: auth.tenancy.config.id
         },
       });
 
       // delete managed ids from users
       const users = await tx.projectUser.findMany({
         where: {
-          projectId: 'internal',
+          tenancyId: 'internal',
           serverMetadata: {
             path: ['managedProjectIds'],
-            array_contains: auth.project.id
+            array_contains: auth.tenancy.id
           }
         }
       });
 
       for (const user of users) {
         const updatedManagedProjectIds = (user.serverMetadata as any).managedProjectIds.filter(
-          (id: any) => id !== auth.project.id
+          (id: any) => id !== auth.tenancy.id
         ) as string[];
 
         await tx.projectUser.update({
           where: {
-            projectId_projectUserId: {
-              projectId: 'internal',
+            tenancyId_projectUserId: {
+              tenancyId: 'internal',
               projectUserId: user.projectUserId
             }
           },

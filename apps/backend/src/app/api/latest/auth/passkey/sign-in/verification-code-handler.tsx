@@ -6,9 +6,9 @@ import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { decodeClientDataJSON } from "@simplewebauthn/server/helpers";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { signInResponseSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { captureError, StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
+import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { AuthenticationResponseJSON } from "@stackframe/stack-shared/dist/utils/passkey";
+import { createMfaRequiredError } from "../../mfa/sign-in/verification-code-handler";
 
 export const passkeySignInVerificationCodeHandler = createVerificationCodeHandler({
   metadata: {
@@ -36,9 +36,9 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
   async send() {
     throw new StackAssertionError("send() called on a Passkey sign in verification code handler");
   },
-  async handler(project, _, { challenge }, { authentication_response }) {
+  async handler(tenancy, _, { challenge }, { authentication_response }) {
 
-    if (!project.config.passkey_enabled) {
+    if (!tenancy.config.passkey_enabled) {
       throw new KnownErrors.PasskeyAuthenticationNotEnabled();
     }
 
@@ -50,7 +50,7 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
     const passkey = await prismaClient.passkeyAuthMethod.findFirst({
       where: {
         credentialId,
-        projectId: project.id,
+        tenancyId: tenancy.id,
       },
       include: {
         projectUser: true,
@@ -67,7 +67,7 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
     let expectedOrigin = "";
     const clientDataJSON = decodeClientDataJSON(authentication_response.response.clientDataJSON);
     const { origin } = clientDataJSON;
-    const localhostAllowed = project.config.allow_localhost;
+    const localhostAllowed = tenancy.config.allow_localhost;
     const parsedOrigin = new URL(origin);
     const isLocalhost = parsedOrigin.hostname === "localhost";
 
@@ -81,7 +81,7 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
     }
 
     if (!isLocalhost) {
-      if (!project.config.domains.map(e => e.domain).includes(parsedOrigin.origin)) {
+      if (!tenancy.config.domains.map(e => e.domain).includes(parsedOrigin.origin)) {
         throw new KnownErrors.PasskeyAuthenticationFailed("Passkey authentication failed because the origin is not allowed");
       } else {
         expectedRPID = parsedOrigin.hostname;
@@ -112,8 +112,8 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
     // Update counter
     await prismaClient.passkeyAuthMethod.update({
       where: {
-        projectId_projectUserId: {
-          projectId: project.id,
+        tenancyId_projectUserId: {
+          tenancyId: tenancy.id,
           projectUserId: passkey.projectUserId,
         }
       },
@@ -126,16 +126,16 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
 
     if (user.requiresTotpMfa) {
       throw await createMfaRequiredError({
-        project,
+        tenancy,
         isNewUser: false,
         userId: user.projectUserId,
       });
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({
-      projectId: project.id,
+      tenancyId: tenancy.id,
       projectUserId: user.projectUserId,
-      useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
+      useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
     });
 
     return {

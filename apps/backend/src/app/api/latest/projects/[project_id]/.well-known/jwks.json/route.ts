@@ -25,9 +25,9 @@ export const GET = createSmartRouteHandler({
     }).defined(),
   }),
   async handler({ params }) {
-    const project = await getProject(params.project_id);
+    const tenancy = await getProject(params.project_id);
 
-    if (!project) {
+    if (!tenancy) {
       throw new StatusError(404, "Project not found");
     }
 

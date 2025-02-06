@@ -11,7 +11,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema.defined(),
+      tenancy: adaptSchema.defined(),
       user: adaptSchema.defined(),
     }).defined(),
     body: yupObject({
@@ -23,7 +23,7 @@ export const POST = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).defined(),
     bodyType: yupString().oneOf(["success"]).defined(),
   }),
-  async handler({ auth: { project, user }, body: { email, callback_url: callbackUrl } }) {
+  async handler({ auth: { tenancy, user }, body: { email, callback_url: callbackUrl } }) {
     if (user.primary_email !== email) {
       throw new KnownErrors.EmailIsNotPrimaryEmail(email, user.primary_email);
     }
@@ -32,7 +32,7 @@ export const POST = createSmartRouteHandler({
     }
 
     await contactChannelVerificationCodeHandler.sendCode({
-      project,
+      tenancy,
       data: {
         user_id: user.id,
       },

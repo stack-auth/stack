@@ -37,7 +37,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
   }),
   async send(codeObj, createOptions, sendOptions: { email: string }) {
     await sendEmailFromTemplate({
-      project: createOptions.project,
+      tenancy: createOptions.tenancy,
       email: createOptions.method.email,
       user: null,
       templateType: "magic_link",
@@ -52,7 +52,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
       nonce: codeObj.code.slice(6),
     };
   },
-  async handler(project, { email }, data) {
+  async handler(tenancy, { email }, data) {
     let user;
     // the user_id check is just for the migration
     // we can rely only on is_new_user starting from the next release
@@ -62,7 +62,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
       }
 
       user = await usersCrudHandlers.adminCreate({
-        project,
+        tenancy,
         data: {
           primary_email: email,
           primary_email_verified: true,
@@ -73,23 +73,23 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
       });
     } else {
       user = await usersCrudHandlers.adminRead({
-        project,
+        tenancy,
         user_id: data.user_id,
       });
     }
 
     if (user.requires_totp_mfa) {
       throw await createMfaRequiredError({
-        project,
+        tenancy,
         isNewUser: data.is_new_user,
         userId: user.id,
       });
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({
-      projectId: project.id,
+      tenancyId: tenancy.id,
       projectUserId: user.id,
-      useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
+      useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
     });
 
     return {

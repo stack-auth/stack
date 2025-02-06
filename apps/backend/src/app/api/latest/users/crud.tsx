@@ -133,7 +133,7 @@ async function getPasswordHashFromData(data: {
 async function checkAuthData(
   tx: PrismaTransaction,
   data: {
-    projectId: string,
+    tenancyId: string,
     oldPrimaryEmail?: string | null,
     primaryEmail?: string | null,
     primaryEmailVerified?: boolean,
@@ -150,7 +150,7 @@ async function checkAuthData(
     if (!data.oldPrimaryEmail || data.oldPrimaryEmail !== data.primaryEmail) {
       const existingChannelUsedForAuth = await tx.contactChannel.findFirst({
         where: {
-          projectId: data.projectId,
+          tenancyId: data.tenancyId,
           type: 'EMAIL',
           value: data.primaryEmail || throwErr("primary_email_auth_enabled is true but primary_email is not set"),
           usedForAuth: BooleanTrue.TRUE,
@@ -164,7 +164,7 @@ async function checkAuthData(
   }
 }
 
-// TODO: retrieve in the project
+// TODO: retrieve in the tenancy
 async function getPasswordConfig(tx: PrismaTransaction, projectConfigId: string) {
   const passwordConfig = await tx.passwordAuthMethodConfig.findMany({
     where: {
@@ -179,13 +179,13 @@ async function getPasswordConfig(tx: PrismaTransaction, projectConfigId: string)
   });
 
   if (passwordConfig.length > 1) {
-    throw new StackAssertionError("Multiple password auth methods found in the project", passwordConfig);
+    throw new StackAssertionError("Multiple password auth methods found in the tenancy", passwordConfig);
   }
 
   return passwordConfig.length === 0 ? null : passwordConfig[0];
 }
 
-// TODO: retrieve in the project
+// TODO: retrieve in the tenancy
 async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
   const otpConfig = await tx.otpAuthMethodConfig.findMany({
     where: {
@@ -200,22 +200,22 @@ async function getOtpConfig(tx: PrismaTransaction, projectConfigId: string) {
   });
 
   if (otpConfig.length > 1) {
-    throw new StackAssertionError("Multiple OTP auth methods found in the project", otpConfig);
+    throw new StackAssertionError("Multiple OTP auth methods found in the tenancy", otpConfig);
   }
 
   return otpConfig.length === 0 ? null : otpConfig[0];
 }
 
-export const getUserLastActiveAtMillis = async (projectId: string, userId: string): Promise<number | null> => {
-  const res = (await getUsersLastActiveAtMillis(projectId, [userId], [0]))[0];
+export const getUserLastActiveAtMillis = async (tenancyId: string, userId: string): Promise<number | null> => {
+  const res = (await getUsersLastActiveAtMillis(tenancyId, [userId], [0]))[0];
   if (res === 0) {
     return null;
   }
   return res;
 };
 
-// same as userIds.map(userId => getUserLastActiveAtMillis(projectId, userId)), but uses a single query
-export const getUsersLastActiveAtMillis = async (projectId: string, userIds: string[], userSignedUpAtMillis: (number | Date)[]): Promise<number[]> => {
+// same as userIds.map(userId => getUserLastActiveAtMillis(tenancyId, userId)), but uses a single query
+export const getUsersLastActiveAtMillis = async (tenancyId: string, userIds: string[], userSignedUpAtMillis: (number | Date)[]): Promise<number[]> => {
   if (userIds.length === 0) {
     // Prisma.join throws an error if the array is empty, so we need to handle that case
     return [];
@@ -224,7 +224,7 @@ export const getUsersLastActiveAtMillis = async (projectId: string, userIds: str
   const events = await prismaClient.$queryRaw<Array<{ userId: string, lastActiveAt: Date }>>`
     SELECT data->>'userId' as "userId", MAX("eventStartedAt") as "lastActiveAt"
     FROM "Event"
-    WHERE data->>'userId' = ANY(${Prisma.sql`ARRAY[${Prisma.join(userIds)}]`}) AND data->>'projectId' = ${projectId} AND "systemEventTypeIds" @> '{"$user-activity"}'
+    WHERE data->>'userId' = ANY(${Prisma.sql`ARRAY[${Prisma.join(userIds)}]`}) AND data->>'tenancyId' = ${tenancyId} AND "systemEventTypeIds" @> '{"$user-activity"}'
     GROUP BY data->>'userId'
   `;
 
@@ -236,7 +236,7 @@ export const getUsersLastActiveAtMillis = async (projectId: string, userIds: str
   });
 };
 
-export function getUserQuery(projectId: string, userId: string): RawQuery<UsersCrud["Admin"]["Read"] | null> {
+export function getUserQuery(tenancyId: string, userId: string): RawQuery<UsersCrud["Admin"]["Read"] | null> {
   return {
     sql: Prisma.sql`
       SELECT to_json(
@@ -247,7 +247,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
               'lastActiveAt', (
                 SELECT MAX("eventStartedAt") as "lastActiveAt"
                 FROM "Event"
-                WHERE data->>'projectId' = "ProjectUser"."projectId" AND "data"->>'userId' = ("ProjectUser"."projectUserId")::text AND "systemEventTypeIds" @> '{"$user-activity"}'
+                WHERE data->>'tenancyId' = "ProjectUser"."tenancyId" AND "data"->>'userId' = ("ProjectUser"."projectUserId")::text AND "systemEventTypeIds" @> '{"$user-activity"}'
               ),
               'ContactChannels', (
                 SELECT COALESCE(ARRAY_AGG(
@@ -255,7 +255,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                   jsonb_build_object()
                 ), '{}')
                 FROM "ContactChannel"
-                WHERE "ContactChannel"."projectId" = "ProjectUser"."projectId" AND "ContactChannel"."projectUserId" = "ProjectUser"."projectUserId" AND "ContactChannel"."isPrimary" = 'TRUE'
+                WHERE "ContactChannel"."tenancyId" = "ProjectUser"."tenancyId" AND "ContactChannel"."projectUserId" = "ProjectUser"."projectUserId" AND "ContactChannel"."isPrimary" = 'TRUE'
               ),
               'ProjectUserOAuthAccounts', (
                 SELECT COALESCE(ARRAY_AGG(
@@ -269,7 +269,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                   )
                 ), '{}')
                 FROM "ProjectUserOAuthAccount"
-                WHERE "ProjectUserOAuthAccount"."projectId" = "ProjectUser"."projectId" AND "ProjectUserOAuthAccount"."projectUserId" = "ProjectUser"."projectUserId"
+                WHERE "ProjectUserOAuthAccount"."tenancyId" = "ProjectUser"."tenancyId" AND "ProjectUserOAuthAccount"."projectUserId" = "ProjectUser"."projectUserId"
               ),
               'AuthMethods', (
                 SELECT COALESCE(ARRAY_AGG(
@@ -281,7 +281,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                         jsonb_build_object()
                       )
                       FROM "PasswordAuthMethod"
-                      WHERE "PasswordAuthMethod"."projectId" = "ProjectUser"."projectId" AND "PasswordAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "PasswordAuthMethod"."authMethodId" = "AuthMethod"."id"
+                      WHERE "PasswordAuthMethod"."tenancyId" = "ProjectUser"."tenancyId" AND "PasswordAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "PasswordAuthMethod"."authMethodId" = "AuthMethod"."id"
                     ),
                     'OtpAuthMethod', (
                       SELECT (
@@ -289,7 +289,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                         jsonb_build_object()
                       )
                       FROM "OtpAuthMethod"
-                      WHERE "OtpAuthMethod"."projectId" = "ProjectUser"."projectId" AND "OtpAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "OtpAuthMethod"."authMethodId" = "AuthMethod"."id"
+                      WHERE "OtpAuthMethod"."tenancyId" = "ProjectUser"."tenancyId" AND "OtpAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "OtpAuthMethod"."authMethodId" = "AuthMethod"."id"
                     ),
                     'PasskeyAuthMethod', (
                       SELECT (
@@ -297,7 +297,7 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                         jsonb_build_object()
                       )
                       FROM "PasskeyAuthMethod"
-                      WHERE "PasskeyAuthMethod"."projectId" = "ProjectUser"."projectId" AND "PasskeyAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "PasskeyAuthMethod"."authMethodId" = "AuthMethod"."id"
+                      WHERE "PasskeyAuthMethod"."tenancyId" = "ProjectUser"."tenancyId" AND "PasskeyAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "PasskeyAuthMethod"."authMethodId" = "AuthMethod"."id"
                     ),
                     'OAuthAuthMethod', (
                       SELECT (
@@ -305,12 +305,12 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                         jsonb_build_object()
                       )
                       FROM "OAuthAuthMethod"
-                      WHERE "OAuthAuthMethod"."projectId" = "ProjectUser"."projectId" AND "OAuthAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "OAuthAuthMethod"."authMethodId" = "AuthMethod"."id"
+                      WHERE "OAuthAuthMethod"."tenancyId" = "ProjectUser"."tenancyId" AND "OAuthAuthMethod"."projectUserId" = "ProjectUser"."projectUserId" AND "OAuthAuthMethod"."authMethodId" = "AuthMethod"."id"
                     )
                   )
                 ), '{}')
                 FROM "AuthMethod"
-                WHERE "AuthMethod"."projectId" = "ProjectUser"."projectId" AND "AuthMethod"."projectUserId" = "ProjectUser"."projectUserId"
+                WHERE "AuthMethod"."tenancyId" = "ProjectUser"."tenancyId" AND "AuthMethod"."projectUserId" = "ProjectUser"."projectUserId"
               ),
               'SelectedTeamMember', (
                 SELECT (
@@ -322,25 +322,25 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
                         jsonb_build_object()
                       )
                       FROM "Team"
-                      WHERE "Team"."projectId" = "ProjectUser"."projectId" AND "Team"."teamId" = "TeamMember"."teamId"
+                      WHERE "Team"."tenancyId" = "ProjectUser"."tenancyId" AND "Team"."teamId" = "TeamMember"."teamId"
                     )
                   )
                 )
                 FROM "TeamMember"
-                WHERE "TeamMember"."projectId" = "ProjectUser"."projectId" AND "TeamMember"."projectUserId" = "ProjectUser"."projectUserId" AND "TeamMember"."isSelected" = 'TRUE'
+                WHERE "TeamMember"."tenancyId" = "ProjectUser"."tenancyId" AND "TeamMember"."projectUserId" = "ProjectUser"."projectUserId" AND "TeamMember"."isSelected" = 'TRUE'
               )
             )
           )
           FROM "ProjectUser"
-          LEFT JOIN "Project" ON "Project"."id" = "ProjectUser"."projectId"
+          LEFT JOIN "Project" ON "Project"."id" = "ProjectUser"."tenancyId"
           LEFT JOIN "ProjectConfig" ON "ProjectConfig"."id" = "Project"."configId"
-          WHERE "ProjectUser"."projectId" = ${projectId} AND "ProjectUser"."projectUserId" = ${userId}::UUID
+          WHERE "ProjectUser"."tenancyId" = ${tenancyId} AND "ProjectUser"."projectUserId" = ${userId}::UUID
         )
       ) AS "row_data_json"
     `,
     postProcess: (queryResult) => {
       if (queryResult.length !== 1) {
-        throw new StackAssertionError(`Expected 1 user with id ${userId} in project ${projectId}, got ${queryResult.length}`, { queryResult });
+        throw new StackAssertionError(`Expected 1 user with id ${userId} in tenancy ${tenancyId}, got ${queryResult.length}`, { queryResult });
       }
 
       const row = queryResult[0].row_data_json;
@@ -396,8 +396,8 @@ export function getUserQuery(projectId: string, userId: string): RawQuery<UsersC
   };
 }
 
-export async function getUser(options: { projectId: string, userId: string }) {
-  const result = await rawQuery(getUserQuery(options.projectId, options.userId));
+export async function getUser(options: { tenancyId: string, userId: string }) {
+  const result = await rawQuery(getUserQuery(options.tenancyId, options.userId));
 
   // In non-prod environments, let's also call the legacy function and ensure the result is the same
   // TODO next-release: remove this
@@ -414,18 +414,18 @@ export async function getUser(options: { projectId: string, userId: string }) {
   return result;
 }
 
-async function getUserLegacy(options: { projectId: string, userId: string }) {
+async function getUserLegacy(options: { tenancyId: string, userId: string }) {
   const [db, lastActiveAtMillis] = await Promise.all([
     prismaClient.projectUser.findUnique({
       where: {
-        projectId_projectUserId: {
-          projectId: options.projectId,
+        tenancyId_projectUserId: {
+          tenancyId: options.tenancyId,
           projectUserId: options.userId,
         },
       },
       include: userFullInclude,
     }),
-    getUserLastActiveAtMillis(options.projectId, options.userId),
+    getUserLastActiveAtMillis(options.tenancyId, options.userId),
   ]);
 
   if (!db) {
@@ -448,7 +448,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     query: yupString().optional().meta({ openapiField: { onlyShowInOperations: [ 'List' ], description: "A search query to filter the results by. This is a free-text search that is applied to the user's id (exact-match only), display name and primary email." } }),
   }),
   onRead: async ({ auth, params }) => {
-    const user = await getUser({ projectId: auth.project.id, userId: params.user_id });
+    const user = await getUser({ tenancyId: auth.tenancy.id, userId: params.user_id });
     if (!user) {
       throw new KnownErrors.UserNotFound();
     }
@@ -458,7 +458,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     const queryWithoutSpecialChars = query.query?.replace(/[^a-zA-Z0-9\-_.]/g, '');
 
     const where = {
-      projectId: auth.project.id,
+      tenancyId: auth.tenancy.id,
       ...query.team_id ? {
         teamMembers: {
           some: {
@@ -505,15 +505,15 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       take: query.limit ? query.limit + 1 : undefined,
       ...query.cursor ? {
         cursor: {
-          projectId_projectUserId: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId: {
+            tenancyId: auth.tenancy.id,
             projectUserId: query.cursor,
           },
         },
       } : {},
     });
 
-    const lastActiveAtMillis = await getUsersLastActiveAtMillis(auth.project.id, db.map(user => user.projectUserId), db.map(user => user.createdAt));
+    const lastActiveAtMillis = await getUsersLastActiveAtMillis(auth.tenancy.id, db.map(user => user.projectUserId), db.map(user => user.createdAt));
     return {
       // remove the last item because it's the next cursor
       items: db.map((user, index) => userPrismaToCrud(user, lastActiveAtMillis[index])).slice(0, query.limit),
@@ -528,7 +528,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     const result = await retryTransaction(async (tx) => {
       const passwordHash = await getPasswordHashFromData(data);
       await checkAuthData(tx, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         primaryEmail: data.primary_email,
         primaryEmailVerified: data.primary_email_verified,
         primaryEmailAuthEnabled: data.primary_email_auth_enabled,
@@ -536,7 +536,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
       const newUser = await tx.projectUser.create({
         data: {
-          projectId: auth.project.id,
+          tenancyId: auth.tenancy.id,
           displayName: data.display_name === undefined ? undefined : (data.display_name || null),
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
           clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
@@ -548,10 +548,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       });
 
       if (data.oauth_providers) {
-        // TODO: include this in the project
+        // TODO: include this in the tenancy
         const authMethodConfigs = await tx.authMethodConfig.findMany({
           where: {
-            projectConfigId: auth.project.config.id,
+            projectConfigId: auth.tenancy.config.id,
             oauthProviderConfig: {
               isNot: null,
             }
@@ -562,7 +562,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         });
         const connectedAccountConfigs = await tx.connectedAccountConfig.findMany({
           where: {
-            projectConfigId: auth.project.config.id,
+            projectConfigId: auth.tenancy.config.id,
             oauthProviderConfig: {
               isNot: null,
             }
@@ -581,9 +581,9 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           if (authMethodConfig) {
             authMethod = await tx.authMethod.create({
               data: {
-                projectId: auth.project.id,
+                tenancyId: auth.tenancy.id,
                 projectUserId: newUser.projectUserId,
-                projectConfigId: auth.project.config.id,
+                projectConfigId: auth.tenancy.config.id,
                 authMethodConfigId: authMethodConfig.id,
               }
             });
@@ -591,9 +591,9 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
           await tx.projectUserOAuthAccount.create({
             data: {
-              projectId: auth.project.id,
+              tenancyId: auth.tenancy.id,
               projectUserId: newUser.projectUserId,
-              projectConfigId: auth.project.config.id,
+              projectConfigId: auth.tenancy.config.id,
               oauthProviderConfigId: provider.id,
               providerAccountId: provider.account_id,
               email: provider.email,
@@ -602,7 +602,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                   create: {
                     connectedAccountConfigId: connectedAccountConfig.id,
                     projectUserId: newUser.projectUserId,
-                    projectConfigId: auth.project.config.id,
+                    projectConfigId: auth.tenancy.config.id,
                   }
                 }
               } : {},
@@ -610,7 +610,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
                 oauthAuthMethod: {
                   create: {
                     projectUserId: newUser.projectUserId,
-                    projectConfigId: auth.project.config.id,
+                    projectConfigId: auth.tenancy.config.id,
                     authMethodId: authMethod?.id || throwErr("authMethodConfig is set but authMethod is not"),
                   }
                 }
@@ -625,7 +625,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         await tx.contactChannel.create({
           data: {
             projectUserId: newUser.projectUserId,
-            projectId: auth.project.id,
+            tenancyId: auth.tenancy.id,
             type: 'EMAIL' as const,
             value: data.primary_email,
             isVerified: data.primary_email_verified ?? false,
@@ -636,16 +636,16 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       }
 
       if (passwordHash) {
-        const passwordConfig = await getPasswordConfig(tx, auth.project.config.id);
+        const passwordConfig = await getPasswordConfig(tx, auth.tenancy.config.id);
 
         if (!passwordConfig) {
-          throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
+          throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the tenancy");
         }
 
         await tx.authMethod.create({
           data: {
-            projectId: auth.project.id,
-            projectConfigId: auth.project.config.id,
+            tenancyId: auth.tenancy.id,
+            projectConfigId: auth.tenancy.config.id,
             projectUserId: newUser.projectUserId,
             authMethodConfigId: passwordConfig.authMethodConfigId,
             passwordAuthMethod: {
@@ -659,16 +659,16 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       }
 
       if (data.otp_auth_enabled) {
-        const otpConfig = await getOtpConfig(tx, auth.project.config.id);
+        const otpConfig = await getOtpConfig(tx, auth.tenancy.config.id);
 
         if (!otpConfig) {
-          throw new StatusError(StatusError.BadRequest, "OTP auth not enabled in the project");
+          throw new StatusError(StatusError.BadRequest, "OTP auth not enabled in the tenancy");
         }
 
         await tx.authMethod.create({
           data: {
-            projectId: auth.project.id,
-            projectConfigId: auth.project.config.id,
+            tenancyId: auth.tenancy.id,
+            projectConfigId: auth.tenancy.config.id,
             projectUserId: newUser.projectUserId,
             authMethodConfigId: otpConfig.authMethodConfigId,
             otpAuthMethod: {
@@ -682,8 +682,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
       const user = await tx.projectUser.findUnique({
         where: {
-          projectId_projectUserId: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId: {
+            tenancyId: auth.tenancy.id,
             projectUserId: newUser.projectUserId,
           },
         },
@@ -694,10 +694,10 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         throw new StackAssertionError("User was created but not found", newUser);
       }
 
-      return userPrismaToCrud(user, await getUserLastActiveAtMillis(auth.project.id, user.projectUserId) ?? user.createdAt.getTime());
+      return userPrismaToCrud(user, await getUserLastActiveAtMillis(auth.tenancy.id, user.projectUserId) ?? user.createdAt.getTime());
     });
 
-    if (auth.project.config.create_team_on_sign_up) {
+    if (auth.tenancy.config.create_team_on_sign_up) {
       await teamsCrudHandlers.adminCreate({
         data: {
           display_name: data.display_name ?
@@ -707,13 +707,13 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               "Personal Team",
           creator_user_id: 'me',
         },
-        project: auth.project,
+        tenancy: auth.tenancy,
         user: result,
       });
     }
 
     runAsynchronouslyAndWaitUntil(sendUserCreatedWebhook({
-      projectId: auth.project.id,
+      tenancyId: auth.tenancy.id,
       data: result,
     }));
 
@@ -722,12 +722,12 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   onUpdate: async ({ auth, data, params }) => {
     const passwordHash = await getPasswordHashFromData(data);
     const result = await retryTransaction(async (tx) => {
-      await ensureUserExists(tx, { projectId: auth.project.id, userId: params.user_id });
+      await ensureUserExists(tx, { tenancyId: auth.tenancy.id, userId: params.user_id });
 
       if (data.selected_team_id !== undefined) {
         if (data.selected_team_id !== null) {
           await ensureTeamMembershipExists(tx, {
-            projectId: auth.project.id,
+            tenancyId: auth.tenancy.id,
             teamId: data.selected_team_id,
             userId: params.user_id,
           });
@@ -735,7 +735,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
         await tx.teamMember.updateMany({
           where: {
-            projectId: auth.project.id,
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
           },
           data: {
@@ -746,8 +746,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         if (data.selected_team_id !== null) {
           await tx.teamMember.update({
             where: {
-              projectId_projectUserId_teamId: {
-                projectId: auth.project.id,
+              tenancyId_projectUserId_teamId: {
+                tenancyId: auth.tenancy.id,
                 projectUserId: params.user_id,
                 teamId: data.selected_team_id,
               },
@@ -761,8 +761,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
       const oldUser = await tx.projectUser.findUnique({
         where: {
-          projectId_projectUserId: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId: {
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
           },
         },
@@ -780,7 +780,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       const passkeyAuth = oldUser.authMethods.find((m) => m.passkeyAuthMethod)?.passkeyAuthMethod;
 
       await checkAuthData(tx, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         oldPrimaryEmail: primaryEmailContactChannel?.value,
         primaryEmail: data.primary_email || primaryEmailContactChannel?.value,
         primaryEmailVerified: data.primary_email_verified || primaryEmailContactChannel?.isVerified,
@@ -796,8 +796,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         if (data.primary_email === null) {
           await tx.contactChannel.delete({
             where: {
-              projectId_projectUserId_type_isPrimary: {
-                projectId: auth.project.id,
+              tenancyId_projectUserId_type_isPrimary: {
+                tenancyId: auth.tenancy.id,
                 projectUserId: params.user_id,
                 type: 'EMAIL',
                 isPrimary: "TRUE",
@@ -807,8 +807,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         } else {
           await tx.contactChannel.upsert({
             where: {
-              projectId_projectUserId_type_isPrimary: {
-                projectId: auth.project.id,
+              tenancyId_projectUserId_type_isPrimary: {
+                tenancyId: auth.tenancy.id,
                 projectUserId: params.user_id,
                 type: 'EMAIL',
                 isPrimary: "TRUE",
@@ -816,7 +816,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             },
             create: {
               projectUserId: params.user_id,
-              projectId: auth.project.id,
+              tenancyId: auth.tenancy.id,
               type: 'EMAIL' as const,
               value: data.primary_email,
               isVerified: false,
@@ -835,8 +835,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       if (data.primary_email_verified !== undefined) {
         await tx.contactChannel.update({
           where: {
-            projectId_projectUserId_type_isPrimary: {
-              projectId: auth.project.id,
+            tenancyId_projectUserId_type_isPrimary: {
+              tenancyId: auth.tenancy.id,
               projectUserId: params.user_id,
               type: 'EMAIL',
               isPrimary: "TRUE",
@@ -855,13 +855,13 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       if (data.otp_auth_enabled !== undefined) {
         if (data.otp_auth_enabled) {
           if (!otpAuth) {
-            const otpConfig = await getOtpConfig(tx, auth.project.config.id);
+            const otpConfig = await getOtpConfig(tx, auth.tenancy.config.id);
 
             if (otpConfig) {
               await tx.authMethod.create({
                 data: {
-                  projectId: auth.project.id,
-                  projectConfigId: auth.project.config.id,
+                  tenancyId: auth.tenancy.id,
+                  projectConfigId: auth.tenancy.config.id,
                   projectUserId: params.user_id,
                   authMethodConfigId: otpConfig.authMethodConfigId,
                   otpAuthMethod: {
@@ -877,8 +877,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           if (otpAuth) {
             await tx.authMethod.delete({
               where: {
-                projectId_id: {
-                  projectId: auth.project.id,
+                tenancyId_id: {
+                  tenancyId: auth.tenancy.id,
                   id: otpAuth.authMethodId,
                 },
               },
@@ -900,8 +900,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           if (passkeyAuth) {
             await tx.authMethod.delete({
               where: {
-                projectId_id: {
-                  projectId: auth.project.id,
+                tenancyId_id: {
+                  tenancyId: auth.tenancy.id,
                   id: passkeyAuth.authMethodId,
                 },
               },
@@ -919,8 +919,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           if (passwordAuth) {
             await tx.authMethod.delete({
               where: {
-                projectId_id: {
-                  projectId: auth.project.id,
+                tenancyId_id: {
+                  tenancyId: auth.tenancy.id,
                   id: passwordAuth.authMethodId,
                 },
               },
@@ -930,8 +930,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           if (passwordAuth) {
             await tx.passwordAuthMethod.update({
               where: {
-                projectId_authMethodId: {
-                  projectId: auth.project.id,
+                tenancyId_authMethodId: {
+                  tenancyId: auth.tenancy.id,
                   authMethodId: passwordAuth.authMethodId,
                 },
               },
@@ -942,7 +942,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
           } else {
             const primaryEmailChannel = await tx.contactChannel.findFirst({
               where: {
-                projectId: auth.project.id,
+                tenancyId: auth.tenancy.id,
                 projectUserId: params.user_id,
                 type: 'EMAIL',
                 isPrimary: "TRUE",
@@ -953,16 +953,16 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               throw new StackAssertionError("password is set but primary_email is not set");
             }
 
-            const passwordConfig = await getPasswordConfig(tx, auth.project.config.id);
+            const passwordConfig = await getPasswordConfig(tx, auth.tenancy.config.id);
 
             if (!passwordConfig) {
-              throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
+              throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the tenancy");
             }
 
             await tx.authMethod.create({
               data: {
-                projectId: auth.project.id,
-                projectConfigId: auth.project.config.id,
+                tenancyId: auth.tenancy.id,
+                projectConfigId: auth.tenancy.config.id,
                 projectUserId: params.user_id,
                 authMethodConfigId: passwordConfig.authMethodConfigId,
                 passwordAuthMethod: {
@@ -979,8 +979,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
       const db = await tx.projectUser.update({
         where: {
-          projectId_projectUserId: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId: {
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
           },
         },
@@ -1000,18 +1000,18 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       if (passwordHash !== undefined) {
         await prismaClient.projectUserRefreshToken.deleteMany({
           where: {
-            projectId: auth.project.id,
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
           },
         });
       }
 
-      return userPrismaToCrud(db, await getUserLastActiveAtMillis(auth.project.id, params.user_id) ?? db.createdAt.getTime());
+      return userPrismaToCrud(db, await getUserLastActiveAtMillis(auth.tenancy.id, params.user_id) ?? db.createdAt.getTime());
     });
 
 
     runAsynchronouslyAndWaitUntil(sendUserUpdatedWebhook({
-      projectId: auth.project.id,
+      tenancyId: auth.tenancy.id,
       data: result,
     }));
 
@@ -1019,11 +1019,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
   },
   onDelete: async ({ auth, params }) => {
     const { teams } = await retryTransaction(async (tx) => {
-      await ensureUserExists(tx, { projectId: auth.project.id, userId: params.user_id });
+      await ensureUserExists(tx, { tenancyId: auth.tenancy.id, userId: params.user_id });
 
       const teams = await tx.team.findMany({
         where: {
-          projectId: auth.project.id,
+          tenancyId: auth.tenancy.id,
           teamMembers: {
             some: {
               projectUserId: params.user_id,
@@ -1037,8 +1037,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
       await tx.projectUser.delete({
         where: {
-          projectId_projectUserId: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId: {
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
           },
         },
@@ -1049,7 +1049,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     });
 
     runAsynchronouslyAndWaitUntil(Promise.all(teams.map(t => sendTeamMembershipDeletedWebhook({
-      projectId: auth.project.id,
+      tenancyId: auth.tenancy.id,
       data: {
         team_id: t.teamId,
         user_id: params.user_id,
@@ -1057,7 +1057,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     }))));
 
     runAsynchronouslyAndWaitUntil(sendUserDeletedWebhook({
-      projectId: auth.project.id,
+      tenancyId: auth.tenancy.id,
       data: {
         id: params.user_id,
         teams: teams.map((t) => ({
@@ -1082,19 +1082,19 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
     }
 
     return await usersCrudHandlers.adminUpdate({
-      project: auth.project,
+      tenancy: auth.tenancy,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
       data,
       allowedErrorTypes: [StatusError],
     });
   },
   async onDelete({ auth }) {
-    if (auth.type === 'client' && !auth.project.config.client_user_deletion_enabled) {
-      throw new StatusError(StatusError.BadRequest, "Client user deletion is not enabled for this project");
+    if (auth.type === 'client' && !auth.tenancy.config.client_user_deletion_enabled) {
+      throw new StatusError(StatusError.BadRequest, "Client user deletion is not enabled for this tenancy");
     }
 
     return await usersCrudHandlers.adminDelete({
-      project: auth.project,
+      tenancy: auth.tenancy,
       user_id: auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser()),
       allowedErrorTypes: [StatusError]
     });
