@@ -32,8 +32,7 @@ function EditDialog(props: {
 )) {
   const domainFormSchema = yup.object({
     domain: yup.string()
-      .matches(DOMAIN_REGEX, "Invalid domain")
-      .test('is-domain', (domain) => {
+      .test('is-domain', "Invalid Domain", (domain) => {
         if (!domain) {
           return true;
         }
