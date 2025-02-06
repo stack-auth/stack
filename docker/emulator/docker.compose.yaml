@@ -1,0 +1,67 @@
+services:
+
+  # ================= PostgreSQL =================
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: PASSWORD-PLACEHOLDER--uqfEC1hmmv
+      POSTGRES_DB: stackframe
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  # ================= Inbucket =================
+
+  inbucket:
+    image: inbucket/inbucket:latest
+    ports:
+      - 2500:2500
+      - 8105:9000
+      - 1100:1100
+    volumes:
+      - inbucket-data:/data
+
+  # ================= Svix =================
+
+  svix-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: PASSWORD-PLACEHOLDER--KsoIMcchtp
+      POSTGRES_DB: svix
+    volumes:
+      - svix-postgres-data:/var/lib/postgresql/data
+    
+  svix-redis:
+    image: docker.io/redis:7-alpine
+    command: --save 60 500 --appendonly yes --appendfsync everysec --requirepass PASSWORD-PLACEHOLDER--oVn8GSD6b9
+    volumes:
+      - svix-redis-data:/data
+
+  svix-server:
+    image: svix/svix-server
+    environment:
+      WAIT_FOR: 'true'
+      SVIX_REDIS_DSN: redis://:PASSWORD-PLACEHOLDER--oVn8GSD6b9@svix-redis:6379
+      SVIX_DB_DSN: postgres://postgres:PASSWORD-PLACEHOLDER--KsoIMcchtp@svix-db:5432/svix
+      SVIX_CACHE_TYPE: memory
+      SVIX_JWT_SECRET: secret
+      SVIX_LOG_LEVEL: trace
+      SVIX_QUEUE_TYPE: redis
+    ports:
+      - 8113:8071
+    depends_on:
+    - svix-redis
+    - svix-db
+
+# ================= volumes =================
+
+volumes:
+  postgres-data:
+  inbucket-data:
+  svix-redis-data:
+  svix-postgres-data:
+
