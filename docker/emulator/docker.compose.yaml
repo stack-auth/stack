@@ -1,5 +1,15 @@
 services:
 
+  # ================= Stack Auth Server =================
+
+  stack-auth-server:
+    build: ../server
+    ports:
+      - 8101:8101
+      - 8102:8102
+    environment:
+      DATABASE_URL: postgres://postgres:PASSWORD-PLACEHOLDER--uqfEC1hmmv@db:5432/stackframe
+
   # ================= PostgreSQL =================
 
   db:

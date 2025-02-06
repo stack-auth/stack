@@ -78,10 +78,6 @@ COPY --from=builder --chown=node:node /app/apps/dashboard/.next/standalone ./
 COPY --from=builder --chown=node:node /app/apps/dashboard/.next/static ./apps/dashboard/.next/static
 COPY --from=builder --chown=node:node /app/apps/dashboard/public ./apps/dashboard/public
 
-# Add the entrypoint script
-COPY ./docker/server/entrypoint.sh .
-RUN chmod +x entrypoint.sh
-
 WORKDIR /app
 
 # Define environment variables for both services
@@ -92,4 +88,46 @@ ENV DASHBOARD_PORT=8101
 USER node
 
 # Set entrypoint to run both backend and dashboard
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["/bin/bash", "-c", "\
+  set -e; \
+  \
+  # Generate random keys at runtime \
+  export STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY=$(openssl rand -base64 32); \
+  export STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY=$(openssl rand -base64 32); \
+  export STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY=$(openssl rand -base64 32); \
+  \
+  # Set additional environment variables \
+  export NEXT_PUBLIC_STACK_PROJECT_ID=internal; \
+  export NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=${STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY}; \
+  export STACK_SECRET_SERVER_KEY=${STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY}; \
+  export STACK_SUPER_SECRET_ADMIN_KEY=${STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY}; \
+  \
+  # Run migrations unless skipped \
+  if [ \"$STACK_SKIP_MIGRATIONS\" = \"true\" ]; then \
+    echo \"Skipping migrations.\"; \
+  else \
+    echo \"Running migrations...\"; \
+    prisma migrate deploy --schema=./apps/backend/prisma/schema.prisma; \
+  fi; \
+  \
+  # Run seed script unless skipped \
+  if [ \"$STACK_SKIP_SEED_SCRIPT\" = \"true\" ]; then \
+    echo \"Skipping seed script.\"; \
+  else \
+    echo \"Running seed script...\"; \
+    cd apps/backend; \
+    node seed.js; \
+    cd ../..; \
+  fi; \
+  \
+  # Start the backend server in the background \
+  echo \"Starting backend on port $BACKEND_PORT...\"; \
+  PORT=$BACKEND_PORT HOSTNAME=0.0.0.0 node apps/backend/server.js & \
+  \
+  # Start the dashboard server in the background \
+  echo \"Starting dashboard on port $DASHBOARD_PORT...\"; \
+  PORT=$DASHBOARD_PORT HOSTNAME=0.0.0.0 node apps/dashboard/server.js & \
+  \
+  # Wait for any process to exit \
+  wait -n \
+"]
