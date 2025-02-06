@@ -1,4 +1,4 @@
-import { teamMembershipsCrudHandlers } from "@/app/api/v1/team-memberships/crud";
+import { teamMembershipsCrudHandlers } from "@/app/api/latest/team-memberships/crud";
 import { sendEmailFromTemplate } from "@/lib/emails";
 import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";

@@ -1,4 +1,4 @@
-import { usersCrudHandlers } from "@/app/api/v1/users/crud";
+import { usersCrudHandlers } from "@/app/api/latest/users/crud";
 import { getProvider } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
