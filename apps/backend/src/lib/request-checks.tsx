@@ -1,9 +1,10 @@
-import { ProxiedOAuthProviderType, StandardOAuthProviderType, Tenancy } from "@prisma/client";
+import { ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { listUserTeamPermissions } from "./permissions";
+import { Tenancy } from "./tenancies";
 import { PrismaTransaction } from "./types";
 
 
