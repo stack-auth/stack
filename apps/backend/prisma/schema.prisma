@@ -22,12 +22,7 @@ model Project {
   config           ProjectConfig          @relation(fields: [configId], references: [id], onDelete: Cascade)
   isProductionMode Boolean
 
-  users             ProjectUser[]      @relation("ProjectUsers")
-  teams             Team[]
   apiKeySets        ApiKeySet[]
-  authMethods       AuthMethod[]
-  contactChannels   ContactChannel[]
-  connectedAccounts ConnectedAccount[]
 
   neonProvisionedProject NeonProvisionedProject?
 
@@ -74,6 +69,12 @@ model Tenancy {
   organizationId String? @db.Uuid
   hasNoOrganization BooleanTrue?
 
+  teams             Team[]             @relation("TenancyTeams")
+  projectUsers      ProjectUser[]      @relation("TenancyProjectUsers")
+  authMethods       AuthMethod[]       @relation("TenancyAuthMethods")
+  contactChannels   ContactChannel[]   @relation("TenancyContactChannels")
+  connectedAccounts ConnectedAccount[] @relation("TenancyConnectedAccounts")
+
   @@unique([projectId, branchId, organizationId])
   @@unique([projectId, branchId, hasNoOrganization])
 }
@@ -93,7 +94,7 @@ model ProjectDomain {
 }
 
 model Team {
-  projectId String
+  tenancyId String @db.Uuid
   teamId    String @default(uuid()) @db.Uuid
 
   createdAt DateTime @default(now())
@@ -105,11 +106,11 @@ model Team {
   clientReadOnlyMetadata Json?
   serverMetadata         Json?
 
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tenancy     Tenancy      @relation("TenancyTeams", fields: [tenancyId], references: [id], onDelete: Cascade)
   permissions Permission[]
   teamMembers TeamMember[]
 
-  @@id([projectId, teamId])
+  @@id([tenancyId, teamId])
 }
 
 // This is used for fields that are boolean but only the true value is part of a unique constraint.
@@ -120,7 +121,7 @@ enum BooleanTrue {
 }
 
 model TeamMember {
-  projectId     String
+  tenancyId     String @db.Uuid
   projectUserId String @db.Uuid
   teamId        String @db.Uuid
 
@@ -132,19 +133,19 @@ model TeamMember {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projectUser ProjectUser  @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
-  team        Team         @relation(fields: [projectId, teamId], references: [projectId, teamId], onDelete: Cascade)
+  projectUser ProjectUser  @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
+  team        Team         @relation(fields: [tenancyId, teamId], references: [tenancyId, teamId], onDelete: Cascade)
   isSelected  BooleanTrue?
 
   directPermissions TeamMemberDirectPermission[]
 
-  @@id([projectId, projectUserId, teamId])
-  @@unique([projectId, projectUserId, isSelected])
+  @@id([tenancyId, projectUserId, teamId])
+  @@unique([tenancyId, projectUserId, isSelected])
 }
 
 model TeamMemberDirectPermission {
   id             String  @id @default(uuid()) @db.Uuid
-  projectId      String
+  tenancyId      String @db.Uuid
   projectUserId  String  @db.Uuid
   teamId         String  @db.Uuid
   permissionDbId String? @db.Uuid
@@ -152,14 +153,14 @@ model TeamMemberDirectPermission {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  teamMember TeamMember @relation(fields: [projectId, projectUserId, teamId], references: [projectId, projectUserId, teamId], onDelete: Cascade)
+  teamMember TeamMember @relation(fields: [tenancyId, projectUserId, teamId], references: [tenancyId, projectUserId, teamId], onDelete: Cascade)
 
   // exactly one of [permissionId && permission] or [systemPermission] must be set
   permission       Permission?           @relation(fields: [permissionDbId], references: [dbId], onDelete: Cascade)
   systemPermission TeamSystemPermission?
 
-  @@unique([projectId, projectUserId, teamId, permissionDbId])
-  @@unique([projectId, projectUserId, teamId, systemPermission])
+  @@unique([tenancyId, projectUserId, teamId, permissionDbId])
+  @@unique([tenancyId, projectUserId, teamId, systemPermission])
 }
 
 model Permission {
@@ -169,7 +170,7 @@ model Permission {
   dbId            String  @id @default(uuid()) @db.Uuid
   // exactly one of [projectConfigId && projectConfig] or [projectId && teamId && team] must be set
   projectConfigId String? @db.Uuid
-  projectId       String?
+  tenancyId       String?
   teamId          String? @db.Uuid
 
   createdAt DateTime @default(now())
@@ -179,8 +180,9 @@ model Permission {
 
   // The scope of the permission. If projectConfigId is set, may be GLOBAL or TEAM; if teamId is set, must be TEAM.
   scope         PermissionScope
+
   projectConfig ProjectConfig?  @relation(fields: [projectConfigId], references: [id], onDelete: Cascade)
-  team          Team?           @relation(fields: [projectId, teamId], references: [projectId, teamId], onDelete: Cascade)
+  team          Team?           @relation(fields: [tenancyId, teamId], references: [tenancyId, teamId], onDelete: Cascade)
 
   parentEdges                PermissionEdge[]             @relation("ChildPermission")
   childEdges                 PermissionEdge[]             @relation("ParentPermission")
@@ -190,7 +192,7 @@ model Permission {
   isDefaultTeamMemberPermission  Boolean @default(false)
 
   @@unique([projectConfigId, queryableId])
-  @@unique([projectId, teamId, queryableId])
+  @@unique([tenancyId, teamId, queryableId])
 }
 
 enum PermissionScope {
@@ -222,7 +224,7 @@ model PermissionEdge {
 }
 
 model ProjectUser {
-  projectId     String
+  tenancyId     String @db.Uuid
   projectUserId String @default(uuid()) @db.Uuid
 
   createdAt DateTime @default(now())
@@ -236,7 +238,7 @@ model ProjectUser {
   requiresTotpMfa        Boolean @default(false)
   totpSecret             Bytes?
 
-  project                       Project                        @relation("ProjectUsers", fields: [projectId], references: [id], onDelete: Cascade)
+  tenancy                       Tenancy                        @relation("TenancyProjectUsers", fields: [tenancyId], references: [id], onDelete: Cascade)
   projectUserRefreshTokens      ProjectUserRefreshToken[]
   projectUserAuthorizationCodes ProjectUserAuthorizationCode[]
   projectUserOAuthAccounts      ProjectUserOAuthAccount[]
@@ -251,19 +253,19 @@ model ProjectUser {
   otpAuthMethod                 OtpAuthMethod[]
   oauthAuthMethod               OAuthAuthMethod[]
 
-  @@id([projectId, projectUserId])
+  @@id([tenancyId, projectUserId])
 
   // indices for sorting and filtering
-  @@index([projectId, displayName(sort: Asc)], name: "ProjectUser_displayName_asc")
-  @@index([projectId, displayName(sort: Desc)], name: "ProjectUser_displayName_desc")
-  @@index([projectId, createdAt(sort: Asc)], name: "ProjectUser_createdAt_asc")
-  @@index([projectId, createdAt(sort: Desc)], name: "ProjectUser_createdAt_desc")
+  @@index([tenancyId, displayName(sort: Asc)], name: "ProjectUser_displayName_asc")
+  @@index([tenancyId, displayName(sort: Desc)], name: "ProjectUser_displayName_desc")
+  @@index([tenancyId, createdAt(sort: Asc)], name: "ProjectUser_createdAt_asc")
+  @@index([tenancyId, createdAt(sort: Desc)], name: "ProjectUser_createdAt_desc")
 }
 
 // This should be renamed to "OAuthAccount" as it is not always bound to a user
 // When ever a user goes through the OAuth flow and gets an account ID from the OAuth provider, we store that here.
 model ProjectUserOAuthAccount {
-  projectId             String
+  tenancyId             String @db.Uuid
   projectUserId         String @db.Uuid
   projectConfigId       String @db.Uuid
   oauthProviderConfigId String
@@ -278,7 +280,7 @@ model ProjectUserOAuthAccount {
 
   providerConfig   OAuthProviderConfig @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
   // Before the OAuth account is connected to a use (for example, in the link oauth process), the projectUser is null.
-  projectUser      ProjectUser?        @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  projectUser      ProjectUser?        @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
   oauthTokens      OAuthToken[]
   oauthAccessToken OAuthAccessToken[]
 
@@ -286,7 +288,7 @@ model ProjectUserOAuthAccount {
   connectedAccount ConnectedAccount?
   oauthAuthMethod  OAuthAuthMethod?
 
-  @@id([projectId, oauthProviderConfigId, providerAccountId])
+  @@id([tenancyId, oauthProviderConfigId, providerAccountId])
 }
 
 enum ContactChannelType {
@@ -295,7 +297,7 @@ enum ContactChannelType {
 }
 
 model ContactChannel {
-  projectId     String
+  tenancyId     String @db.Uuid
   projectUserId String @db.Uuid
   id            String @default(uuid()) @db.Uuid
 
@@ -308,16 +310,16 @@ model ContactChannel {
   isVerified  Boolean
   value       String
 
-  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  tenancy     Tenancy     @relation("TenancyContactChannels", fields: [tenancyId], references: [id], onDelete: Cascade)
+  projectUser ProjectUser @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
 
-  @@id([projectId, projectUserId, id])
+  @@id([tenancyId, projectUserId, id])
   // each user has at most one primary contact channel of each type
-  @@unique([projectId, projectUserId, type, isPrimary])
+  @@unique([tenancyId, projectUserId, type, isPrimary])
   // value must be unique per user per type
-  @@unique([projectId, projectUserId, type, value])
+  @@unique([tenancyId, projectUserId, type, value])
   // only one contact channel per project with the same value and type can be used for auth
-  @@unique([projectId, type, value, usedForAuth])
+  @@unique([tenancyId, type, value, usedForAuth])
 }
 
 model ConnectedAccountConfig {
@@ -338,7 +340,7 @@ model ConnectedAccountConfig {
 }
 
 model ConnectedAccount {
-  projectId                String
+  tenancyId                String @db.Uuid
   id                       String @default(uuid()) @db.Uuid
   projectConfigId          String @db.Uuid
   connectedAccountConfigId String @db.Uuid
@@ -349,14 +351,14 @@ model ConnectedAccount {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  oauthAccount           ProjectUserOAuthAccount @relation(fields: [projectId, oauthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
-  project                Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectUser            ProjectUser             @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  oauthAccount           ProjectUserOAuthAccount @relation(fields: [tenancyId, oauthProviderConfigId, providerAccountId], references: [tenancyId, oauthProviderConfigId, providerAccountId])
+  tenancy                Tenancy                 @relation("TenancyConnectedAccounts", fields: [tenancyId], references: [id], onDelete: Cascade)
+  projectUser            ProjectUser             @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
   connectedAccountConfig ConnectedAccountConfig  @relation(fields: [projectConfigId, connectedAccountConfigId], references: [projectConfigId, id], onDelete: Cascade)
   oauthProviderConfig    OAuthProviderConfig     @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
-  @@id([projectId, id])
-  @@unique([projectId, oauthProviderConfigId, providerAccountId])
+  @@id([tenancyId, id])
+  @@unique([tenancyId, oauthProviderConfigId, providerAccountId])
 }
 
 model AuthMethodConfig {
@@ -494,7 +496,7 @@ model StandardOAuthProviderConfig {
 }
 
 model AuthMethod {
-  projectId          String
+  tenancyId          String @db.Uuid
   id                 String @default(uuid()) @db.Uuid
   projectUserId      String @db.Uuid
   authMethodConfigId String @db.Uuid
@@ -509,31 +511,31 @@ model AuthMethod {
   passkeyAuthMethod  PasskeyAuthMethod?
   oauthAuthMethod    OAuthAuthMethod?
 
-  project          Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectUser      ProjectUser      @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  tenancy          Tenancy          @relation("TenancyAuthMethods", fields: [tenancyId], references: [id], onDelete: Cascade)
+  projectUser      ProjectUser      @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
   authMethodConfig AuthMethodConfig @relation(fields: [projectConfigId, authMethodConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
-  @@id([projectId, id])
+  @@id([tenancyId, id])
 }
 
 model OtpAuthMethod {
-  projectId     String
+  tenancyId     String @db.Uuid
   authMethodId  String @db.Uuid
   projectUserId String @db.Uuid
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
-  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  authMethod  AuthMethod  @relation(fields: [tenancyId, authMethodId], references: [tenancyId, id], onDelete: Cascade)
+  projectUser ProjectUser @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
 
-  @@id([projectId, authMethodId])
+  @@id([tenancyId, authMethodId])
   // a user can only have one OTP auth method
-  @@unique([projectId, projectUserId])
+  @@unique([tenancyId, projectUserId])
 }
 
 model PasswordAuthMethod {
-  projectId     String
+  tenancyId     String @db.Uuid
   authMethodId  String @db.Uuid
   projectUserId String @db.Uuid
 
@@ -542,16 +544,16 @@ model PasswordAuthMethod {
 
   passwordHash String
 
-  authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
-  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  authMethod  AuthMethod  @relation(fields: [tenancyId, authMethodId], references: [tenancyId, id], onDelete: Cascade)
+  projectUser ProjectUser @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
 
-  @@id([projectId, authMethodId])
+  @@id([tenancyId, authMethodId])
   // a user can only have one password auth method
-  @@unique([projectId, projectUserId])
+  @@unique([tenancyId, projectUserId])
 }
 
 model PasskeyAuthMethod {
-  projectId     String
+  tenancyId     String @db.Uuid
   authMethodId  String @db.Uuid
   projectUserId String @db.Uuid
 
@@ -566,17 +568,17 @@ model PasskeyAuthMethod {
   counter Int
 
 
-  authMethod  AuthMethod  @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
-  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  authMethod  AuthMethod  @relation(fields: [tenancyId, authMethodId], references: [tenancyId, id], onDelete: Cascade)
+  projectUser ProjectUser @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
 
-  @@id([projectId, authMethodId])
+  @@id([tenancyId, authMethodId])
   // a user can only have one password auth method
-  @@unique([projectId, projectUserId])
+  @@unique([tenancyId, projectUserId])
 }
 
 // This connects to projectUserOauthAccount, which might be shared between auth method and connected account.
 model OAuthAuthMethod {
-  projectId             String
+  tenancyId             String @db.Uuid
   projectConfigId       String @db.Uuid
   authMethodId          String @db.Uuid
   oauthProviderConfigId String
@@ -586,13 +588,13 @@ model OAuthAuthMethod {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  authMethod          AuthMethod              @relation(fields: [projectId, authMethodId], references: [projectId, id], onDelete: Cascade)
-  oauthAccount        ProjectUserOAuthAccount @relation(fields: [projectId, oauthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId])
-  projectUser         ProjectUser             @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  authMethod          AuthMethod              @relation(fields: [tenancyId, authMethodId], references: [tenancyId, id], onDelete: Cascade)
+  oauthAccount        ProjectUserOAuthAccount @relation(fields: [tenancyId, oauthProviderConfigId, providerAccountId], references: [tenancyId, oauthProviderConfigId, providerAccountId])
+  projectUser         ProjectUser             @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
   oauthProviderConfig OAuthProviderConfig     @relation(fields: [projectConfigId, oauthProviderConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
-  @@id([projectId, authMethodId])
-  @@unique([projectId, oauthProviderConfigId, providerAccountId])
+  @@id([tenancyId, authMethodId])
+  @@unique([tenancyId, oauthProviderConfigId, providerAccountId])
 }
 
 enum StandardOAuthProviderType {
@@ -612,14 +614,14 @@ enum StandardOAuthProviderType {
 model OAuthToken {
   id String @id @default(uuid()) @db.Uuid
 
-  projectId             String
+  tenancyId             String @db.Uuid
   oAuthProviderConfigId String
   providerAccountId     String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projectUserOAuthAccount ProjectUserOAuthAccount @relation(fields: [projectId, oAuthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId], onDelete: Cascade)
+  projectUserOAuthAccount ProjectUserOAuthAccount @relation(fields: [tenancyId, oAuthProviderConfigId, providerAccountId], references: [tenancyId, oauthProviderConfigId, providerAccountId], onDelete: Cascade)
 
   refreshToken String
   scopes       String[]
@@ -628,14 +630,14 @@ model OAuthToken {
 model OAuthAccessToken {
   id String @id @default(uuid()) @db.Uuid
 
-  projectId             String
+  tenancyId             String @db.Uuid
   oAuthProviderConfigId String
   providerAccountId     String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  projectUserOAuthAccount ProjectUserOAuthAccount @relation(fields: [projectId, oAuthProviderConfigId, providerAccountId], references: [projectId, oauthProviderConfigId, providerAccountId], onDelete: Cascade)
+  projectUserOAuthAccount ProjectUserOAuthAccount @relation(fields: [tenancyId, oAuthProviderConfigId, providerAccountId], references: [tenancyId, oauthProviderConfigId, providerAccountId], onDelete: Cascade)
 
   accessToken String
   scopes      String[]
@@ -654,7 +656,7 @@ model OAuthOuterInfo {
 }
 
 model ProjectUserRefreshToken {
-  projectId     String
+  tenancyId     String @db.Uuid
   projectUserId String @db.Uuid
 
   createdAt DateTime @default(now())
@@ -663,13 +665,13 @@ model ProjectUserRefreshToken {
   refreshToken String    @unique
   expiresAt    DateTime?
 
-  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  projectUser ProjectUser @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
 
-  @@id([projectId, refreshToken])
+  @@id([tenancyId, refreshToken])
 }
 
 model ProjectUserAuthorizationCode {
-  projectId     String
+  tenancyId     String @db.Uuid
   projectUserId String @db.Uuid
 
   createdAt DateTime @default(now())
@@ -685,9 +687,9 @@ model ProjectUserAuthorizationCode {
   newUser                  Boolean
   afterCallbackRedirectUrl String?
 
-  projectUser ProjectUser @relation(fields: [projectId, projectUserId], references: [projectId, projectUserId], onDelete: Cascade)
+  projectUser ProjectUser @relation(fields: [tenancyId, projectUserId], references: [tenancyId, projectUserId], onDelete: Cascade)
 
-  @@id([projectId, authorizationCode])
+  @@id([tenancyId, authorizationCode])
 }
 
 model VerificationCode {
