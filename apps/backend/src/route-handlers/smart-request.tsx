@@ -259,7 +259,6 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     throw new KnownErrors.ProjectNotFound(projectId);
   }
 
-  console.log("AAAAA", project);
   return {
     project,
     branchId: "main",

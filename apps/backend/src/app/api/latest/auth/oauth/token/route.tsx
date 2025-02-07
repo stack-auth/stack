@@ -57,7 +57,6 @@ export const POST = createSmartRouteHandler({
         }
       }
       if (e instanceof InvalidClientError) {
-        console.log(oauthRequest, oauthResponse);
         throw new KnownErrors.InvalidOAuthClientIdOrSecret();
       }
       if (e instanceof InvalidRequestError) {

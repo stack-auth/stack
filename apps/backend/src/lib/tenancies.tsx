@@ -62,7 +62,6 @@ export async function getSoleTenancyFromProject(projectOrId: ProjectsCrud["Admin
     project = projectOrId;
   }
   if (!project) {
-    console.log(new Error());
     if (returnNullIfNotFound) return null;
     throw new StackAssertionError(`Project ${projectOrId} does not exist`, { projectOrId });
   }

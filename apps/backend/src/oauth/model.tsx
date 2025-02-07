@@ -43,7 +43,6 @@ export class OAuthModel implements AuthorizationCodeModel {
     if (clientSecret) {
       const keySet = await checkApiKeySet(clientId, { publishableClientKey: clientSecret });
       if (!keySet) {
-        console.log("no api key");
         return false;
       }
     }
