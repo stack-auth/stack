@@ -1,4 +1,5 @@
 import { sendEmailFromTemplate } from "@/lib/emails";
+import { getSoleTenancyFromProject } from "@/lib/tenancies";
 import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
@@ -30,8 +31,10 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
     bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
+    const tenancy = await getSoleTenancyFromProject(createOptions.project.id);
+
     await sendEmailFromTemplate({
-      tenancy: createOptions.tenancy,
+      tenancy,
       user: sendOptions.user,
       email: createOptions.method.email,
       templateType: "email_verification",

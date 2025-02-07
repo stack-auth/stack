@@ -60,14 +60,15 @@ export const POST = createSmartRouteHandler({
 
     if (contactChannel.projectUser.requiresTotpMfa) {
       throw await createMfaRequiredError({
-        tenancy,
+        project: tenancy.project,
+        branchId: tenancy.branchId,
         isNewUser: false,
         userId: contactChannel.projectUser.projectUserId,
       });
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({
-      tenancyId: tenancy.id,
+      tenancy,
       projectUserId: contactChannel.projectUser.projectUserId,
       useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
     });

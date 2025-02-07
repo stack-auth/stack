@@ -1,4 +1,5 @@
 import { sendEmailFromTemplate } from "@/lib/emails";
+import { getSoleTenancyFromProject } from "@/lib/tenancies";
 import { createAuthTokens } from "@/lib/tokens";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
@@ -36,8 +37,9 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     body: signInResponseSchema.defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { email: string }) {
+    const tenancy = await getSoleTenancyFromProject(createOptions.project.id);
     await sendEmailFromTemplate({
-      tenancy: createOptions.tenancy,
+      tenancy,
       email: createOptions.method.email,
       user: null,
       templateType: "magic_link",
@@ -80,14 +82,15 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
 
     if (user.requires_totp_mfa) {
       throw await createMfaRequiredError({
-        tenancy,
+        project: tenancy.project,
+        branchId: tenancy.branchId,
         isNewUser: data.is_new_user,
         userId: user.id,
       });
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({
-      tenancyId: tenancy.id,
+      tenancy,
       projectUserId: user.id,
       useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
     });

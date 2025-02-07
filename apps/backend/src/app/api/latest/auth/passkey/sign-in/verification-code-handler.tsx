@@ -126,14 +126,15 @@ export const passkeySignInVerificationCodeHandler = createVerificationCodeHandle
 
     if (user.requiresTotpMfa) {
       throw await createMfaRequiredError({
-        tenancy,
+        project: tenancy.project,
+        branchId: tenancy.branchId,
         isNewUser: false,
         userId: user.projectUserId,
       });
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({
-      tenancyId: tenancy.id,
+      tenancy,
       projectUserId: user.projectUserId,
       useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
     });

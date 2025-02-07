@@ -253,6 +253,7 @@ export function createCrudHandlers<
                   throw new StackAssertionError("Must specify either project or tenancy, not both");
                 } else if (tenancy) {
                   project = tenancy.project;
+                  branchId = tenancy.branchId;
                 } else if (project) {
                   tenancy = await getSoleTenancyFromProject(project.id);
                 } else {

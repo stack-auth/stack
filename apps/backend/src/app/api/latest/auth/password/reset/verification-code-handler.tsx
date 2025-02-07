@@ -1,4 +1,5 @@
 import { sendEmailFromTemplate } from "@/lib/emails";
+import { getSoleTenancyFromProject } from "@/lib/tenancies";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -35,8 +36,9 @@ export const resetPasswordVerificationCodeHandler = createVerificationCodeHandle
     bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
+    const tenancy = await getSoleTenancyFromProject(createOptions.project.id);
     await sendEmailFromTemplate({
-      tenancy: createOptions.tenancy,
+      tenancy,
       user: sendOptions.user,
       email: createOptions.method.email,
       templateType: "password_reset",

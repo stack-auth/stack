@@ -42,8 +42,8 @@ export const neonIntegrationProjectTransferCodeHandler = createVerificationCodeH
 
       const recentDbUser = await tx.projectUser.findUnique({
         where: {
-          projectId_projectUserId: {
-            projectId: "internal",
+          tenancyId_projectUserId: {
+            tenancyId: tenancy.id,
             projectUserId: user.id,
           },
         },
@@ -52,8 +52,8 @@ export const neonIntegrationProjectTransferCodeHandler = createVerificationCodeH
 
       await tx.projectUser.update({
         where: {
-          projectId_projectUserId: {
-            projectId: "internal",
+          tenancyId_projectUserId: {
+            tenancyId: tenancy.id,
             projectUserId: user.id,
           },
         },

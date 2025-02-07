@@ -13,7 +13,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: adminAuthTypeSchema,
-      tenancy: adaptSchema.defined(),
+      project: adaptSchema.defined(),
     }).defined(),
     body: yupObject({
       description: yupString().defined(),
@@ -40,7 +40,7 @@ export const POST = createSmartRouteHandler({
   }),
   handler: async ({ auth, body }) => {
     const set = await createApiKeySet({
-      tenancyId: auth.tenancy.id,
+      projectId: auth.project.id,
       ...body,
     });
 

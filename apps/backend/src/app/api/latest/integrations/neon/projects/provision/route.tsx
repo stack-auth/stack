@@ -49,13 +49,13 @@ export const POST = createSmartRouteHandler({
 
     await prismaClient.neonProvisionedProject.create({
       data: {
-        tenancyId: createdProject.id,
+        projectId: createdProject.id,
         neonClientId: clientId,
       },
     });
 
     const set = await createApiKeySet({
-      tenancyId: createdProject.id,
+      projectId: createdProject.id,
       description: `Auto-generated for Neon (${req.body.display_name})`,
       expires_at_millis: new Date(Date.now() + 1000 * 60 * 60 * 24 * 365 * 100).getTime(),
       has_publishable_client_key: false,
