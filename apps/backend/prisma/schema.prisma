@@ -10,7 +10,7 @@ datasource db {
 }
 
 model Project {
-  // Note that the project with ID `internal` is handled as a special case.
+  // Note that the project with ID `internal` is handled as a special case. All other project IDs are UUIDs.
   id String @id
 
   createdAt DateTime @default(now())
@@ -63,7 +63,7 @@ model Tenancy {
   projectId String
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  branchId String @db.Uuid
+  branchId String
 
   // If organizationId is NULL, hasNoOrganization must be TRUE. If organizationId is not NULL, hasNoOrganization must be NULL.
   organizationId String? @db.Uuid

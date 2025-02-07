@@ -130,6 +130,17 @@ DROP INDEX "TeamMemberDirectPermission_projectId_projectUserId_teamId_p_key";
 -- DropIndex
 DROP INDEX "TeamMemberDirectPermission_projectId_projectUserId_teamId_s_key";
 
+-- Create a Tenancy table
+CREATE TABLE "Tenancy" (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  createdAt TIMESTAMP NOT NULL DEFAULT now(),
+  updatedAt TIMESTAMP NOT NULL DEFAULT now(),
+  projectId TEXT NOT NULL,
+  branchId TEXT NOT NULL,
+  organizationId UUID,
+  hasNoOrganization BOOLEAN NOT NULL
+);
+
 -- Create a Tenancy for each Project (using branch 'main' and no organization)
 INSERT INTO "Tenancy" (id, createdAt, updatedAt, projectId, branchId, organizationId, hasNoOrganization)
 SELECT uuid_generate_v4(), now(), now(), id, 'main', NULL, 'TRUE'

@@ -10,6 +10,13 @@ export const fullTenancyInclude = {
 } as const satisfies Prisma.TenancyInclude;
 
 export function tenancyPrismaToCrud(prisma: Prisma.TenancyGetPayload<{ include: typeof fullTenancyInclude }>) {
+  if (prisma.hasNoOrganization && prisma.organizationId !== null) {
+    throw new StackAssertionError("Organization ID is not null for a tenancy with hasNoOrganization", { tenancyId: prisma.id, prisma });
+  }
+  if (!prisma.hasNoOrganization && prisma.organizationId === null) {
+    throw new StackAssertionError("Organization ID is null for a tenancy without hasNoOrganization", { tenancyId: prisma.id, prisma });
+  }
+
   const projectCrud = projectPrismaToCrud(prisma.project);
   return {
     id: prisma.id,

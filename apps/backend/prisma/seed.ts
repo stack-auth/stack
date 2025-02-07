@@ -3,6 +3,7 @@ import { getSoleTenancyFromProject } from '@/lib/tenancies';
 import { PrismaClient } from '@prisma/client';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { hashPassword } from "@stackframe/stack-shared/dist/utils/hashes";
+import { generateUuid } from '@stackframe/stack-shared/dist/utils/uuids';
 
 const prisma = new PrismaClient();
 
@@ -44,6 +45,7 @@ async function seed() {
         isProductionMode: false,
         tenancies: {
           create: {
+            id: generateUuid(),
             branchId: 'main',
             hasNoOrganization: "TRUE",
             organizationId: null,
