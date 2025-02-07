@@ -1,5 +1,6 @@
 "use client";
 
+import { getPublicEnvVar } from "@/lib/env";
 import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { useEffect, useState } from "react";
 import packageJson from "../../package.json";
@@ -14,7 +15,7 @@ export function VersionAlerter({ severeOnly }: { severeOnly: boolean }) {
   // IMPORTANT: THIS ENVIRONMENT VARIABLE IS UNDOCUMENTED AND NOT MEANT FOR PRODUCTION USAGE
   // AND YOU SHOULD ALWAYS KEEP STACK AUTH UP TO DATE. WE CAN'T APPLY SECURITY UPDATES IF
   // YOU DON'T UPDATE STACK AUTH REGULARLY.
-  const enableNonSevereVersionCheck = process.env.NEXT_PUBLIC_VERSION_ALERTER_SEVERE_ONLY !== "true";
+  const enableNonSevereVersionCheck = getPublicEnvVar('NEXT_PUBLIC_VERSION_ALERTER_SEVERE_ONLY') !== "true";
 
   useEffect(() => {
     if (window.location.origin === "https://app.stack-auth.com") {

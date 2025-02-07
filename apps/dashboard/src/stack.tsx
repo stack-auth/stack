@@ -1,8 +1,8 @@
+import { StackServerApp } from '@stackframe/stack';
+import { getPublicEnvVar } from './lib/env';
 import './polyfills';
 
-import { StackServerApp } from '@stackframe/stack';
-
-if (process.env.NEXT_PUBLIC_STACK_PROJECT_ID !== "internal") {
+if (getPublicEnvVar("NEXT_PUBLIC_STACK_PROJECT_ID") !== "internal") {
   throw new Error("This project is not configured correctly. stack-dashboard must always use the internal project.");
 }
 
