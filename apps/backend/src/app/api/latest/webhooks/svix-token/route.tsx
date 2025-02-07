@@ -8,7 +8,7 @@ const appPortalCrudHandlers = createLazyProxy(() => createCrudHandlers(svixToken
   paramsSchema: yupObject({}),
   onCreate: async ({ auth }) => {
     const svix = getSvixClient();
-    await svix.application.getOrCreate({ uid: auth.tenancy.id, name: auth.tenancy.id });
+    await svix.application.getOrCreate({ uid: auth.project.id, name: auth.tenancy.id });
     const result = await svix.authentication.appPortalAccess(auth.tenancy.id, {});
     return { token: result.token };
   },
