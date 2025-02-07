@@ -22,6 +22,7 @@ const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as c
 
 export type SmartRequestAuth = {
   project: ProjectsCrud["Admin"]["Read"],
+  branchId: string,
   tenancy: Tenancy,
   user?: UsersCrud["Admin"]["Read"] | undefined,
   type: "client" | "server" | "admin",
@@ -260,6 +261,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
 
   return {
     project,
+    branchId: "main",
     tenancy: await getSoleTenancyFromProject(project.id),
     user: queriesResults.user ?? undefined,
     type: requestType,

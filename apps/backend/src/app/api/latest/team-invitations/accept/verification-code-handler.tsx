@@ -1,5 +1,6 @@
 import { teamMembershipsCrudHandlers } from "@/app/api/latest/team-memberships/crud";
 import { sendEmailFromTemplate } from "@/lib/emails";
+import { getSoleTenancyFromProject } from "@/lib/tenancies";
 import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
@@ -45,14 +46,15 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       team_display_name: yupString().defined(),
     }).defined(),
   }),
-  async send(codeObj, createOptions, sendOptions){
+  async send(codeObj, createOptions, sendOptions) {
     const team = await teamsCrudHandlers.adminRead({
-      tenancy: createOptions.tenancy,
+      project: createOptions.project,
+      branchId: createOptions.branchId,
       team_id: createOptions.data.team_id,
     });
 
     await sendEmailFromTemplate({
-      tenancy: createOptions.tenancy,
+      tenancy: await getSoleTenancyFromProject(createOptions.project.id),
       user: null,
       email: createOptions.method.email,
       templateType: "team_invitation",

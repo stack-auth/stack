@@ -16,18 +16,18 @@ import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, createSmartRouteH
 
 const MAX_ATTEMPTS_PER_CODE = 20;
 
-type CreateCodeOptions<Data, Method extends {}, CallbackUrl extends string | URL | undefined> = ProjectBranchCombo & {
+type CreateCodeOptions<Data, Method extends {}, CallbackUrl extends string | URL | undefined, AlreadyParsed extends boolean = true> = ProjectBranchCombo<AlreadyParsed> & {
   method: Method,
   expiresInMs?: number,
   data: Data,
   callbackUrl: CallbackUrl,
 };
 
-type ListCodesOptions<Data> = ProjectBranchCombo & {
+type ListCodesOptions<Data, AlreadyParsed extends boolean = true> = ProjectBranchCombo<AlreadyParsed> & {
   dataFilter?: Prisma.JsonFilter<"VerificationCode"> | undefined,
 }
 
-type RevokeCodeOptions = ProjectBranchCombo & {
+type RevokeCodeOptions<AlreadyParsed extends boolean = true> = ProjectBranchCombo<AlreadyParsed> & {
   id: string,
 }
 
@@ -41,28 +41,26 @@ type CodeObject<Data, Method extends {}, CallbackUrl extends string | URL | unde
 };
 
 type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}, SendCodeReturnType, HasDetails extends boolean, Method extends {}> = {
-  createCode<CallbackUrl extends string | URL | undefined>(options: CreateCodeOptions<Data, Method, CallbackUrl>): Promise<CodeObject<Data, Method, CallbackUrl>>,
-  sendCode(options: CreateCodeOptions<Data, Method, string | URL>, sendOptions: SendCodeExtraOptions): Promise<SendCodeReturnType>,
-  listCodes(options: ListCodesOptions<Data>): Promise<CodeObject<Data, Method, string | URL>[]>,
-  revokeCode(options: RevokeCodeOptions): Promise<void>,
+  createCode<CallbackUrl extends string | URL | undefined>(options: CreateCodeOptions<Data, Method, CallbackUrl, false>): Promise<CodeObject<Data, Method, CallbackUrl>>,
+  sendCode(options: CreateCodeOptions<Data, Method, string | URL, false>, sendOptions: SendCodeExtraOptions): Promise<SendCodeReturnType>,
+  listCodes(options: ListCodesOptions<Data, false>): Promise<CodeObject<Data, Method, string | URL>[]>,
+  revokeCode(options: RevokeCodeOptions<false>): Promise<void>,
   postHandler: SmartRouteHandler<any, any, any>,
   checkHandler: SmartRouteHandler<any, any, any>,
   detailsHandler: HasDetails extends true ? SmartRouteHandler<any, any, any> : undefined,
 };
 
-type ProjectBranchCombo = (
+type ProjectBranchCombo<AlreadyParsed extends boolean> = (
   | { project: ProjectsCrud["Admin"]["Read"], branchId: string, tenancy?: undefined }
-  | { tenancy: Tenancy, project?: undefined, branchId?: undefined }
+  | (AlreadyParsed extends true ? never : { tenancy: Tenancy, project?: undefined, branchId?: undefined })
 );
 
-function parseProjectBranchCombo(params: ProjectBranchCombo) {
-  if (params.project && params.branchId) {
-    return { project: params.project, branchId: params.branchId };
-  } else if (params.tenancy) {
-    return { project: params.tenancy.project, branchId: params.tenancy.branchId };
-  } else {
-    throw new StackAssertionError("Must specify either tenancy+branch or tenancy");
-  }
+function parseProjectBranchCombo<T extends ProjectBranchCombo<boolean>>(obj: T): T & ProjectBranchCombo<true> {
+  return {
+    ...obj,
+    project: obj.project ?? obj.tenancy.project,
+    branchId: obj.branchId ?? obj.tenancy.branchId,
+  };
 }
 
 /**
@@ -255,7 +253,7 @@ export function createVerificationCodeHandler<
       if (!options.send) {
         throw new StackAssertionError("Cannot use sendCode on this verification code handler because it doesn't have a send function");
       }
-      return await options.send(codeObj, createOptions, sendOptions);
+      return await options.send(codeObj, parseProjectBranchCombo(createOptions), sendOptions);
     },
     async listCodes(listOptions) {
       const { project, branchId } = parseProjectBranchCombo(listOptions);
