@@ -55,6 +55,8 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
       const db = await tx.team.create({
         data: {
           displayName: data.display_name,
+          mirroredProjectId: auth.project.id,
+          mirroredBranchId: auth.tenancy.branchId,
           tenancyId: auth.tenancy.id,
           profileImageUrl: data.profile_image_url,
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
@@ -94,7 +96,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     const result = teamPrismaToCrud(db);
 
     runAsynchronouslyAndWaitUntil(sendTeamCreatedWebhook({
-      tenancyId: auth.tenancy.id,
+      projectId: auth.project.id,
       data: result,
     }));
 
@@ -163,7 +165,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     const result = teamPrismaToCrud(db);
 
     runAsynchronouslyAndWaitUntil(sendTeamUpdatedWebhook({
-      tenancyId: auth.tenancy.id,
+      projectId: auth.project.id,
       data: result,
     }));
 
@@ -194,7 +196,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     });
 
     runAsynchronouslyAndWaitUntil(sendTeamDeletedWebhook({
-      tenancyId: auth.tenancy.id,
+      projectId: auth.project.id,
       data: {
         id: params.team_id,
       },

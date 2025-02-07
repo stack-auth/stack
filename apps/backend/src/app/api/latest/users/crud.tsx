@@ -1,4 +1,5 @@
 import { ensureTeamMembershipExists, ensureUserExists } from "@/lib/request-checks";
+import { getSoleTenancyFromProject, getTenancy } from "@/lib/tenancies";
 import { PrismaTransaction } from "@/lib/types";
 import { sendTeamMembershipDeletedWebhook, sendUserCreatedWebhook, sendUserDeletedWebhook, sendUserUpdatedWebhook } from "@/lib/webhooks";
 import { RawQuery, prismaClient, rawQuery, retryTransaction } from "@/prisma-client";
@@ -397,16 +398,19 @@ export function getUserQuery(tenancyId: string, userId: string): RawQuery<UsersC
 }
 
 export async function getUser(options: { userId: string } & ({ projectId: string, branchId: string } | { tenancyId: string })) {
-  if ("projectId" in options) {
-    const tenancy = await getDefaultTenancyFromProject(options.projectId);
+  let tenancy;
+  if (!("tenancyId" in options)) {
+    tenancy = await getSoleTenancyFromProject(options.projectId);
+  } else {
+    tenancy = await getTenancy(options.tenancyId) ?? throwErr("Tenancy not found", { tenancyId: options.tenancyId });
   }
 
-  const result = await rawQuery(getUserQuery(options.tenancyId, options.userId));
+  const result = await rawQuery(getUserQuery(tenancy.id, options.userId));
 
   // In non-prod environments, let's also call the legacy function and ensure the result is the same
   // TODO next-release: remove this
   if (!getNodeEnvironment().includes("prod")) {
-    const legacyResult = await getUserLegacy(options);
+    const legacyResult = await getUserLegacy({ tenancyId: tenancy.id, userId: options.userId });
     if (!deepPlainEquals(result, legacyResult)) {
       throw new StackAssertionError("User result mismatch", {
         result,
@@ -541,6 +545,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       const newUser = await tx.projectUser.create({
         data: {
           tenancyId: auth.tenancy.id,
+          mirroredProjectId: auth.project.id,
+          mirroredBranchId: auth.tenancy.branchId,
           displayName: data.display_name === undefined ? undefined : (data.display_name || null),
           clientMetadata: data.client_metadata === null ? Prisma.JsonNull : data.client_metadata,
           clientReadOnlyMetadata: data.client_read_only_metadata === null ? Prisma.JsonNull : data.client_read_only_metadata,
@@ -717,7 +723,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     }
 
     runAsynchronouslyAndWaitUntil(sendUserCreatedWebhook({
-      tenancyId: auth.tenancy.id,
+      projectId: auth.project.id,
       data: result,
     }));
 
@@ -1015,7 +1021,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
 
 
     runAsynchronouslyAndWaitUntil(sendUserUpdatedWebhook({
-      tenancyId: auth.tenancy.id,
+      projectId: auth.project.id,
       data: result,
     }));
 
@@ -1053,7 +1059,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     });
 
     runAsynchronouslyAndWaitUntil(Promise.all(teams.map(t => sendTeamMembershipDeletedWebhook({
-      tenancyId: auth.tenancy.id,
+      projectId: auth.project.id,
       data: {
         team_id: t.teamId,
         user_id: params.user_id,
@@ -1061,7 +1067,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
     }))));
 
     runAsynchronouslyAndWaitUntil(sendUserDeletedWebhook({
-      tenancyId: auth.tenancy.id,
+      projectId: auth.project.id,
       data: {
         id: params.user_id,
         teams: teams.map((t) => ({
