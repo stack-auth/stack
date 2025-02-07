@@ -3,6 +3,7 @@ import { Tenancy } from "@/lib/tenancies";
 import { prismaClient } from "@/prisma-client";
 import { Prisma, VerificationCodeType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { adaptSchema, yupBoolean, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
@@ -50,7 +51,7 @@ type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}, SendCodeRetu
 };
 
 type ProjectBranchCombo = (
-  | { project: Tenancy, branchId: string, tenancy?: undefined }
+  | { project: ProjectsCrud["Admin"]["Read"], branchId: string, tenancy?: undefined }
   | { tenancy: Tenancy, project?: undefined, branchId?: undefined }
 );
 
