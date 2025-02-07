@@ -87,7 +87,7 @@ export const emailTemplateCrudHandlers = createLazyProxy(() => createCrudHandler
   },
   async onDelete({ auth, params }) {
     const dbType = typedToUppercase(params.type);
-    const emailTemplate = await getEmailTemplate(auth.tenancy.id, params.type);
+    const emailTemplate = await getEmailTemplate(auth.tenancy.project.id, params.type);
     if (!emailTemplate) {
       throw new StatusError(StatusError.NotFound, 'Email template not found');
     }

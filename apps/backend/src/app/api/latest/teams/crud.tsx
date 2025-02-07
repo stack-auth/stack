@@ -44,7 +44,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     }
 
     if (auth.type === 'client' && !auth.tenancy.config.client_team_creation_enabled) {
-      throw new StatusError(StatusError.Forbidden, 'Client team creation is disabled for this tenancy');
+      throw new StatusError(StatusError.Forbidden, 'Client team creation is disabled for this project');
     }
 
     if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {

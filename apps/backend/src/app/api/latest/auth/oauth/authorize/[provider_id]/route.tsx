@@ -55,7 +55,7 @@ export const GET = createSmartRouteHandler({
     bodyType: yupString().oneOf(["empty"]).defined(),
   }),
   async handler({ params, query }, fullReq) {
-    const tenancy = await getSoleTenancyFromProject(query.client_id) as Tenancy | null;
+    const tenancy = await getSoleTenancyFromProject(query.client_id, true);
 
     if (!tenancy) {
       throw new KnownErrors.InvalidOAuthClientIdOrSecret(query.client_id);

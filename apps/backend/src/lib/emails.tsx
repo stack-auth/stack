@@ -12,16 +12,17 @@ import { Result } from '@stackframe/stack-shared/dist/utils/results';
 import { typedToUppercase } from '@stackframe/stack-shared/dist/utils/strings';
 import nodemailer from 'nodemailer';
 import { Tenancy } from './tenancies';
+
 export async function getEmailTemplate(projectId: string, type: keyof typeof EMAIL_TEMPLATES_METADATA) {
-  const tenancy = await getProject(projectId);
-  if (!tenancy) {
+  const project = await getProject(projectId);
+  if (!project) {
     throw new Error("Project not found");
   }
 
   const template = await prismaClient.emailTemplate.findUnique({
     where: {
       projectConfigId_type: {
-        projectConfigId: tenancy.config.id,
+        projectConfigId: project.config.id,
         type: typedToUppercase(type),
       },
     },
@@ -254,7 +255,7 @@ export async function sendEmailFromTemplate(options: {
   extraVariables: Record<string, string | null>,
   version?: 1 | 2,
 }) {
-  const template = await getEmailTemplateWithDefault(options.tenancy.id, options.templateType, options.version);
+  const template = await getEmailTemplateWithDefault(options.tenancy.project.id, options.templateType, options.version);
 
   const variables = filterUndefined({
     projectDisplayName: options.tenancy.project.display_name,

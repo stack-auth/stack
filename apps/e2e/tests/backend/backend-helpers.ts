@@ -184,6 +184,7 @@ export namespace Auth {
         "iss": "https://access-token.jwt-signature.stack-auth.com",
         "aud": expect.any(String),
         "sub": expect.any(String),
+        "branchId": "main",
       });
     }
   }

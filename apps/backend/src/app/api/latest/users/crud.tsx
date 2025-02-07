@@ -180,7 +180,7 @@ async function getPasswordConfig(tx: PrismaTransaction, projectConfigId: string)
   });
 
   if (passwordConfig.length > 1) {
-    throw new StackAssertionError("Multiple password auth methods found in the tenancy", passwordConfig);
+    throw new StackAssertionError("Multiple password auth methods found in the project", passwordConfig);
   }
 
   return passwordConfig.length === 0 ? null : passwordConfig[0];
@@ -649,7 +649,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         const passwordConfig = await getPasswordConfig(tx, auth.tenancy.config.id);
 
         if (!passwordConfig) {
-          throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the tenancy");
+          throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
         }
 
         await tx.authMethod.create({
@@ -672,7 +672,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
         const otpConfig = await getOtpConfig(tx, auth.tenancy.config.id);
 
         if (!otpConfig) {
-          throw new StatusError(StatusError.BadRequest, "OTP auth not enabled in the tenancy");
+          throw new StatusError(StatusError.BadRequest, "OTP auth not enabled in the project");
         }
 
         await tx.authMethod.create({
@@ -966,7 +966,7 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
             const passwordConfig = await getPasswordConfig(tx, auth.tenancy.config.id);
 
             if (!passwordConfig) {
-              throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the tenancy");
+              throw new StatusError(StatusError.BadRequest, "Password auth not enabled in the project");
             }
 
             await tx.authMethod.create({
@@ -1100,7 +1100,7 @@ export const currentUserCrudHandlers = createLazyProxy(() => createCrudHandlers(
   },
   async onDelete({ auth }) {
     if (auth.type === 'client' && !auth.tenancy.config.client_user_deletion_enabled) {
-      throw new StatusError(StatusError.BadRequest, "Client user deletion is not enabled for this tenancy");
+      throw new StatusError(StatusError.BadRequest, "Client user deletion is not enabled for this project");
     }
 
     return await usersCrudHandlers.adminDelete({

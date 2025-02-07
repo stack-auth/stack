@@ -37,7 +37,7 @@ export const POST = createSmartRouteHandler({
   }),
   async handler({ auth: { tenancy }, body: { email, callback_url: callbackUrl }, clientVersion }, fullReq) {
     if (!tenancy.config.magic_link_enabled) {
-      throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this tenancy");
+      throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
 
     const contactChannel = await getAuthContactChannel(
@@ -59,10 +59,10 @@ export const POST = createSmartRouteHandler({
         if (!otpAuthMethod) {
           // automatically merge the otp auth method with the existing account
 
-          // TODO: use the contact channel handler
+          // TODO: use an existing crud handler
           const rawProject = await prismaClient.project.findUnique({
             where: {
-              id: tenancy.id,
+              id: tenancy.project.id,
             },
             include: {
               config: {

@@ -1,7 +1,7 @@
 import { prismaClient } from "@/prisma-client";
 import { Prisma } from "@prisma/client";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { fullProjectInclude, projectPrismaToCrud } from "./projects";
+import { fullProjectInclude, getProject, projectPrismaToCrud } from "./projects";
 
 export const fullTenancyInclude = {
   project: {
@@ -36,10 +36,22 @@ export type Tenancy = Awaited<ReturnType<typeof tenancyPrismaToCrud>>;
   * @deprecated This is a temporary function for the situation where every project has exactly one tenancy. Later,
   * we will support multiple tenancies per project, and all uses of this function will be refactored.
   */
-export async function getSoleTenancyFromProject(projectId: string) {
+export async function getSoleTenancyFromProject(projectId: string): Promise<Tenancy>;
+/**
+  * @deprecated This is a temporary function for the situation where every project has exactly one tenancy. Later,
+  * we will support multiple tenancies per project, and all uses of this function will be refactored.
+  */
+export async function getSoleTenancyFromProject(projectId: string, returnNullIfNotFound: boolean): Promise<Tenancy | null>;
+export async function getSoleTenancyFromProject(projectId: string, returnNullIfNotFound: boolean = false) {
   const tenancy = await getTenancyFromProject(projectId, 'main', null);
   if (!tenancy) {
-    throw new StackAssertionError("No tenancy found for project", { projectId });
+    if (returnNullIfNotFound) return null;
+
+    const project = await getProject(projectId);
+    if (!project) {
+      throw new StackAssertionError(`Tried to find sole tenancy for project, but project not found for ID ${projectId}`, { projectId });
+    }
+    throw new StackAssertionError(`No tenancy found for project ${projectId}`, { projectId });
   }
   return tenancy;
 }
