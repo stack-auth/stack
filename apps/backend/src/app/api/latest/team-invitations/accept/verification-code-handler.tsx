@@ -54,7 +54,7 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
     });
 
     await sendEmailFromTemplate({
-      tenancy: await getSoleTenancyFromProject(createOptions.project.id),
+      tenancy: await getSoleTenancyFromProject(createOptions.project),
       user: null,
       email: createOptions.method.email,
       templateType: "team_invitation",

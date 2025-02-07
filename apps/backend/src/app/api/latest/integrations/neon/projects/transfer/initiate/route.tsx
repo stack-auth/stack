@@ -43,7 +43,7 @@ export const POST = createSmartRouteHandler({
     }
 
     const transferCodeObj = await neonIntegrationProjectTransferCodeHandler.createCode({
-      tenancy: await getSoleTenancyFromProject(internalProject.id),
+      tenancy: await getSoleTenancyFromProject(internalProject),
       method: {},
       data: {
         project_id: neonProvisionedProject.projectId,

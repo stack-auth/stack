@@ -125,7 +125,7 @@ async function seed() {
     console.log('Internal project created');
   }
 
-  const internalTenancy = await getSoleTenancyFromProject('internal');
+  const internalTenancy = await getSoleTenancyFromProject("internal");
 
   if (internalProject.config.signUpEnabled !== signUpEnabled) {
     await prisma.projectConfig.update({

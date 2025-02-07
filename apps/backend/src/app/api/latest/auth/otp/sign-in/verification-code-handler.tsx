@@ -37,7 +37,7 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
     body: signInResponseSchema.defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { email: string }) {
-    const tenancy = await getSoleTenancyFromProject(createOptions.project.id);
+    const tenancy = await getSoleTenancyFromProject(createOptions.project);
     await sendEmailFromTemplate({
       tenancy,
       email: createOptions.method.email,

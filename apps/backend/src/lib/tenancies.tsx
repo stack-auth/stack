@@ -1,5 +1,6 @@
 import { prismaClient } from "@/prisma-client";
 import { Prisma } from "@prisma/client";
+import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
 import { fullProjectInclude, getProject, projectPrismaToCrud } from "./projects";
 
@@ -22,7 +23,7 @@ export function tenancyPrismaToCrud(prisma: Prisma.TenancyGetPayload<{ include: 
     id: prisma.id,
     config: projectCrud.config,
     branchId: prisma.branchId,
-    organization: {
+    organization: prisma.organizationId === null ? null : {
       // TODO actual organization type
       id: prisma.organizationId,
     },
@@ -34,35 +35,50 @@ export type Tenancy = Awaited<ReturnType<typeof tenancyPrismaToCrud>>;
 
 /**
  * while not necessary, this cache just makes performance a little better
- * 
+ *
  * eventually, we'll nicely pass around tenancies and won't need this function anymore, so the cache is a good temp
  * solution
  */
-const soleTenanciesCache = new Map<string, Tenancy>();
+const soleTenancyIdsCache = new Map<string, string>();
 
 /**
   * @deprecated This is a temporary function for the situation where every project has exactly one tenancy. Later,
   * we will support multiple tenancies per project, and all uses of this function will be refactored.
   */
-export async function getSoleTenancyFromProject(projectId: string): Promise<Tenancy>;
+export async function getSoleTenancyFromProject(project: ProjectsCrud["Admin"]["Read"] | string): Promise<Tenancy>;
 /**
   * @deprecated This is a temporary function for the situation where every project has exactly one tenancy. Later,
   * we will support multiple tenancies per project, and all uses of this function will be refactored.
   */
-export async function getSoleTenancyFromProject(projectId: string, returnNullIfNotFound: boolean): Promise<Tenancy | null>;
-export async function getSoleTenancyFromProject(projectId: string, returnNullIfNotFound: boolean = false) {
-  const tenancy = soleTenanciesCache.get(projectId) ?? await getTenancyFromProject(projectId, 'main', null);
-  if (!tenancy) {
-    if (returnNullIfNotFound) return null;
-
-    const project = await getProject(projectId);
-    if (!project) {
-      throw new StackAssertionError(`Tried to find sole tenancy for project, but project not found for ID ${projectId}`, { projectId });
-    }
-    throw new StackAssertionError(`No tenancy found for project ${projectId}`, { projectId });
+export async function getSoleTenancyFromProject(project: ProjectsCrud["Admin"]["Read"] | string, returnNullIfNotFound: boolean): Promise<Tenancy | null>;
+export async function getSoleTenancyFromProject(projectOrId: ProjectsCrud["Admin"]["Read"] | string, returnNullIfNotFound: boolean = false): Promise<Tenancy | null> {
+  let project;
+  if (!projectOrId) {
+    throw new StackAssertionError("Project is required", { projectOrId });
   }
-  soleTenanciesCache.set(projectId, tenancy);
-  return tenancy;
+  if (typeof projectOrId === 'string') {
+    project = await getProject(projectOrId);
+  } else {
+    project = projectOrId;
+  }
+  if (!project) {
+    console.log(new Error());
+    if (returnNullIfNotFound) return null;
+    throw new StackAssertionError(`Project ${projectOrId} does not exist`, { projectOrId });
+  }
+  const tenancyId = soleTenancyIdsCache.get(project.id) ?? (await getTenancyFromProject(project.id, 'main', null))?.id;
+  if (!tenancyId) {
+    if (returnNullIfNotFound) return null;
+    throw new StackAssertionError(`No tenancy found for project ${project.id}`, { project });
+  }
+  soleTenancyIdsCache.set(project.id, tenancyId);
+  return {
+    id: tenancyId,
+    config: project.config,
+    branchId: "main",
+    organization: null,
+    project: project,
+  };
 }
 
 export async function getTenancy(tenancyId: string) {

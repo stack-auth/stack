@@ -31,7 +31,7 @@ export const contactChannelVerificationCodeHandler = createVerificationCodeHandl
     bodyType: yupString().oneOf(["success"]).defined(),
   }),
   async send(codeObj, createOptions, sendOptions: { user: UsersCrud["Admin"]["Read"] }) {
-    const tenancy = await getSoleTenancyFromProject(createOptions.project.id);
+    const tenancy = await getSoleTenancyFromProject(createOptions.project);
 
     await sendEmailFromTemplate({
       tenancy,

@@ -259,10 +259,11 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
     throw new KnownErrors.ProjectNotFound(projectId);
   }
 
+  console.log("AAAAA", project);
   return {
     project,
     branchId: "main",
-    tenancy: await getSoleTenancyFromProject(project.id),
+    tenancy: await getSoleTenancyFromProject(project),
     user: queriesResults.user ?? undefined,
     type: requestType,
   };
