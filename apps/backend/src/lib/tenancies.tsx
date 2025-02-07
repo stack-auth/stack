@@ -33,6 +33,14 @@ export function tenancyPrismaToCrud(prisma: Prisma.TenancyGetPayload<{ include: 
 export type Tenancy = Awaited<ReturnType<typeof tenancyPrismaToCrud>>;
 
 /**
+ * while not necessary, this cache just makes performance a little better
+ * 
+ * eventually, we'll nicely pass around tenancies and won't need this function anymore, so the cache is a good temp
+ * solution
+ */
+const soleTenanciesCache = new Map<string, Tenancy>();
+
+/**
   * @deprecated This is a temporary function for the situation where every project has exactly one tenancy. Later,
   * we will support multiple tenancies per project, and all uses of this function will be refactored.
   */
@@ -43,7 +51,7 @@ export async function getSoleTenancyFromProject(projectId: string): Promise<Tena
   */
 export async function getSoleTenancyFromProject(projectId: string, returnNullIfNotFound: boolean): Promise<Tenancy | null>;
 export async function getSoleTenancyFromProject(projectId: string, returnNullIfNotFound: boolean = false) {
-  const tenancy = await getTenancyFromProject(projectId, 'main', null);
+  const tenancy = soleTenanciesCache.get(projectId) ?? await getTenancyFromProject(projectId, 'main', null);
   if (!tenancy) {
     if (returnNullIfNotFound) return null;
 
@@ -53,6 +61,7 @@ export async function getSoleTenancyFromProject(projectId: string, returnNullIfN
     }
     throw new StackAssertionError(`No tenancy found for project ${projectId}`, { projectId });
   }
+  soleTenanciesCache.set(projectId, tenancy);
   return tenancy;
 }
 
