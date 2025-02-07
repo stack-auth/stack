@@ -1,5 +1,5 @@
 import { checkApiKeySet } from "@/lib/api-keys";
-import { getProject } from "@/lib/projects";
+import { Tenancy, getSoleTenancyFromProject } from "@/lib/tenancies";
 import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
 import { getProvider } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
@@ -55,7 +55,7 @@ export const GET = createSmartRouteHandler({
     bodyType: yupString().oneOf(["empty"]).defined(),
   }),
   async handler({ params, query }, fullReq) {
-    const tenancy = await getProject(query.client_id);
+    const tenancy = await getSoleTenancyFromProject(query.client_id) as Tenancy | null;
 
     if (!tenancy) {
       throw new KnownErrors.InvalidOAuthClientIdOrSecret(query.client_id);
@@ -77,10 +77,13 @@ export const GET = createSmartRouteHandler({
       if (result.status === "error") {
         throw result.error;
       }
-      const { userId, tenancyId: accessTokenProjectId } = result.data;
+      const { userId, projectId: accessTokenProjectId, branchId: accessTokenBranchId } = result.data;
 
       if (accessTokenProjectId !== query.client_id) {
-        throw new StatusError(StatusError.Forbidden, "The access token is not valid for this tenancy");
+        throw new StatusError(StatusError.Forbidden, "The access token is not valid for this project");
+      }
+      if (accessTokenBranchId !== tenancy.branchId) {
+        throw new StatusError(StatusError.Forbidden, "The access token is not valid for this branch");
       }
 
       if (query.provider_scope && provider.type === "shared") {

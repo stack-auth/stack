@@ -356,7 +356,7 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
               'userCount', (
                 SELECT count(*)
                 FROM "ProjectUser"
-                WHERE "ProjectUser"."projectId" = "Project"."id"
+                WHERE "ProjectUser"."mirroredProjectId" = "Project"."id"
               )
             )
           )
@@ -474,7 +474,6 @@ export async function getProject(projectId: string): Promise<ProjectsCrud["Admin
   const result = await rawQuery(getProjectQuery(projectId));
 
   // In non-prod environments, let's also call the legacy function and ensure the result is the same
-  // TODO next-release: remove this
   if (!getNodeEnvironment().includes("prod")) {
     const legacyResult = await getProjectLegacy(projectId);
     if (!deepPlainEquals(omit(result ?? {}, ["user_count"] as any), omit(legacyResult ?? {}, ["user_count"] as any))) {

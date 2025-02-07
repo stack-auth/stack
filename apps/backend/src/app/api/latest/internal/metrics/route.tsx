@@ -15,7 +15,7 @@ const DataPointsSchema = yupArray(yupObject({
 }).defined()).defined();
 
 
-async function loadUsersByCountry(tenancyId: string): Promise<Record<string, number>> {
+async function loadUsersByCountry(tenancy: Tenancy): Promise<Record<string, number>> {
   const a = await prismaClient.$queryRaw<{countryCode: string|null, userCount: bigint}[]>`
     WITH LatestEventWithCountryCode AS (
         SELECT DISTINCT ON ("userId")
@@ -26,7 +26,8 @@ async function loadUsersByCountry(tenancyId: string): Promise<Record<string, num
         LEFT JOIN "EventIpInfo" eip
           ON "Event"."endUserIpInfoGuessId" = eip.id
         WHERE '$user-activity' = ANY("systemEventTypeIds"::text[])
-          AND "data"->>'tenancyId' = ${tenancyId}
+          AND "data"->>'projectId' = ${tenancy.project.id}
+          AND "data"->>'branchId' = ${tenancy.branchId}
           AND "countryCode" IS NOT NULL
         ORDER BY "userId", "eventStartedAt" DESC
     )
@@ -43,7 +44,7 @@ async function loadUsersByCountry(tenancyId: string): Promise<Record<string, num
   return rec;
 }
 
-async function loadTotalUsers(tenancyId: string, now: Date): Promise<DataPoints> {
+async function loadTotalUsers(tenancy: Tenancy, now: Date): Promise<DataPoints> {
   return (await prismaClient.$queryRaw<{date: Date, dailyUsers: bigint, cumUsers: bigint}[]>`
     WITH date_series AS (
         SELECT GENERATE_SERIES(
@@ -59,7 +60,7 @@ async function loadTotalUsers(tenancyId: string, now: Date): Promise<DataPoints>
       SUM(COALESCE(COUNT(pu."projectUserId"), 0)) OVER (ORDER BY ds.registration_day) AS "cumUsers"
     FROM date_series ds
     LEFT JOIN "ProjectUser" pu
-    ON DATE(pu."createdAt") = ds.registration_day AND pu."tenancyId" = ${tenancyId}
+    ON DATE(pu."createdAt") = ds.registration_day AND pu."tenancyId" = ${tenancy.id}::UUID
     GROUP BY ds.registration_day
     ORDER BY ds.registration_day
   `).map((x) => ({
@@ -68,7 +69,7 @@ async function loadTotalUsers(tenancyId: string, now: Date): Promise<DataPoints>
   }));
 }
 
-async function loadDailyActiveUsers(tenancyId: string, now: Date) {
+async function loadDailyActiveUsers(tenancy: Tenancy, now: Date) {
   const res = await prismaClient.$queryRaw<{day: Date, dau: bigint}[]>`
     WITH date_series AS (
       SELECT GENERATE_SERIES(
@@ -86,7 +87,8 @@ async function loadDailyActiveUsers(tenancyId: string, now: Date) {
       WHERE "eventStartedAt" >= ${now} - INTERVAL '30 days'
         AND "eventStartedAt" < ${now}
         AND '$user-activity' = ANY("systemEventTypeIds"::text[])
-        AND "data"->>'tenancyId' = ${tenancyId}
+        AND "data"->>'projectId' = ${tenancy.project.id}
+        AND "data"->>'branchId' = ${tenancy.branchId}
       GROUP BY DATE_TRUNC('day', "eventStartedAt")
     )
     SELECT ds."day", COALESCE(du.dau, 0) AS dau
@@ -127,7 +129,7 @@ async function loadLoginMethods(tenancyId: string): Promise<{method: string, cou
       LEFT JOIN "PasswordAuthMethod" pam ON method.id = pam."authMethodId"
       LEFT JOIN "PasskeyAuthMethod" pkm ON method.id = pkm."authMethodId"
       LEFT JOIN "OtpAuthMethod" oam ON method.id = oam."authMethodId"
-      WHERE method."tenancyId" = ${tenancyId})
+      WHERE method."tenancyId" = ${tenancyId}::UUID)
     SELECT LOWER("method") AS method, COUNT(id)::int AS "count" FROM tab
     GROUP BY "method"
   `;
@@ -216,9 +218,9 @@ export const GET = createSmartRouteHandler({
       prismaClient.projectUser.count({
         where: { tenancyId: req.auth.tenancy.id, },
       }),
-      loadTotalUsers(req.auth.tenancy.id, now),
-      loadDailyActiveUsers(req.auth.tenancy.id, now),
-      loadUsersByCountry(req.auth.tenancy.id),
+      loadTotalUsers(req.auth.tenancy, now),
+      loadDailyActiveUsers(req.auth.tenancy, now),
+      loadUsersByCountry(req.auth.tenancy),
       (await usersCrudHandlers.adminList({
         tenancy: req.auth.tenancy,
         query: {

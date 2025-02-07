@@ -237,7 +237,7 @@ export const getUsersLastActiveAtMillis = async (tenancyId: string, userIds: str
   });
 };
 
-export function getUserQuery(tenancyId: string, userId: string): RawQuery<UsersCrud["Admin"]["Read"] | null> {
+export function getUserQuery(projectId: string, branchId: string | null, userId: string): RawQuery<UsersCrud["Admin"]["Read"] | null> {
   return {
     sql: Prisma.sql`
       SELECT to_json(
@@ -248,7 +248,7 @@ export function getUserQuery(tenancyId: string, userId: string): RawQuery<UsersC
               'lastActiveAt', (
                 SELECT MAX("eventStartedAt") as "lastActiveAt"
                 FROM "Event"
-                WHERE data->>'tenancyId' = "ProjectUser"."tenancyId" AND "data"->>'userId' = ("ProjectUser"."projectUserId")::text AND "systemEventTypeIds" @> '{"$user-activity"}'
+                WHERE data->>'tenancyId' = ("ProjectUser"."tenancyId")::text AND "data"->>'userId' = ("ProjectUser"."projectUserId")::text AND "systemEventTypeIds" @> '{"$user-activity"}'
               ),
               'ContactChannels', (
                 SELECT COALESCE(ARRAY_AGG(
@@ -333,15 +333,16 @@ export function getUserQuery(tenancyId: string, userId: string): RawQuery<UsersC
             )
           )
           FROM "ProjectUser"
-          LEFT JOIN "Project" ON "Project"."id" = "ProjectUser"."tenancyId"
+          LEFT JOIN "Tenancy" ON "Tenancy"."id" = "ProjectUser"."tenancyId"
+          LEFT JOIN "Project" ON "Project"."id" = "Tenancy"."projectId"
           LEFT JOIN "ProjectConfig" ON "ProjectConfig"."id" = "Project"."configId"
-          WHERE "ProjectUser"."tenancyId" = ${tenancyId} AND "ProjectUser"."projectUserId" = ${userId}::UUID
+          WHERE "Tenancy"."projectId" = ${projectId} AND "Tenancy"."branchId" = ${branchId ?? "main"} AND "ProjectUser"."projectUserId" = ${userId}::UUID
         )
       ) AS "row_data_json"
     `,
     postProcess: (queryResult) => {
       if (queryResult.length !== 1) {
-        throw new StackAssertionError(`Expected 1 user with id ${userId} in tenancy ${tenancyId}, got ${queryResult.length}`, { queryResult });
+        throw new StackAssertionError(`Expected 1 user with id ${userId} in project ${projectId}, got ${queryResult.length}`, { queryResult });
       }
 
       const row = queryResult[0].row_data_json;
@@ -405,10 +406,9 @@ export async function getUser(options: { userId: string } & ({ projectId: string
     tenancy = await getTenancy(options.tenancyId) ?? throwErr("Tenancy not found", { tenancyId: options.tenancyId });
   }
 
-  const result = await rawQuery(getUserQuery(tenancy.id, options.userId));
+  const result = await rawQuery(getUserQuery(tenancy.project.id, tenancy.branchId, options.userId));
 
   // In non-prod environments, let's also call the legacy function and ensure the result is the same
-  // TODO next-release: remove this
   if (!getNodeEnvironment().includes("prod")) {
     const legacyResult = await getUserLegacy({ tenancyId: tenancy.id, userId: options.userId });
     if (!deepPlainEquals(result, legacyResult)) {

@@ -150,7 +150,7 @@ const handler = createSmartRouteHandler({
         body: {},
         method: "GET",
         query: {
-          client_id: outerInfo.tenancyId,
+          client_id: tenancy.project.id,
           client_secret: outerInfo.publishableClientKey,
           redirect_uri: outerInfo.redirectUri,
           state: outerInfo.state,

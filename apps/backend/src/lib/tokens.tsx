@@ -15,6 +15,7 @@ export const authorizationHeaderSchema = yupString().matches(/^StackSession [^ ]
 const accessTokenSchema = yupObject({
   projectId: yupString().defined(),
   userId: yupString().defined(),
+  branchId: yupString().defined(),
   exp: yupNumber().defined(),
 });
 
@@ -64,7 +65,7 @@ export async function decodeAccessToken(accessToken: string) {
   const result = await accessTokenSchema.validate({
     projectId: payload.aud || payload.projectId,
     userId: payload.sub,
-    branchId: payload.branchId ?? "main",  // TODO remove this once old tokens have expired
+    branchId: payload.branchId ?? "main",  // TODO remove the main fallback once old tokens have expired
     refreshTokenId: payload.refreshTokenId,
     exp: payload.exp,
   });

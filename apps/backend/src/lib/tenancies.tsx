@@ -45,6 +45,9 @@ export async function getSoleTenancyFromProject(projectId: string) {
 }
 
 export async function getTenancy(tenancyId: string) {
+  if (tenancyId === "internal") {
+    throw new StackAssertionError("Tried to get tenancy with ID `internal`. This is a mistake because `internal` is only a valid identifier for projects.");
+  }
   const prisma = await prismaClient.tenancy.findUnique({
     where: { id: tenancyId },
     include: fullTenancyInclude,

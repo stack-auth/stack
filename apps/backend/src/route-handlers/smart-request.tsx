@@ -199,7 +199,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
   // Because smart route handlers are always called, we instead send over a single raw query that fetches all the
   // data at the same time, saving us a lot of requests
   const bundledQueries = {
-    user: projectId && accessToken ? getUserQuery(projectId, await extractUserIdFromAccessToken({ token: accessToken, projectId })) : undefined,
+    user: projectId && accessToken ? getUserQuery(projectId, null, await extractUserIdFromAccessToken({ token: accessToken, projectId })) : undefined,
     isClientKeyValid: projectId && publishableClientKey && requestType === "client" ? checkApiKeySetQuery(projectId, { publishableClientKey }) : undefined,
     isServerKeyValid: projectId && secretServerKey && requestType === "server" ? checkApiKeySetQuery(projectId, { secretServerKey }) : undefined,
     isAdminKeyValid: projectId && superSecretAdminKey && requestType === "admin" ? checkApiKeySetQuery(projectId, { superSecretAdminKey }) : undefined,
