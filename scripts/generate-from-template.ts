@@ -110,7 +110,7 @@ function copyFromSrcToDest(
         newContent = shebangLine +
                     '//===========================================\n' +
                     '// ' + COMMENT_LINE + '\n' +
-                    '//===========================================\n' +
+                    '//===========================================\n\n' +
                     contentWithoutShebang;
       }
 
