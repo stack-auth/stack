@@ -1,11 +1,11 @@
 "use client";
 
 import { SmartFormDialog } from "@/components/form-dialog";
+import { useRouter } from "@/components/router";
 import { SettingCard } from "@/components/settings";
 import { getPublicEnvVar } from "@/lib/env";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { SvixProvider, useEndpoints, useSvix } from "svix-react";
 import * as yup from "yup";
