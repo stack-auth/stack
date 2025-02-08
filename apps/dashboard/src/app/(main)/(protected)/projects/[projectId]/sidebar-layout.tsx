@@ -4,6 +4,7 @@ import { FeedbackDialog } from "@/components/feedback-dialog";
 import { Link } from "@/components/link";
 import { Logo } from "@/components/logo";
 import { ProjectSwitcher } from "@/components/project-switcher";
+import { getPublicEnvVar } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { AdminProject, UserButton, useUser } from "@stackframe/stack";
 import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";
@@ -253,7 +254,7 @@ function SidebarContent({ projectId, onNavigate }: { projectId: string, onNaviga
   return (
     <div className="flex flex-col h-full items-stretch">
       <div className="h-14 border-b flex items-center px-2 shrink-0">
-        {process.env.NEXT_PUBLIC_STACK_EMULATOR_ENABLED === "true" ? (
+        {getPublicEnvVar("NEXT_PUBLIC_STACK_EMULATOR_ENABLED") === "true" ? (
           <div className="flex-grow mx-2">
             <Logo full width={80} />
           </div>
@@ -352,7 +353,7 @@ function HeaderBreadcrumb({
     return (
       <Breadcrumb>
         <BreadcrumbList>
-          {process.env.NEXT_PUBLIC_STACK_EMULATOR_ENABLED !== "true" &&
+          {getPublicEnvVar("NEXT_PUBLIC_STACK_EMULATOR_ENABLED") !== "true" &&
             <>
               <BreadcrumbItem>
                 <Link href="/projects">Home</Link>
@@ -437,7 +438,7 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <FeedbackDialog
               trigger={<Button variant="outline" size='sm'>Feedback</Button>}
             />
-            {process.env.NEXT_PUBLIC_STACK_EMULATOR_ENABLED !== "true" && <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}/>}
+            {getPublicEnvVar("NEXT_PUBLIC_STACK_EMULATOR_ENABLED") !== "true" && <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}/>}
           </div>
         </div>
         <div className="flex-grow relative">

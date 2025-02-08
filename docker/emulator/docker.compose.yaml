@@ -2,7 +2,7 @@ services:
 
   # ================= Stack Auth Server =================
 
-  server:
+  stack-auth-server:
     build:
       context: ../..
       dockerfile: docker/server/Dockerfile
@@ -24,6 +24,8 @@ services:
       NEXT_PUBLIC_STACK_EMULATOR_PROJECT_ID: dff88d17-6d39-4b08-b4e2-c87c81f7218a
     depends_on:
       - db
+      - inbucket
+      - svix-server
 
   # ================= PostgreSQL =================
 
