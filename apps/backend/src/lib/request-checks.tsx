@@ -1,24 +1,24 @@
 import { ProxiedOAuthProviderType, StandardOAuthProviderType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { StatusError } from "@stackframe/stack-shared/dist/utils/errors";
 import { ProviderType, sharedProviders, standardProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { listUserTeamPermissions } from "./permissions";
+import { Tenancy } from "./tenancies";
 import { PrismaTransaction } from "./types";
 
 
 async function _getTeamMembership(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
+    tenancyId: string,
     teamId: string, userId: string,
   }
 ) {
   return await tx.teamMember.findUnique({
     where: {
-      projectId_projectUserId_teamId: {
-        projectId: options.projectId,
+      tenancyId_projectUserId_teamId: {
+        tenancyId: options.tenancyId,
         projectUserId: options.userId,
         teamId: options.teamId,
       },
@@ -29,12 +29,12 @@ async function _getTeamMembership(
 export async function ensureTeamMembershipExists(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
+    tenancyId: string,
     teamId: string,
     userId: string,
   }
 ) {
-  await ensureUserExists(tx, { projectId: options.projectId, userId: options.userId });
+  await ensureUserExists(tx, { tenancyId: options.tenancyId, userId: options.userId });
 
   const member = await _getTeamMembership(tx, options);
 
@@ -46,7 +46,7 @@ export async function ensureTeamMembershipExists(
 export async function ensureTeamMembershipDoesNotExist(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
+    tenancyId: string,
     teamId: string,
     userId: string,
   }
@@ -61,14 +61,14 @@ export async function ensureTeamMembershipDoesNotExist(
 export async function ensureTeamExists(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
+    tenancyId: string,
     teamId: string,
   }
 ) {
   const team = await tx.team.findUnique({
     where: {
-      projectId_teamId: {
-        projectId: options.projectId,
+      tenancyId_teamId: {
+        tenancyId: options.tenancyId,
         teamId: options.teamId,
       },
     },
@@ -82,7 +82,7 @@ export async function ensureTeamExists(
 export async function ensureUserTeamPermissionExists(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     teamId: string,
     userId: string,
     permissionId: string,
@@ -91,13 +91,13 @@ export async function ensureUserTeamPermissionExists(
   }
 ) {
   await ensureTeamMembershipExists(tx, {
-    projectId: options.project.id,
+    tenancyId: options.tenancy.id,
     teamId: options.teamId,
     userId: options.userId,
   });
 
   const result = await listUserTeamPermissions(tx, {
-    project: options.project,
+    tenancy: options.tenancy,
     teamId: options.teamId,
     userId: options.userId,
     permissionId: options.permissionId,
@@ -116,14 +116,14 @@ export async function ensureUserTeamPermissionExists(
 export async function ensureUserExists(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
+    tenancyId: string,
     userId: string,
   }
 ) {
   const user = await tx.projectUser.findUnique({
     where: {
-      projectId_projectUserId: {
-        projectId: options.projectId,
+      tenancyId_projectUserId: {
+        tenancyId: options.tenancyId,
         projectUserId: options.userId,
       },
     },
@@ -155,7 +155,7 @@ export function ensureStandardProvider(
 export async function ensureContactChannelDoesNotExists(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
+    tenancyId: string,
     userId: string,
     type: 'email',
     value: string,
@@ -163,8 +163,8 @@ export async function ensureContactChannelDoesNotExists(
 ) {
   const contactChannel = await tx.contactChannel.findUnique({
     where: {
-      projectId_projectUserId_type_value: {
-        projectId: options.projectId,
+      tenancyId_projectUserId_type_value: {
+        tenancyId: options.tenancyId,
         projectUserId: options.userId,
         type: typedToUppercase(options.type),
         value: options.value,
@@ -180,15 +180,15 @@ export async function ensureContactChannelDoesNotExists(
 export async function ensureContactChannelExists(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
+    tenancyId: string,
     userId: string,
     contactChannelId: string,
   }
 ) {
   const contactChannel = await tx.contactChannel.findUnique({
     where: {
-      projectId_projectUserId_id: {
-        projectId: options.projectId,
+      tenancyId_projectUserId_id: {
+        tenancyId: options.tenancyId,
         projectUserId: options.userId,
         id: options.contactChannelId,
       },

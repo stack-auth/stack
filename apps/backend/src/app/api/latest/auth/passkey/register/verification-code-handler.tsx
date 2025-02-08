@@ -38,14 +38,14 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
   async send() {
     throw new StackAssertionError("send() called on a Passkey registration verification code handler");
   },
-  async handler(project, _, { challenge }, { credential }, user) {
-    if (!project.config.passkey_enabled) {
+  async handler(tenancy, _, { challenge }, { credential }, user) {
+    if (!tenancy.config.passkey_enabled) {
       throw new KnownErrors.PasskeyAuthenticationNotEnabled();
     }
 
     if (!user) {
       throw new StackAssertionError("User not found", {
-        projectId: project.id,
+        tenancyId: tenancy.id,
       });
     }
 
@@ -55,7 +55,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
     let expectedOrigin = "";
     const clientDataJSON = decodeClientDataJSON(credential.response.clientDataJSON);
     const { origin } = clientDataJSON;
-    const localhostAllowed = project.config.allow_localhost;
+    const localhostAllowed = tenancy.config.allow_localhost;
     const parsedOrigin = new URL(origin);
     const isLocalhost = parsedOrigin.hostname === "localhost";
 
@@ -69,7 +69,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
     }
 
     if (!isLocalhost) {
-      if (!project.config.domains.map(e => e.domain).includes(parsedOrigin.origin)) {
+      if (!tenancy.config.domains.map(e => e.domain).includes(parsedOrigin.origin)) {
         throw new KnownErrors.PasskeyAuthenticationFailed("Passkey registration failed because the origin is not allowed");
       } else {
         expectedRPID = parsedOrigin.hostname;
@@ -99,7 +99,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
     await retryTransaction(async (tx) => {
       const authMethodConfig = await tx.passkeyAuthMethodConfig.findMany({
         where: {
-          projectConfigId: project.config.id,
+          projectConfigId: tenancy.config.id,
           authMethodConfig: {
             enabled: true,
           },
@@ -107,16 +107,16 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
       });
 
       if (authMethodConfig.length > 1) {
-        throw new StackAssertionError("Project has multiple passkey auth method configs.", { projectId: project.id });
+        throw new StackAssertionError("Project has multiple passkey auth method configs.", { tenancyId: tenancy.id });
       }
 
       if (authMethodConfig.length === 0) {
-        throw new StackAssertionError("Project has no passkey auth method config. This should never happen if passkey is enabled on the project.", { projectId: project.id });
+        throw new StackAssertionError("Project has no passkey auth method config. This should never happen if passkey is enabled on the tenancy.", { tenancyId: tenancy.id });
       }
 
       const authMethods = await tx.passkeyAuthMethod.findMany({
         where: {
-          projectId: project.id,
+          tenancyId: tenancy.id,
           projectUserId: user.id,
         },
       });
@@ -124,7 +124,7 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
       if (authMethods.length > 1) {
         // We do not support multiple passkeys per user yet
         throw new StackAssertionError("User has multiple passkey auth methods.", {
-          projectId: project.id,
+          tenancyId: tenancy.id,
           projectUserId: user.id,
         });
       }
@@ -133,9 +133,9 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
         // Create new passkey auth method
         await tx.authMethod.create({
           data: {
-            projectId: project.id,
+            tenancyId: tenancy.id,
             projectUserId: user.id,
-            projectConfigId: project.config.id,
+            projectConfigId: tenancy.config.id,
             authMethodConfigId: authMethodConfig[0].authMethodConfigId,
             passkeyAuthMethod: {
               create: {
@@ -154,8 +154,8 @@ export const registerVerificationCodeHandler = createVerificationCodeHandler({
         // Update existing passkey auth method
         await tx.passkeyAuthMethod.update({
           where: {
-            projectId_projectUserId: {
-              projectId: project.id,
+            tenancyId_projectUserId: {
+              tenancyId: tenancy.id,
               projectUserId: user.id,
             }
           },

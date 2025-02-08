@@ -22,10 +22,10 @@ export const teamPermissionsCrudHandlers = createLazyProxy(() => createCrudHandl
   }),
   async onCreate({ auth, params }) {
     return await retryTransaction(async (tx) => {
-      await ensureTeamMembershipExists(tx, { projectId: auth.project.id, teamId: params.team_id, userId: params.user_id });
+      await ensureTeamMembershipExists(tx, { tenancyId: auth.tenancy.id, teamId: params.team_id, userId: params.user_id });
 
       return await grantTeamPermission(tx, {
-        project: auth.project,
+        tenancy: auth.tenancy,
         teamId: params.team_id,
         userId: params.user_id,
         permissionId: params.permission_id
@@ -35,7 +35,7 @@ export const teamPermissionsCrudHandlers = createLazyProxy(() => createCrudHandl
   async onDelete({ auth, params }) {
     return await retryTransaction(async (tx) => {
       await ensureUserTeamPermissionExists(tx, {
-        project: auth.project,
+        tenancy: auth.tenancy,
         teamId: params.team_id,
         userId: params.user_id,
         permissionId: params.permission_id,
@@ -44,7 +44,7 @@ export const teamPermissionsCrudHandlers = createLazyProxy(() => createCrudHandl
       });
 
       return await revokeTeamPermission(tx, {
-        project: auth.project,
+        tenancy: auth.tenancy,
         teamId: params.team_id,
         userId: params.user_id,
         permissionId: params.permission_id
@@ -63,7 +63,7 @@ export const teamPermissionsCrudHandlers = createLazyProxy(() => createCrudHandl
     return await retryTransaction(async (tx) => {
       return {
         items: await listUserTeamPermissions(tx, {
-          project: auth.project,
+          tenancy: auth.tenancy,
           teamId: query.team_id,
           permissionId: query.permission_id,
           userId: query.user_id,

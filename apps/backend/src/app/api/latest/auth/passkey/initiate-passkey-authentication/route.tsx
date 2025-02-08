@@ -1,11 +1,11 @@
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
-import { KnownErrors  } from "@stackframe/stack-shared";
-import { PublicKeyCredentialRequestOptionsJSON } from "@stackframe/stack-shared/dist/utils/passkey";
-import { adaptSchema, clientOrHigherAuthTypeSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { passkeySignInVerificationCodeHandler } from "../sign-in/verification-code-handler";
-import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
 import { isoUint8Array } from "@simplewebauthn/server/helpers";
+import { KnownErrors } from "@stackframe/stack-shared";
+import { adaptSchema, clientOrHigherAuthTypeSchema, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { getEnvVariable } from "@stackframe/stack-shared/dist/utils/env";
+import { PublicKeyCredentialRequestOptionsJSON } from "@stackframe/stack-shared/dist/utils/passkey";
+import { passkeySignInVerificationCodeHandler } from "../sign-in/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -17,7 +17,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema,
+      tenancy: adaptSchema,
     }).defined()
   }),
   response: yupObject({
@@ -28,9 +28,9 @@ export const POST = createSmartRouteHandler({
       code: yupString().defined(),
     }).defined(),
   }),
-  async handler({ auth: { project } }) {
+  async handler({ auth: { tenancy } }) {
 
-    if (!project.config.passkey_enabled) {
+    if (!tenancy.config.passkey_enabled) {
       throw new KnownErrors.PasskeyAuthenticationNotEnabled();
     }
 
@@ -46,7 +46,7 @@ export const POST = createSmartRouteHandler({
 
 
     const { code } = await passkeySignInVerificationCodeHandler.createCode({
-      project,
+      tenancy,
       method: {},
       expiresInMs: SIGN_IN_TIMEOUT_MS + 5000,
       data: {

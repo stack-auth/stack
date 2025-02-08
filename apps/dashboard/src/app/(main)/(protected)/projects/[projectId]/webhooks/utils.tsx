@@ -1,5 +1,4 @@
 import { SiteLoadingIndicator } from "@/components/site-loading-indicator";
-import { Alert } from "@stackframe/stack-ui";
 
 type Pagination = {
   hasPrevPage?: boolean,
@@ -14,10 +13,7 @@ export function getSvixResult<D>(data: {
   data: D,
 } & Pagination): { loaded: true, data: NonNullable<D> } & Pagination | { loaded: false, rendered: JSX.Element } & Pagination {
   if (data.error) {
-    return {
-      loaded: false,
-      rendered: <Alert>An error has occurred</Alert>,
-    };
+    throw data.error;
   }
 
   if (data.loading || !data.data) {

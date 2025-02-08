@@ -43,6 +43,8 @@ const ProjectActivityEventType = {
 const UserActivityEventType = {
   id: "$user-activity",
   dataSchema: yupObject({
+    // old events of this type may not have a branchId field, so we default to "main"
+    branchId: yupString().defined().default("main"),
     userId: yupString().uuid().defined(),
   }),
   inherits: [ProjectActivityEventType],

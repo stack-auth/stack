@@ -5,7 +5,7 @@ import { retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { projectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
-import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 import { typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
 import { ensureStandardProvider } from "../../../../../lib/request-checks";
@@ -33,7 +33,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
         },
       ] as const;
 
-      const permissions = await listTeamPermissionDefinitions(tx, oldProject);
+      const permissions = await listTeamPermissionDefinitions(tx, auth.tenancy);
 
 
       for (const param of dbParams) {
@@ -490,7 +490,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
       });
 
       if (configs.length !== 1) {
-        throw new StatusError(StatusError.NotFound, 'Project config not found');
+        throw new StackAssertionError("Project config should be unique", { configs });
       }
 
       await tx.projectConfig.delete({
@@ -502,7 +502,7 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
       // delete managed ids from users
       const users = await tx.projectUser.findMany({
         where: {
-          projectId: 'internal',
+          mirroredProjectId: 'internal',
           serverMetadata: {
             path: ['managedProjectIds'],
             array_contains: auth.project.id
@@ -517,8 +517,9 @@ export const projectsCrudHandlers = createLazyProxy(() => createCrudHandlers(pro
 
         await tx.projectUser.update({
           where: {
-            projectId_projectUserId: {
-              projectId: 'internal',
+            mirroredProjectId_mirroredBranchId_projectUserId: {
+              mirroredProjectId: 'internal',
+              mirroredBranchId: user.mirroredBranchId,
               projectUserId: user.projectUserId
             }
           },
