@@ -102,10 +102,15 @@ function copyFromSrcToDest(
       let newContent = editedContent ?? content;
 
       if (destPath.endsWith('.tsx') || destPath.endsWith('.ts') || destPath.endsWith('.js')) {
-        newContent = '//===========================================\n' +
-                     '// ' + COMMENT_LINE + '\n' +
-                     '//===========================================\n' +
-                     newContent;
+        const hasShebang = newContent.startsWith('#') || newContent.startsWith('"') || newContent.startsWith("'");
+        const shebangLine = hasShebang ? newContent.split('\n')[0] + '\n\n' : '';
+        const contentWithoutShebang = hasShebang ? newContent.split('\n').slice(1).join('\n') : newContent;
+        
+        newContent = shebangLine +
+                    '//===========================================\n' +
+                    '// ' + COMMENT_LINE + '\n' +
+                    '//===========================================\n' +
+                    contentWithoutShebang;
       }
 
       if (destPath.endsWith('package.json')) {
