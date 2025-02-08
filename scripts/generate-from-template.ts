@@ -100,7 +100,8 @@ function copyFromSrcToDest(
       }
 
       let newContent = editedContent ?? content;
-
+      
+      // If the file is a .tsx, .ts, or .js file, add a comment line to the top of the file
       if (destPath.endsWith('.tsx') || destPath.endsWith('.ts') || destPath.endsWith('.js')) {
         const hasShebang = newContent.startsWith('#') || newContent.startsWith('"') || newContent.startsWith("'");
         const shebangLine = hasShebang ? newContent.split('\n')[0] + '\n\n' : '';
