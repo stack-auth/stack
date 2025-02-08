@@ -78,8 +78,9 @@ const Button = forwardRefIfNeeded<HTMLButtonElement, ButtonProps>(
         disabled={props.disabled || loading}
         onClick={(e) => runAsynchronouslyWithAlert(handleClick(e))}
         size={size}
+        className={cn("relative", loading && "hide-children", props.className)}
       >
-        {loading && size !== "icon" && <Spinner className="mr-2" />}
+        <Spinner className={cn("absolute inset-0 flex items-center justify-center do-not-hide-when-siblings-are", !loading && "invisible")} />
         {children}
       </OriginalButton>
     );

@@ -114,7 +114,7 @@ function EditableInput({ value, initialEditValue, onUpdate, readOnly, placeholde
           disabled={isLoading}
           type="button"
           variant="plain"
-          size="icon"
+          size="plain"
           className={cn(
             "min-h-5 min-w-5 h-5 w-5 rounded-full flex items-center justify-center",
             action === "accept" ? "bg-green-500 active:bg-green-600" : "bg-red-500 active:bg-red-600"
@@ -240,7 +240,8 @@ export default function PageClient({ userId }: { userId: string }) {
 }
 
 function UserPage({ user }: { user: ServerUser }) {
-  const name = user.displayName ?? user.primaryEmail ?? 'Anonymous User';
+  const nameFallback = user.primaryEmail ?? user.id;
+  const name = user.displayName ?? nameFallback;
   const contactChannels = user.useContactChannels();
 
   return (
@@ -255,7 +256,7 @@ function UserPage({ user }: { user: ServerUser }) {
             <EditableInput
               value={name}
               initialEditValue={user.displayName ?? ""}
-              placeholder={name}
+              placeholder={nameFallback}
               shiftTextToLeft
               inputClassName="font-semibold text-3xl"
               onUpdate={async (newName) => {
