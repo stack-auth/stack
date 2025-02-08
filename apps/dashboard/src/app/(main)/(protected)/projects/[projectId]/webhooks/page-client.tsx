@@ -173,7 +173,6 @@ export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const svixToken = stackAdminApp.useSvixToken();
   const [updateCounter, setUpdateCounter] = useState(0);
-  console.log(svixToken, stackAdminApp.projectId);
 
   return (
     <PageLayout
