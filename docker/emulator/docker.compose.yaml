@@ -54,7 +54,7 @@ services:
   # ================= Svix =================
 
   svix-db:
-    image: postgres:latest
+    image: "docker.io/postgres:16.1"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: PASSWORD-PLACEHOLDER--KsoIMcchtp
