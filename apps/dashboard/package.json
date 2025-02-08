@@ -19,6 +19,7 @@
     "@hookform/resolvers": "^3.3.4",
     "@mdx-js/loader": "^3",
     "@mdx-js/react": "^3.0.0",
+    "@monaco-editor/react": "^4.6.0",
     "@next/bundle-analyzer": "^14.0.3",
     "@next/mdx": "^14",
     "@react-hook/resize-observer": "^2.0.2",

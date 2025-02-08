@@ -3,6 +3,7 @@
 import { UserAvatar } from '@stackframe/stack';
 import { fromNow } from '@stackframe/stack-shared/dist/utils/dates';
 import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableRow, Typography } from '@stackframe/stack-ui';
+import { useRouter } from 'next/navigation';
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from '../use-admin-app';
 import { GlobeSection } from './globe';
@@ -35,6 +36,7 @@ const dauConfig = {
 
 export default function PageClient() {
   const adminApp = useAdminApp();
+  const router = useRouter();
 
   const data = (adminApp as any)[stackAppInternalsSymbol].useMetrics();
 
@@ -62,15 +64,22 @@ export default function PageClient() {
                 )}
                 <Table>
                   <TableBody>
-                    {data.recently_registered.map((user: any) => <TableRow key={user.id}>
-                      <TableCell><UserAvatar user={{ profileImageUrl: user.profile_image_url, displayName: user.display_name, primaryEmail: user.primary_email }} /></TableCell>
-                      <TableCell>
-                        {user.display_name ?? user.primary_email}
-                        <Typography variant='secondary'>
-                          signed up {fromNow(new Date(user.signed_up_at_millis))}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>)}
+                    {data.recently_registered.map((user: any) => (
+                      <TableRow
+                        key={user.id}
+                        onClick={() => router.push(`/projects/${encodeURIComponent(adminApp.projectId)}/users/${encodeURIComponent(user.id)}`)}
+                      >
+                        <TableCell className='w-10 h-10'>
+                          <UserAvatar user={{ profileImageUrl: user.profile_image_url, displayName: user.display_name, primaryEmail: user.primary_email }} />
+                        </TableCell>
+                        <TableCell>
+                          {user.display_name ?? user.primary_email}
+                          <Typography variant='secondary'>
+                            signed up {fromNow(new Date(user.signed_up_at_millis))}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -85,15 +94,22 @@ export default function PageClient() {
                 )}
                 <Table>
                   <TableBody>
-                    {data.recently_active.map((user: any) => <TableRow key={user.id}>
-                      <TableCell><UserAvatar user={{ profileImageUrl: user.profile_image_url, displayName: user.display_name, primaryEmail: user.primary_email }} /></TableCell>
-                      <TableCell>
-                        {user.display_name ?? user.primary_email}
-                        <Typography variant='secondary'>
-                          last active {fromNow(new Date(user.last_active_at_millis))}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>)}
+                    {data.recently_active.map((user: any) => (
+                      <TableRow
+                        key={user.id}
+                        onClick={() => router.push(`/projects/${encodeURIComponent(adminApp.projectId)}/users/${encodeURIComponent(user.id)}`)}
+                      >
+                        <TableCell className='w-10 h-10'>
+                          <UserAvatar user={{ profileImageUrl: user.profile_image_url, displayName: user.display_name, primaryEmail: user.primary_email }} />
+                        </TableCell>
+                        <TableCell>
+                          {user.display_name ?? user.primary_email}
+                          <Typography variant='secondary'>
+                            last active {fromNow(new Date(user.last_active_at_millis))}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
               </CardContent>

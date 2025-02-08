@@ -37,6 +37,7 @@ export function TableView<TData, TValue>(props: {
   showDefaultToolbar?: boolean,
   defaultColumnFilters: ColumnFiltersState,
   defaultSorting: SortingState,
+  onRowClick?: (row: TData) => void,
 }) {
   return (
     <div className="space-y-4">
@@ -51,7 +52,7 @@ export function TableView<TData, TValue>(props: {
         <Table>
           <TableHeader>
             {props.table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} >
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id} colSpan={header.colSpan}>
@@ -73,6 +74,12 @@ export function TableView<TData, TValue>(props: {
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  onClick={(ev) => {
+                    // only trigger onRowClick if the element is a direct descendant; don't trigger for portals
+                    if (ev.target instanceof Node && ev.currentTarget.contains(ev.target)) {
+                      props.onRowClick?.(row.original);
+                    }
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -110,6 +117,7 @@ type DataTableProps<TData, TValue> = {
   defaultColumnFilters: ColumnFiltersState,
   defaultSorting: SortingState,
   showDefaultToolbar?: boolean,
+  onRowClick?: (row: TData) => void,
 }
 
 export function DataTable<TData, TValue>({
@@ -167,6 +175,7 @@ export function DataTableManualPagination<TData, TValue>({
   defaultVisibility,
   defaultColumnFilters,
   defaultSorting,
+  onRowClick,
   onUpdate,
   showDefaultToolbar = true,
 }: DataTableManualPaginationProps<TData, TValue>) {
@@ -220,6 +229,7 @@ export function DataTableManualPagination<TData, TValue>({
     defaultSorting={defaultSorting}
     defaultVisibility={defaultVisibility}
     showDefaultToolbar={showDefaultToolbar}
+    onRowClick={onRowClick}
   />;
 }
 
@@ -256,6 +266,7 @@ function DataTableBase<TData, TValue>({
   manualPagination = true,
   manualFiltering = true,
   showDefaultToolbar = true,
+  onRowClick,
 }: DataTableBaseProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(defaultVisibility || {});
@@ -298,5 +309,6 @@ function DataTableBase<TData, TValue>({
     showDefaultToolbar={showDefaultToolbar}
     defaultColumnFilters={defaultColumnFilters}
     defaultSorting={defaultSorting}
+    onRowClick={onRowClick}
   />;
 }

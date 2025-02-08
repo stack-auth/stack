@@ -2,8 +2,8 @@
 
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { CheckIcon, ChevronRightIcon, DotFilledIcon } from "@radix-ui/react-icons";
-import React from "react";
 import { forwardRefIfNeeded } from "@stackframe/stack-shared/dist/utils/react";
+import React from "react";
 
 import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
@@ -134,6 +134,7 @@ const DropdownMenuItem = forwardRefIfNeeded<
     disabled={isLoading || props.disabled}
     onClick={props.onClick ? (e) => {
       e.preventDefault();
+      e.stopPropagation();
       runAsynchronouslyWithAlert(handleClick(e));
     } : undefined}
   >
