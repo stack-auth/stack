@@ -48,7 +48,7 @@ export const POST = createSmartRouteHandler({
       });
 
       if (authMethodConfig.length > 1) {
-        throw new StackAssertionError("Project has multiple password auth method configs.", { tenancyId: tenancy.id });
+        throw new StackAssertionError("Tenancy has multiple password auth method configs.", { tenancyId: tenancy.id });
       }
 
       if (authMethodConfig.length === 0) {
