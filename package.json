@@ -4,7 +4,7 @@
   "private": true,
   "repository": "",
   "scripts": {
-    "pre": "npx -y only-allow pnpm && node -e \"if(require('fs').existsSync('./scripts/generate-from-template.ts')) require('child_process').execSync('npx --package=ts-node ts-node ./scripts/generate-from-template.ts')\"",
+    "pre": "npx -y only-allow pnpm && node -e \"if(process.env.STACK_SKIP_TEMPLATE_GENERATION !== 'true') require('child_process').execSync('npx --package=ts-node ts-node ./scripts/generate-from-template.ts')\"",
     "preinstall": "pnpm pre",
     "typecheck": "pnpm pre && turbo typecheck",
     "build:dev": "pnpm pre && NODE_ENV=development pnpm run build",
