@@ -353,7 +353,8 @@ async function seed() {
     await prisma.$transaction(async (tx) => {
       const existingUser = await tx.projectUser.findFirst({
         where: {
-          projectId: 'internal',
+          mirroredProjectId: 'internal',
+          mirroredBranchId: 'main',
           projectUserId: emulatorUserId,
         }
       });
@@ -381,7 +382,9 @@ async function seed() {
           data: {
             displayName: 'Local Emulator User',
             projectUserId: emulatorUserId,
-            projectId: 'internal',
+            tenancyId: internalTenancy.id,
+            mirroredProjectId: 'internal',
+            mirroredBranchId: 'main',
             serverMetadata: {
               managedProjectIds: [emulatorProjectId],
             },
@@ -391,7 +394,7 @@ async function seed() {
         await tx.contactChannel.create({
           data: {
             projectUserId: newEmulatorUser.projectUserId,
-            projectId: 'internal',
+            tenancyId: internalTenancy.id,
             type: 'EMAIL' as const,
             value: 'local-emulator@email.com',
             isVerified: false,
@@ -402,7 +405,7 @@ async function seed() {
 
         await tx.authMethod.create({
           data: {
-            projectId: 'internal',
+            tenancyId: internalTenancy.id,
             projectConfigId: (internalProject as any).configId,
             projectUserId: newEmulatorUser.projectUserId,
             authMethodConfigId: passwordConfig.id,
