@@ -1,4 +1,5 @@
 import { getProject } from "@/lib/projects";
+import { getSoleTenancyFromProject } from "@/lib/tenancies";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { neonAuthorizationHeaderSchema, urlSchema, yupNumber, yupObject, yupString, yupTuple } from "@stackframe/stack-shared/dist/schema-fields";
@@ -42,7 +43,7 @@ export const POST = createSmartRouteHandler({
     }
 
     const transferCodeObj = await neonIntegrationProjectTransferCodeHandler.createCode({
-      project: internalProject,
+      tenancy: await getSoleTenancyFromProject(internalProject),
       method: {},
       data: {
         project_id: neonProvisionedProject.projectId,

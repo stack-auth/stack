@@ -12,7 +12,7 @@ export const teamPermissionDefinitionsCrudHandlers = createLazyProxy(() => creat
   async onCreate({ auth, data }) {
     return await retryTransaction(async (tx) => {
       return await createTeamPermissionDefinition(tx, {
-        project: auth.project,
+        tenancy: auth.tenancy,
         data,
       });
     });
@@ -20,7 +20,7 @@ export const teamPermissionDefinitionsCrudHandlers = createLazyProxy(() => creat
   async onUpdate({ auth, data, params }) {
     return await retryTransaction(async (tx) => {
       return await updateTeamPermissionDefinitions(tx, {
-        project: auth.project,
+        tenancy: auth.tenancy,
         permissionId: params.permission_id,
         data,
       });
@@ -29,7 +29,7 @@ export const teamPermissionDefinitionsCrudHandlers = createLazyProxy(() => creat
   async onDelete({ auth, params }) {
     return await retryTransaction(async (tx) => {
       await deleteTeamPermissionDefinition(tx, {
-        project: auth.project,
+        tenancy: auth.tenancy,
         permissionId: params.permission_id
       });
     });
@@ -37,7 +37,7 @@ export const teamPermissionDefinitionsCrudHandlers = createLazyProxy(() => creat
   async onList({ auth }) {
     return await retryTransaction(async (tx) => {
       return {
-        items: await listTeamPermissionDefinitions(tx, auth.project),
+        items: await listTeamPermissionDefinitions(tx, auth.tenancy),
         is_paginated: false,
       };
     });

@@ -26,8 +26,8 @@ async function sendWebhooks(options: {
     await svix.application.getOrCreate({ uid: options.projectId, name: options.projectId });
   } catch (e: any) {
     if (e.message.includes("409")) {
-      // This is a Svix bug; they are working on fixing it
-      // TODO: remove this once it no longer appears on Sentry
+      // This is a Svix bug; they are working on fixing it. We can ignore it for now (it means the app already exists).
+      // TODO: remove this once it no longer appears on Sentry or during the E2E tests
       captureError("svix-409-hack", "Svix bug: 409 error when creating application. Remove this warning once Svix fixes this.");
     } else {
       throw e;

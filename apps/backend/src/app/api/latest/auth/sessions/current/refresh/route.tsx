@@ -13,7 +13,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema,
+      tenancy: adaptSchema,
     }).defined(),
     headers: yupObject({
       "x-stack-refresh-token": yupTuple([yupString().defined()]).defined(),
@@ -26,13 +26,13 @@ export const POST = createSmartRouteHandler({
       access_token: yupString().defined(),
     }).defined(),
   }),
-  async handler({ auth: { project }, headers: { "x-stack-refresh-token": refreshTokenHeaders } }, fullReq) {
+  async handler({ auth: { tenancy }, headers: { "x-stack-refresh-token": refreshTokenHeaders } }, fullReq) {
     const refreshToken = refreshTokenHeaders[0];
 
     const sessionObj = await prismaClient.projectUserRefreshToken.findUnique({
       where: {
-        projectId_refreshToken: {
-          projectId: project.id,
+        tenancyId_refreshToken: {
+          tenancyId: tenancy.id,
           refreshToken,
         },
       },
@@ -43,9 +43,9 @@ export const POST = createSmartRouteHandler({
     }
 
     const accessToken = await generateAccessToken({
-      projectId: sessionObj.projectId,
+      tenancy,
       userId: sessionObj.projectUserId,
-      useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
+      useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
     });
 
     return {

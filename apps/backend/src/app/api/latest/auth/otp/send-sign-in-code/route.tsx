@@ -1,12 +1,12 @@
+import { getAuthContactChannel } from "@/lib/contact-channel";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
 import { adaptSchema, clientOrHigherAuthTypeSchema, emailOtpSignInCallbackUrlSchema, signInEmailSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { StackAssertionError, StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import semver from "semver";
 import { usersCrudHandlers } from "../../../users/crud";
 import { signInVerificationCodeHandler } from "../sign-in/verification-code-handler";
-import { getAuthContactChannel } from "@/lib/contact-channel";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -17,7 +17,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema,
+      tenancy: adaptSchema,
     }).defined(),
     body: yupObject({
       email: signInEmailSchema.defined(),
@@ -35,15 +35,15 @@ export const POST = createSmartRouteHandler({
       nonce: yupString().defined(),
     }).defined(),
   }),
-  async handler({ auth: { project }, body: { email, callback_url: callbackUrl }, clientVersion }, fullReq) {
-    if (!project.config.magic_link_enabled) {
+  async handler({ auth: { tenancy }, body: { email, callback_url: callbackUrl }, clientVersion }, fullReq) {
+    if (!tenancy.config.magic_link_enabled) {
       throw new StatusError(StatusError.Forbidden, "Magic link is not enabled for this project");
     }
 
     const contactChannel = await getAuthContactChannel(
       prismaClient,
       {
-        projectId: project.id,
+        tenancyId: tenancy.id,
         type: "EMAIL",
         value: email,
       }
@@ -59,10 +59,10 @@ export const POST = createSmartRouteHandler({
         if (!otpAuthMethod) {
           // automatically merge the otp auth method with the existing account
 
-          // TODO: use the contact channel handler
+          // TODO: use an existing crud handler
           const rawProject = await prismaClient.project.findUnique({
             where: {
-              id: project.id,
+              id: tenancy.project.id,
             },
             include: {
               config: {
@@ -81,15 +81,15 @@ export const POST = createSmartRouteHandler({
           await prismaClient.authMethod.create({
             data: {
               projectUserId: contactChannel.projectUser.projectUserId,
-              projectId: project.id,
-              projectConfigId: project.config.id,
+              tenancyId: tenancy.id,
+              projectConfigId: tenancy.config.id,
               authMethodConfigId: otpAuthMethodConfig.id,
             },
           });
         }
 
         user = await usersCrudHandlers.adminRead({
-          project,
+          tenancy,
           user_id: contactChannel.projectUser.projectUserId,
         });
       } else {
@@ -97,7 +97,7 @@ export const POST = createSmartRouteHandler({
       }
       isNewUser = false;
     } else {
-      if (!project.config.sign_up_enabled) {
+      if (!tenancy.config.sign_up_enabled) {
         throw new KnownErrors.SignUpNotEnabled();
       }
       isNewUser = true;
@@ -112,7 +112,7 @@ export const POST = createSmartRouteHandler({
 
     const { nonce } = await signInVerificationCodeHandler.sendCode(
       {
-        project,
+        tenancy,
         callbackUrl,
         method: { email, type },
         data: {

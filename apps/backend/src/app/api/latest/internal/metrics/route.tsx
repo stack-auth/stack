@@ -1,7 +1,7 @@
+import { Tenancy } from "@/lib/tenancies";
 import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { UsersCrud } from "@stackframe/stack-shared/dist/interface/crud/users";
 import { adaptSchema, adminAuthTypeSchema, yupArray, yupMixed, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import yup from 'yup';
@@ -15,7 +15,7 @@ const DataPointsSchema = yupArray(yupObject({
 }).defined()).defined();
 
 
-async function loadUsersByCountry(projectId: string): Promise<Record<string, number>> {
+async function loadUsersByCountry(tenancy: Tenancy): Promise<Record<string, number>> {
   const a = await prismaClient.$queryRaw<{countryCode: string|null, userCount: bigint}[]>`
     WITH LatestEventWithCountryCode AS (
         SELECT DISTINCT ON ("userId")
@@ -26,7 +26,8 @@ async function loadUsersByCountry(projectId: string): Promise<Record<string, num
         LEFT JOIN "EventIpInfo" eip
           ON "Event"."endUserIpInfoGuessId" = eip.id
         WHERE '$user-activity' = ANY("systemEventTypeIds"::text[])
-          AND "data"->>'projectId' = ${projectId}
+          AND "data"->>'projectId' = ${tenancy.project.id}
+          AND "data"->>'branchId' = ${tenancy.branchId}
           AND "countryCode" IS NOT NULL
         ORDER BY "userId", "eventStartedAt" DESC
     )
@@ -43,7 +44,7 @@ async function loadUsersByCountry(projectId: string): Promise<Record<string, num
   return rec;
 }
 
-async function loadTotalUsers(projectId: string, now: Date): Promise<DataPoints> {
+async function loadTotalUsers(tenancy: Tenancy, now: Date): Promise<DataPoints> {
   return (await prismaClient.$queryRaw<{date: Date, dailyUsers: bigint, cumUsers: bigint}[]>`
     WITH date_series AS (
         SELECT GENERATE_SERIES(
@@ -59,7 +60,7 @@ async function loadTotalUsers(projectId: string, now: Date): Promise<DataPoints>
       SUM(COALESCE(COUNT(pu."projectUserId"), 0)) OVER (ORDER BY ds.registration_day) AS "cumUsers"
     FROM date_series ds
     LEFT JOIN "ProjectUser" pu
-    ON DATE(pu."createdAt") = ds.registration_day AND pu."projectId" = ${projectId}
+    ON DATE(pu."createdAt") = ds.registration_day AND pu."tenancyId" = ${tenancy.id}::UUID
     GROUP BY ds.registration_day
     ORDER BY ds.registration_day
   `).map((x) => ({
@@ -68,7 +69,7 @@ async function loadTotalUsers(projectId: string, now: Date): Promise<DataPoints>
   }));
 }
 
-async function loadDailyActiveUsers(projectId: string, now: Date) {
+async function loadDailyActiveUsers(tenancy: Tenancy, now: Date) {
   const res = await prismaClient.$queryRaw<{day: Date, dau: bigint}[]>`
     WITH date_series AS (
       SELECT GENERATE_SERIES(
@@ -86,7 +87,8 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
       WHERE "eventStartedAt" >= ${now} - INTERVAL '30 days'
         AND "eventStartedAt" < ${now}
         AND '$user-activity' = ANY("systemEventTypeIds"::text[])
-        AND "data"->>'projectId' = ${projectId}
+        AND "data"->>'projectId' = ${tenancy.project.id}
+        AND "data"->>'branchId' = ${tenancy.branchId}
       GROUP BY DATE_TRUNC('day', "eventStartedAt")
     )
     SELECT ds."day", COALESCE(du.dau, 0) AS dau
@@ -102,7 +104,7 @@ async function loadDailyActiveUsers(projectId: string, now: Date) {
   }));
 }
 
-async function loadLoginMethods(projectId: string): Promise<{method: string, count: number }[]> {
+async function loadLoginMethods(tenancyId: string): Promise<{method: string, count: number }[]> {
   return await prismaClient.$queryRaw<{ method: string, count: number }[]>`
     WITH tab AS (
       SELECT
@@ -127,13 +129,13 @@ async function loadLoginMethods(projectId: string): Promise<{method: string, cou
       LEFT JOIN "PasswordAuthMethod" pam ON method.id = pam."authMethodId"
       LEFT JOIN "PasskeyAuthMethod" pkm ON method.id = pkm."authMethodId"
       LEFT JOIN "OtpAuthMethod" oam ON method.id = oam."authMethodId"
-      WHERE method."projectId" = ${projectId})
+      WHERE method."tenancyId" = ${tenancyId}::UUID)
     SELECT LOWER("method") AS method, COUNT(id)::int AS "count" FROM tab
     GROUP BY "method"
   `;
 }
 
-async function loadRecentlyActiveUsers(project: ProjectsCrud["Admin"]["Read"]): Promise<UsersCrud["Admin"]["Read"][]> {
+async function loadRecentlyActiveUsers(tenancy: Tenancy): Promise<UsersCrud["Admin"]["Read"][]> {
   // use the Events table to get the most recent activity
   const events = await prismaClient.$queryRaw<{ data: any, eventStartedAt: Date }[]>`
     WITH RankedEvents AS (
@@ -144,7 +146,8 @@ async function loadRecentlyActiveUsers(project: ProjectsCrud["Admin"]["Read"]): 
           ORDER BY "eventStartedAt" DESC
         ) as rn
       FROM "Event"
-      WHERE "data"->>'projectId' = ${project.id}
+      WHERE "data"->>'projectId' = ${tenancy.project.id}
+        AND "data"->>'branchId' = ${tenancy.branchId}
         AND '$user-activity' = ANY("systemEventTypeIds"::text[])
     )
     SELECT "data", "eventStartedAt"
@@ -158,7 +161,7 @@ async function loadRecentlyActiveUsers(project: ProjectsCrud["Admin"]["Read"]): 
     let user;
     try {
       user = await usersCrudHandlers.adminRead({
-        project,
+        tenancy,
         user_id: event.data.userId,
         allowedErrorTypes: [
           KnownErrors.UserNotFound,
@@ -183,7 +186,7 @@ export const GET = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: adminAuthTypeSchema.defined(),
-      project: adaptSchema.defined(),
+      tenancy: adaptSchema.defined(),
     }),
   }),
   response: yupObject({
@@ -213,13 +216,13 @@ export const GET = createSmartRouteHandler({
       loginMethods
     ] = await Promise.all([
       prismaClient.projectUser.count({
-        where: { projectId: req.auth.project.id, },
+        where: { tenancyId: req.auth.tenancy.id, },
       }),
-      loadTotalUsers(req.auth.project.id, now),
-      loadDailyActiveUsers(req.auth.project.id, now),
-      loadUsersByCountry(req.auth.project.id),
+      loadTotalUsers(req.auth.tenancy, now),
+      loadDailyActiveUsers(req.auth.tenancy, now),
+      loadUsersByCountry(req.auth.tenancy),
       (await usersCrudHandlers.adminList({
-        project: req.auth.project,
+        tenancy: req.auth.tenancy,
         query: {
           order_by: 'signed_up_at',
           desc: true,
@@ -229,8 +232,8 @@ export const GET = createSmartRouteHandler({
           KnownErrors.UserNotFound,
         ],
       })).items,
-      loadRecentlyActiveUsers(req.auth.project),
-      loadLoginMethods(req.auth.project.id),
+      loadRecentlyActiveUsers(req.auth.tenancy),
+      loadLoginMethods(req.auth.tenancy.id),
     ] as const);
 
     return {

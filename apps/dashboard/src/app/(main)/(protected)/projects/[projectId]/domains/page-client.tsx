@@ -61,7 +61,6 @@ function EditDialog(props: {
     }
 
     const wwwUrl = 'https://www.' + domain;
-    console.log(wwwUrl, isValidUrl(wwwUrl));
     return isValidUrl(wwwUrl);
   };
 

@@ -11,7 +11,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: adminAuthTypeSchema,
-      project: adaptSchema.defined(),
+      tenancy: adaptSchema.defined(),
     }).defined(),
     body: yupObject({
       recipient_email: emailSchema.defined(),

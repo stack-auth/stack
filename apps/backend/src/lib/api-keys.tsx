@@ -40,7 +40,6 @@ export async function checkApiKeySet(projectId: string, key: KeyType): Promise<b
   const result = await rawQuery(checkApiKeySetQuery(projectId, key));
 
   // In non-prod environments, let's also call the legacy function and ensure the result is the same
-  // TODO next-release: remove this
   if (!getNodeEnvironment().includes("prod")) {
     const legacy = await checkApiKeySetLegacy(projectId, key);
     if (legacy !== result) {

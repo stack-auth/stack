@@ -14,7 +14,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema.defined(),
+      tenancy: adaptSchema.defined(),
       user: adaptSchema.optional(),
     }).defined(),
     body: yupObject({
@@ -37,7 +37,7 @@ export const POST = createSmartRouteHandler({
         if (!auth.user) throw new KnownErrors.UserAuthenticationRequired;
 
         await ensureUserTeamPermissionExists(tx, {
-          project: auth.project,
+          tenancy: auth.tenancy,
           userId: auth.user.id,
           teamId: body.team_id,
           permissionId: "$invite_members",
@@ -48,7 +48,7 @@ export const POST = createSmartRouteHandler({
     });
 
     const codeObj = await teamInvitationCodeHandler.sendCode({
-      project: auth.project,
+      tenancy: auth.tenancy,
       data: {
         team_id: body.team_id,
       },

@@ -1,5 +1,6 @@
 import { teamMembershipsCrudHandlers } from "@/app/api/latest/team-memberships/crud";
 import { sendEmailFromTemplate } from "@/lib/emails";
+import { getSoleTenancyFromProject } from "@/lib/tenancies";
 import { prismaClient } from "@/prisma-client";
 import { createVerificationCodeHandler } from "@/route-handlers/verification-code-handler";
 import { VerificationCodeType } from "@prisma/client";
@@ -45,14 +46,15 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       team_display_name: yupString().defined(),
     }).defined(),
   }),
-  async send(codeObj, createOptions, sendOptions){
+  async send(codeObj, createOptions, sendOptions) {
     const team = await teamsCrudHandlers.adminRead({
       project: createOptions.project,
+      branchId: createOptions.branchId,
       team_id: createOptions.data.team_id,
     });
 
     await sendEmailFromTemplate({
-      project: createOptions.project,
+      tenancy: await getSoleTenancyFromProject(createOptions.project),
       user: null,
       email: createOptions.method.email,
       templateType: "team_invitation",
@@ -64,13 +66,13 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
 
     return codeObj;
   },
-  async handler(project, {}, data, body, user) {
+  async handler(tenancy, {}, data, body, user) {
     if (!user) throw new KnownErrors.UserAuthenticationRequired;
 
     const oldMembership = await prismaClient.teamMember.findUnique({
       where: {
-        projectId_projectUserId_teamId: {
-          projectId: project.id,
+        tenancyId_projectUserId_teamId: {
+          tenancyId: tenancy.id,
           projectUserId: user.id,
           teamId: data.team_id,
         },
@@ -79,7 +81,7 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
 
     if (!oldMembership) {
       await teamMembershipsCrudHandlers.adminCreate({
-        project,
+        tenancy,
         team_id: data.team_id,
         user_id: user.id,
         data: {},
@@ -92,11 +94,11 @@ export const teamInvitationCodeHandler = createVerificationCodeHandler({
       body: {}
     };
   },
-  async details(project, {}, data, body, user) {
+  async details(tenancy, {}, data, body, user) {
     if (!user) throw new KnownErrors.UserAuthenticationRequired;
 
     const team = await teamsCrudHandlers.adminRead({
-      project,
+      tenancy,
       team_id: data.team_id,
     });
 

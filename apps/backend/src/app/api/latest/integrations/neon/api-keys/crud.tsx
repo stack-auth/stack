@@ -79,24 +79,24 @@ export const apiKeyCrudHandlers = createLazyProxy(() => createCrudHandlers(apiKe
   onUpdate: async ({ auth, data, params }) => {
     return await internalApiKeyCrudHandlers.adminUpdate({
       data,
-      project: auth.project,
+      tenancy: auth.tenancy,
       api_key_id: params.api_key_id,
     });
   },
   onDelete: async ({ auth, params }) => {
     return await internalApiKeyCrudHandlers.adminDelete({
-      project: auth.project,
+      tenancy: auth.tenancy,
       api_key_id: params.api_key_id,
     });
   },
   onList: async ({ auth }) => {
     return await internalApiKeyCrudHandlers.adminList({
-      project: auth.project,
+      tenancy: auth.tenancy,
     });
   },
   onRead: async ({ auth, params }) => {
     return await internalApiKeyCrudHandlers.adminRead({
-      project: auth.project,
+      tenancy: auth.tenancy,
       api_key_id: params.api_key_id,
     });
   },

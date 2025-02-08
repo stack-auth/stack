@@ -28,10 +28,12 @@ export function DevErrorNotifier() {
 
   useEffect(() => {
     const cb = (prop: string, args: any[]) => {
-      toast.toast({
-        title: `[DEV] console.${prop} called!`,
-        description: `Please check the browser console. ${args.join(" ")}`,
-        variant: "destructive",
+      setTimeout(() => {
+        toast.toast({
+          title: `[DEV] console.${prop} called!`,
+          description: `Please check the browser console. ${args.join(" ")}`,
+          variant: "destructive",
+        });
       });
     };
     callbacks.push(cb);
