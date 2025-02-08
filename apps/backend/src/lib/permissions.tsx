@@ -1,9 +1,9 @@
 import { TeamSystemPermission as DBTeamSystemPermission, Prisma } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { TeamPermissionDefinitionsCrud, TeamPermissionsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-permissions";
 import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { stringCompare, typedToLowercase, typedToUppercase } from "@stackframe/stack-shared/dist/utils/strings";
+import { Tenancy } from "./tenancies";
 import { PrismaTransaction } from "./types";
 
 export const fullPermissionInclude = {
@@ -90,12 +90,12 @@ export function teamPermissionDefinitionJsonFromTeamSystemDbType(db: DBTeamSyste
 async function getParentDbIds(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     containedPermissionIds?: string[],
   }
 ) {
   let parentDbIds = [];
-  const potentialParentPermissions = await listTeamPermissionDefinitions(tx, options.project);
+  const potentialParentPermissions = await listTeamPermissionDefinitions(tx, options.tenancy);
   for (const parentPermissionId of options.containedPermissionIds || []) {
     const parentPermission = potentialParentPermissions.find(p => p.id === parentPermissionId);
     if (!parentPermission) {
@@ -111,18 +111,18 @@ async function getParentDbIds(
 export async function listUserTeamPermissions(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     teamId?: string,
     userId?: string,
     permissionId?: string,
     recursive: boolean,
   }
 ): Promise<TeamPermissionsCrud["Admin"]["Read"][]> {
-  const permissionDefs = await listTeamPermissionDefinitions(tx, options.project);
+  const permissionDefs = await listTeamPermissionDefinitions(tx, options.tenancy);
   const permissionsMap = new Map(permissionDefs.map(p => [p.id, p]));
   const results = await tx.teamMemberDirectPermission.findMany({
     where: {
-      projectId: options.project.id,
+      tenancyId: options.tenancy.id,
       projectUserId: options.userId,
       teamId: options.teamId,
     },
@@ -174,7 +174,7 @@ export async function listUserTeamPermissions(
 export async function grantTeamPermission(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     teamId: string,
     userId: string,
     permissionId: string,
@@ -183,8 +183,8 @@ export async function grantTeamPermission(
   if (isTeamSystemPermission(options.permissionId)) {
     await tx.teamMemberDirectPermission.upsert({
       where: {
-        projectId_projectUserId_teamId_systemPermission: {
-          projectId: options.project.id,
+        tenancyId_projectUserId_teamId_systemPermission: {
+          tenancyId: options.tenancy.id,
           projectUserId: options.userId,
           teamId: options.teamId,
           systemPermission: teamSystemPermissionStringToDBType(options.permissionId),
@@ -194,8 +194,8 @@ export async function grantTeamPermission(
         systemPermission: teamSystemPermissionStringToDBType(options.permissionId),
         teamMember: {
           connect: {
-            projectId_projectUserId_teamId: {
-              projectId: options.project.id,
+            tenancyId_projectUserId_teamId: {
+              tenancyId: options.tenancy.id,
               projectUserId: options.userId,
               teamId: options.teamId,
             },
@@ -207,8 +207,8 @@ export async function grantTeamPermission(
   } else {
     const teamSpecificPermission = await tx.permission.findUnique({
       where: {
-        projectId_teamId_queryableId: {
-          projectId: options.project.id,
+        tenancyId_teamId_queryableId: {
+          tenancyId: options.tenancy.id,
           teamId: options.teamId,
           queryableId: options.permissionId,
         },
@@ -217,7 +217,7 @@ export async function grantTeamPermission(
     const anyTeamPermission = await tx.permission.findUnique({
       where: {
         projectConfigId_queryableId: {
-          projectConfigId: options.project.config.id,
+          projectConfigId: options.tenancy.config.id,
           queryableId: options.permissionId,
         },
       }
@@ -228,8 +228,8 @@ export async function grantTeamPermission(
 
     await tx.teamMemberDirectPermission.upsert({
       where: {
-        projectId_projectUserId_teamId_permissionDbId: {
-          projectId: options.project.id,
+        tenancyId_projectUserId_teamId_permissionDbId: {
+          tenancyId: options.tenancy.id,
           projectUserId: options.userId,
           teamId: options.teamId,
           permissionDbId: permission.dbId,
@@ -243,8 +243,8 @@ export async function grantTeamPermission(
         },
         teamMember: {
           connect: {
-            projectId_projectUserId_teamId: {
-              projectId: options.project.id,
+            tenancyId_projectUserId_teamId: {
+              tenancyId: options.tenancy.id,
               projectUserId: options.userId,
               teamId: options.teamId,
             },
@@ -265,7 +265,7 @@ export async function grantTeamPermission(
 export async function revokeTeamPermission(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     teamId: string,
     userId: string,
     permissionId: string,
@@ -274,8 +274,8 @@ export async function revokeTeamPermission(
   if (isTeamSystemPermission(options.permissionId)) {
     await tx.teamMemberDirectPermission.delete({
       where: {
-        projectId_projectUserId_teamId_systemPermission: {
-          projectId: options.project.id,
+        tenancyId_projectUserId_teamId_systemPermission: {
+          tenancyId: options.tenancy.id,
           projectUserId: options.userId,
           teamId: options.teamId,
           systemPermission: teamSystemPermissionStringToDBType(options.permissionId),
@@ -287,8 +287,8 @@ export async function revokeTeamPermission(
   } else {
     const teamSpecificPermission = await tx.permission.findUnique({
       where: {
-        projectId_teamId_queryableId: {
-          projectId: options.project.id,
+        tenancyId_teamId_queryableId: {
+          tenancyId: options.tenancy.id,
           teamId: options.teamId,
           queryableId: options.permissionId,
         },
@@ -297,7 +297,7 @@ export async function revokeTeamPermission(
     const anyTeamPermission = await tx.permission.findUnique({
       where: {
         projectConfigId_queryableId: {
-          projectConfigId: options.project.config.id,
+          projectConfigId: options.tenancy.config.id,
           queryableId: options.permissionId,
         },
       }
@@ -308,8 +308,8 @@ export async function revokeTeamPermission(
 
     await tx.teamMemberDirectPermission.delete({
       where: {
-        projectId_projectUserId_teamId_permissionDbId: {
-          projectId: options.project.id,
+        tenancyId_projectUserId_teamId_permissionDbId: {
+          tenancyId: options.tenancy.id,
           projectUserId: options.userId,
           teamId: options.teamId,
           permissionDbId: permission.dbId,
@@ -322,11 +322,11 @@ export async function revokeTeamPermission(
 
 export async function listTeamPermissionDefinitions(
   tx: PrismaTransaction,
-  project: ProjectsCrud["Admin"]["Read"]
+  tenancy: Tenancy
 ): Promise<(TeamPermissionDefinitionsCrud["Admin"]["Read"] & { __database_id: string })[]> {
   const projectConfig = await tx.projectConfig.findUnique({
     where: {
-      id: project.config.id,
+      id: tenancy.config.id,
     },
     include: {
       permissions: {
@@ -334,7 +334,7 @@ export async function listTeamPermissionDefinitions(
       },
     },
   });
-  if (!projectConfig) throw new StackAssertionError(`Couldn't find project config`, { project });
+  if (!projectConfig) throw new StackAssertionError(`Couldn't find tenancy config`, { tenancy });
   const res = projectConfig.permissions;
   const nonSystemPermissions = res.map(db => teamPermissionDefinitionJsonFromDbType(db));
 
@@ -346,7 +346,7 @@ export async function listTeamPermissionDefinitions(
 export async function createTeamPermissionDefinition(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     data: {
       id: string,
       description?: string,
@@ -355,7 +355,7 @@ export async function createTeamPermissionDefinition(
   }
 ) {
   const parentDbIds = await getParentDbIds(tx, {
-    project: options.project,
+    tenancy: options.tenancy,
     containedPermissionIds: options.data.contained_permission_ids
   });
   const dbPermission = await tx.permission.create({
@@ -363,7 +363,7 @@ export async function createTeamPermissionDefinition(
       scope: "TEAM",
       queryableId: options.data.id,
       description: options.data.description,
-      projectConfigId: options.project.config.id,
+      projectConfigId: options.tenancy.config.id,
       parentEdges: {
         create: parentDbIds.map(parentDbId => {
           if (isTeamSystemPermission(parentDbId)) {
@@ -390,7 +390,7 @@ export async function createTeamPermissionDefinition(
 export async function updateTeamPermissionDefinitions(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     permissionId: string,
     data: {
       id?: string,
@@ -400,7 +400,7 @@ export async function updateTeamPermissionDefinitions(
   }
 ) {
   const parentDbIds = await getParentDbIds(tx, {
-    project: options.project,
+    tenancy: options.tenancy,
     containedPermissionIds: options.data.contained_permission_ids
   });
 
@@ -431,7 +431,7 @@ export async function updateTeamPermissionDefinitions(
   const db = await tx.permission.update({
     where: {
       projectConfigId_queryableId: {
-        projectConfigId: options.project.config.id,
+        projectConfigId: options.tenancy.config.id,
         queryableId: options.permissionId,
       },
       scope: "TEAM",
@@ -449,13 +449,13 @@ export async function updateTeamPermissionDefinitions(
 export async function deleteTeamPermissionDefinition(
   tx: PrismaTransaction,
   options: {
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     permissionId: string,
   }
 ) {
   const deleted = await tx.permission.deleteMany({
     where: {
-      projectConfigId: options.project.config.id,
+      projectConfigId: options.tenancy.config.id,
       queryableId: options.permissionId,
       scope: "TEAM",
     },

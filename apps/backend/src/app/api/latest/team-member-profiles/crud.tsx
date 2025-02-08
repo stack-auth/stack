@@ -43,11 +43,11 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
           throw new StatusError(StatusError.BadRequest, 'team_id is required for access type client');
         }
 
-        await ensureTeamMembershipExists(tx, { projectId: auth.project.id, teamId: query.team_id, userId: currentUserId });
+        await ensureTeamMembershipExists(tx, { tenancyId: auth.tenancy.id, teamId: query.team_id, userId: currentUserId });
 
         if (query.user_id !== currentUserId) {
           await ensureUserTeamPermissionExists(tx, {
-            project: auth.project,
+            tenancy: auth.tenancy,
             teamId: query.team_id,
             userId: currentUserId,
             permissionId: '$read_members',
@@ -57,16 +57,16 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         }
       } else {
         if (query.team_id) {
-          await ensureTeamExists(tx, { projectId: auth.project.id, teamId: query.team_id });
+          await ensureTeamExists(tx, { tenancyId: auth.tenancy.id, teamId: query.team_id });
         }
         if (query.user_id) {
-          await ensureUserExists(tx, { projectId: auth.project.id, userId: query.user_id });
+          await ensureUserExists(tx, { tenancyId: auth.tenancy.id, userId: query.user_id });
         }
       }
 
       const db = await tx.teamMember.findMany({
         where: {
-          projectId: auth.project.id,
+          tenancyId: auth.tenancy.id,
           teamId: query.team_id,
           projectUserId: query.user_id,
         },
@@ -76,7 +76,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         include: fullInclude,
       });
 
-      const lastActiveAtMillis = await getUsersLastActiveAtMillis(auth.project.id, db.map(user => user.projectUserId), db.map(user => user.createdAt));
+      const lastActiveAtMillis = await getUsersLastActiveAtMillis(auth.tenancy.id, db.map(user => user.projectUserId), db.map(user => user.createdAt));
 
       return {
         items: db.map((user, index) => prismaToCrud(user, lastActiveAtMillis[index])),
@@ -90,7 +90,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
         if (params.user_id !== currentUserId) {
           await ensureUserTeamPermissionExists(tx, {
-            project: auth.project,
+            tenancy: auth.tenancy,
             teamId: params.team_id,
             userId: currentUserId,
             permissionId: '$read_members',
@@ -100,12 +100,12 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         }
       }
 
-      await ensureTeamMembershipExists(tx, { projectId: auth.project.id, teamId: params.team_id, userId: params.user_id });
+      await ensureTeamMembershipExists(tx, { tenancyId: auth.tenancy.id, teamId: params.team_id, userId: params.user_id });
 
       const db = await tx.teamMember.findUnique({
         where: {
-          projectId_projectUserId_teamId: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId_teamId: {
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
             teamId: params.team_id,
           },
@@ -118,7 +118,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         throw new KnownErrors.TeamMembershipNotFound(params.team_id, params.user_id);
       }
 
-      return prismaToCrud(db, await getUserLastActiveAtMillis(auth.project.id, db.projectUser.projectUserId) ?? db.projectUser.createdAt.getTime());
+      return prismaToCrud(db, await getUserLastActiveAtMillis(auth.tenancy.id, db.projectUser.projectUserId) ?? db.projectUser.createdAt.getTime());
     });
   },
   onUpdate: async ({ auth, data, params }) => {
@@ -131,15 +131,15 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
       }
 
       await ensureTeamMembershipExists(tx, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         teamId: params.team_id,
         userId: params.user_id,
       });
 
       const db = await tx.teamMember.update({
         where: {
-          projectId_projectUserId_teamId: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId_teamId: {
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
             teamId: params.team_id,
           },
@@ -151,7 +151,7 @@ export const teamMemberProfilesCrudHandlers = createLazyProxy(() => createCrudHa
         include: fullInclude,
       });
 
-      return prismaToCrud(db, await getUserLastActiveAtMillis(auth.project.id, db.projectUser.projectUserId) ?? db.projectUser.createdAt.getTime());
+      return prismaToCrud(db, await getUserLastActiveAtMillis(auth.tenancy.id, db.projectUser.projectUserId) ?? db.projectUser.createdAt.getTime());
     });
   },
 }));

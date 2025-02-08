@@ -15,7 +15,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema,
+      tenancy: adaptSchema,
       user: adaptSchema.defined(),
     }).defined(),
     body: yupObject({
@@ -30,8 +30,8 @@ export const POST = createSmartRouteHandler({
     statusCode: yupNumber().oneOf([200]).defined(),
     bodyType: yupString().oneOf(["success"]).defined(),
   }),
-  async handler({ auth: { project, user }, body: { old_password, new_password }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
-    if (!project.config.credential_enabled) {
+  async handler({ auth: { tenancy, user }, body: { old_password, new_password }, headers: { "x-stack-refresh-token": refreshToken } }, fullReq) {
+    if (!tenancy.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
@@ -43,14 +43,14 @@ export const POST = createSmartRouteHandler({
     await retryTransaction(async (tx) => {
       const authMethods = await tx.passwordAuthMethod.findMany({
         where: {
-          projectId: project.id,
+          tenancyId: tenancy.id,
           projectUserId: user.id,
         },
       });
 
       if (authMethods.length > 1) {
         throw new StackAssertionError("User has multiple password auth methods.", {
-          projectId: project.id,
+          tenancyId: tenancy.id,
           projectUserId: user.id,
         });
       } else if (authMethods.length === 0) {
@@ -65,8 +65,8 @@ export const POST = createSmartRouteHandler({
 
       await tx.passwordAuthMethod.update({
         where: {
-          projectId_authMethodId: {
-            projectId: project.id,
+          tenancyId_authMethodId: {
+            tenancyId: tenancy.id,
             authMethodId: authMethod.authMethodId,
           },
         },
@@ -78,7 +78,7 @@ export const POST = createSmartRouteHandler({
       // reset all other refresh tokens
       await tx.projectUserRefreshToken.deleteMany({
         where: {
-          projectId: project.id,
+          tenancyId: tenancy.id,
           projectUserId: user.id,
           ...refreshToken ? {
             NOT: {

@@ -1,13 +1,11 @@
-import { yupObject, yupString, yupNumber, urlSchema, emailSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { getAuthContactChannel } from "@/lib/contact-channel";
+import { prismaClient } from "@/prisma-client";
 import { createSmartRouteHandler } from "@/route-handlers/smart-route-handler";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { adaptSchema, clientOrHigherAuthTypeSchema } from "@stackframe/stack-shared/dist/schema-fields";
-import { resetPasswordVerificationCodeHandler } from "../reset/verification-code-handler";
-import { StackAssertionError } from "@stackframe/stack-shared/dist/utils/errors";
-import { userPrismaToCrud, usersCrudHandlers } from "../../../users/crud";
+import { adaptSchema, clientOrHigherAuthTypeSchema, emailSchema, urlSchema, yupNumber, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { wait } from "@stackframe/stack-shared/dist/utils/promises";
-import { prismaClient } from "@/prisma-client";
-import { getAuthContactChannel } from "@/lib/contact-channel";
+import { usersCrudHandlers } from "../../../users/crud";
+import { resetPasswordVerificationCodeHandler } from "../reset/verification-code-handler";
 
 export const POST = createSmartRouteHandler({
   metadata: {
@@ -18,7 +16,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema,
+      tenancy: adaptSchema,
     }).defined(),
     body: yupObject({
       email: emailSchema.defined(),
@@ -32,8 +30,8 @@ export const POST = createSmartRouteHandler({
       success: yupString().oneOf(["maybe, only if user with e-mail exists"]).defined(),
     }).defined(),
   }),
-  async handler({ auth: { project }, body: { email, callback_url: callbackUrl } }, fullReq) {
-    if (!project.config.credential_enabled) {
+  async handler({ auth: { tenancy }, body: { email, callback_url: callbackUrl } }, fullReq) {
+    if (!tenancy.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
@@ -41,7 +39,7 @@ export const POST = createSmartRouteHandler({
     const contactChannel = await getAuthContactChannel(
       prismaClient,
       {
-        projectId: project.id,
+        tenancyId: tenancy.id,
         type: "EMAIL",
         value: email,
       },
@@ -58,11 +56,11 @@ export const POST = createSmartRouteHandler({
       };
     }
     const user = await usersCrudHandlers.adminRead({
-      project,
+      tenancy,
       user_id: contactChannel.projectUserId,
     });
     await resetPasswordVerificationCodeHandler.sendCode({
-      project,
+      tenancy,
       callbackUrl,
       method: {
         email,

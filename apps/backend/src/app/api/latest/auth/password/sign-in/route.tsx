@@ -17,7 +17,7 @@ export const POST = createSmartRouteHandler({
   request: yupObject({
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema,
+      tenancy: adaptSchema,
     }).defined(),
     body: yupObject({
       email: emailSchema.defined(),
@@ -33,15 +33,15 @@ export const POST = createSmartRouteHandler({
       user_id: yupString().defined(),
     }).defined(),
   }),
-  async handler({ auth: { project }, body: { email, password } }, fullReq) {
-    if (!project.config.credential_enabled) {
+  async handler({ auth: { tenancy }, body: { email, password } }, fullReq) {
+    if (!tenancy.config.credential_enabled) {
       throw new KnownErrors.PasswordAuthenticationNotEnabled();
     }
 
     const contactChannel = await getAuthContactChannel(
       prismaClient,
       {
-        projectId: project.id,
+        tenancyId: tenancy.id,
         type: "EMAIL",
         value: email,
       }
@@ -60,16 +60,17 @@ export const POST = createSmartRouteHandler({
 
     if (contactChannel.projectUser.requiresTotpMfa) {
       throw await createMfaRequiredError({
-        project,
+        project: tenancy.project,
+        branchId: tenancy.branchId,
         isNewUser: false,
         userId: contactChannel.projectUser.projectUserId,
       });
     }
 
     const { refreshToken, accessToken } = await createAuthTokens({
-      projectId: project.id,
+      tenancy,
       projectUserId: contactChannel.projectUser.projectUserId,
-      useLegacyGlobalJWT: project.config.legacy_global_jwt_signing,
+      useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
     });
 
     return {
