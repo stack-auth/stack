@@ -37,95 +37,101 @@ async function seed() {
   });
 
   if (!internalProject) {
-    internalProject = await prisma.project.create({
-      data: {
-        id: 'internal',
-        displayName: 'Stack Dashboard',
-        description: 'Stack\'s admin dashboard',
-        isProductionMode: false,
-        tenancies: {
-          create: {
-            id: generateUuid(),
-            branchId: 'main',
-            hasNoOrganization: "TRUE",
-            organizationId: null,
-          }
-        },
-        config: {
-          create: {
-            allowLocalhost: true,
-            emailServiceConfig: {
-              create: {
-                proxiedEmailServiceConfig: {
-                  create: {}
-                }
-              }
-            },
-            createTeamOnSignUp: false,
-            clientTeamCreationEnabled: clientTeamCreation,
-            authMethodConfigs: {
-              create: [
-                {
-                  passwordConfig: {
-                    create: {},
+    await prisma.$transaction(async (tx) => {
+      internalProject = await tx.project.create({
+        data: {
+          id: 'internal',
+          displayName: 'Stack Dashboard',
+          description: 'Stack\'s admin dashboard',
+          isProductionMode: false,
+          tenancies: {
+            create: {
+              id: generateUuid(),
+              branchId: 'main',
+              hasNoOrganization: "TRUE",
+              organizationId: null,
+            }
+          },
+          config: {
+            create: {
+              allowLocalhost: true,
+              emailServiceConfig: {
+                create: {
+                  proxiedEmailServiceConfig: {
+                    create: {}
                   }
-                },
-                ...(otpEnabled ? [{
-                  otpConfig: {
+                }
+              },
+              createTeamOnSignUp: false,
+              clientTeamCreationEnabled: clientTeamCreation,
+              authMethodConfigs: {
+                create: [
+                  {
+                    passwordConfig: {
+                      create: {},
+                    }
+                  },
+                  ...(otpEnabled ? [{
+                    otpConfig: {
+                      create: {
+                        contactChannelType: 'EMAIL'
+                      },
+                    }
+                  }]: []),
+                ],
+              },
+              oauthProviderConfigs: {
+                create: oauthProviderIds.map((id) => ({
+                  id,
+                  proxiedOAuthConfig: {
                     create: {
-                      contactChannelType: 'EMAIL'
-                    },
+                      type: id.toUpperCase() as any,
+                    }
+                  },
+                  projectUserOAuthAccounts: {
+                    create: []
                   }
-                }]: []),
-              ],
-            },
-            oauthProviderConfigs: {
-              create: oauthProviderIds.map((id) => ({
-                id,
-                proxiedOAuthConfig: {
-                  create: {
-                    type: id.toUpperCase() as any,
-                  }
-                },
-                projectUserOAuthAccounts: {
-                  create: []
-                }
-              })),
-            },
+                })),
+              },
+            }
           }
+        },
+        include: {
+          config: true,
         }
-      },
-      include: {
-        config: true,
-      }
-    });
+      });
 
-    await prisma.projectConfig.update({
-      where: {
-        id: internalProject.configId,
-      },
-      data: {
-        authMethodConfigs: {
-          create: [
-            ...oauthProviderIds.map((id) => ({
-              oauthProviderConfig: {
-                connect: {
-                  projectConfigId_id: {
-                    id,
-                    projectConfigId: (internalProject as any).configId,
+      await tx.projectConfig.update({
+        where: {
+          id: internalProject.configId,
+        },
+        data: {
+          authMethodConfigs: {
+            create: [
+              ...oauthProviderIds.map((id) => ({
+                oauthProviderConfig: {
+                  connect: {
+                    projectConfigId_id: {
+                      id,
+                      projectConfigId: (internalProject as any).configId,
+                    }
                   }
                 }
-              }
-            }))
-          ],
-        },
-      }
+              }))
+            ],
+          },
+        }
+      });
     });
 
     console.log('Internal project created');
   }
 
   const internalTenancy = await getSoleTenancyFromProject("internal");
+
+  if (!internalProject) {
+    throw new Error('Internal project not found');
+  }
 
   if (internalProject.config.signUpEnabled !== signUpEnabled) {
     await prisma.projectConfig.update({
