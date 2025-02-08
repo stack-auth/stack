@@ -27,6 +27,27 @@ else
   cd ../..
 fi
 
+# Replace env var sentinel in dashboard build output
+echo "Replacing env var sentinel in dashboard build output..."
+declare -A replacements=(
+  ["STACK_ENV_VAR_SENTINEL_USE_INLINE_ENV_VARS"]="true"
+  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_PROJECT_ID"]="${NEXT_PUBLIC_STACK_PROJECT_ID}"
+  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_API_URL"]="${NEXT_PUBLIC_STACK_API_URL}"
+  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_DASHBOARD_URL"]="${NEXT_PUBLIC_STACK_DASHBOARD_URL}" 
+  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_POSTHOG_KEY"]="${NEXT_PUBLIC_POSTHOG_KEY}"
+  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_SVIX_SERVER_URL"]="${NEXT_PUBLIC_STACK_SVIX_SERVER_URL}"
+  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_SENTRY_DSN"]="${NEXT_PUBLIC_SENTRY_DSN}"
+  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_VERSION_ALERTER_SEVERE_ONLY"]="${NEXT_PUBLIC_VERSION_ALERTER_SEVERE_ONLY}"
+)
+
+for key in "${!replacements[@]}"; do
+  value="${replacements[$key]}"
+  # Escape special characters in both key and value
+  escaped_key=$(printf '%s\n' "$key" | sed 's/[[\.*^$/]/\\&/g')
+  escaped_value=$(printf '%s\n' "$value" | sed 's/[[\.*^$/]/\\&/g')
+  find /app/apps -type f -exec sed -i "s/$escaped_key/$escaped_value/g" {} +
+done
+
 # Start backend and dashboard in parallel
 echo "Starting backend on port $BACKEND_PORT..."
 PORT=$BACKEND_PORT HOSTNAME=0.0.0.0 node apps/backend/server.js &

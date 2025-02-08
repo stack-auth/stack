@@ -1,10 +1,11 @@
 "use client";
 
 import { SmartFormDialog } from "@/components/form-dialog";
+import { useRouter } from "@/components/router";
 import { SettingCard } from "@/components/settings";
+import { getPublicEnvVar } from "@/lib/env";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { SvixProvider, useEndpoints, useSvix } from "svix-react";
 import * as yup from "yup";
@@ -192,7 +193,7 @@ export default function PageClient() {
       <SvixProvider
         token={svixTokenUpdated}
         appId={stackAdminApp.projectId}
-        options={{ serverUrl: process.env.NEXT_PUBLIC_STACK_SVIX_SERVER_URL }}
+        options={{ serverUrl: getPublicEnvVar('NEXT_PUBLIC_STACK_SVIX_SERVER_URL') }}
       >
         <Endpoints updateFn={() => setUpdateCounter(x => x + 1)} />
       </SvixProvider>
