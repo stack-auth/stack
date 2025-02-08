@@ -1,6 +1,8 @@
 import fs from "fs";
 import path from "path";
 
+const COMMENT_LINE = "THIS FILE IS AUTO-GENERATED FROM TEMPLATE. DO NOT EDIT IT DIRECTLY";
+
 const allEnvs = ["next", "react-like", "js", "template"];
 const ignoredFiles = ['node_modules', 'dist', '.turbo', '.gitignore'];
 
@@ -97,7 +99,26 @@ function copyFromSrcToDest(
         continue;
       }
 
-      fs.writeFileSync(destPath, editedContent ?? content);
+      let newContent = editedContent ?? content;
+
+      if (destPath.endsWith('.tsx') || destPath.endsWith('.ts') || destPath.endsWith('.js')) {
+        newContent = '//===========================================\n' +
+                     '// ' + COMMENT_LINE + '\n' +
+                     '//===========================================\n' +
+                     newContent;
+      }
+
+      if (destPath.endsWith('package.json')) {
+        // For package.json files, add a comment field
+        const json = JSON.parse(newContent);
+        const orderedJson = {
+          "//": COMMENT_LINE,
+          ...json
+        };
+        newContent = JSON.stringify(orderedJson, null, 2);
+      }
+
+      fs.writeFileSync(destPath, newContent);
     }
   }
 }
