@@ -29,7 +29,7 @@ async function seed() {
 
   const apiKeyId = '3142e763-b230-44b5-8636-aa62f7489c26';
   const defaultUserId = '33e7c043-d2d1-4187-acd3-f91b5ed64b46';
-  const emulatorUserId = '63abbc96-5329-454a-ba56-e0460173c6c1';
+  const emulatorAdminUserId = '63abbc96-5329-454a-ba56-e0460173c6c1';
 
   let internalProject = await prisma.project.findUnique({
     where: {
@@ -355,7 +355,7 @@ async function seed() {
         where: {
           mirroredProjectId: 'internal',
           mirroredBranchId: 'main',
-          projectUserId: emulatorUserId,
+          projectUserId: emulatorAdminUserId,
         }
       });
 
@@ -381,7 +381,7 @@ async function seed() {
         const newEmulatorUser = await tx.projectUser.create({
           data: {
             displayName: 'Local Emulator User',
-            projectUserId: emulatorUserId,
+            projectUserId: emulatorAdminUserId,
             tenancyId: internalTenancy.id,
             mirroredProjectId: 'internal',
             mirroredBranchId: 'main',
