@@ -14,8 +14,6 @@ module.exports = {
             message:
               "Importing useRouter from next/navigation or next/router is not allowed. Use our custom useRouter instead.",
           },
-        ],
-        patterns: [
           {
             group: ["next/link"],
             message:
@@ -26,6 +24,10 @@ module.exports = {
     ],
     "no-restricted-syntax": [
       ...defaults.rules["no-restricted-syntax"].filter(e => typeof e !== "object" || !e.message.includes("yupXyz")),
+      {
+        selector: "MemberExpression[object.name='process'][property.name='env'][parent.property.name=/^NEXT_PUBLIC_/]",
+        message: "Direct access to process.env.NEXT_PUBLIC_* is not allowed. Use getPublicEnvVar() instead."
+      }
     ],
   },
 };
