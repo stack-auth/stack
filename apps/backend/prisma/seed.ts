@@ -471,6 +471,14 @@ async function seed() {
               ]
             }
           }
+        },
+        tenancies: {
+          create: {
+            id: generateUuid(),
+            branchId: 'main',
+            hasNoOrganization: "TRUE",
+            organizationId: null,
+          }
         }
       }
     });

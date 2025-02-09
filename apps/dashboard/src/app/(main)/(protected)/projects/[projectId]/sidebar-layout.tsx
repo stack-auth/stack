@@ -4,6 +4,7 @@ import { FeedbackDialog } from "@/components/feedback-dialog";
 import { Link } from "@/components/link";
 import { Logo } from "@/components/logo";
 import { ProjectSwitcher } from "@/components/project-switcher";
+import ThemeToggle from "@/components/theme-toggle";
 import { getPublicEnvVar } from "@/lib/env";
 import { cn } from "@/lib/utils";
 import { AdminProject, UserButton, useUser } from "@stackframe/stack";
@@ -438,7 +439,10 @@ export default function SidebarLayout(props: { projectId: string, children?: Rea
             <FeedbackDialog
               trigger={<Button variant="outline" size='sm'>Feedback</Button>}
             />
-            {getPublicEnvVar("NEXT_PUBLIC_STACK_EMULATOR_ENABLED") !== "true" && <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}/>}
+            {getPublicEnvVar("NEXT_PUBLIC_STACK_EMULATOR_ENABLED") === "true" ?
+              <ThemeToggle /> :
+              <UserButton colorModeToggle={() => setTheme(resolvedTheme === 'light' ? 'dark' : 'light')}/>
+            }
           </div>
         </div>
         <div className="flex-grow relative">
