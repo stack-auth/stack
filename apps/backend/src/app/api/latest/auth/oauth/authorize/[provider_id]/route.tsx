@@ -1,5 +1,5 @@
 import { checkApiKeySet } from "@/lib/api-keys";
-import { getProject } from "@/lib/projects";
+import { Tenancy, getSoleTenancyFromProject } from "@/lib/tenancies";
 import { decodeAccessToken, oauthCookieSchema } from "@/lib/tokens";
 import { getProvider } from "@/oauth";
 import { prismaClient } from "@/prisma-client";
@@ -55,9 +55,9 @@ export const GET = createSmartRouteHandler({
     bodyType: yupString().oneOf(["empty"]).defined(),
   }),
   async handler({ params, query }, fullReq) {
-    const project = await getProject(query.client_id);
+    const tenancy = await getSoleTenancyFromProject(query.client_id, true);
 
-    if (!project) {
+    if (!tenancy) {
       throw new KnownErrors.InvalidOAuthClientIdOrSecret(query.client_id);
     }
 
@@ -65,7 +65,7 @@ export const GET = createSmartRouteHandler({
       throw new KnownErrors.InvalidPublishableClientKey(query.client_id);
     }
 
-    const provider = project.config.oauth_providers.find((p) => p.id === params.provider_id);
+    const provider = tenancy.config.oauth_providers.find((p) => p.id === params.provider_id);
     if (!provider || !provider.enabled) {
       throw new KnownErrors.OAuthProviderNotFoundOrNotEnabled();
     }
@@ -77,10 +77,13 @@ export const GET = createSmartRouteHandler({
       if (result.status === "error") {
         throw result.error;
       }
-      const { userId, projectId: accessTokenProjectId } = result.data;
+      const { userId, projectId: accessTokenProjectId, branchId: accessTokenBranchId } = result.data;
 
       if (accessTokenProjectId !== query.client_id) {
         throw new StatusError(StatusError.Forbidden, "The access token is not valid for this project");
+      }
+      if (accessTokenBranchId !== tenancy.branchId) {
+        throw new StatusError(StatusError.Forbidden, "The access token is not valid for this branch");
       }
 
       if (query.provider_scope && provider.type === "shared") {
@@ -102,7 +105,7 @@ export const GET = createSmartRouteHandler({
       data: {
         innerState,
         info: {
-          projectId: project.id,
+          tenancyId: tenancy.id,
           publishableClientKey: query.client_id,
           redirectUri: query.redirect_uri.split('#')[0], // remove hash
           scope: query.scope,

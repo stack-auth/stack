@@ -2,6 +2,7 @@
 import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingIconButton, SettingSwitch } from "@/components/settings";
+import { getPublicEnvVar } from "@/lib/env";
 import { AdminProject } from "@stackframe/stack";
 import { yupBoolean, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { sharedProviders } from "@stackframe/stack-shared/dist/utils/oauth";
@@ -109,7 +110,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
                 Redirect URL for the OAuth provider settings
               </Label>
               <Typography type="footnote">
-                <InlineCode>{`${process.env.NEXT_PUBLIC_STACK_API_URL}/api/v1/auth/oauth/callback/${props.id}`}</InlineCode>
+                <InlineCode>{`${getPublicEnvVar('NEXT_PUBLIC_STACK_API_URL')}/api/v1/auth/oauth/callback/${props.id}`}</InlineCode>
               </Typography>
             </div>}
 

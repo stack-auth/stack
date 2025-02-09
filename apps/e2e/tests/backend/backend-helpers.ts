@@ -176,7 +176,10 @@ export namespace Auth {
     const accessToken = backendContext.value.userAuth?.accessToken;
     if (accessToken) {
       const aud = jose.decodeJwt(accessToken).aud;
-      const jwks = jose.createRemoteJWKSet(new URL(`api/v1/projects/${aud}/.well-known/jwks.json`, STACK_BACKEND_BASE_URL));
+      const jwks = jose.createRemoteJWKSet(
+        new URL(`api/v1/projects/${aud}/.well-known/jwks.json`, STACK_BACKEND_BASE_URL),
+        { timeoutDuration: 10_000 },
+      );
       const { payload } = await jose.jwtVerify(accessToken, jwks);
       expect(payload).toEqual({
         "exp": expect.any(Number),
@@ -184,6 +187,7 @@ export namespace Auth {
         "iss": "https://access-token.jwt-signature.stack-auth.com",
         "aud": expect.any(String),
         "sub": expect.any(String),
+        "branchId": "main",
       });
     }
   }

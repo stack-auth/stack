@@ -3,6 +3,7 @@ import { RouterProvider } from '@/components/router';
 import { SiteLoadingIndicatorDisplay } from '@/components/site-loading-indicator';
 import { StyleLink } from '@/components/style-link';
 import { ThemeProvider } from '@/components/theme-provider';
+import { getPublicEnvVar } from '@/lib/env';
 import { cn } from '@/lib/utils';
 import { stackServerApp } from '@/stack';
 import { StackProvider, StackTheme } from '@stackframe/stack';
@@ -23,7 +24,7 @@ import './globals.css';
 import { CSPostHogProvider, UserIdentity } from './providers';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_STACK_API_URL || ''),
+  metadataBase: new URL(getPublicEnvVar('NEXT_PUBLIC_STACK_API_URL') || ''),
   title: {
     default: 'Stack Auth Dashboard',
     template: '%s | Stack Auth',
@@ -32,12 +33,12 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Stack Auth Dashboard',
     description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
-    images: [`${process.env.NEXT_PUBLIC_STACK_API_URL}/open-graph-image.png`]
+    images: [`${getPublicEnvVar('NEXT_PUBLIC_STACK_API_URL')}/open-graph-image.png`]
   },
   twitter: {
     title: 'Stack Auth Dashboard',
     description: 'Stack Auth is the open-source Auth0 alternative, and the fastest way to add authentication to your web app.',
-    images: [`${process.env.NEXT_PUBLIC_STACK_API_URL}/open-graph-image.png`]
+    images: [`${getPublicEnvVar('NEXT_PUBLIC_STACK_API_URL')}/open-graph-image.png`]
   },
 };
 

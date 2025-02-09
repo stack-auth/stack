@@ -1,4 +1,5 @@
 import { validateRedirectUrl } from "@/lib/redirect-urls";
+import { Tenancy } from "@/lib/tenancies";
 import { prismaClient } from "@/prisma-client";
 import { Prisma, VerificationCodeType } from "@prisma/client";
 import { KnownErrors } from "@stackframe/stack-shared";
@@ -15,21 +16,18 @@ import { SmartRouteHandler, SmartRouteHandlerOverloadMetadata, createSmartRouteH
 
 const MAX_ATTEMPTS_PER_CODE = 20;
 
-type CreateCodeOptions<Data, Method extends {}, CallbackUrl extends string | URL | undefined> = {
-  project: ProjectsCrud["Admin"]["Read"],
+type CreateCodeOptions<Data, Method extends {}, CallbackUrl extends string | URL | undefined, AlreadyParsed extends boolean = true> = ProjectBranchCombo<AlreadyParsed> & {
   method: Method,
   expiresInMs?: number,
   data: Data,
   callbackUrl: CallbackUrl,
 };
 
-type ListCodesOptions<Data> = {
-  project: ProjectsCrud["Admin"]["Read"],
+type ListCodesOptions<Data, AlreadyParsed extends boolean = true> = ProjectBranchCombo<AlreadyParsed> & {
   dataFilter?: Prisma.JsonFilter<"VerificationCode"> | undefined,
 }
 
-type RevokeCodeOptions = {
-  project: ProjectsCrud["Admin"]["Read"],
+type RevokeCodeOptions<AlreadyParsed extends boolean = true> = ProjectBranchCombo<AlreadyParsed> & {
   id: string,
 }
 
@@ -43,14 +41,27 @@ type CodeObject<Data, Method extends {}, CallbackUrl extends string | URL | unde
 };
 
 type VerificationCodeHandler<Data, SendCodeExtraOptions extends {}, SendCodeReturnType, HasDetails extends boolean, Method extends {}> = {
-  createCode<CallbackUrl extends string | URL | undefined>(options: CreateCodeOptions<Data, Method, CallbackUrl>): Promise<CodeObject<Data, Method, CallbackUrl>>,
-  sendCode(options: CreateCodeOptions<Data, Method, string | URL>, sendOptions: SendCodeExtraOptions): Promise<SendCodeReturnType>,
-  listCodes(options: ListCodesOptions<Data>): Promise<CodeObject<Data, Method, string | URL>[]>,
-  revokeCode(options: RevokeCodeOptions): Promise<void>,
+  createCode<CallbackUrl extends string | URL | undefined>(options: CreateCodeOptions<Data, Method, CallbackUrl, false>): Promise<CodeObject<Data, Method, CallbackUrl>>,
+  sendCode(options: CreateCodeOptions<Data, Method, string | URL, false>, sendOptions: SendCodeExtraOptions): Promise<SendCodeReturnType>,
+  listCodes(options: ListCodesOptions<Data, false>): Promise<CodeObject<Data, Method, string | URL>[]>,
+  revokeCode(options: RevokeCodeOptions<false>): Promise<void>,
   postHandler: SmartRouteHandler<any, any, any>,
   checkHandler: SmartRouteHandler<any, any, any>,
   detailsHandler: HasDetails extends true ? SmartRouteHandler<any, any, any> : undefined,
 };
+
+type ProjectBranchCombo<AlreadyParsed extends boolean> = (
+  | { project: ProjectsCrud["Admin"]["Read"], branchId: string, tenancy?: undefined }
+  | (AlreadyParsed extends true ? never : { tenancy: Tenancy, project?: undefined, branchId?: undefined })
+);
+
+function parseProjectBranchCombo<T extends ProjectBranchCombo<boolean>>(obj: T): T & ProjectBranchCombo<true> {
+  return {
+    ...obj,
+    project: obj.project ?? obj.tenancy.project,
+    branchId: obj.branchId ?? obj.tenancy.branchId,
+  };
+}
 
 /**
  * Make sure to always check that the method is the same as the one in the data.
@@ -81,21 +92,21 @@ export function createVerificationCodeHandler<
     sendOptions: SendCodeExtraOptions,
   ): Promise<SendCodeReturnType>,
   validate?(
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     method: Method,
     data: Data,
     body: RequestBody,
     user: UsersCrud["Admin"]["Read"] | undefined
   ): Promise<void>,
   handler(
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     method: Method,
     data: Data,
     body: RequestBody,
     user: UsersCrud["Admin"]["Read"] | undefined,
   ): Promise<Response>,
   details?: DetailsResponse extends SmartResponse ? ((
-    project: ProjectsCrud["Admin"]["Read"],
+    tenancy: Tenancy,
     method: Method,
     data: Data,
     body: RequestBody,
@@ -106,6 +117,7 @@ export function createVerificationCodeHandler<
     metadata: options.metadata?.[handlerType],
     request: yupObject({
       auth: yupObject({
+        tenancy: adaptSchema.defined(),
         project: adaptSchema.defined(),
         user: adaptSchema,
       }).defined(),
@@ -133,8 +145,9 @@ export function createVerificationCodeHandler<
 
       const verificationCode = await prismaClient.verificationCode.findUnique({
         where: {
-          projectId_code: {
+          projectId_branchId_code: {
             projectId: auth.project.id,
+            branchId: auth.tenancy.branchId,
             code,
           },
           type: options.type,
@@ -145,6 +158,7 @@ export function createVerificationCodeHandler<
       await prismaClient.verificationCode.updateMany({
         where: {
           projectId: auth.project.id,
+          branchId: auth.tenancy.branchId,
           code: {
             endsWith: code.slice(6),
           }
@@ -167,15 +181,16 @@ export function createVerificationCodeHandler<
       });
 
       if (options.validate) {
-        await options.validate(auth.project, validatedMethod, validatedData, requestBody as any, auth.user as any);
+        await options.validate(auth.tenancy, validatedMethod, validatedData, requestBody as any, auth.user as any);
       }
 
       switch (handlerType) {
         case 'post': {
           await prismaClient.verificationCode.update({
             where: {
-              projectId_code: {
+              projectId_branchId_code: {
                 projectId: auth.project.id,
+                branchId: auth.tenancy.branchId,
                 code,
               },
               type: options.type,
@@ -185,7 +200,7 @@ export function createVerificationCodeHandler<
             },
           });
 
-          return await options.handler(auth.project, validatedMethod, validatedData, requestBody as any, auth.user);
+          return await options.handler(auth.tenancy, validatedMethod, validatedData, requestBody as any, auth.user);
         }
         case 'check': {
           return {
@@ -197,14 +212,15 @@ export function createVerificationCodeHandler<
           };
         }
         case 'details': {
-          return await options.details?.(auth.project, validatedMethod, validatedData, requestBody as any, auth.user as any) as any;
+          return await options.details?.(auth.tenancy, validatedMethod, validatedData, requestBody as any, auth.user as any) as any;
         }
       }
     },
   });
 
   return {
-    async createCode({ project, method, data, callbackUrl, expiresInMs }) {
+    async createCode({ method, data, callbackUrl, expiresInMs, ...params }) {
+      const { project, branchId } = parseProjectBranchCombo(params);
       const validatedData = await options.data.validate(data, {
         strict: true,
       });
@@ -220,6 +236,7 @@ export function createVerificationCodeHandler<
       const verificationCodePrisma = await prismaClient.verificationCode.create({
         data: {
           projectId: project.id,
+          branchId,
           type: options.type,
           code: generateSecureRandomString(),
           redirectUrl: callbackUrl?.toString(),
@@ -236,12 +253,14 @@ export function createVerificationCodeHandler<
       if (!options.send) {
         throw new StackAssertionError("Cannot use sendCode on this verification code handler because it doesn't have a send function");
       }
-      return await options.send(codeObj, createOptions, sendOptions);
+      return await options.send(codeObj, parseProjectBranchCombo(createOptions), sendOptions);
     },
     async listCodes(listOptions) {
+      const { project, branchId } = parseProjectBranchCombo(listOptions);
       const codes = await prismaClient.verificationCode.findMany({
         where: {
-          projectId: listOptions.project.id,
+          projectId: project.id,
+          branchId,
           type: options.type,
           data: listOptions.dataFilter,
           expiresAt: {
@@ -253,10 +272,12 @@ export function createVerificationCodeHandler<
       return codes.map(code => createCodeObjectFromPrismaCode(code));
     },
     async revokeCode(options) {
+      const { project, branchId } = parseProjectBranchCombo(options);
       await prismaClient.verificationCode.delete({
         where: {
-          projectId_id: {
-            projectId: options.project.id,
+          projectId_branchId_id: {
+            projectId: project.id,
+            branchId,
             id: options.id,
           },
         },

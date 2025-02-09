@@ -29,7 +29,7 @@ export const POST = createSmartRouteHandler({
     }).defined(),
   }),
   handler: async (req) => {
-    // Create an admin API key for the project
+    // Create an admin API key for the tenancy
     const set = await prismaClient.apiKeySet.create({
       data: {
         projectId: req.body.project_id,
