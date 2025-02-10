@@ -1,7 +1,7 @@
+import { getPublicEnvVar } from "@stackframe/stack-shared/dist/utils/env";
 import { clsx, type ClassValue } from "clsx";
 import { redirect } from "next/navigation";
 import { twMerge } from "tailwind-merge";
-import { getPublicEnvVar } from "./env";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

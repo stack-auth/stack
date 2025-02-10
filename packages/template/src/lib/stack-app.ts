@@ -17,7 +17,7 @@ import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
-import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
+import { getPublicEnvVar, isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, concatStacktraces, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { DependenciesMap } from "@stackframe/stack-shared/dist/utils/maps";
@@ -114,11 +114,11 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
 }
 
 function getDefaultProjectId() {
-  return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
+  return getPublicEnvVar("NEXT_PUBLIC_STACK_PROJECT_ID") || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
 }
 
 function getDefaultPublishableClientKey() {
-  return process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
+  return getPublicEnvVar("NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY") || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
 }
 
 function getDefaultSecretServerKey() {
@@ -130,7 +130,7 @@ function getDefaultSuperSecretAdminKey() {
 }
 
 function getDefaultBaseUrl() {
-  return process.env.NEXT_PUBLIC_STACK_API_URL || process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
+  return getPublicEnvVar("NEXT_PUBLIC_STACK_API_URL") || getPublicEnvVar("NEXT_PUBLIC_STACK_URL") || defaultBaseUrl;
 }
 
 export type StackClientAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = {

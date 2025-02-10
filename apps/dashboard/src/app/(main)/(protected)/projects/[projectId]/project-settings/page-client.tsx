@@ -2,7 +2,7 @@
 import { InputField, SwitchField } from "@/components/form-fields";
 import { StyledLink } from "@/components/link";
 import { FormSettingCard, SettingCard, SettingSwitch, SettingText } from "@/components/settings";
-import { getPublicEnvVar } from "@/lib/env";
+import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Alert, Button, Typography } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";

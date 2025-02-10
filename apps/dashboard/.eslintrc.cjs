@@ -1,4 +1,5 @@
 const defaults = require("../../eslint-configs/defaults.js");
+const publicVars = require("../../eslint-configs/extra-rules.js");
 
 module.exports = {
   extends: ["../../eslint-configs/defaults.js", "../../eslint-configs/next.js"],
@@ -24,10 +25,7 @@ module.exports = {
     ],
     "no-restricted-syntax": [
       ...defaults.rules["no-restricted-syntax"].filter(e => typeof e !== "object" || !e.message.includes("yupXyz")),
-      {
-        selector: "MemberExpression[object.name='process'][property.name='env'][parent.property.name=/^NEXT_PUBLIC_/]",
-        message: "Direct access to process.env.NEXT_PUBLIC_* is not allowed. Use getPublicEnvVar() instead."
-      }
+      publicVars['no-next-public-env']
     ],
   },
 };

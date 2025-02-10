@@ -1,7 +1,7 @@
 'use client';
 
 import Loading from "@/app/loading";
-import { getPublicEnvVar } from "@/lib/env";
+import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
 import { useStackApp, useUser } from "@stackframe/stack";
 import { useEffect } from "react";
 

@@ -5,7 +5,7 @@ import { Link } from "@/components/link";
 import { Logo } from "@/components/logo";
 import { ProjectSwitcher } from "@/components/project-switcher";
 import ThemeToggle from "@/components/theme-toggle";
-import { getPublicEnvVar } from "@/lib/env";
+import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
 import { cn } from "@/lib/utils";
 import { AdminProject, UserButton, useUser } from "@stackframe/stack";
 import { EMAIL_TEMPLATES_METADATA } from "@stackframe/stack-emails/dist/utils";

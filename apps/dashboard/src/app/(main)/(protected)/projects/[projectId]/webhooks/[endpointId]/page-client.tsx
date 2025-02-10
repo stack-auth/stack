@@ -1,7 +1,7 @@
 "use client";
 
 import { SettingCard, SettingSwitch } from "@/components/settings";
-import { getPublicEnvVar } from "@/lib/env";
+import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { Alert, Badge, Button, Checkbox, CopyButton, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";

@@ -3,7 +3,7 @@
 import { SmartFormDialog } from "@/components/form-dialog";
 import { useRouter } from "@/components/router";
 import { SettingCard } from "@/components/settings";
-import { getPublicEnvVar } from "@/lib/env";
+import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { useState } from "react";
