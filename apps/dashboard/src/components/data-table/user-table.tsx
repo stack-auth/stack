@@ -8,7 +8,7 @@ import { ColumnDef, ColumnFiltersState, Row, SortingState, Table } from "@tansta
 import { useState } from "react";
 import { Link } from '../link';
 import { UserDialog } from '../user-dialog';
-import { useRouter } from '../router';
+import { useRouter } from "@/components/router";
 
 export type ExtendedServerUser = ServerUser & {
   authTypes: string[],

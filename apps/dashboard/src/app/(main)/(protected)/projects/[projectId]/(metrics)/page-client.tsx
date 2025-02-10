@@ -3,7 +3,7 @@
 import { UserAvatar } from '@stackframe/stack';
 import { fromNow } from '@stackframe/stack-shared/dist/utils/dates';
 import { Card, CardContent, CardHeader, CardTitle, Table, TableBody, TableCell, TableRow, Typography } from '@stackframe/stack-ui';
-import { useRouter } from 'next/navigation';
+import { useRouter } from "@/components/router";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from '../use-admin-app';
 import { GlobeSection } from './globe';
