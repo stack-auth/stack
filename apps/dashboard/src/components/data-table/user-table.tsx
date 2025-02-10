@@ -5,10 +5,10 @@ import { deepPlainEquals } from '@stackframe/stack-shared/dist/utils/objects';
 import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableManualPagination, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
 import { ColumnDef, ColumnFiltersState, Row, SortingState, Table } from "@tanstack/react-table";
-import { useRouter } from 'next/navigation';
 import { useState } from "react";
 import { Link } from '../link';
 import { UserDialog } from '../user-dialog';
+import { useRouter } from '../router';
 
 export type ExtendedServerUser = ServerUser & {
   authTypes: string[],
