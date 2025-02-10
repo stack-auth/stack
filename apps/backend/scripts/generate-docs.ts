@@ -12,8 +12,8 @@ async function main() {
   console.log("Started docs schema generator");
 
   for (const audience of ['client', 'server', 'admin'] as const) {
-    const filePathPrefix = path.resolve(process.platform === "win32" ? "apps/src/app/api/v1" : "src/app/api/v1");
-    const importPathPrefix = "@/app/api/v1";
+    const filePathPrefix = path.resolve(process.platform === "win32" ? "apps/src/app/api/latest" : "src/app/api/latest");
+    const importPathPrefix = "@/app/api/latest";
     const filePaths = [...await glob(filePathPrefix + "/**/route.{js,jsx,ts,tsx}")];
     const openAPISchema = yaml.stringify(parseOpenAPI({
       endpoints: new Map(await Promise.all(filePaths.map(async (filePath) => {

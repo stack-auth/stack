@@ -1924,7 +1924,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       ...super._createBaseUser(crud),
       lastActiveAt: new Date(crud.last_active_at_millis),
       serverMetadata: crud.server_metadata,
-      async setPrimaryEmail(email: string, options?: { verified?: boolean }) {
+      async setPrimaryEmail(email: string | null, options?: { verified?: boolean }) {
         await app._updateServerUser(crud.id, { primaryEmail: email, primaryEmailVerified: options?.verified });
       },
       async grantPermission(scope: Team, permissionId: string): Promise<void> {
@@ -2345,7 +2345,9 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected override async _refreshUsers() {
     await Promise.all([
       super._refreshUsers(),
+      this._serverUserCache.refreshWhere(() => true),
       this._serverUsersCache.refreshWhere(() => true),
+      this._serverContactChannelsCache.refreshWhere(() => true),
     ]);
   }
 }
@@ -2965,7 +2967,7 @@ function userUpdateOptionsToCrud(options: UserUpdateOptions): CurrentUserCrud["C
 type ___________server_user = never;  // this is a marker for VSCode's outline view
 
 type ServerBaseUser = {
-  setPrimaryEmail(email: string, options?: { verified?: boolean | undefined }): Promise<void>,
+  setPrimaryEmail(email: string | null, options?: { verified?: boolean | undefined }): Promise<void>,
 
   readonly lastActiveAt: Date,
 
@@ -3004,7 +3006,7 @@ export type CurrentServerUser = Auth & ServerUser;
 export type CurrentInternalServerUser = CurrentServerUser & InternalUserExtra;
 
 type ServerUserUpdateOptions = {
-  primaryEmail?: string,
+  primaryEmail?: string | null,
   primaryEmailVerified?: boolean,
   primaryEmailAuthEnabled?: boolean,
   clientReadOnlyMetadata?: ReadonlyJson,
@@ -3029,7 +3031,7 @@ function serverUserUpdateOptionsToCrud(options: ServerUserUpdateOptions): Curren
 
 
 type ServerUserCreateOptions = {
-  primaryEmail?: string,
+  primaryEmail?: string | null,
   primaryEmailAuthEnabled?: boolean,
   password?: string,
   otpAuthEnabled?: boolean,

@@ -23,12 +23,14 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        plain: "",
       },
       size: {
         default: "h-9 px-4 py-2",
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",
         icon: "h-9 w-9",
+        plain: "",
       },
     },
     defaultVariants: {
@@ -62,7 +64,7 @@ type ButtonProps = {
 } & OriginalButtonProps
 
 const Button = forwardRefIfNeeded<HTMLButtonElement, ButtonProps>(
-  ({ onClick, loading: loadingProp, children, ...props }, ref) => {
+  ({ onClick, loading: loadingProp, children, size, ...props }, ref) => {
     const [handleClick, isLoading] = useAsyncCallback(async (e: React.MouseEvent<HTMLButtonElement>) => {
       await onClick?.(e);
     }, [onClick]);
@@ -75,8 +77,10 @@ const Button = forwardRefIfNeeded<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={props.disabled || loading}
         onClick={(e) => runAsynchronouslyWithAlert(handleClick(e))}
+        size={size}
+        className={cn("relative", loading && "hide-children", props.className)}
       >
-        {loading && <Spinner className="mr-2" />}
+        <Spinner className={cn("absolute inset-0 flex items-center justify-center do-not-hide-when-siblings-are", !loading && "invisible")} />
         {children}
       </OriginalButton>
     );

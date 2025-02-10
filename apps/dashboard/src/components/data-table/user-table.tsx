@@ -6,7 +6,9 @@ import { deindent } from '@stackframe/stack-shared/dist/utils/strings';
 import { ActionCell, ActionDialog, AvatarCell, BadgeCell, CopyField, DataTableColumnHeader, DataTableManualPagination, DateCell, SearchToolbarItem, SimpleTooltip, TextCell, Typography } from "@stackframe/stack-ui";
 import { ColumnDef, ColumnFiltersState, Row, SortingState, Table } from "@tanstack/react-table";
 import { useState } from "react";
+import { Link } from '../link';
 import { UserDialog } from '../user-dialog';
+import { useRouter } from "@/components/router";
 
 export type ExtendedServerUser = ServerUser & {
   authTypes: string[],
@@ -66,7 +68,7 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [impersonateSnippet, setImpersonateSnippet] = useState<string | null>(null);
   const app = useAdminApp();
-
+  const router = useRouter();
   return (
     <>
       <UserDialog user={row.original} type="edit" open={isEditModalOpen} onOpenChange={setIsEditModalOpen} />
@@ -74,6 +76,17 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
       <ImpersonateUserDialog user={row.original} impersonateSnippet={impersonateSnippet} onClose={() => setImpersonateSnippet(null)} />
       <ActionCell
         items={[
+          {
+            item: "View details",
+            onClick: () => {
+              router.push(`/projects/${encodeURIComponent(app.projectId)}/users/${encodeURIComponent(row.original.id)}`);
+            },
+          },
+          {
+            item: "Edit",
+            onClick: () => setIsEditModalOpen(true),
+          },
+          '-',
           {
             item: "Impersonate",
             onClick: async () => {
@@ -87,17 +100,13 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
               `);
             }
           },
-          '-',
-          {
-            item: "Edit",
-            onClick: () => setIsEditModalOpen(true),
-          },
           ...row.original.isMultiFactorRequired ? [{
             item: "Remove 2FA",
             onClick: async () => {
               await row.original.update({ totpMultiFactorSecret: null });
             },
           }] : [],
+          '-',
           {
             item: "Delete",
             onClick: () => setIsDeleteModalOpen(true),
@@ -109,11 +118,23 @@ function UserActions({ row }: { row: Row<ExtendedServerUser> }) {
   );
 }
 
+function AvatarCellWrapper({ user }: { user: ServerUser }) {
+  const stackAdminApp = useAdminApp();
+  return <Link href={`/projects/${encodeURIComponent(stackAdminApp.projectId)}/users/${encodeURIComponent(user.id)}`}>
+    <AvatarCell
+      src={user.profileImageUrl ?? undefined}
+      fallback={user.displayName?.charAt(0) ?? user.primaryEmail?.charAt(0) ?? '?'}
+    />
+  </Link>;
+}
+
 export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
   {
     accessorKey: "profileImageUrl",
     header: ({ column }) => <DataTableColumnHeader column={column} columnTitle="Avatar" />,
-    cell: ({ row }) => <AvatarCell src={row.original.profileImageUrl || undefined} />,
+    cell: ({ row }) => {
+      return <AvatarCellWrapper user={row.original} />;
+    },
     enableSorting: false,
   },
   {
@@ -188,6 +209,7 @@ export function extendUsers(users: ServerUser[] & { nextCursor?: string | null }
 
 export function UserTable() {
   const stackAdminApp = useAdminApp();
+  const router = useRouter();
   const [filters, setFilters] = useState<Parameters<typeof stackAdminApp.listUsers>[0]>({ limit: 10, orderBy: "signedUpAt", desc: true });
   const users = extendUsers(stackAdminApp.useUsers(filters));
 
@@ -230,5 +252,8 @@ export function UserTable() {
     defaultVisibility={{ emailVerified: false }}
     defaultColumnFilters={[]}
     defaultSorting={[{ id: 'signedUpAt', desc: true }]}
+    onRowClick={(row) => {
+      router.push(`/projects/${encodeURIComponent(stackAdminApp.projectId)}/users/${encodeURIComponent(row.id)}`);
+    }}
   />;
 }

@@ -27,7 +27,7 @@ async function loadUsersByCountry(tenancy: Tenancy): Promise<Record<string, numb
           ON "Event"."endUserIpInfoGuessId" = eip.id
         WHERE '$user-activity' = ANY("systemEventTypeIds"::text[])
           AND "data"->>'projectId' = ${tenancy.project.id}
-          AND "data"->>'branchId' = ${tenancy.branchId}
+          AND COALESCE("data"->>'branchId', 'main') = ${tenancy.branchId}
           AND "countryCode" IS NOT NULL
         ORDER BY "userId", "eventStartedAt" DESC
     )
@@ -88,7 +88,7 @@ async function loadDailyActiveUsers(tenancy: Tenancy, now: Date) {
         AND "eventStartedAt" < ${now}
         AND '$user-activity' = ANY("systemEventTypeIds"::text[])
         AND "data"->>'projectId' = ${tenancy.project.id}
-        AND "data"->>'branchId' = ${tenancy.branchId}
+        AND COALESCE("data"->>'branchId', 'main') = ${tenancy.branchId}
       GROUP BY DATE_TRUNC('day', "eventStartedAt")
     )
     SELECT ds."day", COALESCE(du.dau, 0) AS dau
@@ -147,7 +147,7 @@ async function loadRecentlyActiveUsers(tenancy: Tenancy): Promise<UsersCrud["Adm
         ) as rn
       FROM "Event"
       WHERE "data"->>'projectId' = ${tenancy.project.id}
-        AND "data"->>'branchId' = ${tenancy.branchId}
+        AND COALESCE("data"->>'branchId', 'main') = ${tenancy.branchId}
         AND '$user-activity' = ANY("systemEventTypeIds"::text[])
     )
     SELECT "data", "eventStartedAt"

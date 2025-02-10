@@ -215,17 +215,20 @@ export const getUserLastActiveAtMillis = async (tenancyId: string, userId: strin
   return res;
 };
 
-// same as userIds.map(userId => getUserLastActiveAtMillis(tenancyId, userId)), but uses a single query
+/**
+ * Same as userIds.map(userId => getUserLastActiveAtMillis(tenancyId, userId)), but uses a single query
+ */
 export const getUsersLastActiveAtMillis = async (tenancyId: string, userIds: string[], userSignedUpAtMillis: (number | Date)[]): Promise<number[]> => {
   if (userIds.length === 0) {
     // Prisma.join throws an error if the array is empty, so we need to handle that case
     return [];
   }
+  const tenancy = await getTenancy(tenancyId) ?? throwErr("Tenancy not found", { tenancyId });
 
   const events = await prismaClient.$queryRaw<Array<{ userId: string, lastActiveAt: Date }>>`
     SELECT data->>'userId' as "userId", MAX("eventStartedAt") as "lastActiveAt"
     FROM "Event"
-    WHERE data->>'userId' = ANY(${Prisma.sql`ARRAY[${Prisma.join(userIds)}]`}) AND data->>'tenancyId' = ${tenancyId} AND "systemEventTypeIds" @> '{"$user-activity"}'
+    WHERE data->>'userId' = ANY(${Prisma.sql`ARRAY[${Prisma.join(userIds)}]`}) AND data->>'projectId' = ${tenancy.project.id} AND COALESCE("data"->>'branchId', 'main') = ${tenancy.branchId} AND "systemEventTypeIds" @> '{"$user-activity"}'
     GROUP BY data->>'userId'
   `;
 
@@ -248,7 +251,7 @@ export function getUserQuery(projectId: string, branchId: string | null, userId:
               'lastActiveAt', (
                 SELECT MAX("eventStartedAt") as "lastActiveAt"
                 FROM "Event"
-                WHERE data->>'tenancyId' = ("ProjectUser"."tenancyId")::text AND "data"->>'userId' = ("ProjectUser"."projectUserId")::text AND "systemEventTypeIds" @> '{"$user-activity"}'
+                WHERE data->>'projectId' = ("Tenancy"."projectId") AND COALESCE("data"->>'branchId', 'main') = ("Tenancy"."branchId") AND "data"->>'userId' = ("ProjectUser"."projectUserId")::text AND "systemEventTypeIds" @> '{"$user-activity"}'
               ),
               'ContactChannels', (
                 SELECT COALESCE(ARRAY_AGG(

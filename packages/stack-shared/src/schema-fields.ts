@@ -288,7 +288,6 @@ export const emailUsernameSchema = yupString().meta({ openapiField: { descriptio
 export const emailSenderEmailSchema = emailSchema.meta({ openapiField: { description: 'Email sender email. Needs to be specified when using type="standard"', exampleValue: 'example@your-domain.com' } });
 export const emailPasswordSchema = passwordSchema.meta({ openapiField: { description: 'Email password. Needs to be specified when using type="standard"', exampleValue: 'your-email-password' } });
 // Project domain config
-export const projectTrustedDomainSchema = urlSchema.test('is-https', 'Trusted domain must start with https://', (value) => value?.startsWith('https://')).meta({ openapiField: { description: 'Your domain URL. Make sure you own and trust this domain. Needs to start with https://', exampleValue: 'https://example.com' } });
 export const handlerPathSchema = yupString().test('is-handler-path', 'Handler path must start with /', (value) => value?.startsWith('/')).meta({ openapiField: { description: 'Handler path. If you did not setup a custom handler path, it should be "/handler" by default. It needs to start with /', exampleValue: '/handler' } });
 
 // Users
