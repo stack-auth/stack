@@ -2,18 +2,18 @@ services:
 
   # ================= Stack Auth Server =================
 
-  stack-auth-server:
+  server:
     build:
       context: ../..
       dockerfile: docker/server/Dockerfile
     ports:
-      - 8101:8101
-      - 8102:8102
+      - 32101:8101
+      - 32102:8102
     environment:
-      NEXT_PUBLIC_STACK_API_URL: http://localhost:8102
-      NEXT_PUBLIC_STACK_DASHBOARD_URL: http://localhost:8101
-      STACK_DATABASE_CONNECTION_STRING: postgres://postgres:PASSWORD-PLACEHOLDER--uqfEC1hmmv@host.docker.internal:5432/stackframe
-      STACK_DIRECT_DATABASE_CONNECTION_STRING: postgres://postgres:PASSWORD-PLACEHOLDER--uqfEC1hmmv@host.docker.internal:5432/stackframe
+      NEXT_PUBLIC_STACK_API_URL: http://localhost:32102
+      NEXT_PUBLIC_STACK_DASHBOARD_URL: http://localhost:32101
+      STACK_DATABASE_CONNECTION_STRING: postgres://postgres:PASSWORD-PLACEHOLDER--uqfEC1hmmv@host.docker.internal:32201/stackframe
+      STACK_DIRECT_DATABASE_CONNECTION_STRING: postgres://postgres:PASSWORD-PLACEHOLDER--uqfEC1hmmv@host.docker.internal:32201/stackframe
       STACK_SERVER_SECRET: 23-wuNpik0gIW4mruTz25rbIvhuuvZFrLOLtL7J4tyo
       STACK_SEED_INTERNAL_PROJECT_ALLOW_LOCALHOST: true
       STACK_RUN_MIGRATIONS: true
@@ -22,6 +22,14 @@ services:
       NEXT_PUBLIC_STACK_EMULATOR_ENABLED: true
       STACK_EMULATOR_PROJECT_ID: dff88d17-6d39-4b08-b4e2-c87c81f7218a
       NEXT_PUBLIC_STACK_EMULATOR_PROJECT_ID: dff88d17-6d39-4b08-b4e2-c87c81f7218a
+      STACK_SVIX_SERVER_URL: http://localhost:32205
+      STACK_SVIX_API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTUxNDA2MzksImV4cCI6MTk3MDUwMDYzOSwibmJmIjoxNjU1MTQwNjM5LCJpc3MiOiJzdml4LXNlcnZlciIsInN1YiI6Im9yZ18yM3JiOFlkR3FNVDBxSXpwZ0d3ZFhmSGlyTXUifQ.En8w77ZJWbd0qrMlHHupHUB-4cx17RfzFykseg95SUk
+      STACK_EMAIL_HOST: 127.0.0.1
+      STACK_EMAIL_PORT: 32203
+      STACK_EMAIL_SECURE: false
+      STACK_EMAIL_USERNAME: none
+      STACK_EMAIL_PASSWORD: none
+      STACK_EMAIL_SENDER: noreply@example.com
     depends_on:
       - db
       - inbucket
@@ -36,7 +44,7 @@ services:
       POSTGRES_PASSWORD: PASSWORD-PLACEHOLDER--uqfEC1hmmv
       POSTGRES_DB: stackframe
     ports:
-      - 5432:5432
+      - 32201:5432
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
@@ -45,9 +53,9 @@ services:
   inbucket:
     image: inbucket/inbucket:latest
     ports:
-      - 2500:2500
-      - 8105:9000
-      - 1100:1100
+      - 32202:2500
+      - 32103:9000
+      - 32204:1100
     volumes:
       - inbucket-data:/data
 
@@ -79,7 +87,7 @@ services:
       SVIX_LOG_LEVEL: trace
       SVIX_QUEUE_TYPE: redis
     ports:
-      - 8113:8071
+      - 32205:8071
     depends_on:
     - svix-redis
     - svix-db
