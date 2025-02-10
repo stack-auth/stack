@@ -82,6 +82,26 @@ const navigationItems: (Label | Item | Hidden)[] = [
     type: 'item'
   },
   {
+    name: (pathname: string) => {
+      const match = pathname.match(/^\/projects\/[^\/]+\/users\/([^\/]+)$/);
+      let item;
+      let href;
+      if (match) {
+        item = <UserBreadcrumbItem key='user-display-name' userId={match[1]} />;
+        href = `/users/${match[1]}`;
+      } else {
+        item = "Users";
+        href = "";
+      }
+      return [
+        { item: "Users", href: "/users" },
+        { item, href },
+      ];
+    },
+    regex: /^\/projects\/[^\/]+\/users\/[^\/]+$/,
+    type: 'hidden',
+  },
+  {
     name: "Auth Methods",
     href: "/auth-methods",
     regex: /^\/projects\/[^\/]+\/auth-methods$/,
@@ -221,6 +241,17 @@ function TeamMemberBreadcrumbItem(props: { teamId: string }) {
     return null;
   } else {
     return team.displayName;
+  }
+}
+
+function UserBreadcrumbItem(props: { userId: string }) {
+  const stackAdminApp = useAdminApp();
+  const user = stackAdminApp.useUser(props.userId);
+
+  if (!user) {
+    return null;
+  } else {
+    return user.displayName ?? user.primaryEmail ?? user.id;
   }
 }
 

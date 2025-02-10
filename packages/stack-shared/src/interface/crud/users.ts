@@ -9,7 +9,7 @@ export const usersCrudServerUpdateSchema = fieldSchema.yupObject({
   client_metadata: fieldSchema.userClientMetadataSchema.optional(),
   client_read_only_metadata: fieldSchema.userClientReadOnlyMetadataSchema.optional(),
   server_metadata: fieldSchema.userServerMetadataSchema.optional(),
-  primary_email: fieldSchema.primaryEmailSchema.nullable().optional(),
+  primary_email: fieldSchema.primaryEmailSchema.nullable().optional().nonEmpty(),
   primary_email_verified: fieldSchema.primaryEmailVerifiedSchema.optional(),
   primary_email_auth_enabled: fieldSchema.primaryEmailAuthEnabledSchema.optional(),
   passkey_auth_enabled: fieldSchema.userOtpAuthEnabledSchema.optional(),

@@ -2,7 +2,7 @@
 'use client';
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import React, { useEffect, useRef, useState } from "react";
-import { SimpleTooltip, cn, Avatar, AvatarImage, Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../..";
+import { Avatar, AvatarFallback, AvatarImage, Badge, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger, SimpleTooltip, cn } from "../..";
 
 export function TextCell(props: { children: React.ReactNode, size?: number, icon?: React.ReactNode }) {
   const textRef = useRef<HTMLDivElement>(null);
@@ -42,10 +42,11 @@ export function TextCell(props: { children: React.ReactNode, size?: number, icon
   );
 }
 
-export function AvatarCell(props: { src?: string }) {
+export function AvatarCell(props: { src?: string, fallback?: string }) {
   return (
     <Avatar className="h-6 w-6">
       <AvatarImage src={props.src} />
+      <AvatarFallback>{props.fallback}</AvatarFallback>
     </Avatar>
   );
 }

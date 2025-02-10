@@ -1811,6 +1811,44 @@ describe("with server access", () => {
     expect(response.body.primary_email).toEqual(mailbox.emailAddress);
   });
 
+  it("should be able to remove primary email", async ({ expect }) => {
+    await Auth.Otp.signIn();
+    const response = await niceBackendFetch("/api/v1/users/me", {
+      accessType: "server",
+      method: "PATCH",
+      body: {
+        primary_email: null,
+      },
+    });
+    expect(response).toMatchInlineSnapshot(`
+      NiceResponse {
+        "status": 200,
+        "body": {
+          "auth_with_email": true,
+          "client_metadata": null,
+          "client_read_only_metadata": null,
+          "display_name": null,
+          "has_password": false,
+          "id": "<stripped UUID>",
+          "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+          "oauth_providers": [],
+          "otp_auth_enabled": true,
+          "passkey_auth_enabled": false,
+          "primary_email": null,
+          "primary_email_auth_enabled": false,
+          "primary_email_verified": false,
+          "profile_image_url": null,
+          "requires_totp_mfa": false,
+          "selected_team": null,
+          "selected_team_id": null,
+          "server_metadata": null,
+          "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+        },
+        "headers": Headers { <some fields may have been hidden> },
+      }
+    `);
+  });
+
   it("should not be able to update primary email to an email already in use for auth", async ({ expect }) => {
     await Auth.Otp.signIn();
     const primaryEmail = backendContext.value.mailbox.emailAddress;
