@@ -24,7 +24,8 @@ import { TeamsCrud } from './crud/teams';
 
 export type ClientInterfaceOptions = {
   clientVersion: string,
-  baseUrl: string,
+  // This is a function instead of a string because it might be different based on the environment (for example client vs server)
+  getBaseUrl: () => string,
   projectId: string,
 } & ({
   publishableClientKey: string,
@@ -42,7 +43,7 @@ export class StackClientInterface {
   }
 
   getApiUrl() {
-    return this.options.baseUrl + "/api/v1";
+    return this.options.getBaseUrl() + "/api/v1";
   }
 
   public async runNetworkDiagnostics(session?: InternalSession | null, requestType?: "client" | "server" | "admin") {
@@ -134,7 +135,7 @@ export class StackClientInterface {
     }
 
     const as = {
-      issuer: this.options.baseUrl,
+      issuer: this.options.getBaseUrl(),
       algorithm: 'oauth2',
       token_endpoint: this.getApiUrl() + '/auth/oauth/token',
     };
@@ -932,7 +933,7 @@ export class StackClientInterface {
       throw new Error("Admin session token is currently not supported for OAuth");
     }
     const as = {
-      issuer: this.options.baseUrl,
+      issuer: this.options.getBaseUrl(),
       algorithm: 'oauth2',
       token_endpoint: this.getApiUrl() + '/auth/oauth/token',
     };

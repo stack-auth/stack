@@ -56,29 +56,25 @@ export function getPublicEnvVar(name: keyof typeof _inlineEnvVars) {
   };
 
   // If it's a dictionary with client/server values
-  if (typeof value === 'object' && 'default' in value) {
-    const defaultValue = value.default;
+  if (typeof value === 'object') {
     const preferredValue = isBrowserLike() ? value.client : value.server;
 
     // Check for sentinel values
     if (isSentinel(preferredValue)) {
-      return isSentinel(defaultValue) ? undefined : defaultValue;
+      return isSentinel(value.default) ? undefined : value.default;
     }
-    if (isSentinel(defaultValue)) {
+    if (isSentinel(value.default)) {
       return undefined;
     }
 
-    return preferredValue || defaultValue;
-  }
-
-  // For non-dictionary values, just return as is
-  if (typeof value === 'string') {
+    return preferredValue || value.default;
+  } else if (typeof value === 'string') {
     if (isSentinel(value)) {
       return undefined;
     }
     return value;
+  } else {
+    return undefined;
   }
-
-  return undefined;
 }
 

@@ -445,7 +445,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._interface = _options.interface;
     } else {
       this._interface = new StackClientInterface({
-        baseUrl: _options.baseUrl ?? getDefaultBaseUrl(),
+        getBaseUrl: () => _options.baseUrl ?? getDefaultBaseUrl(),
         projectId: _options.projectId ?? getDefaultProjectId(),
         clientVersion,
         publishableClientKey: _options.publishableClientKey ?? getDefaultPublishableClientKey(),
@@ -1159,7 +1159,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _getOwnedAdminApp(forProjectId: string, session: InternalSession): _StackAdminAppImpl<false, string> {
     if (!this._ownedAdminApps.has([session, forProjectId])) {
       this._ownedAdminApps.set([session, forProjectId], new _StackAdminAppImpl({
-        baseUrl: this._interface.options.baseUrl,
+        baseUrl: this._interface.options.getBaseUrl(),
         projectId: forProjectId,
         tokenStore: null,
         projectOwnerSession: session,
@@ -1715,7 +1715,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         }
 
         return {
-          baseUrl: this._interface.options.baseUrl,
+          baseUrl: this._options.baseUrl,
           projectId: this.projectId,
           publishableClientKey: this._interface.options.publishableClientKey,
           tokenStore: this._tokenStoreInit,
@@ -1889,7 +1889,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       oauthScopesOnSignIn: options.oauthScopesOnSignIn,
     } : {
       interface: new StackServerInterface({
-        baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
+        getBaseUrl: () => options.baseUrl ?? getDefaultBaseUrl(),
         projectId: options.projectId ?? getDefaultProjectId(),
         clientVersion,
         publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
@@ -2378,7 +2378,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
       interface: new StackAdminInterface({
-        baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
+        getBaseUrl: () => options.baseUrl ?? getDefaultBaseUrl(),
         projectId: options.projectId ?? getDefaultProjectId(),
         clientVersion,
         ..."projectOwnerSession" in options ? {
