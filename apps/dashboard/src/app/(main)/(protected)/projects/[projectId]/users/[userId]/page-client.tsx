@@ -1,5 +1,6 @@
 "use client";
 
+import { useThemeWatcher } from '@/lib/theme';
 import MonacoEditor from '@monaco-editor/react';
 import { ServerUser } from "@stackframe/stack";
 import { useAsyncCallback } from "@stackframe/stack-shared/dist/hooks/use-async-callback";
@@ -158,10 +159,11 @@ type MetadataEditorProps = {
   hint: string,
   onUpdate?: (value: any) => Promise<void>,
 }
-
 function MetadataEditor({ title, initialValue, onUpdate, hint }: MetadataEditorProps) {
   const formatJson = (json: string) => JSON.stringify(JSON.parse(json), null, 2);
   const [hasChanged, setHasChanged] = useState(false);
+
+  const { mounted, theme } = useThemeWatcher();
 
   const [value, setValue] = useState(formatJson(initialValue));
   const isJson = useMemo(() => {
@@ -187,26 +189,30 @@ function MetadataEditor({ title, initialValue, onUpdate, hint }: MetadataEditorP
       {title}
       <SimpleTooltip tooltip={hint} type="info" inline className="ml-2 mb-[2px]" />
     </h3>
-    <MonacoEditor
-      height="240px"
-      defaultLanguage="json"
-      value={value}
-      onChange={(x) => {
-        setValue(x ?? '');
-        setHasChanged(true);
-      }}
-      theme='vs-dark'
-      options={{
-        tabSize: 2,
-        minimap: {
-          enabled: false,
-        },
-        scrollBeyondLastLine: false,
-        overviewRulerLanes: 0,
-        lineNumbersMinChars: 3,
-        showFoldingControls: 'never',
-      }}
-    />
+    {mounted && (
+      <div className={cn("rounded-md overflow-hidden", theme !== 'dark' && "border")}>
+        <MonacoEditor
+          height="240px"
+          defaultLanguage="json"
+          value={value}
+          onChange={(x) => {
+            setValue(x ?? '');
+            setHasChanged(true);
+          }}
+          theme={theme === 'dark' ? 'vs-dark' : 'vs'}
+          options={{
+            tabSize: 2,
+            minimap: {
+              enabled: false,
+            },
+            scrollBeyondLastLine: false,
+            overviewRulerLanes: 0,
+            lineNumbersMinChars: 3,
+            showFoldingControls: 'never',
+          }}
+        />
+      </div>
+    )}
     <div className={cn('self-end flex items-end gap-2 transition-all h-0 opacity-0 overflow-hidden', hasChanged && 'h-[48px] opacity-100')}>
       <Button
         variant="ghost"
@@ -295,13 +301,13 @@ function UserPage({ user }: { user: ServerUser }) {
       <Card>
         <CardHeader>
           <CardTitle>
-            Contact Information
+            Contact Channels
           </CardTitle>
         </CardHeader>
         <CardContent>
           {contactChannels.length === 0 ? (
             <p className='text-sm text-gray-500 text-center'>
-              No contact information found.
+              No contact channels
             </p>
           ) : (
             <Table>
