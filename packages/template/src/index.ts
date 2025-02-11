@@ -1,6 +1,8 @@
+export * from './lib/stack-app';
+
+// IF_PLATFORM react-like
 export { default as StackHandler } from "./components-page/stack-handler";
 export { useStackApp, useUser } from "./lib/hooks";
-export * from './lib/stack-app';
 export { default as StackProvider } from "./providers/stack-provider";
 export { StackTheme } from './providers/theme-provider';
 
@@ -18,9 +20,6 @@ export { MagicLinkSignIn as MagicLinkSignIn } from "./components/magic-link-sign
 export { MessageCard } from "./components/message-cards/message-card";
 export { OAuthButton } from "./components/oauth-button";
 export { OAuthButtonGroup } from "./components/oauth-button-group";
+export { SelectedTeamSwitcher } from "./components/selected-team-switcher";
 export { UserButton } from "./components/user-button";
-
-export {
-  SelectedTeamSwitcher
-} from "./components/selected-team-switcher";
-
+// END_PLATFORM react-like

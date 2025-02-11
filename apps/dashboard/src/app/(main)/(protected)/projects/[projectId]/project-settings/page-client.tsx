@@ -2,6 +2,7 @@
 import { InputField, SwitchField } from "@/components/form-fields";
 import { StyledLink } from "@/components/link";
 import { FormSettingCard, SettingCard, SettingSwitch, SettingText } from "@/components/settings";
+import { getPublicEnvVar } from "@/lib/env";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionDialog, Alert, Button, Typography } from "@stackframe/stack-ui";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -31,7 +32,7 @@ export default function PageClient() {
         </SettingText>
 
         <SettingText label="JWKS URL">
-          {`${process.env.NEXT_PUBLIC_STACK_API_URL}/api/v1/projects/${project.id}/.well-known/jwks.json`}
+          {`${getPublicEnvVar('NEXT_PUBLIC_STACK_API_URL')}/api/v1/projects/${project.id}/.well-known/jwks.json`}
         </SettingText>
       </SettingCard>
       <FormSettingCard

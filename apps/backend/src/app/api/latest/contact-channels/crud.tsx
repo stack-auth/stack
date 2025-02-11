@@ -40,8 +40,8 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
     const contactChannel = await prismaClient.contactChannel.findUnique({
       where: {
-        projectId_projectUserId_id: {
-          projectId: auth.project.id,
+        tenancyId_projectUserId_id: {
+          tenancyId: auth.tenancy.id,
           projectUserId: params.user_id,
           id: params.contact_channel_id || throwErr("Missing contact channel id"),
         },
@@ -64,7 +64,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
     const contactChannel = await retryTransaction(async (tx) => {
       await ensureContactChannelDoesNotExists(tx, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         userId: data.user_id,
         type: data.type,
         value: data.value,
@@ -74,8 +74,8 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       if (data.used_for_auth) {
         const existingWithSameChannel = await tx.contactChannel.findUnique({
           where: {
-            projectId_type_value_usedForAuth: {
-              projectId: auth.project.id,
+            tenancyId_type_value_usedForAuth: {
+              tenancyId: auth.tenancy.id,
               type: crudContactChannelTypeToPrisma(data.type),
               value: data.value,
               usedForAuth: 'TRUE',
@@ -89,7 +89,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
       const createdContactChannel = await tx.contactChannel.create({
         data: {
-          projectId: auth.project.id,
+          tenancyId: auth.tenancy.id,
           projectUserId: data.user_id,
           type: typedToUppercase(data.type),
           value: data.value,
@@ -102,7 +102,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
         // mark all other channels as not primary
         await tx.contactChannel.updateMany({
           where: {
-            projectId: auth.project.id,
+            tenancyId: auth.tenancy.id,
             projectUserId: data.user_id,
           },
           data: {
@@ -112,8 +112,8 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
         await tx.contactChannel.update({
           where: {
-            projectId_projectUserId_id: {
-              projectId: auth.project.id,
+            tenancyId_projectUserId_id: {
+              tenancyId: auth.tenancy.id,
               projectUserId: data.user_id,
               id: createdContactChannel.id,
             },
@@ -126,8 +126,8 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
       return await tx.contactChannel.findUnique({
         where: {
-          projectId_projectUserId_id: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId_id: {
+            tenancyId: auth.tenancy.id,
             projectUserId: data.user_id,
             id: createdContactChannel.id,
           },
@@ -147,7 +147,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
     const updatedContactChannel = await retryTransaction(async (tx) => {
       const existingContactChannel = await ensureContactChannelExists(tx, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         userId: params.user_id,
         contactChannelId: params.contact_channel_id || throwErr("Missing contact channel id"),
       });
@@ -156,8 +156,8 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
       if (data.used_for_auth) {
         const existingWithSameChannel = await tx.contactChannel.findUnique({
           where: {
-            projectId_type_value_usedForAuth: {
-              projectId: auth.project.id,
+            tenancyId_type_value_usedForAuth: {
+              tenancyId: auth.tenancy.id,
               type: data.type !== undefined ? crudContactChannelTypeToPrisma(data.type) : existingContactChannel.type,
               value: data.value !== undefined ? data.value : existingContactChannel.value,
               usedForAuth: 'TRUE',
@@ -173,7 +173,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
         // mark all other channels as not primary
         await tx.contactChannel.updateMany({
           where: {
-            projectId: auth.project.id,
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
           },
           data: {
@@ -184,8 +184,8 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
       return await tx.contactChannel.update({
         where: {
-          projectId_projectUserId_id: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId_id: {
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
             id: params.contact_channel_id || throwErr("Missing contact channel id"),
           },
@@ -211,15 +211,15 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
     await retryTransaction(async (tx) => {
       await ensureContactChannelExists(tx, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         userId: params.user_id,
         contactChannelId: params.contact_channel_id || throwErr("Missing contact channel id"),
       });
 
       await tx.contactChannel.delete({
         where: {
-          projectId_projectUserId_id: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId_id: {
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
             id: params.contact_channel_id || throwErr("Missing contact channel id"),
           },
@@ -237,7 +237,7 @@ export const contactChannelsCrudHandlers = createLazyProxy(() => createCrudHandl
 
     const contactChannels = await prismaClient.contactChannel.findMany({
       where: {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         projectUserId: query.user_id,
         id: query.contact_channel_id,
       },

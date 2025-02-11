@@ -164,6 +164,10 @@ body:has(.show-site-loading-indicator) .site-loading-indicator {
   );
 }
 
+.hide-children > :not(.do-not-hide-when-siblings-are) {
+  visibility: hidden;
+}
+
 @media (min-width: 800px) {
   .site-loading-indicator > .site-loading-indicator-inner {
     width: 20%;

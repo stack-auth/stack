@@ -2,6 +2,7 @@
 *.untracked.*
 node-compile-cache/
 
+
 *.cpuprofile
 
 
@@ -119,3 +120,13 @@ docs/docs/reference/adapter
 # Python
 __pycache__/
 .venv/
+
+# Generated packages
+packages/js/*
+packages/react/*
+packages/next/*
+packages/stack/*
+!packages/js/package.json
+!packages/react/package.json
+!packages/next/package.json
+!packages/stack/package.json

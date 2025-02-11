@@ -3,6 +3,7 @@ import "../polyfills";
 import { getUser, getUserQuery } from "@/app/api/latest/users/crud";
 import { checkApiKeySet, checkApiKeySetQuery } from "@/lib/api-keys";
 import { getProjectQuery, listManagedProjectIds } from "@/lib/projects";
+import { Tenancy, getSoleTenancyFromProject } from "@/lib/tenancies";
 import { decodeAccessToken } from "@/lib/tokens";
 import { rawQueryAll } from "@/prisma-client";
 import { withTraceSpan } from "@/utils/telemetry";
@@ -21,6 +22,8 @@ const allowedMethods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"] as c
 
 export type SmartRequestAuth = {
   project: ProjectsCrud["Admin"]["Read"],
+  branchId: string,
+  tenancy: Tenancy,
   user?: UsersCrud["Admin"]["Read"] | undefined,
   type: "client" | "server" | "admin",
 };
@@ -176,7 +179,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
       throw new KnownErrors.AdminAccessTokenIsNotAdmin();
     }
 
-    const user = await getUser({ projectId: 'internal', userId: result.data.userId });
+    const user = await getUser({ projectId: 'internal', branchId: 'main', userId: result.data.userId });
     if (!user) {
       // this is the case when access token is still valid, but the user is deleted from the database
       // this should be very rare, let's log it on Sentry when it happens
@@ -197,7 +200,7 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
   // Because smart route handlers are always called, we instead send over a single raw query that fetches all the
   // data at the same time, saving us a lot of requests
   const bundledQueries = {
-    user: projectId && accessToken ? getUserQuery(projectId, await extractUserIdFromAccessToken({ token: accessToken, projectId })) : undefined,
+    user: projectId && accessToken ? getUserQuery(projectId, null, await extractUserIdFromAccessToken({ token: accessToken, projectId })) : undefined,
     isClientKeyValid: projectId && publishableClientKey && requestType === "client" ? checkApiKeySetQuery(projectId, { publishableClientKey }) : undefined,
     isServerKeyValid: projectId && secretServerKey && requestType === "server" ? checkApiKeySetQuery(projectId, { secretServerKey }) : undefined,
     isAdminKeyValid: projectId && superSecretAdminKey && requestType === "admin" ? checkApiKeySetQuery(projectId, { superSecretAdminKey }) : undefined,
@@ -258,6 +261,8 @@ const parseAuth = withTraceSpan('smart request parseAuth', async (req: NextReque
 
   return {
     project,
+    branchId: "main",
+    tenancy: await getSoleTenancyFromProject(project),
     user: queriesResults.user ?? undefined,
     type: requestType,
   };

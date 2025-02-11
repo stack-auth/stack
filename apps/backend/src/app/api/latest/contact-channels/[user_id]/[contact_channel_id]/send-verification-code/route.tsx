@@ -20,7 +20,7 @@ export const POST = createSmartRouteHandler({
     }).defined(),
     auth: yupObject({
       type: clientOrHigherAuthTypeSchema,
-      project: adaptSchema.defined(),
+      tenancy: adaptSchema.defined(),
       user: adaptSchema.optional(),
     }).defined(),
     body: yupObject({
@@ -42,7 +42,7 @@ export const POST = createSmartRouteHandler({
     } else {
       try {
         user = await usersCrudHandlers.adminRead({
-          project: auth.project,
+          tenancy: auth.tenancy,
           user_id: params.user_id
         });
       } catch (e) {
@@ -55,8 +55,8 @@ export const POST = createSmartRouteHandler({
 
     const contactChannel = await prismaClient.contactChannel.findUnique({
       where: {
-        projectId_projectUserId_id: {
-          projectId: auth.project.id,
+        tenancyId_projectUserId_id: {
+          tenancyId: auth.tenancy.id,
           projectUserId: user.id,
           id: params.contact_channel_id,
         },
@@ -73,7 +73,7 @@ export const POST = createSmartRouteHandler({
     }
 
     await contactChannelVerificationCodeHandler.sendCode({
-      project: auth.project,
+      tenancy: auth.tenancy,
       data: {
         user_id: user.id,
       },

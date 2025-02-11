@@ -1,12 +1,12 @@
 import { isTeamSystemPermission, teamSystemPermissionStringToDBType } from "@/lib/permissions";
 import { ensureTeamExists, ensureTeamMembershipDoesNotExist, ensureTeamMembershipExists, ensureUserExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
+import { Tenancy } from "@/lib/tenancies";
 import { PrismaTransaction } from "@/lib/types";
 import { sendTeamMembershipCreatedWebhook, sendTeamMembershipDeletedWebhook } from "@/lib/webhooks";
 import { retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { runAsynchronouslyAndWaitUntil } from "@/utils/vercel";
 import { KnownErrors } from "@stackframe/stack-shared";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import { teamMembershipsCrud } from "@stackframe/stack-shared/dist/interface/crud/team-memberships";
 import { userIdOrMeSchema, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
@@ -14,7 +14,7 @@ import { createLazyProxy } from "@stackframe/stack-shared/dist/utils/proxies";
 
 
 export async function addUserToTeam(tx: PrismaTransaction, options: {
-  project: ProjectsCrud['Admin']['Read'],
+  tenancy: Tenancy,
   teamId: string,
   userId: string,
   type: 'member' | 'creator',
@@ -25,9 +25,9 @@ export async function addUserToTeam(tx: PrismaTransaction, options: {
     data: {
       projectUserId: options.userId,
       teamId: options.teamId,
-      projectId: options.project.id,
+      tenancyId: options.tenancy.id,
       directPermissions: {
-        create: options.project.config[permissionAttributeName].map((p) => {
+        create: options.tenancy.config[permissionAttributeName].map((p) => {
           if (isTeamSystemPermission(p.id)) {
             return {
               systemPermission: teamSystemPermissionStringToDBType(p.id),
@@ -37,7 +37,7 @@ export async function addUserToTeam(tx: PrismaTransaction, options: {
               permission: {
                 connect: {
                   projectConfigId_queryableId: {
-                    projectConfigId: options.project.config.id,
+                    projectConfigId: options.tenancy.config.id,
                     queryableId: p.id,
                   },
                 }
@@ -59,25 +59,25 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
   onCreate: async ({ auth, params }) => {
     await retryTransaction(async (tx) => {
       await ensureUserExists(tx, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         userId: params.user_id,
       });
 
       await ensureTeamExists(tx, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         teamId: params.team_id,
       });
 
       await ensureTeamMembershipDoesNotExist(tx, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         teamId: params.team_id,
         userId: params.user_id
       });
 
       const user = await tx.projectUser.findUnique({
         where: {
-          projectId_projectUserId: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId: {
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
           },
         },
@@ -88,7 +88,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       }
 
       await addUserToTeam(tx, {
-        project: auth.project,
+        tenancy: auth.tenancy,
         teamId: params.team_id,
         userId: params.user_id,
         type: 'member',
@@ -116,7 +116,7 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
 
         if (params.user_id !== currentUserId) {
           await ensureUserTeamPermissionExists(tx, {
-            project: auth.project,
+            tenancy: auth.tenancy,
             teamId: params.team_id,
             userId: auth.user?.id ?? throwErr('auth.user is null'),
             permissionId: "$remove_members",
@@ -127,15 +127,15 @@ export const teamMembershipsCrudHandlers = createLazyProxy(() => createCrudHandl
       }
 
       await ensureTeamMembershipExists(tx, {
-        projectId: auth.project.id,
+        tenancyId: auth.tenancy.id,
         teamId: params.team_id,
         userId: params.user_id,
       });
 
       await tx.teamMember.delete({
         where: {
-          projectId_projectUserId_teamId: {
-            projectId: auth.project.id,
+          tenancyId_projectUserId_teamId: {
+            tenancyId: auth.tenancy.id,
             projectUserId: params.user_id,
             teamId: params.team_id,
           },

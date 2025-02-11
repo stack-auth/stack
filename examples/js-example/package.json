@@ -1,0 +1,16 @@
+{
+  "name": "@stackframe/js-example",
+  "version": "2.7.13",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "dotenv -e .env.development -- tsx index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@stackframe/js": "workspace:*",
+    "dotenv-cli": "^7.4.1"
+  }
+}

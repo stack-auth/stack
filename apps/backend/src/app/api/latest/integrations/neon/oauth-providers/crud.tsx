@@ -1,8 +1,8 @@
+import { Tenancy } from "@/lib/tenancies";
 import { prismaClient, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
 import { Prisma } from "@prisma/client";
 import { CrudTypeOf, createCrud } from "@stackframe/stack-shared/dist/crud";
-import { ProjectsCrud } from "@stackframe/stack-shared/dist/interface/crud/projects";
 import * as schemaFields from "@stackframe/stack-shared/dist/schema-fields";
 import { yupObject } from "@stackframe/stack-shared/dist/schema-fields";
 import { StatusError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
@@ -75,8 +75,8 @@ const oauthProvidersCrud = createCrud({
 
 type OAuthProvidersCrud = CrudTypeOf<typeof oauthProvidersCrud>;
 
-const getProvider = (project: ProjectsCrud['Admin']['Read'], id: string, enabledRequired: boolean) => {
-  return project.config.oauth_providers
+const getProvider = (tenancy: Tenancy, id: string, enabledRequired: boolean) => {
+  return tenancy.config.oauth_providers
     .filter(provider => enabledRequired ? provider.enabled : true)
     .find(provider => provider.id === id);
 };
@@ -99,7 +99,7 @@ function oauthProviderPrismaToCrud(db: Prisma.OAuthProviderConfigGetPayload<{ in
 
 async function createOrUpdateProvider(
   options: {
-    project: ProjectsCrud['Admin']['Read'],
+    tenancy: Tenancy,
   } & ({
     type: 'create',
     data: OAuthProvidersCrud['Admin']['Create'],
@@ -110,7 +110,7 @@ async function createOrUpdateProvider(
   })
 ): Promise<OAuthProvidersCrud['Admin']['Read']> {
   const providerId = options.type === 'create' ? options.data.id : options.id;
-  const oldProvider = getProvider(options.project, providerId, false);
+  const oldProvider = getProvider(options.tenancy, providerId, false);
 
   const providerIdIsShared = sharedProviders.includes(providerId as any);
   if (!providerIdIsShared && options.data.type === 'shared') {
@@ -122,13 +122,13 @@ async function createOrUpdateProvider(
       switch (oldProvider.type) {
         case 'shared': {
           await tx.proxiedOAuthProviderConfig.deleteMany({
-            where: { projectConfigId: options.project.config.id, id: providerId },
+            where: { projectConfigId: options.tenancy.config.id, id: providerId },
           });
           break;
         }
         case 'standard': {
           await tx.standardOAuthProviderConfig.deleteMany({
-            where: { projectConfigId: options.project.config.id, id: providerId },
+            where: { projectConfigId: options.tenancy.config.id, id: providerId },
           });
           break;
         }
@@ -137,7 +137,7 @@ async function createOrUpdateProvider(
       const db = await tx.oAuthProviderConfig.update({
         where: {
           projectConfigId_id: {
-            projectConfigId: options.project.config.id,
+            projectConfigId: options.tenancy.config.id,
             id: providerId,
           }
         },
@@ -193,7 +193,7 @@ async function createOrUpdateProvider(
               },
             }
           },
-          projectConfigId: options.project.config.id,
+          projectConfigId: options.tenancy.config.id,
         },
         include: {
           oauthProviderConfig: {
@@ -214,14 +214,14 @@ export const oauthProvidersCrudHandlers = createLazyProxy(() => createCrudHandle
   }),
   onCreate: async ({ auth, data }) => {
     return await createOrUpdateProvider({
-      project: auth.project,
+      tenancy: auth.tenancy,
       type: 'create',
       data,
     });
   },
   onUpdate: async ({ auth, data, params }) => {
     return await createOrUpdateProvider({
-      project: auth.project,
+      tenancy: auth.tenancy,
       type: 'update',
       id: params.oauth_provider_id,
       data,
@@ -229,19 +229,19 @@ export const oauthProvidersCrudHandlers = createLazyProxy(() => createCrudHandle
   },
   onList: async ({ auth }) => {
     return {
-      items: auth.project.config.oauth_providers.filter(provider => provider.enabled),
+      items: auth.tenancy.config.oauth_providers.filter(provider => provider.enabled),
       is_paginated: false,
     };
   },
   onDelete: async ({ auth, params }) => {
-    const provider = getProvider(auth.project, params.oauth_provider_id, false);
+    const provider = getProvider(auth.tenancy, params.oauth_provider_id, false);
     if (!provider) {
       throw new StatusError(StatusError.NotFound, 'OAuth provider not found');
     }
 
     await prismaClient.authMethodConfig.updateMany({
       where: {
-        projectConfigId: auth.project.config.id,
+        projectConfigId: auth.tenancy.config.id,
         oauthProviderConfig: {
           id: params.oauth_provider_id,
         },

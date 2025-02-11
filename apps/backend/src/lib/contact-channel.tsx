@@ -17,15 +17,15 @@ const fullContactChannelInclude = {
 export async function getAuthContactChannel(
   tx: PrismaTransaction,
   options: {
-    projectId: string,
+    tenancyId: string,
     type: ContactChannelType,
     value: string,
   }
 ) {
   return await tx.contactChannel.findUnique({
     where: {
-      projectId_type_value_usedForAuth: {
-        projectId: options.projectId,
+      tenancyId_type_value_usedForAuth: {
+        tenancyId: options.tenancyId,
         type: options.type,
         value: options.value,
         usedForAuth: "TRUE",

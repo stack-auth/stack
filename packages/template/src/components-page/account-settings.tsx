@@ -8,12 +8,12 @@ import { passwordSchema as schemaFieldsPasswordSchema, strictEmailSchema, yupObj
 import { generateRandomValues } from '@stackframe/stack-shared/dist/utils/crypto';
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import { runAsynchronously, runAsynchronouslyWithAlert } from '@stackframe/stack-shared/dist/utils/promises';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, Badge, Button, Input, Label, PasswordInput, Separator, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, Badge, Button, Input, Label, PasswordInput, Separator, Skeleton, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from '@stackframe/stack-ui';
 import { Edit, Trash, icons } from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { TOTPController, createTOTPKeyURI } from "oslo/otp";
 import * as QRCode from 'qrcode';
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useForm } from 'react-hook-form';
 import * as yup from "yup";
 import { CurrentUser, MessageCard, Project, Team, TeamInvitation, useStackApp, useUser } from '..';
@@ -65,7 +65,9 @@ export function AccountSettings(props: {
               type: 'item',
               id: 'auth',
               icon: <Icon name="ShieldCheck"/>,
-              content: <EmailsAndAuthPage/>,
+              content: <Suspense fallback={<EmailsAndAuthPageSkeleton/>}>
+                <EmailsAndAuthPage/>
+              </Suspense>,
             },
             {
               title: t('Settings'),
@@ -364,6 +366,15 @@ function EmailsAndAuthPage() {
       {mfaSection}
     </PageLayout>
   );
+}
+
+function EmailsAndAuthPageSkeleton() {
+  return <PageLayout>
+    <Skeleton className="h-9 w-full mt-1"/>
+    <Skeleton className="h-9 w-full mt-1"/>
+    <Skeleton className="h-9 w-full mt-1"/>
+    <Skeleton className="h-9 w-full mt-1"/>
+  </PageLayout>;
 }
 
 

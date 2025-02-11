@@ -23,11 +23,11 @@ export const teamInvitationsCrudHandlers = createLazyProxy(() => createCrudHandl
 
         const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
 
-        await ensureTeamMembershipExists(tx, { projectId: auth.project.id, teamId: query.team_id, userId: currentUserId });
+        await ensureTeamMembershipExists(tx, { tenancyId: auth.tenancy.id, teamId: query.team_id, userId: currentUserId });
 
         for (const permissionId of ['$read_members', '$invite_members']) {
           await ensureUserTeamPermissionExists(tx, {
-            project: auth.project,
+            tenancy: auth.tenancy,
             teamId: query.team_id,
             userId: currentUserId,
             permissionId,
@@ -36,11 +36,11 @@ export const teamInvitationsCrudHandlers = createLazyProxy(() => createCrudHandl
           });
         }
       } else {
-        await ensureTeamExists(tx, { projectId: auth.project.id, teamId: query.team_id });
+        await ensureTeamExists(tx, { tenancyId: auth.tenancy.id, teamId: query.team_id });
       }
 
       const allCodes = await teamInvitationCodeHandler.listCodes({
-        project: auth.project,
+        tenancy: auth.tenancy,
         dataFilter: {
           path: ['team_id'],
           equals: query.team_id,
@@ -66,10 +66,10 @@ export const teamInvitationsCrudHandlers = createLazyProxy(() => createCrudHandl
 
         const currentUserId = auth.user?.id ?? throwErr(new KnownErrors.CannotGetOwnUserWithoutUser());
 
-        await ensureTeamMembershipExists(tx, { projectId: auth.project.id, teamId: query.team_id, userId: currentUserId });
+        await ensureTeamMembershipExists(tx, { tenancyId: auth.tenancy.id, teamId: query.team_id, userId: currentUserId });
 
         await ensureUserTeamPermissionExists(tx, {
-          project: auth.project,
+          tenancy: auth.tenancy,
           teamId: query.team_id,
           userId: currentUserId,
           permissionId: "$remove_members",
@@ -77,11 +77,11 @@ export const teamInvitationsCrudHandlers = createLazyProxy(() => createCrudHandl
           recursive: true,
         });
       } else {
-        await ensureTeamExists(tx, { projectId: auth.project.id, teamId: query.team_id });
+        await ensureTeamExists(tx, { tenancyId: auth.tenancy.id, teamId: query.team_id });
       }
 
       await teamInvitationCodeHandler.revokeCode({
-        project: auth.project,
+        tenancy: auth.tenancy,
         id: params.id,
       });
     });
