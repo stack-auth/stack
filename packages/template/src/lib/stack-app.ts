@@ -130,7 +130,8 @@ function getDefaultSuperSecretAdminKey() {
 }
 
 function getDefaultBaseUrl() {
-  return process.env.NEXT_PUBLIC_STACK_API_URL || process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
+  const url = process.env.NEXT_PUBLIC_STACK_API_URL || process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
+  return url.endsWith('/') ? url.slice(0, -1) : url;
 }
 
 export type StackClientAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = {
