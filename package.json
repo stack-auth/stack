@@ -38,6 +38,8 @@
     "peek": "pnpm pre && pnpm release --peek",
     "changeset": "pnpm pre && changeset",
     "test": "pnpm pre && vitest",
+    "test:e2e": "pnpm pre && vitest e2e/tests",
+    "test:unit": "pnpm pre && vitest src",
     "verify-data-integrity": "pnpm pre && pnpm -C apps/backend run verify-data-integrity",
     "generate-docs": "pnpm pre && turbo run generate-docs",
     "generate-keys": "pnpm pre && turbo run generate-keys",
