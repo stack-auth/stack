@@ -2,7 +2,6 @@
 
 import { useStackApp, useUser } from "@stackframe/stack";
 import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
-import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { useEffect } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -13,12 +12,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     const signIn = async () => {
       if (getPublicEnvVar("NEXT_PUBLIC_STACK_EMULATOR_ENABLED") === "true" && !user) {
         await app.signInWithCredential({
-          email: "local-emulator@stack-auth-sentinel.example.com",
-          password: "LocalEmulatorPassword",
+          email: "local-emulator@email.com",
+          password: "LocalEmulatorPassword123",
         });
       }
     };
-    runAsynchronouslyWithAlert(signIn);
+    // runAsynchronouslyWithAlert(signIn());
+    signIn().catch(console.error);
   }, [user, app]);
 
   if (getPublicEnvVar("NEXT_PUBLIC_STACK_EMULATOR_ENABLED") === "true" && !user) {

@@ -348,8 +348,6 @@ async function seed() {
       throw new Error('STACK_EMULATOR_PROJECT_ID is not set');
     }
 
-    console.log('Creating emulator admin user...');
-
     await prisma.$transaction(async (tx) => {
       const existingUser = await tx.projectUser.findFirst({
         where: {
@@ -362,8 +360,6 @@ async function seed() {
       if (existingUser) {
         console.log('Emulator user already exists, skipping creation');
       } else {
-        const hashedPassword = await hashPassword('LocalEmulatorPassword');
-
         const passwordConfig = await tx.authMethodConfig.findFirst({
           where: {
             projectConfigId: (internalProject as any).configId,
@@ -395,7 +391,7 @@ async function seed() {
             projectUserId: newEmulatorUser.projectUserId,
             tenancyId: internalTenancy.id,
             type: 'EMAIL' as const,
-            value: 'local-emulator@stack-auth-sentinel.example.com',
+            value: 'local-emulator@email.com',
             isVerified: false,
             isPrimary: 'TRUE',
             usedForAuth: 'TRUE',
@@ -410,7 +406,7 @@ async function seed() {
             authMethodConfigId: passwordConfig.id,
             passwordAuthMethod: {
               create: {
-                passwordHash: hashedPassword,
+                passwordHash: await hashPassword('LocalEmulatorPassword123'),
                 projectUserId: newEmulatorUser.projectUserId,
               }
             }
@@ -421,7 +417,7 @@ async function seed() {
       }
     });
 
-    console.log('Creating emulator project...');
+    console.log('Created emulator user');
 
     await prisma.project.upsert({
       where: {
