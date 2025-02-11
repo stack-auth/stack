@@ -22,7 +22,7 @@ describe("without project access", () => {
           "code": "ACCESS_TYPE_REQUIRED",
           "error": deindent\`
             You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.
-
+            
             For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
           \`,
         },
@@ -44,7 +44,7 @@ describe("without project access", () => {
           "code": "ACCESS_TYPE_REQUIRED",
           "error": deindent\`
             You must specify an access level for this Stack project. Make sure project API keys are provided (eg. x-stack-publishable-client-key) and you set the x-stack-access-type header to 'client', 'server', or 'admin'.
-
+            
             For more information, see the docs on REST API authentication: https://docs.stack-auth.com/rest-api/overview#authentication
           \`,
         },
