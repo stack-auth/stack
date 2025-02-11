@@ -22,7 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [user, app]);
 
   if (getPublicEnvVar("NEXT_PUBLIC_STACK_EMULATOR_ENABLED") === "true" && !user) {
-    return <Loading />;
+    return <>You will be redirected in a few seconds.</>;
   } else {
     return <>{children}</>;
   }
