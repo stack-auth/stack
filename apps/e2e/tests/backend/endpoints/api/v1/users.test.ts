@@ -1,5 +1,5 @@
-import { STACK_BACKEND_BASE_URL, STACK_SVIX_SERVER_URL, it, niceFetch } from "../../../../helpers";
-import { Project, niceBackendFetch } from "../../../backend-helpers";
+import { STACK_BACKEND_BASE_URL, it } from "../../../../helpers";
+import { Webhook, niceBackendFetch } from "../../../backend-helpers";
 
 
 // import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
@@ -1966,65 +1966,8 @@ import { Project, niceBackendFetch } from "../../../backend-helpers";
 //   });
 // });
 
-
-async function createProjectWithEndpoint() {
-  const { projectId } = await Project.createAndSwitch({
-    config: {
-      magic_link_enabled: true,
-    }
-  });
-
-  const svixTokenResponse = await niceBackendFetch("/api/v1/webhooks/svix-token", {
-    accessType: "admin",
-    method: "POST",
-    body: {},
-  });
-
-  const svixToken = svixTokenResponse.body.token;
-
-  const createEndpointResponse = await niceFetch(STACK_SVIX_SERVER_URL + `/api/v1/app/${projectId}/endpoint`, {
-    method: "POST",
-    body: JSON.stringify({
-      url: "https://example.com"
-    }),
-    headers: {
-      "Authorization": `Bearer ${svixToken}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  return {
-    projectId,
-    svixToken,
-    endpointId: createEndpointResponse.body.id
-  };
-}
-
-async function listWebhookAttempts(projectId: string, endpointId: string, svixToken: string) {
-  const response = await niceFetch(STACK_SVIX_SERVER_URL + `/api/v1/app/${projectId}/attempt/endpoint/${endpointId}`, {
-    method: "GET",
-    headers: {
-      "Authorization": `Bearer ${svixToken}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  const messages = await Promise.all(response.body.data.map(async (attempt: any) => {
-    const messageResponse = await niceFetch(STACK_SVIX_SERVER_URL + `/api/v1/app/${projectId}/msg/${attempt.msgId}?with_content=true`, {
-      headers: {
-        "Authorization": `Bearer ${svixToken}`,
-        "Content-Type": "application/json",
-      },
-      method: "GET",
-    });
-    return messageResponse.body;
-  }));
-
-  return messages;
-}
-
 it("should get user create webhook", async ({ expect }) => {
-  const { projectId, svixToken, endpointId } = await createProjectWithEndpoint();
+  const { projectId, svixToken, endpointId } = await Webhook.createProjectWithEndpoint();
 
   const createUserResponse = await niceBackendFetch(new URL("/api/v1/users", STACK_BACKEND_BASE_URL), {
     method: "POST",
@@ -2038,7 +1981,7 @@ it("should get user create webhook", async ({ expect }) => {
 
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  const attemptResponse = await listWebhookAttempts(projectId, endpointId, svixToken);
+  const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
 
   expect(attemptResponse).toMatchInlineSnapshot(`
     [
