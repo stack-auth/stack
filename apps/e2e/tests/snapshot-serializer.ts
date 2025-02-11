@@ -46,6 +46,19 @@ const stripFields = [
   "nonce",
   "authorization_code",
   "secret",
+  "token",
+  "createdAt",
+  "updatedAt",
+  "id",
+  "response",
+  "msgId",
+  "endpointId",
+  "url",
+  "timestamp",
+  "responseStatusCode",
+  "responseDurationMs",
+  "iterator",
+  "prevIterator",
 ] as const;
 
 const stripFieldsIfString = [
