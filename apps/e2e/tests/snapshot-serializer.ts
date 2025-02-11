@@ -49,11 +49,9 @@ const stripFields = [
   "token",
   "createdAt",
   "updatedAt",
-  "id",
   "response",
   "msgId",
   "endpointId",
-  "url",
   "timestamp",
   "responseStatusCode",
   "responseDurationMs",
@@ -127,6 +125,12 @@ const snapshotSerializer: SnapshotSerializer = {
             /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}/gi,
             "<stripped UUID>"
           );
+          if (newValue !== value) return nicify(newValue, options);
+        }
+
+        // strip svix message id with the format msg_2ssgKCpeddVpe8ZpqB8Zl0rmXyD
+        if (typeof value === "string") {
+          const newValue = value.replace(/msg_[0-9a-zA-Z]{27}/gi, "<stripped svix message id>");
           if (newValue !== value) return nicify(newValue, options);
         }
 
