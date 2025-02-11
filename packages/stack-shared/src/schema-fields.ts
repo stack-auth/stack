@@ -109,7 +109,7 @@ export type StackAdaptSentinel = typeof StackAdaptSentinel;
 // Built-in replacements
 export function yupString<A extends string, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.string<A, B>>) {
   // eslint-disable-next-line no-restricted-syntax
-  return yup.string(...args);
+  return yup.string(...args).max(1_000_000);
 }
 export function yupNumber<A extends number, B extends yup.Maybe<yup.AnyObject> = yup.AnyObject>(...args: Parameters<typeof yup.number<A, B>>) {
   // eslint-disable-next-line no-restricted-syntax
