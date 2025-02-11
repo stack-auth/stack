@@ -41,7 +41,7 @@
     "verify-data-integrity": "pnpm pre && pnpm -C apps/backend run verify-data-integrity",
     "generate-docs": "pnpm pre && turbo run generate-docs",
     "generate-keys": "pnpm pre && turbo run generate-keys",
-    "generate-from-template:watch": "chokidar --silent -c 'tsx ./scripts/generate-from-template.ts' './packages/template' --ignore '**/node_modules/**' --ignore '**/dist/**' --ignore '**/.turbo/**' --throttle 1000"
+    "generate-from-template:watch": "chokidar --silent -c 'npx --package=ts-node ts-node ./scripts/generate-from-template.ts' './packages/template' --ignore '**/node_modules/**' --ignore '**/dist/**' --ignore '**/.turbo/**' --throttle 1000"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.9",

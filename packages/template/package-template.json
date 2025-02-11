@@ -6,6 +6,7 @@
   "//": "ELSE_IF_PLATFORM next",
   "name": "@stackframe/stack",
   "//": "END_PLATFORM",
+
   "//": "NEXT_LINE_PLATFORM template",
   "private": true,
   "version": "2.7.13",
@@ -28,10 +29,17 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist && rimraf node_modules",
     "lint": "eslint --ext .tsx,.ts .",
-    "//": "IF_PLATFORM react-like",
+
+    "//": "IF_PLATFORM template",
     "build": "rimraf dist && pnpm run css && tsup-node",
-    "dev": "rimraf dist && concurrently -n \"build,codegen\" -k \"tsup-node --watch\" \"pnpm run codegen:watch\"",
-    "codegen": "pnpm run css && pnpm run quetzal",
+    "dev": "rimraf dist && concurrently -n \"build,codegen\" -k \"tsup-node --watch\" \"pnpm run codegen:watch\""
+    ,"//": "ELSE_PLATFORM"
+    "build": "rimraf dist && tsup-node",
+    "dev": "rimraf dist && tsup-node --watch"
+    ,"//": "END_PLATFORM"
+
+    "//": "IF_PLATFORM template",
+    ,"codegen": "pnpm run css && pnpm run quetzal",
     "codegen:watch": "concurrently -n \"css,quetzal\" -k \"pnpm run css:watch\" \"pnpm run quetzal:watch\"",
     "css": "pnpm run css-tw && pnpm run css-sc",
     "css:watch": "concurrently -n \"tw,sc\" -k \"pnpm run css-tw:watch\" \"pnpm run css-sc:watch\"",
@@ -43,9 +51,6 @@
     "quetzal": "rimraf quetzal-translations && pnpm run override-env-local-for-quetzal && quetzal-process-translations && tsx ./scripts/merge-quetzal-translations.ts",
     "quetzal:ignore-errors": "pnpm run quetzal || echo Quetzal failed, probably because the API key is missing. We will just ignore it",
     "quetzal:watch": "chokidar --silent \"src/**/*\" -i \"src/generated/quetzal-translations.ts\" -c 'pnpm run quetzal:ignore-errors'"
-    ,"//": "ELSE_IF_PLATFORM js",
-    "build": "rimraf dist && tsup-node",
-    "dev": "rimraf dist && tsup-node --watch"
     ,"//": "END_PLATFORM"
   },
   "files": [

@@ -1571,7 +1571,6 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (typeof window === "undefined") {
       throw new Error("callOAuthCallback can currently only be called in a browser environment");
     }
-
     this._ensurePersistentTokenStore();
     let result;
     try {
