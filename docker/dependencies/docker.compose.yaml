@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     cap_add:
-      - NET_ADMIN  # For the delay
+      - NET_ADMIN  # required for the fake latency during dev
 
   # ================= PgHero =================
 
