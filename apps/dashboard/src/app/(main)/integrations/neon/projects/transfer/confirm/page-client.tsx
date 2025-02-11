@@ -17,6 +17,12 @@ export default function NeonIntegrationProjectTransferConfirmPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  // useEffect(() => {
+  //   const confirmRes = (app as any)[stackAppInternalsSymbol].sendRequest(`/integrations/neon/projects/transfer/confirm?code=${searchParams.get('code')}`, {
+  //     method: "GET",
+  //   });
+  // }, [searchParams.get('code')])
+
   const currentUrl = new URL(window.location.href);
   const signUpSearchParams = new URLSearchParams();
   signUpSearchParams.set("after_auth_return_to", currentUrl.pathname + currentUrl.search + currentUrl.hash);

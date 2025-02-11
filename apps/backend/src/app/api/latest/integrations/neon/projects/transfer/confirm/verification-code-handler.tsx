@@ -25,6 +25,27 @@ export const neonIntegrationProjectTransferCodeHandler = createVerificationCodeH
       project_id: yupString().defined(),
     }).defined(),
   }),
+  async validate(tenancy, method, data, body, user) {
+    const project = tenancy.project;
+    if (project.id !== "internal") throw new StatusError(400, "This endpoint is only available for internal projects.");
+    if (!user) throw new KnownErrors.UserAuthenticationRequired;
+    const neonProvisionedProjects = await prismaClient.neonProvisionedProject.findMany({
+      where: {
+        projectId: data.project_id,
+        neonClientId: data.neon_client_id,
+      },
+    });
+    if (neonProvisionedProjects.length === 0) throw new StatusError(400, "The project to transfer was not provisioned by Neon or has already been transferred.");
+    await prismaClient.projectUser.findUnique({
+      where: {
+        tenancyId_projectUserId: {
+          tenancyId: tenancy.id,
+          projectUserId: user.id,
+        },
+      },
+    }) ?? throwErr("Authenticated user not found in transaction. Something went wrong. Did the user delete their account at the wrong time? (Very unlikely.)");
+  },
+
   async handler(tenancy, method, data, body, user) {
     const project = tenancy.project;
     if (project.id !== "internal") throw new StatusError(400, "This endpoint is only available for internal projects.");
