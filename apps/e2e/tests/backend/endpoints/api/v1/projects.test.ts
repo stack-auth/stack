@@ -337,39 +337,24 @@ it("should not allow protocols other than http(s) in trusted domains", async ({ 
   });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 200,
+      "status": 400,
       "body": {
-        "config": {
-          "allow_localhost": true,
-          "client_team_creation_enabled": false,
-          "client_user_deletion_enabled": false,
-          "create_team_on_sign_up": false,
-          "credential_enabled": true,
-          "domains": [
-            {
-              "domain": "whatever://disallowed-domain.stack-test.example.com",
-              "handler_path": "/handler",
-            },
-          ],
-          "email_config": { "type": "shared" },
-          "enabled_oauth_providers": [],
-          "id": "<stripped UUID>",
-          "legacy_global_jwt_signing": false,
-          "magic_link_enabled": false,
-          "oauth_providers": [],
-          "passkey_enabled": false,
-          "sign_up_enabled": true,
-          "team_creator_default_permissions": [{ "id": "admin" }],
-          "team_member_default_permissions": [{ "id": "member" }],
+        "code": "SCHEMA_ERROR",
+        "details": {
+          "message": deindent\`
+            Request validation failed on PATCH /api/v1/projects/current:
+              - URL must start with http:// or https://
+          \`,
         },
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "description": "",
-        "display_name": "New Project",
-        "id": "<stripped UUID>",
-        "is_production_mode": false,
-        "user_count": 0,
+        "error": deindent\`
+          Request validation failed on PATCH /api/v1/projects/current:
+            - URL must start with http:// or https://
+        \`,
       },
-      "headers": Headers { <some fields may have been hidden> },
+      "headers": Headers {
+        "x-stack-known-error": "SCHEMA_ERROR",
+        <some fields may have been hidden>,
+      },
     }
   `);
 });
