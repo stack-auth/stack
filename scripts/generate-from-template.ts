@@ -443,7 +443,12 @@ function processMacros(content: string, envs: string[]): string {
 // Copy package-template.json to package.json and apply macros
 const packageTemplateContent = fs.readFileSync(path.join(srcDir, 'package-template.json'), 'utf-8');
 const processedPackageJson = processMacros(packageTemplateContent, allEnvs);
-fs.writeFileSync(path.join(srcDir, 'package.json'), processedPackageJson);
+const packageJson = JSON.parse(processedPackageJson);
+const packageJsonWithComment = {
+  "//": COMMENT_LINE,
+  ...packageJson
+};
+fs.writeFileSync(path.join(srcDir, 'package.json'), JSON.stringify(packageJsonWithComment, null, 2));
 
 
 generateFromTemplate({
