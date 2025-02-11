@@ -30,10 +30,26 @@ services:
       STACK_EMAIL_USERNAME: none
       STACK_EMAIL_PASSWORD: none
       STACK_EMAIL_SENDER: noreply@example.com
+      STACK_OAUTH_MOCK_URL: http://localhost:32104
+      STACK_GITHUB_CLIENT_ID: MOCK
+      STACK_GITHUB_CLIENT_SECRET: MOCK
+      STACK_GOOGLE_CLIENT_ID: MOCK
+      STACK_GOOGLE_CLIENT_SECRET: MOCK
+      STACK_MICROSOFT_CLIENT_ID: MOCK
+      STACK_MICROSOFT_CLIENT_SECRET: MOCK
+      STACK_SPOTIFY_CLIENT_ID: MOCK
+      STACK_SPOTIFY_CLIENT_SECRET: MOCK
     depends_on:
       - db
       - inbucket
       - svix-server
+
+  # ================= Mock OAuth Server =================
+
+  mock-oauth-server:
+    build:
+      context: ../..
+      dockerfile: docker/mock-oauth-server/Dockerfile
 
   # ================= PostgreSQL =================
 

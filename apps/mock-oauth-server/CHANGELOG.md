@@ -1,4 +1,4 @@
-# @stackframe/oauth-mock-server
+# @stackframe/mock-oauth-server
 
 ## 2.7.13
 

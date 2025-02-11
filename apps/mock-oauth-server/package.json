@@ -1,5 +1,5 @@
 {
-  "name": "@stackframe/oauth-mock-server",
+  "name": "@stackframe/mock-oauth-server",
   "version": "2.7.13",
   "private": true,
   "main": "index.js",
@@ -10,7 +10,6 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@stackframe/stack-shared": "workspace:*",
     "@types/express": "^5.0.0",
     "@types/oidc-provider": "^8.5.1",
     "body-parser": "^1.20.3",

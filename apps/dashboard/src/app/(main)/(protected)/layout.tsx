@@ -2,6 +2,7 @@
 
 import { useStackApp, useUser } from "@stackframe/stack";
 import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
+import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
 import { useEffect } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
