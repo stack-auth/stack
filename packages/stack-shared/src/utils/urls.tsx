@@ -50,7 +50,7 @@ export function url(strings: TemplateStringsArray | readonly string[], ...values
  * Any values passed are encoded.
  */
 export function urlString(strings: TemplateStringsArray | readonly string[], ...values: (string|number|boolean)[]): string {
-  return strings.reduce((result, str, i) => result + str + encodeURIComponent(values[i] ?? ''), '');
+  return templateIdentity(strings, values.map(encodeURIComponent));
 }
 
 
