@@ -1581,8 +1581,10 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     } catch (e) {
       if (e instanceof KnownErrors.InvalidTotpCode) {
         alert("Invalid TOTP code. Please try signing in again.");
+        return false;
+      } else {
+        throw e;
       }
-      throw e;
     }
     if (result.status === 'ok' && result.data) {
       await this._signInToAccountWithTokens(result.data);

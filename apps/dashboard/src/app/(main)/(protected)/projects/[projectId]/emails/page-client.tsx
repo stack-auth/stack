@@ -159,7 +159,7 @@ const getDefaultValues = (emailConfig: AdminEmailConfig | undefined, project: Ad
 const emailServerSchema = yup.object({
   type: yup.string().oneOf(['shared', 'standard']).defined(),
   host: definedWhenNotShared(yup.string(), "Host is required"),
-  port: definedWhenNotShared(yup.number(), "Port is required"),
+  port: definedWhenNotShared(yup.number().min(0, "Port must be a number between 0 and 65535").max(65535, "Port must be a number between 0 and 65535"), "Port is required"),
   username: definedWhenNotShared(yup.string(), "Username is required"),
   password: definedWhenNotShared(yup.string(), "Password is required"),
   senderEmail: definedWhenNotShared(strictEmailSchema("Sender email must be a valid email"), "Sender email is required"),
