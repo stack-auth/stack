@@ -13,8 +13,8 @@ export function isValidUrl(url: string) {
   return !!createUrlIfValid(url);
 }
 
-export function isLocalhost(urlOrString: URL | string | null | undefined) { ;
-  const url = typeof urlOrString === "string" ? createUrlIfValid(urlOrString) : urlOrString;
+export function isLocalhost(urlOrString: string | URL) {
+  const url = createUrlIfValid(urlOrString);
   if (!url) return false;
   if (url.hostname === "localhost" || url.hostname.endsWith(".localhost")) return true;
   if (url.hostname.match(/^127\.\d+\.\d+\.\d+$/)) return true;
