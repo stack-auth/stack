@@ -362,7 +362,7 @@ async function seed() {
       if (existingUser) {
         console.log('Emulator user already exists, skipping creation');
       } else {
-        const hashedPassword = await hashPassword('LocalEmulatorPassword123');
+        const hashedPassword = await hashPassword('LocalEmulatorPassword');
 
         const passwordConfig = await tx.authMethodConfig.findFirst({
           where: {
