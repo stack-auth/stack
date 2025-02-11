@@ -377,7 +377,6 @@ async function seed() {
           throw new Error('Password auth method config not found');
         }
 
-        // Implementing the TODO: Create a local emulator user
         const newEmulatorUser = await tx.projectUser.create({
           data: {
             displayName: 'Local Emulator User',
