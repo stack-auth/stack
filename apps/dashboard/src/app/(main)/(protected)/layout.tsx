@@ -17,8 +17,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         });
       }
     };
-    // runAsynchronouslyWithAlert(signIn());
-    signIn().catch(console.error);
+    runAsynchronouslyWithAlert(signIn());
   }, [user, app]);
 
   if (getPublicEnvVar("NEXT_PUBLIC_STACK_EMULATOR_ENABLED") === "true" && !user) {
