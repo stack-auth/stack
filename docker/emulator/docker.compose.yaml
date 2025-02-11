@@ -50,6 +50,8 @@ services:
     build:
       context: ../..
       dockerfile: docker/mock-oauth-server/Dockerfile
+    ports:
+      - 32104:32104
 
   # ================= PostgreSQL =================
 
