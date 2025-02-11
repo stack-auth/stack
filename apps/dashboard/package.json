@@ -23,7 +23,7 @@
     "@next/bundle-analyzer": "^14.0.3",
     "@next/mdx": "^14",
     "@react-hook/resize-observer": "^2.0.2",
-    "@sentry/nextjs": "^8.54.0",
+    "@sentry/nextjs": "^8.40.0",
     "@stackframe/stack": "workspace:*",
     "@stackframe/stack-emails": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
