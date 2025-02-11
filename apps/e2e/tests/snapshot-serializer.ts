@@ -59,6 +59,7 @@ const stripFields = [
   "responseDurationMs",
   "iterator",
   "prevIterator",
+  "nextAttempt",
 ] as const;
 
 const stripFieldsIfString = [

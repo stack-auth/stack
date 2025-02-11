@@ -1,5 +1,5 @@
 import { STACK_BACKEND_BASE_URL, STACK_SVIX_SERVER_URL, it, niceFetch } from "../../../../helpers";
-import { Auth, Project, niceBackendFetch } from "../../../backend-helpers";
+import { Project, niceBackendFetch } from "../../../backend-helpers";
 
 
 // import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
@@ -2001,13 +2001,26 @@ async function createProjectWithEndpoint() {
 }
 
 async function listWebhookAttempts(projectId: string, endpointId: string, svixToken: string) {
-  return await niceFetch(STACK_SVIX_SERVER_URL + `/api/v1/app/${projectId}/attempt/endpoint/${endpointId}`, {
+  const response = await niceFetch(STACK_SVIX_SERVER_URL + `/api/v1/app/${projectId}/attempt/endpoint/${endpointId}`, {
     method: "GET",
     headers: {
       "Authorization": `Bearer ${svixToken}`,
       "Content-Type": "application/json",
     },
   });
+
+  const messages = await Promise.all(response.body.data.map(async (attempt: any) => {
+    const messageResponse = await niceFetch(STACK_SVIX_SERVER_URL + `/api/v1/app/${projectId}/msg/${attempt.msgId}?with_content=true`, {
+      headers: {
+        "Authorization": `Bearer ${svixToken}`,
+        "Content-Type": "application/json",
+      },
+      method: "GET",
+    });
+    return messageResponse.body;
+  }));
+
+  return messages;
 }
 
 it("should get user create webhook", async ({ expect }) => {
@@ -2023,33 +2036,43 @@ it("should get user create webhook", async ({ expect }) => {
 
   expect(createUserResponse.status).toBe(201);
 
-  await Auth.Otp.signIn();
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const attemptResponse = await listWebhookAttempts(projectId, endpointId, svixToken);
 
   expect(attemptResponse).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "data": [
-          {
-            "endpointId": <stripped field 'endpointId'>,
+    [
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "user.created",
+        "id": <stripped field 'id'>,
+        "payload": {
+          "data": {
+            "auth_with_email": false,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
             "id": <stripped field 'id'>,
-            "msgId": <stripped field 'msgId'>,
-            "response": <stripped field 'response'>,
-            "responseDurationMs": <stripped field 'responseDurationMs'>,
-            "responseStatusCode": <stripped field 'responseStatusCode'>,
-            "status": 2,
-            "timestamp": <stripped field 'timestamp'>,
-            "triggerType": 0,
-            "url": <stripped field 'url'>,
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": false,
+            "passkey_auth_enabled": false,
+            "primary_email": "test@example.com",
+            "primary_email_auth_enabled": false,
+            "primary_email_verified": false,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
           },
-        ],
-        "done": true,
-        "iterator": <stripped field 'iterator'>,
-        "prevIterator": <stripped field 'prevIterator'>,
+          "type": "user.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
       },
-      "headers": Headers { <some fields may have been hidden> },
-    }
+    ]
   `);
 });
