@@ -396,7 +396,7 @@ async function seed() {
             projectUserId: newEmulatorUser.projectUserId,
             tenancyId: internalTenancy.id,
             type: 'EMAIL' as const,
-            value: 'local-emulator@email.com',
+            value: 'local-emulator@stack-auth-sentinel.example.com',
             isVerified: false,
             isPrimary: 'TRUE',
             usedForAuth: 'TRUE',
