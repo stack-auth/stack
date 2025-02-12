@@ -253,7 +253,10 @@ export class StackClientInterface {
     // all requests should be dynamic to prevent Next.js caching
     await cookies?.();
 
-    const url = this.getApiUrl() + path;
+    let url = this.getApiUrl() + path;
+    if (url.endsWith("/")) {
+      url = url.slice(0, -1);
+    }
     const params: RequestInit = {
       /**
        * This fetch may be cross-origin, in which case we don't want to send cookies of the
