@@ -22,7 +22,14 @@
     "clean": "rimraf dist && rimraf node_modules",
     "lint": "eslint --ext .tsx,.ts .",
     "build": "rimraf dist && tsup-node",
-    "dev": "rimraf dist && tsup-node --watch"
+    "dev": "rimraf dist && tsup-node --watch",
+    "codegen": "pnpm run css",
+    "css": "pnpm run css-tw && pnpm run css-sc",
+    "css:watch": "concurrently -n \"tw,sc\" -k \"pnpm run css-tw:watch\" \"pnpm run css-sc:watch\"",
+    "css-tw:watch": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css --watch",
+    "css-tw": "tailwindcss -i ./src/global.css -o ./src/generated/tailwind.css",
+    "css-sc": "tsx ./scripts/process-css.ts ./src/generated/tailwind.css ./src/generated/global-css.ts",
+    "css-sc:watch": "chokidar --silent './src/generated/tailwind.css' -c 'pnpm run css-sc' --throttle 2000"
   },
   "files": [
     "README.md",
