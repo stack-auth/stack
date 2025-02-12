@@ -6,8 +6,6 @@ export function IframePreventer({ children }: {
 }) {
   const [isIframe, setIsIframe] = useState(false);
   useEffect(() => {
-    console.log('does this rerender?');
-    console.log(window.self, window.top);
     if (window.self !== window.top) {
       setIsIframe(true);
     }
