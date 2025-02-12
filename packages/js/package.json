@@ -22,8 +22,7 @@
     "clean": "rimraf dist && rimraf node_modules",
     "lint": "eslint --ext .tsx,.ts .",
     "build": "rimraf dist && tsup-node",
-    "dev": "rimraf dist && tsup-node --watch",
-    "codegen": "pnpm run css"
+    "dev": "rimraf dist && tsup-node --watch"
   },
   "files": [
     "README.md",
