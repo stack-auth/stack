@@ -3,7 +3,7 @@
 import { Logo } from "@/components/logo";
 import { useRouter } from "@/components/router";
 import { useStackApp, useUser } from "@stackframe/stack";
-import { wait } from "@stackframe/stack-shared/dist/utils/promises";
+import { runAsynchronously, wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { Button, Card, CardContent, CardFooter, CardHeader, Input, Typography } from "@stackframe/stack-ui";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -21,20 +21,23 @@ export default function NeonIntegrationProjectTransferConfirmPageClient() {
   const [state, setState] = useState<'loading'|'success'|{type: 'error', message: string}>('loading');
 
   useEffect(() => {
-    const res = (app as any)[stackAppInternalsSymbol].sendRequest("/integrations/neon/projects/transfer/confirm/check", {
-      method: "POST",
-      body: JSON.stringify({
-        code: searchParams.get("code"),
-      }),
-      headers: {
-        "Content-Type": "application/json",
-      },
+    runAsynchronously(async () => {
+      try {
+        await (app as any)[stackAppInternalsSymbol].sendRequest("/integrations/neon/projects/transfer/confirm/check", {
+          method: "POST",
+          body: JSON.stringify({
+            code: searchParams.get("code"),
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        setState('success');
+      } catch (err: any) {
+        setState({ type: 'error', message: err.message });
+      }
     });
-    res
-      .then(() => { setState('success'); })
-      .catch((err: any) => {
-      setState({ type: 'error', message: err.message });
-      });
+
   }, [app, searchParams]);
 
   const currentUrl = new URL(window.location.href);
