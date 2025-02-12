@@ -488,7 +488,7 @@ generateFromTemplate({
   editFn: (path, content) => {
     // ignore the generated folder as the files are big and not needed
     if (path.startsWith('src/generated')) {
-      return content;
+      return null;
     }
 
     content = processMacros(content, ["next", "react-like"]);
