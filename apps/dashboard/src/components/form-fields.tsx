@@ -137,6 +137,7 @@ export function SwitchListField<F extends FieldValues>(props: {
   options: { value: string, label: string }[],
   required?: boolean,
   disabled?: boolean,
+  info?: string,
 }) {
   const Trigger = props.variant === "checkbox" ? Checkbox : Switch;
 
@@ -166,6 +167,7 @@ export function SwitchListField<F extends FieldValues>(props: {
                 </FormControl>
               </label>
             ))}
+            {props.info ? <p className="text-xs text-zinc-400 dark:text-zinc-500 text-center px-8">{props.info}</p> : null}
           </div>
           <FormMessage />
         </FormItem>
