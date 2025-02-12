@@ -33,7 +33,8 @@
     "//": "IF_PLATFORM template react-like",
     "build": "rimraf dist && pnpm run css && tsup-node",
     "dev": "rimraf dist && concurrently -n \"build,codegen\" -k \"tsup-node --watch\" \"pnpm run codegen:watch\"",
-    "codegen": "pnpm run css"
+    "codegen": "pnpm run css",
+    "codegen:watch": "pnpm run css:watch"
     ,"//": "ELSE_PLATFORM",
     "build": "rimraf dist && tsup-node",
     "dev": "rimraf dist && tsup-node --watch"
