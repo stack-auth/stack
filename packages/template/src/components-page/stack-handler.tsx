@@ -3,6 +3,7 @@ import { FilterUndefined, filterUndefined, pick } from "@stackframe/stack-shared
 import { getRelativePart } from "@stackframe/stack-shared/dist/utils/urls";
 import { RedirectType, notFound, redirect } from 'next/navigation';
 import { SignIn, SignUp, StackServerApp } from "..";
+import { IframePreventer } from "../components/iframe-preventer";
 import { MessageCard } from "../components/message-cards/message-card";
 import { HandlerUrls } from "../lib/stack-app";
 import { AccountSettings } from "./account-settings";
@@ -207,7 +208,9 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
         {next15DeprecationWarning}. This warning will not be shown in production.
       </span>
     )}
-    {render()}
+    <IframePreventer>
+      {render()}
+    </IframePreventer>
   </>;
 }
 
