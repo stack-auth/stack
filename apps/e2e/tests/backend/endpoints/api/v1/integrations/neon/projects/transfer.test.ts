@@ -1,3 +1,4 @@
+import { urlString } from "@stackframe/stack-shared/dist/utils/urls";
 import { expect } from "vitest";
 import { it } from "../../../../../../../helpers";
 import { Auth, Project, niceBackendFetch } from "../../../../../../backend-helpers";
@@ -25,7 +26,7 @@ async function initiateTransfer(projectId: string) {
   return { code };
 }
 
-it("should be able to transfer a project exactly once", async ({ expect }) => {
+async function provisionAndTransferProject() {
   const provisioned = await provisionProject();
   const projectId = provisioned.body.project_id;
   const { code } = await initiateTransfer(projectId);
@@ -45,8 +46,65 @@ it("should be able to transfer a project exactly once", async ({ expect }) => {
     }
   `);
   expect(response.body.project_id).toBe(projectId);
+  return { provisioned, projectId };
+}
 
-  // but only once!
+it("should return that the project is transferrable if it is provisioned by Neon", async ({ expect }) => {
+  const provisioned = await provisionProject();
+  const projectId = provisioned.body.project_id;
+  const response = await niceBackendFetch(urlString`/api/v1/integrations/neon/projects/transfer?project_id=${projectId}`, {
+    method: "GET",
+    headers: {
+      "Authorization": "Basic bmVvbi1sb2NhbDpuZW9uLWxvY2FsLXNlY3JldA==",
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "message": "Ready to transfer project; please use the POST method to initiate it." },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("should return that the project is not transferrable if it is not provisioned by Neon", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const createdProject = await Project.create();
+  const response = await niceBackendFetch(urlString`/api/v1/integrations/neon/projects/transfer?project_id=${createdProject.createProjectResponse.body.id}`, {
+    method: "GET",
+    headers: {
+      "Authorization": "Basic bmVvbi1sb2NhbDpuZW9uLWxvY2FsLXNlY3JldA==",
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": "This project either doesn't exist or the current Neon client is not authorized to transfer it. Note that projects can only be transferred once.",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("should return that the project is not transferrable if it has already been transferred", async ({ expect }) => {
+  const { provisioned, projectId } = await provisionAndTransferProject();
+  const getResponse = await niceBackendFetch(urlString`/api/v1/integrations/neon/projects/transfer?project_id=${projectId}`, {
+    method: "GET",
+    headers: {
+      "Authorization": "Basic bmVvbi1sb2NhbDpuZW9uLWxvY2FsLXNlY3JldA==",
+    },
+  });
+  expect(getResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": "This project either doesn't exist or the current Neon client is not authorized to transfer it. Note that projects can only be transferred once.",
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("should transfer a project exactly once", async ({ expect }) => {
+  const { provisioned, projectId } = await provisionAndTransferProject();
+
   const response2 = await niceBackendFetch("/api/v1/integrations/neon/projects/transfer/initiate", {
     method: "POST",
     body: {
@@ -65,7 +123,7 @@ it("should be able to transfer a project exactly once", async ({ expect }) => {
   `);
 });
 
-it("should be able to initiate multiple transfers for the same project, but only one can be confirmed", async ({ expect }) => {
+it("should initiate multiple transfers for the same project, but only one can be confirmed", async ({ expect }) => {
   const provisioned = await provisionProject();
   const projectId = provisioned.body.project_id;
   const { code: code1 } = await initiateTransfer(projectId);

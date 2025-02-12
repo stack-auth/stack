@@ -253,7 +253,10 @@ export class StackClientInterface {
     // all requests should be dynamic to prevent Next.js caching
     await cookies?.();
 
-    const url = this.getApiUrl() + path;
+    let url = this.getApiUrl() + path;
+    if (url.endsWith("/")) {
+      url = url.slice(0, -1);
+    }
     const params: RequestInit = {
       /**
        * This fetch may be cross-origin, in which case we don't want to send cookies of the
@@ -365,7 +368,7 @@ export class StackClientInterface {
     } else {
       const error = await res.text();
 
-      const errorObj = new StackAssertionError(`Failed to send request to ${url}: ${res.status} ${error}`, { request: params, res });
+      const errorObj = new StackAssertionError(`Failed to send request to ${url}: ${res.status} ${error}`, { request: params, res, path });
 
       if (res.status === 508 && error.includes("INFINITE_LOOP_DETECTED")) {
         // Some Vercel deployments seem to have an odd infinite loop bug. In that case, retry.

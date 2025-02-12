@@ -48,9 +48,24 @@ export type SmartRequest = {
 };
 
 export type MergeSmartRequest<T, MSQ = SmartRequest> =
-  StackAdaptSentinel extends T ? NonNullable<MSQ> | (MSQ & Exclude<T, StackAdaptSentinel>) : (
-    T extends object ? (MSQ extends object ? { [K in keyof T & keyof MSQ]: MergeSmartRequest<T[K], MSQ[K]> } : (T & MSQ))
-    : (T & MSQ)
+  StackAdaptSentinel extends T
+  ? NonNullable<MSQ> | (MSQ & Exclude<T, StackAdaptSentinel>)
+  : (
+    T extends (infer U)[]
+    ? (
+      MSQ extends (infer V)[]
+      ? (T & MSQ) & { [K in keyof T & keyof MSQ]: MergeSmartRequest<T[K], MSQ[K]> }
+      : (T & MSQ)
+    )
+    : (
+      T extends object
+      ? (
+        MSQ extends object
+        ? { [K in keyof T & keyof MSQ]: MergeSmartRequest<T[K], MSQ[K]> }
+        : (T & MSQ)
+      )
+      : (T & MSQ)
+    )
   );
 
 async function validate<T>(obj: SmartRequest, schema: yup.Schema<T>, req: NextRequest | null): Promise<T> {
