@@ -1,12 +1,11 @@
 "use client";
 
-import { SettingCard, SettingSwitch } from "@/components/settings";
+import { SettingCard } from "@/components/settings";
 import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { Alert, Badge, Button, Checkbox, CopyButton, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
+import { Alert, Badge, Button, CopyButton, Label, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
-import { SvixProvider, useEndpoint, useEndpointFunctions, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";
+import { SvixProvider, useEndpoint, useEndpointMessageAttempts, useEndpointSecret } from "svix-react";
 import { PageLayout } from "../../page-layout";
 import { useAdminApp } from "../../use-admin-app";
 import { getSvixResult } from "../utils";
@@ -58,75 +57,6 @@ function EndpointDetails(props: { endpointId: string }) {
     </>
   );
 }
-
-const eventTypes = [
-  'user.created',
-  'user.updated',
-  'user.deleted',
-];
-
-function FilterEvents(props: { endpointId: string }) {
-  const endpoint = getSvixResult(useEndpoint(props.endpointId));
-  const { updateEndpoint } = useEndpointFunctions(props.endpointId);
-  const [enabled, setEnabled] = useState(false);
-
-  if (!endpoint.loaded) return endpoint.rendered;
-  const filterTypes = endpoint.data.filterTypes;
-  const checked = !!filterTypes || enabled;
-
-  return (
-    <>
-      <SettingSwitch
-        label="Enable filtering"
-        checked={checked}
-        onCheckedChange={async (checked) => {
-          if (checked) {
-            setEnabled(true);
-          } else {
-            await updateEndpoint({ url: endpoint.data.url });
-            setEnabled(false);
-          }
-        }}
-      />
-
-      {checked ?
-        <div className="border rounded-md p-4">
-          <Label>Only receive events of the following types</Label>
-          <div className="flex flex-col gap-2 mt-2">
-            {eventTypes.map(eventType => {
-              const checked = filterTypes?.includes(eventType);
-              const oldFilterTypes = filterTypes || [];
-              return (
-                <div key={eventType} className="flex items-center space-x-2">
-                  <Checkbox
-                    key={eventType}
-                    checked={checked}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        runAsynchronously(updateEndpoint({
-                          url: endpoint.data.url,
-                          filterTypes: [...new Set([...oldFilterTypes, eventType])],
-                        }));
-                      } else {
-                        runAsynchronously(updateEndpoint({
-                          url: endpoint.data.url,
-                          filterTypes: oldFilterTypes.filter(type => type !== eventType),
-                        }));
-                      }
-                    }}
-                  />
-                  <Typography variant={checked ? undefined : "secondary"}>{eventType}</Typography>
-                </div>
-              ); })}
-          </div>
-        </div> :
-        <div>
-          <Alert>Receiving all the event types</Alert>
-        </div>}
-    </>
-  );
-}
-
 
 function MessageTable(props: { endpointId: string }) {
   const messages = getSvixResult(useEndpointMessageAttempts(props.endpointId, { limit: 10, withMsg: true }));

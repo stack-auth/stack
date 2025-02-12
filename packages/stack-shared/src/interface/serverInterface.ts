@@ -3,6 +3,7 @@ import { AccessToken, InternalSession, RefreshToken } from "../sessions";
 import { StackAssertionError } from "../utils/errors";
 import { filterUndefined } from "../utils/objects";
 import { Result } from "../utils/results";
+import { urlString } from "../utils/urls";
 import {
   ClientInterfaceOptions,
   StackClientInterface
@@ -112,7 +113,7 @@ export class StackServerInterface extends StackClientInterface {
 
   async getServerUserById(userId: string): Promise<Result<UsersCrud['Server']['Read']>> {
     const response = await this.sendServerRequest(
-      `/users/${userId}`,
+      urlString`/users/${userId}`,
       {},
       null,
     );
@@ -125,7 +126,7 @@ export class StackServerInterface extends StackClientInterface {
     teamId: string,
   }): Promise<TeamInvitationCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
-      "/team-invitations?team_id=" + options.teamId,
+      urlString`/team-invitations?team_id=${options.teamId}`,
       {},
       null,
     );
@@ -135,7 +136,7 @@ export class StackServerInterface extends StackClientInterface {
 
   async revokeServerTeamInvitation(invitationId: string, teamId: string) {
     await this.sendServerRequest(
-      `/team-invitations/${invitationId}?team_id=${teamId}`,
+      urlString`/team-invitations/${invitationId}?team_id=${teamId}`,
       { method: "DELETE" },
       null,
     );
@@ -147,7 +148,7 @@ export class StackServerInterface extends StackClientInterface {
     },
   ): Promise<TeamMemberProfilesCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
-      "/team-member-profiles?team_id=" + options.teamId,
+      urlString`/team-member-profiles?team_id=${options.teamId}`,
       {},
       null,
     );
@@ -162,7 +163,7 @@ export class StackServerInterface extends StackClientInterface {
     },
   ): Promise<TeamMemberProfilesCrud['Client']['Read']> {
     const response = await this.sendServerRequest(
-      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      urlString`/team-member-profiles/${options.teamId}/${options.userId}`,
       {},
       null,
     );
@@ -178,11 +179,11 @@ export class StackServerInterface extends StackClientInterface {
     session: InternalSession | null,
   ): Promise<TeamPermissionsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
-      "/team-permissions?" + new URLSearchParams(filterUndefined({
+      `/team-permissions?${new URLSearchParams(filterUndefined({
         user_id: options.userId,
         team_id: options.teamId,
         recursive: options.recursive.toString(),
-      })),
+      }))}`,
       {},
       session,
     );
@@ -218,9 +219,9 @@ export class StackServerInterface extends StackClientInterface {
     userId?: string,
   }): Promise<TeamsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
-      "/teams?" + new URLSearchParams(filterUndefined({
+      `/teams?${new URLSearchParams(filterUndefined({
         user_id: options?.userId,
-      })),
+      }))}`,
       {},
       null
     );
@@ -252,7 +253,7 @@ export class StackServerInterface extends StackClientInterface {
 
   async updateServerTeam(teamId: string, data: TeamsCrud['Server']['Update']): Promise<TeamsCrud['Server']['Read']> {
     const response = await this.sendServerRequest(
-      `/teams/${teamId}`,
+      urlString`/teams/${teamId}`,
       {
         method: "PATCH",
         headers: {
@@ -267,7 +268,7 @@ export class StackServerInterface extends StackClientInterface {
 
   async deleteServerTeam(teamId: string): Promise<void> {
     await this.sendServerRequest(
-      `/teams/${teamId}`,
+      urlString`/teams/${teamId}`,
       { method: "DELETE" },
       null,
     );
@@ -278,7 +279,7 @@ export class StackServerInterface extends StackClientInterface {
     teamId: string,
   }): Promise<TeamMembershipsCrud['Server']['Read']> {
     const response = await this.sendServerRequest(
-      `/team-memberships/${options.teamId}/${options.userId}`,
+      urlString`/team-memberships/${options.teamId}/${options.userId}`,
       {
         method: "POST",
         headers: {
@@ -296,7 +297,7 @@ export class StackServerInterface extends StackClientInterface {
     teamId: string,
   }) {
     await this.sendServerRequest(
-      `/team-memberships/${options.teamId}/${options.userId}`,
+      urlString`/team-memberships/${options.teamId}/${options.userId}`,
       {
         method: "DELETE",
         headers: {
@@ -310,7 +311,7 @@ export class StackServerInterface extends StackClientInterface {
 
   async updateServerUser(userId: string, update: UsersCrud['Server']['Update']): Promise<UsersCrud['Server']['Read']> {
     const response = await this.sendServerRequest(
-      `/users/${userId}`,
+      urlString`/users/${userId}`,
       {
         method: "PATCH",
         headers: {
@@ -329,7 +330,7 @@ export class StackServerInterface extends StackClientInterface {
     scope: string,
   ): Promise<ConnectedAccountAccessTokenCrud['Server']['Read']> {
     const response = await this.sendServerRequest(
-      `/connected-accounts/${userId}/${provider}/access-token`,
+      urlString`/connected-accounts/${userId}/${provider}/access-token`,
       {
         method: "POST",
         headers: {
@@ -371,7 +372,7 @@ export class StackServerInterface extends StackClientInterface {
     },
   ) {
     await this.sendClientRequest(
-      `/team-memberships/${options.teamId}/${options.userId}`,
+      urlString`/team-memberships/${options.teamId}/${options.userId}`,
       {
         method: "DELETE",
         headers: {
@@ -389,7 +390,7 @@ export class StackServerInterface extends StackClientInterface {
     profile: TeamMemberProfilesCrud['Server']['Update'],
   }) {
     await this.sendServerRequest(
-      `/team-member-profiles/${options.teamId}/${options.userId}`,
+      urlString`/team-member-profiles/${options.teamId}/${options.userId}`,
       {
         method: "PATCH",
         headers: {
@@ -403,7 +404,7 @@ export class StackServerInterface extends StackClientInterface {
 
   async grantServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {
     await this.sendServerRequest(
-      `/team-permissions/${teamId}/${userId}/${permissionId}`,
+      urlString`/team-permissions/${teamId}/${userId}/${permissionId}`,
       {
         method: "POST",
         headers: {
@@ -417,7 +418,7 @@ export class StackServerInterface extends StackClientInterface {
 
   async revokeServerTeamUserPermission(teamId: string, userId: string, permissionId: string) {
     await this.sendServerRequest(
-      `/team-permissions/${teamId}/${userId}/${permissionId}`,
+      urlString`/team-permissions/${teamId}/${userId}/${permissionId}`,
       {
         method: "DELETE",
         headers: {
@@ -431,7 +432,7 @@ export class StackServerInterface extends StackClientInterface {
 
   async deleteServerServerUser(userId: string) {
     await this.sendServerRequest(
-      `/users/${userId}`,
+      urlString`/users/${userId}`,
       {
         method: "DELETE",
         headers: {
@@ -466,7 +467,7 @@ export class StackServerInterface extends StackClientInterface {
     data: ContactChannelsCrud['Server']['Update'],
   ): Promise<ContactChannelsCrud['Server']['Read']> {
     const response = await this.sendServerRequest(
-      `/contact-channels/${userId}/${contactChannelId}`,
+      urlString`/contact-channels/${userId}/${contactChannelId}`,
       {
         method: "PATCH",
         headers: {
@@ -484,7 +485,7 @@ export class StackServerInterface extends StackClientInterface {
     contactChannelId: string,
   ): Promise<void> {
     await this.sendServerRequest(
-      `/contact-channels/${userId}/${contactChannelId}`,
+      urlString`/contact-channels/${userId}/${contactChannelId}`,
       {
         method: "DELETE",
       },
@@ -496,7 +497,7 @@ export class StackServerInterface extends StackClientInterface {
     userId: string,
   ): Promise<ContactChannelsCrud['Server']['Read'][]> {
     const response = await this.sendServerRequest(
-      `/contact-channels?user_id=${userId}`,
+      urlString`/contact-channels?user_id=${userId}`,
       {
         method: "GET",
       },
@@ -512,7 +513,7 @@ export class StackServerInterface extends StackClientInterface {
     callbackUrl: string,
   ): Promise<void> {
     await this.sendServerRequest(
-      `/contact-channels/${userId}/${contactChannelId}/send-verification-code`,
+      urlString`/contact-channels/${userId}/${contactChannelId}/send-verification-code`,
       {
         method: "POST",
         headers: {

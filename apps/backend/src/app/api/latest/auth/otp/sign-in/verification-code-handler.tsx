@@ -77,6 +77,8 @@ export const signInVerificationCodeHandler = createVerificationCodeHandler({
       user = await usersCrudHandlers.adminRead({
         tenancy,
         user_id: data.user_id,
+        // This might happen if the user was deleted but the code is still valid
+        allowedErrorTypes: [KnownErrors.UserNotFound],
       });
     }
 

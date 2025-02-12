@@ -48,7 +48,7 @@ async function main() {
   fs.writeFileSync(outputPath.replace(/\.ts$/, '.css'), content);
 
   content = JSON.stringify(content);
-  content = "export const globalCSS = " + content + ";\n";
+  content = `export const globalCSS = ${content};\n`;
 
   fs.writeFileSync(outputPath, content);
 
