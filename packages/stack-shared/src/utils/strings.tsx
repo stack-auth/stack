@@ -77,10 +77,7 @@ export function trimLines(s: string): string {
  * Useful for implementing your own template literal tags.
  */
 export function templateIdentity(strings: TemplateStringsArray | readonly string[], ...values: any[]): string {
-  if (strings.length === 0) return "";
-  if (values.length !== strings.length - 1) throw new Error("Invalid number of values; must be one less than strings");
-
-  return strings.slice(1).reduce((result, string, i) => `${result}${values[i] ?? "n/a"}${string}`, strings[0]);
+  return strings.reduce((result, str, i) => result + str + (values[i] ?? ''), '');
 }
 
 

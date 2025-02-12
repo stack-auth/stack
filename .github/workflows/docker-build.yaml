@@ -1,13 +1,6 @@
 name: Docker Build and Push
 
-on:
-  push:
-    branches:
-      - main
-      - dev
-    tags:
-      - "*.*.*"
-  pull_request:
+on: push
 
 jobs:
   build-server:

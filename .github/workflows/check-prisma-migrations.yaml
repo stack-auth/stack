@@ -1,14 +1,6 @@
 name: Ensure Prisma migrations are in sync with the schema
 
-on:
-  push:
-    branches:
-      - dev
-      - main
-  pull_request:
-    branches:
-      - dev
-      - main
+on: push
 
 jobs:
   check_prisma_migrations:
