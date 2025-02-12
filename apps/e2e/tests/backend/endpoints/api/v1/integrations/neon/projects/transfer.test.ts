@@ -185,3 +185,66 @@ it("should fail to transfer project if the user is not signed in", async ({ expe
     }
   `);
 });
+
+it("should check if the project exists before initiating transfer", async ({ expect }) => {
+  const provisioned = await provisionProject();
+  const projectId = provisioned.body.project_id;
+  const { code } = await initiateTransfer(projectId);
+  await Auth.Otp.signIn();
+  const response = await niceBackendFetch(`/api/v1/integrations/neon/projects/transfer/confirm/check`, {
+    method: "POST",
+    accessType: "client",
+    body: {
+      code,
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "is_code_valid": true },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+});
+
+it("should fail the check if project was already transferred", async ({ expect }) => {
+  const provisioned = await provisionProject();
+  const projectId = provisioned.body.project_id;
+  const { code } = await initiateTransfer(projectId);
+  await Auth.Otp.signIn();
+  const response = await niceBackendFetch(`/api/v1/integrations/neon/projects/transfer/confirm`, {
+    method: "POST",
+    accessType: "client",
+    body: {
+      code,
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 200,
+      "body": { "project_id": "<stripped UUID>" },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
+  const response2 = await niceBackendFetch(`/api/v1/integrations/neon/projects/transfer/confirm/check`, {
+    method: "POST",
+    accessType: "client",
+    body: {
+      code,
+    },
+  });
+  expect(response2).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "VERIFICATION_CODE_ALREADY_USED",
+        "error": "The verification link has already been used.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "VERIFICATION_CODE_ALREADY_USED",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
