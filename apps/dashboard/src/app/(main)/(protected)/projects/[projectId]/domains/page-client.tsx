@@ -3,6 +3,7 @@ import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { AdminDomainConfig, AdminProject } from "@stackframe/stack";
+import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
 import { isValidUrl } from "@stackframe/stack-shared/dist/utils/urls";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import React from "react";
@@ -79,36 +80,48 @@ function EditDialog(props: {
     formSchema={domainFormSchema}
     okButton={{ label: props.type === 'create' ? "Create" : "Save" }}
     onSubmit={async (values) => {
-      if (props.type === 'create') {
-        await props.project.update({
-          config: {
-            domains: [
-              ...props.domains,
-              {
-                domain: values.domain,
-                handlerPath: values.handlerPath,
-              },
-              ...(canAddWww(values.domain) && values.addWww ? [{
-                domain: new URL(values.domain).protocol + '//www.' + new URL(values.domain).hostname,
-                handlerPath: values.handlerPath,
-              }] : []),
-            ],
-          },
-        });
-      } else {
-        await props.project.update({
-          config: {
-            domains: [...props.domains].map((domain, i) => {
-              if (i === props.editIndex) {
-                return {
+      try {
+        if (props.type === 'create') {
+          await props.project.update({
+            config: {
+              domains: [
+                ...props.domains,
+                {
                   domain: values.domain,
                   handlerPath: values.handlerPath,
-                };
-              }
-              return domain;
-            })
+                },
+                ...(canAddWww(values.domain) && values.addWww ? [{
+                  domain: new URL(values.domain).protocol + '//www.' + new URL(values.domain).hostname,
+                  handlerPath: values.handlerPath,
+                }] : []),
+              ],
+            },
+          });
+        } else {
+          await props.project.update({
+            config: {
+              domains: [...props.domains].map((domain, i) => {
+                if (i === props.editIndex) {
+                  return {
+                    domain: values.domain,
+                    handlerPath: values.handlerPath,
+                  };
+                }
+                return domain;
+              })
+            },
+          });
+        }
+      } catch (error) {
+        // this is for debugging the sentry error https://stackframe-pw.sentry.io/issues/6292230019, remove this try catch once the issue is fixed
+        captureError("Failed to update domains", {
+          extra: {
+            values,
+            domains: props.domains,
+            project: props.project,
           },
         });
+        throw error;
       }
     }}
     render={(form) => (
