@@ -14,7 +14,7 @@ export function IframePreventer({ children }: {
   }, []);
 
   if (isIframe) {
-    return <div>Stack auth components may not run in an iframe.</div>;
+    return <div>Stack Auth components may not run in an <iframe>.</div>;
   }
 
   return children;
