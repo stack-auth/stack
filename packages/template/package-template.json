@@ -30,10 +30,10 @@
     "clean": "rimraf dist && rimraf node_modules",
     "lint": "eslint --ext .tsx,.ts .",
 
-    "//": "IF_PLATFORM template",
+    "//": "IF_PLATFORM template react-like",
     "build": "rimraf dist && pnpm run css && tsup-node",
     "dev": "rimraf dist && concurrently -n \"build,codegen\" -k \"tsup-node --watch\" \"pnpm run codegen:watch\""
-    ,"//": "ELSE_PLATFORM"
+    ,"//": "ELSE_PLATFORM",
     "build": "rimraf dist && tsup-node",
     "dev": "rimraf dist && tsup-node --watch",
     "codegen": "pnpm run css"
