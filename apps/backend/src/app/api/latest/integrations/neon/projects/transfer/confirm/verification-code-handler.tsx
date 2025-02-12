@@ -36,7 +36,7 @@ export const neonIntegrationProjectTransferCodeHandler = createVerificationCodeH
       },
     });
     if (neonProvisionedProjects.length === 0) throw new StatusError(400, "The project to transfer was not provisioned by Neon or has already been transferred.");
-    await prismaClient.projectUser.findUnique({
+    const _ = await prismaClient.projectUser.findUnique({
       where: {
         tenancyId_projectUserId: {
           tenancyId: tenancy.id,
