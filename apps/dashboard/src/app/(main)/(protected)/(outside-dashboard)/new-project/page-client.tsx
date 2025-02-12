@@ -109,6 +109,7 @@ export default function PageClient () {
                   { value: "microsoft", label: "Microsoft" },
                   { value: "spotify", label: "Spotify" },
                 ]}
+                info="More sign-in methods are available on the dashboard later."
               />
 
               <div className="flex justify-center">

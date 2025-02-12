@@ -1,4 +1,5 @@
 import { generateSecureRandomString } from "./crypto";
+import { templateIdentity } from "./strings";
 
 export function createUrlIfValid(...args: ConstructorParameters<typeof URL>) {
   try {
@@ -32,3 +33,25 @@ export function isRelative(url: string) {
 export function getRelativePart(url: URL) {
   return url.pathname + url.search + url.hash;
 }
+
+/**
+ * A template literal tag that returns a URL.
+ *
+ * Any values passed are encoded.
+ */
+export function url(strings: TemplateStringsArray | readonly string[], ...values: (string|number|boolean)[]): URL {
+  return new URL(urlString(strings, ...values));
+
+}
+
+
+/**
+ * A template literal tag that returns a URL string.
+ *
+ * Any values passed are encoded.
+ */
+export function urlString(strings: TemplateStringsArray | readonly string[], ...values: (string|number|boolean)[]): string {
+  return templateIdentity(strings, values.map(encodeURIComponent));
+}
+
+
