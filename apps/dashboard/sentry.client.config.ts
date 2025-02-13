@@ -2,11 +2,12 @@
 // The config you add here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
-import { getPublicEnvVar } from "@/lib/env";
 import * as Sentry from "@sentry/nextjs";
 import { getBrowserCompatibilityReport } from "@stackframe/stack-shared/dist/utils/browser-compat";
+import { getPublicEnvVar } from "@stackframe/stack-shared/dist/utils/env";
 import { sentryBaseConfig } from "@stackframe/stack-shared/dist/utils/sentry";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
+import posthog from "posthog-js";
 
 Sentry.init({
   ...sentryBaseConfig,
@@ -20,7 +21,12 @@ Sentry.init({
     Sentry.replayIntegration({
       // Additional Replay configuration goes in here, for example:
       maskAllText: false,
+      maskAllInputs: false,
       blockAllMedia: false,
+    }),
+    posthog.sentryIntegration({
+      organization: "stackframe-pw",
+      projectId: 4507084192219136,
     }),
   ],
 

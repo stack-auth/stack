@@ -9,6 +9,7 @@ import { Reader } from "@stackframe/stack-emails/dist/editor/email-builder/index
 import { EMAIL_TEMPLATES_METADATA, convertEmailSubjectVariables, convertEmailTemplateMetadataExampleValues, convertEmailTemplateVariables, validateEmailTemplateContent } from "@stackframe/stack-emails/dist/utils";
 import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/email-templates";
 import { strictEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
+import { getPublicEnvVar } from "@stackframe/stack-shared/dist/utils/env";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
 import { ActionCell, ActionDialog, Alert, Button, Card, SimpleTooltip, Typography, useToast } from "@stackframe/stack-ui";
@@ -28,28 +29,41 @@ export default function PageClient() {
 
   return (
     <PageLayout title="Emails" description="Configure email settings for your project">
-      <SettingCard
-        title="Email Server"
-        description="Configure the email server and sender address for outgoing emails"
-        actions={
-          <div className="flex items-center gap-2">
-            {emailConfig?.type === 'standard' && <TestSendingDialog trigger={<Button variant='secondary' className="w-full">Send Test Email</Button>} />}
-            <EditEmailServerDialog trigger={<Button variant='secondary' className="w-full">Configure</Button>} />
-          </div>
-        }
-      >
-        <SettingText label="Server">
-          <div className="flex items-center gap-2">
-            { emailConfig?.type === 'standard' ?
-              'Custom SMTP server' :
-              <>Shared <SimpleTooltip tooltip="When you use the shared email server, all the emails are sent from Stack's email address" type='info' /></>
-            }
-          </div>
-        </SettingText>
-        <SettingText label="Sender Email">
-          {emailConfig?.type === 'standard' ? emailConfig.senderEmail : 'noreply@stackframe.co'}
-        </SettingText>
-      </SettingCard>
+      {getPublicEnvVar('NEXT_PUBLIC_STACK_EMULATOR_ENABLED') === 'true' ? (
+        <SettingCard
+          title="Mock Emails"
+          description="All the emails that are sent in the emulator will land here"
+        >
+          <iframe
+            src="http://localhost:32203"
+            className="w-full h-[600px] border border-gray-200 rounded-md"
+            title="Mock Email Inbox"
+          />
+        </SettingCard>
+      ) : (
+        <SettingCard
+          title="Email Server"
+          description="Configure the email server and sender address for outgoing emails"
+          actions={
+            <div className="flex items-center gap-2">
+              {emailConfig?.type === 'standard' && <TestSendingDialog trigger={<Button variant='secondary' className="w-full">Send Test Email</Button>} />}
+              <EditEmailServerDialog trigger={<Button variant='secondary' className="w-full">Configure</Button>} />
+            </div>
+          }
+        >
+          <SettingText label="Server">
+            <div className="flex items-center gap-2">
+              { emailConfig?.type === 'standard' ?
+                'Custom SMTP server' :
+                <>Shared <SimpleTooltip tooltip="When you use the shared email server, all the emails are sent from Stack's email address" type='info' /></>
+              }
+            </div>
+          </SettingText>
+          <SettingText label="Sender Email">
+            {emailConfig?.type === 'standard' ? emailConfig.senderEmail : 'noreply@stackframe.co'}
+          </SettingText>
+        </SettingCard>
+      )}
 
       <SettingCard title="Email Templates" description="Customize the emails sent">
         {emailTemplates.map((template) => (

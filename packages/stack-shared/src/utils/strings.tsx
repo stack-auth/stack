@@ -76,7 +76,7 @@ export function trimLines(s: string): string {
  *
  * Useful for implementing your own template literal tags.
  */
-export function templateIdentity(strings: TemplateStringsArray | readonly string[], ...values: any[]): string {
+export function templateIdentity(strings: TemplateStringsArray | readonly string[], ...values: string[]): string {
   return strings.reduce((result, str, i) => result + str + (values[i] ?? ''), '');
 }
 

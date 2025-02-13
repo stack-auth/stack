@@ -3,7 +3,7 @@ services:
   # ================= PostgreSQL =================
 
   db:
-    build: ./docker/dependencies/postgres-with-extensions
+    build: ../postgres-with-extensions
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: PASSWORD-PLACEHOLDER--uqfEC1hmmv
@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     cap_add:
-      - NET_ADMIN  # TODO why do we need this? is it for the delay?
+      - NET_ADMIN  # required for the fake latency during dev
 
   # ================= PgHero =================
 

@@ -17,7 +17,7 @@ import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
-import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
+import { getPublicEnvVar, isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, concatStacktraces, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { DependenciesMap } from "@stackframe/stack-shared/dist/utils/maps";
@@ -114,11 +114,11 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
 }
 
 function getDefaultProjectId() {
-  return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
+  return getPublicEnvVar("NEXT_PUBLIC_STACK_PROJECT_ID") || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
 }
 
 function getDefaultPublishableClientKey() {
-  return process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
+  return getPublicEnvVar("NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY") || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
 }
 
 function getDefaultSecretServerKey() {
@@ -130,7 +130,8 @@ function getDefaultSuperSecretAdminKey() {
 }
 
 function getDefaultBaseUrl() {
-  return process.env.NEXT_PUBLIC_STACK_API_URL || process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
+  const url = getPublicEnvVar("NEXT_PUBLIC_STACK_API_URL") || getPublicEnvVar("NEXT_PUBLIC_STACK_URL") || defaultBaseUrl;
+  return url.endsWith('/') ? url.slice(0, -1) : url;
 }
 
 export type StackClientAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = {
@@ -445,7 +446,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._interface = _options.interface;
     } else {
       this._interface = new StackClientInterface({
-        baseUrl: _options.baseUrl ?? getDefaultBaseUrl(),
+        getBaseUrl: () => _options.baseUrl ?? getDefaultBaseUrl(),
         projectId: _options.projectId ?? getDefaultProjectId(),
         clientVersion,
         publishableClientKey: _options.publishableClientKey ?? getDefaultPublishableClientKey(),
@@ -1159,7 +1160,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
   protected _getOwnedAdminApp(forProjectId: string, session: InternalSession): _StackAdminAppImpl<false, string> {
     if (!this._ownedAdminApps.has([session, forProjectId])) {
       this._ownedAdminApps.set([session, forProjectId], new _StackAdminAppImpl({
-        baseUrl: this._interface.options.baseUrl,
+        baseUrl: this._interface.options.getBaseUrl(),
         projectId: forProjectId,
         tokenStore: null,
         projectOwnerSession: session,
@@ -1716,7 +1717,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         }
 
         return {
-          baseUrl: this._interface.options.baseUrl,
+          baseUrl: this._options.baseUrl,
           projectId: this.projectId,
           publishableClientKey: this._interface.options.publishableClientKey,
           tokenStore: this._tokenStoreInit,
@@ -1890,7 +1891,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       oauthScopesOnSignIn: options.oauthScopesOnSignIn,
     } : {
       interface: new StackServerInterface({
-        baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
+        getBaseUrl: () => options.baseUrl ?? getDefaultBaseUrl(),
         projectId: options.projectId ?? getDefaultProjectId(),
         clientVersion,
         publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
@@ -2379,7 +2380,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
       interface: new StackAdminInterface({
-        baseUrl: options.baseUrl ?? getDefaultBaseUrl(),
+        getBaseUrl: () => options.baseUrl ?? getDefaultBaseUrl(),
         projectId: options.projectId ?? getDefaultProjectId(),
         clientVersion,
         ..."projectOwnerSession" in options ? {

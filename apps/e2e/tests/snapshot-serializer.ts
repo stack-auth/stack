@@ -127,6 +127,14 @@ const snapshotSerializer: SnapshotSerializer = {
           );
           if (newValue !== value) return nicify(newValue, options);
         }
+        // match something like "Your code is 34JXKG" and replace it with "Your code is <stripped code>"
+        if (typeof value === "string") {
+          const newValue = value.replace(
+            /Your code is [0-9A-Z]{6}/gi,
+            "Your code is <stripped code>"
+          );
+          if (newValue !== value) return nicify(newValue, options);
+        }
 
         // strip svix message id with the format msg_2ssgKCpeddVpe8ZpqB8Zl0rmXyD
         if (typeof value === "string") {

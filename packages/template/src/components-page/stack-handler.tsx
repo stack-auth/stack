@@ -3,6 +3,7 @@ import { FilterUndefined, filterUndefined, pick } from "@stackframe/stack-shared
 import { getRelativePart } from "@stackframe/stack-shared/dist/utils/urls";
 import { RedirectType, notFound, redirect } from 'next/navigation';
 import { SignIn, SignUp, StackServerApp } from "..";
+import { IframePreventer } from "../components/iframe-preventer";
 import { MessageCard } from "../components/message-cards/message-card";
 import { HandlerUrls } from "../lib/stack-app";
 import { AccountSettings } from "./account-settings";
@@ -34,7 +35,7 @@ type RouteProps = {
   searchParams: Promise<Record<string, string>> | Record<string, string>,
 };
 
-const next15DeprecationWarning = "DEPRECATION WARNING: Next.js 15 disallows spreading the props argument of <StackHandler /> like `{...props}`, so you must now explicitly pass them in the `routeProps` argument: `routeProps={props}`";
+const next15DeprecationWarning = "DEPRECATION WARNING: Next.js 15 disallows spreading the props argument of <StackHandler /> like `{...props}`, so you must now explicitly pass them in the `routeProps` argument: `routeProps={props}`. You can fix this by updating the code in the file `app/handler/[...stack]/route.tsx`.";
 
 export default async function StackHandler<HasTokenStore extends boolean>(props: {
   app: StackServerApp<HasTokenStore>,
@@ -207,7 +208,9 @@ export default async function StackHandler<HasTokenStore extends boolean>(props:
         {next15DeprecationWarning}. This warning will not be shown in production.
       </span>
     )}
-    {render()}
+    <IframePreventer>
+      {render()}
+    </IframePreventer>
   </>;
 }
 

@@ -4,13 +4,14 @@
 
 import * as Sentry from "@sentry/nextjs";
 import { getBrowserCompatibilityReport } from "@stackframe/stack-shared/dist/utils/browser-compat";
+import { getPublicEnvVar } from "@stackframe/stack-shared/dist/utils/env";
 import { sentryBaseConfig } from "@stackframe/stack-shared/dist/utils/sentry";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 
 Sentry.init({
   ...sentryBaseConfig,
 
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: getPublicEnvVar("NEXT_PUBLIC_SENTRY_DSN"),
 
   enabled: process.env.NODE_ENV !== "development" && !process.env.CI,
 
@@ -19,6 +20,7 @@ Sentry.init({
     Sentry.replayIntegration({
       // Additional Replay configuration goes in here, for example:
       maskAllText: false,
+      maskAllInputs: false,
       blockAllMedia: false,
     }),
   ],
