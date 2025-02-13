@@ -1,5 +1,8 @@
 import { it } from "../../../../helpers";
-import { ApiKey, Auth, InternalProjectKeys, Project, Team, backendContext, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
+import { Auth, Team, Webhook, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
+
+
+import { ApiKey, InternalProjectKeys, Project, backendContext } from "../../../backend-helpers";
 
 
 it("is not allowed to add user to team on client", async ({ expect }) => {
@@ -534,5 +537,414 @@ it("is not allowed to create a team and add a different user as the creator on t
       "body": "You cannot add a user to the team as the creator that is not yourself on the client.",
       "headers": Headers { <some fields may have been hidden> },
     }
+  `);
+});
+
+it("should trigger team membership webhook when a user is added to a team", async ({ expect }) => {
+  const { projectId, svixToken, endpointId } = await Webhook.createProjectWithEndpoint();
+
+  await Auth.Otp.signIn();
+  const { teamId } = await Team.createAndAddCurrent();
+
+  await bumpEmailAddress();
+  const { userId } = await Auth.Otp.signIn();
+
+  const addUserResponse = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId}`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  expect(addUserResponse.status).toBe(201);
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
+
+  expect(attemptResponse).toMatchInlineSnapshot(`
+    [
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team_membership.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "team_id": "<stripped UUID>",
+            "user_id": "<stripped UUID>",
+          },
+          "type": "team_membership.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "user.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
+            "primary_email": "mailbox-1--<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+          "type": "user.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "New Team",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+            "server_metadata": null,
+          },
+          "type": "team.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "user.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
+            "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+          "type": "user.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+    ]
+  `);
+});
+
+it("should trigger team membership webhook when a user is removed from a team", async ({ expect }) => {
+  const { projectId, svixToken, endpointId } = await Webhook.createProjectWithEndpoint();
+
+  await Auth.Otp.signIn();
+  const { teamId } = await Team.createAndAddCurrent();
+
+  await bumpEmailAddress();
+  const { userId } = await Auth.Otp.signIn();
+
+  const addUserResponse = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId}`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  expect(addUserResponse.status).toBe(201);
+
+  const removeUserResponse = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId}`, {
+    accessType: "server",
+    method: "DELETE"
+  });
+
+  expect(removeUserResponse.status).toBe(200);
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
+
+  expect(attemptResponse).toMatchInlineSnapshot(`
+    [
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team_membership.deleted",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "team_id": "<stripped UUID>",
+            "user_id": "<stripped UUID>",
+          },
+          "type": "team_membership.deleted",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team_membership.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "team_id": "<stripped UUID>",
+            "user_id": "<stripped UUID>",
+          },
+          "type": "team_membership.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "user.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
+            "primary_email": "mailbox-1--<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+          "type": "user.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "New Team",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+            "server_metadata": null,
+          },
+          "type": "team.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "user.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
+            "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+          "type": "user.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+    ]
+  `);
+});
+
+
+it("should trigger team membership webhook when a user is removed from a team", async ({ expect }) => {
+  const { projectId, svixToken, endpointId } = await Webhook.createProjectWithEndpoint();
+
+  await Auth.Otp.signIn();
+  const { teamId } = await Team.createAndAddCurrent();
+
+  await bumpEmailAddress();
+  const { userId } = await Auth.Otp.signIn();
+
+  const addUserResponse = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId}`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+
+  expect(addUserResponse.status).toBe(201);
+
+  const removeUserResponse = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId}`, {
+    accessType: "server",
+    method: "DELETE"
+  });
+
+  expect(removeUserResponse.status).toBe(200);
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
+
+  expect(attemptResponse).toMatchInlineSnapshot(`
+    [
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team_membership.deleted",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "team_id": "<stripped UUID>",
+            "user_id": "<stripped UUID>",
+          },
+          "type": "team_membership.deleted",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team_membership.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "team_id": "<stripped UUID>",
+            "user_id": "<stripped UUID>",
+          },
+          "type": "team_membership.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "user.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
+            "primary_email": "mailbox-1--<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+          "type": "user.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "New Team",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+            "server_metadata": null,
+          },
+          "type": "team.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "user.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "auth_with_email": true,
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "display_name": null,
+            "has_password": false,
+            "id": "<stripped UUID>",
+            "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+            "oauth_providers": [],
+            "otp_auth_enabled": true,
+            "passkey_auth_enabled": false,
+            "primary_email": "default-mailbox--<stripped UUID>@stack-generated.example.com",
+            "primary_email_auth_enabled": true,
+            "primary_email_verified": true,
+            "profile_image_url": null,
+            "requires_totp_mfa": false,
+            "selected_team": null,
+            "selected_team_id": null,
+            "server_metadata": null,
+            "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+          },
+          "type": "user.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+    ]
   `);
 });

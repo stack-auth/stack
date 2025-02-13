@@ -1,6 +1,7 @@
 "use client";
 
-import { SmartFormDialog } from "@/components/form-dialog";
+import { FormDialog, SmartFormDialog } from "@/components/form-dialog";
+import { InputField } from "@/components/form-fields";
 import { useRouter } from "@/components/router";
 import { SettingCard } from "@/components/settings";
 import { urlSchema } from "@stackframe/stack-shared/dist/schema-fields";
@@ -26,12 +27,11 @@ function CreateDialog(props: {
   const { svix, appId } = useSvix();
 
   const formSchema = yup.object({
-    makeSureAlert: yup.mixed().meta({ stackFormFieldRender: () => <Alert> Make sure this is a trusted URL that you control.</Alert> }),
-    url: urlSchema.defined().label("URL (starts with https://)").test("is-https", "URL must start with https://", (value) => value.startsWith("https://")),
+    url: urlSchema.defined().label("URL (starts with https:// or http://)"),
     description: yup.string().label("Description"),
   });
 
-  return <SmartFormDialog
+  return <FormDialog
     trigger={props.trigger}
     title={"Create new endpoint"}
     formSchema={formSchema}
@@ -40,6 +40,28 @@ function CreateDialog(props: {
       await svix.endpoint.create(appId, { url: values.url, description: values.description });
       props.updateFn();
     }}
+    render={(form) => (
+      <>
+        <Alert>
+          Make sure this is a trusted URL that you control.
+        </Alert>
+        <InputField
+          label="URL"
+          name="url"
+          control={form.control}
+        />
+        <InputField
+          label="Description"
+          name="description"
+          control={form.control}
+        />
+        {(form.watch('url') as any)?.startsWith('http://') && (
+          <Alert variant="destructive">
+            Using HTTP endpoints is insecure. This can expose your user data to attackers. Only use HTTP endpoints in development environments.
+          </Alert>
+        )}
+      </>
+    )}
   />;
 }
 

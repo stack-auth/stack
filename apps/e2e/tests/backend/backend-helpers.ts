@@ -7,7 +7,7 @@ import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
 import * as jose from "jose";
 import { randomUUID } from "node:crypto";
 import { expect } from "vitest";
-import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, generatedEmailSuffix, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
+import { Context, Mailbox, NiceRequestInit, NiceResponse, STACK_BACKEND_BASE_URL, STACK_INTERNAL_PROJECT_ADMIN_KEY, STACK_INTERNAL_PROJECT_CLIENT_KEY, STACK_INTERNAL_PROJECT_ID, STACK_INTERNAL_PROJECT_SERVER_KEY, STACK_SVIX_SERVER_URL, generatedEmailSuffix, localRedirectUrl, niceFetch, updateCookiesFromResponse } from "../helpers";
 
 type BackendContext = {
   readonly projectKeys: ProjectKeys,
@@ -1067,5 +1067,63 @@ export namespace Team {
     return {
       acceptTeamInvitationResponse: response,
     };
+  }
+}
+
+export namespace Webhook {
+  export async function createProjectWithEndpoint() {
+    const { projectId } = await Project.createAndSwitch({
+      config: {
+        magic_link_enabled: true,
+      }
+    });
+
+    const svixTokenResponse = await niceBackendFetch("/api/v1/webhooks/svix-token", {
+      accessType: "admin",
+      method: "POST",
+      body: {},
+    });
+
+    const svixToken = svixTokenResponse.body.token;
+
+    const createEndpointResponse = await niceFetch(STACK_SVIX_SERVER_URL + `/api/v1/app/${projectId}/endpoint`, {
+      method: "POST",
+      body: JSON.stringify({
+        url: "https://example.com"
+      }),
+      headers: {
+        "Authorization": `Bearer ${svixToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    return {
+      projectId,
+      svixToken,
+      endpointId: createEndpointResponse.body.id
+    };
+  }
+
+  export async function listWebhookAttempts(projectId: string, endpointId: string, svixToken: string) {
+    const response = await niceFetch(STACK_SVIX_SERVER_URL + `/api/v1/app/${projectId}/attempt/endpoint/${endpointId}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${svixToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const messages = await Promise.all(response.body.data.map(async (attempt: any) => {
+      const messageResponse = await niceFetch(STACK_SVIX_SERVER_URL + `/api/v1/app/${projectId}/msg/${attempt.msgId}?with_content=true`, {
+        headers: {
+          "Authorization": `Bearer ${svixToken}`,
+          "Content-Type": "application/json",
+        },
+        method: "GET",
+      });
+      return messageResponse.body;
+    }));
+
+    return messages;
   }
 }

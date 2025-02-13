@@ -46,6 +46,18 @@ const stripFields = [
   "nonce",
   "authorization_code",
   "secret",
+  "token",
+  "createdAt",
+  "updatedAt",
+  "response",
+  "msgId",
+  "endpointId",
+  "timestamp",
+  "responseStatusCode",
+  "responseDurationMs",
+  "iterator",
+  "prevIterator",
+  "nextAttempt",
 ] as const;
 
 const stripFieldsIfString = [
@@ -121,6 +133,12 @@ const snapshotSerializer: SnapshotSerializer = {
             /Your code is [0-9A-Z]{6}/gi,
             "Your code is <stripped code>"
           );
+          if (newValue !== value) return nicify(newValue, options);
+        }
+
+        // strip svix message id with the format msg_2ssgKCpeddVpe8ZpqB8Zl0rmXyD
+        if (typeof value === "string") {
+          const newValue = value.replace(/msg_[0-9a-zA-Z]{27}/gi, "<stripped svix message id>");
           if (newValue !== value) return nicify(newValue, options);
         }
 
