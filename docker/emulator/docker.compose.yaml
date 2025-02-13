@@ -1,8 +1,8 @@
 # dashboard: 32101
 # backend: 32102
-# inbucket: 32103
 # svix-server: 32201
 # mock-oauth-server: 32202
+# inbucket: 32203
 
 
 services:
@@ -74,13 +74,22 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   # ================= Inbucket =================
-
   inbucket:
     image: inbucket/inbucket:latest
-    ports:
-      - 32103:9000
+    expose:
+      - 9000
     volumes:
       - inbucket-data:/data
+
+  # inbucket proxy to allow iframe embedding
+  inbucket-proxy:
+    image: nginx:alpine
+    ports:
+      - 32203:80
+    volumes:
+      - ./inbucket-nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - inbucket
 
   # ================= Svix =================
 
