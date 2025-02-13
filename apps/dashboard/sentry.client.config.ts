@@ -7,6 +7,7 @@ import { getBrowserCompatibilityReport } from "@stackframe/stack-shared/dist/uti
 import { getPublicEnvVar } from "@stackframe/stack-shared/dist/utils/env";
 import { sentryBaseConfig } from "@stackframe/stack-shared/dist/utils/sentry";
 import { nicify } from "@stackframe/stack-shared/dist/utils/strings";
+import posthog from "posthog-js";
 
 Sentry.init({
   ...sentryBaseConfig,
@@ -20,7 +21,12 @@ Sentry.init({
     Sentry.replayIntegration({
       // Additional Replay configuration goes in here, for example:
       maskAllText: false,
+      maskAllInputs: false,
       blockAllMedia: false,
+    }),
+    posthog.sentryIntegration({
+      organization: "stackframe-pw",
+      projectId: 4507084192219136,
     }),
   ],
 

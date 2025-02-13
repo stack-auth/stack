@@ -3,7 +3,7 @@ import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { AdminDomainConfig, AdminProject } from "@stackframe/stack";
-import { captureError } from "@stackframe/stack-shared/dist/utils/errors";
+import { yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { isValidUrl } from "@stackframe/stack-shared/dist/utils/urls";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, ActionCell, ActionDialog, Alert, Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, Typography } from "@stackframe/stack-ui";
 import React from "react";
@@ -30,24 +30,45 @@ function EditDialog(props: {
   }
 )) {
   const domainFormSchema = yup.object({
-    domain: yup.string()
-      .test('is-domain', "Invalid Domain", (domain) => {
-        if (!domain) {
-          return true;
-        }
-        return isValidUrl(domain);
+    domain: yupString()
+      .test({
+        name: 'url',
+        message: (params) => `Invalid URL`,
+        test: (value) => value == null || isValidUrl('http://' + value)
       })
-      .notOneOf(
-        props.domains
-          .filter((_, i) => (props.type === 'update' && i !== props.editIndex) || props.type === 'create')
-          .map(({ domain }) => domain),
-        "Domain already exists"
-      )
+      .test({
+        name: 'unique-domain',
+        message: "Domain already exists",
+        test: function(value) {
+          if (!value) return true;
+          const { addWww, insecureHttp } = this.parent;
+
+          // Get all existing domains except the one being edited
+          const existingDomains = props.domains
+            .filter((_, i) => (props.type === 'update' && i !== props.editIndex) || props.type === 'create')
+            .map(({ domain }) => domain);
+
+          // Generate all variations of the domain being tested
+          const variations = [];
+          const protocols = insecureHttp ? ['http://', 'https://'] : ['https://'];
+          const prefixes = addWww ? ['', 'www.'] : [''];
+
+          for (const protocol of protocols) {
+            for (const prefix of prefixes) {
+              variations.push(protocol + prefix + value);
+            }
+          }
+
+          // Check if any variation exists in existing domains
+          return !variations.some(variation => existingDomains.includes(variation));
+        }
+      })
       .defined(),
     handlerPath: yup.string()
       .matches(/^\//, "Handler path must start with /")
       .defined(),
     addWww: yup.boolean(),
+    insecureHttp: yup.boolean(),
   });
 
   const canAddWww = (domain: string | undefined) => {
@@ -55,28 +76,30 @@ function EditDialog(props: {
       return false;
     }
 
-    if (!isValidUrl(domain)) {
+    const httpsUrl = 'https://' + domain;
+    if (!isValidUrl(httpsUrl)) {
       return false;
     }
 
-    const url = new URL(domain);
-    if (url.hostname.startsWith('www.')) {
+    if (domain.startsWith('www.')) {
       return false;
     }
 
-    return isValidUrl(`${url.protocol}//www.${url.hostname}`);
+    const wwwUrl = 'https://www.' + domain;
+    return isValidUrl(wwwUrl);
   };
 
   return <FormDialog
     open={props.open}
     defaultValues={{
       addWww: props.type === 'create',
-      domain: props.type === 'update' ? props.defaultDomain : undefined,
+      domain: props.type === 'update' ? props.defaultDomain.replace(/^https:\/\//, "") : undefined,
       handlerPath: props.type === 'update' ? props.defaultHandlerPath : "/handler",
+      insecureHttp: false,
     }}
     onOpenChange={props.onOpenChange}
     trigger={props.trigger}
-    title={(props.type === 'create' ? "Create" : "Update") + " trusted domain"}
+    title={(props.type === 'create' ? "Create" : "Update") + " domain and handler"}
     formSchema={domainFormSchema}
     okButton={{ label: props.type === 'create' ? "Create" : "Save" }}
     onSubmit={async (values) => {
@@ -87,11 +110,11 @@ function EditDialog(props: {
               domains: [
                 ...props.domains,
                 {
-                  domain: values.domain,
+                  domain: (values.insecureHttp ? 'http' : 'https') + `://` + values.domain,
                   handlerPath: values.handlerPath,
                 },
                 ...(canAddWww(values.domain) && values.addWww ? [{
-                  domain: new URL(values.domain).protocol + '//www.' + new URL(values.domain).hostname,
+                  domain: `${values.insecureHttp ? 'http' : 'https'}://www.` + values.domain,
                   handlerPath: values.handlerPath,
                 }] : []),
               ],
@@ -113,15 +136,11 @@ function EditDialog(props: {
           });
         }
       } catch (error) {
-        // this is for debugging the sentry error https://stackframe-pw.sentry.io/issues/6292230019, remove this try catch once the issue is fixed
-        captureError("Failed to update domains", {
-          extra: {
-            values,
-            domains: props.domains,
-            project: props.project,
-          },
-        });
-        throw error;
+        // TODO: This is for debugging purposes, remove it if there is no error on sentry anymore
+        throw new Error(
+          `Failed to update domains: ${String(error)}\n` +
+          `Details: type=${props.type}, domains=${JSON.stringify(props.domains)}, projectId=${props.project.id}`
+        );
       }
     }}
     render={(form) => (
@@ -130,22 +149,17 @@ function EditDialog(props: {
           Please ensure you own or have control over this domain. Also note that each subdomain (e.g. blog.example.com, app.example.com) is treated as a distinct domain.
         </Alert>
         <InputField
-          label="Domain (starts with https:// or http://)"
+          label="Domain"
           name="domain"
           control={form.control}
-          placeholder='https://example.com'
+          prefixItem={form.getValues('insecureHttp') ? 'http://' : 'https://'}
+          placeholder='example.com'
         />
-
-        {(form.watch('domain') as any)?.startsWith('http://') && (
-          <Alert variant="destructive">
-            Warning: Using HTTP domains is insecure and should only be used for development / internal networks.
-          </Alert>
-        )}
 
         {props.type === 'create' &&
           canAddWww(form.watch('domain')) && (
           <SwitchField
-            label={`Also add www.${new URL(form.watch('domain')).hostname} as a trusted domain`}
+            label={`Also add www.${form.watch('domain') as any ?? ''} as a trusted domain`}
             name="addWww"
             control={form.control}
           />
@@ -154,16 +168,30 @@ function EditDialog(props: {
         <Accordion type="single" collapsible className="w-full">
           <AccordionItem value="item-1">
             <AccordionTrigger>Advanced</AccordionTrigger>
-            <AccordionContent>
-              <InputField
-                label="Handler path"
-                name="handlerPath"
-                control={form.control}
-                placeholder='/handler'
-              />
-              <Typography variant="secondary" type="footnote">
-                only modify this if you changed the default handler path in your app
-              </Typography>
+            <AccordionContent className="flex flex-col gap-8">
+              <div className="flex flex-col gap-4">
+                <SwitchField
+                  label="Insecure HTTP domains"
+                  name="insecureHttp"
+                  control={form.control}
+                />
+                {form.watch('insecureHttp') && (
+                  <Alert variant="destructive">
+                    HTTP domains should only be used for development purposes. For production use, please use HTTPS domains.
+                  </Alert>
+                )}
+              </div>
+              <div className="flex flex-col gap-2">
+                <InputField
+                  label="Handler path"
+                  name="handlerPath"
+                  control={form.control}
+                  placeholder='/handler'
+                />
+                <Typography variant="secondary" type="footnote">
+                  only modify this if you changed the default handler path in your app
+                </Typography>
+              </div>
             </AccordionContent>
           </AccordionItem>
         </Accordion>
