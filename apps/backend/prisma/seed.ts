@@ -419,66 +419,94 @@ async function seed() {
 
     console.log('Created emulator user');
 
-    await prisma.project.upsert({
+    const existingProject = await prisma.project.findUnique({
       where: {
         id: emulatorProjectId,
       },
-      update: {},
-      create: {
-        id: emulatorProjectId,
-        displayName: 'Local Emulator Project',
-        description: 'Project for local development with emulator',
-        isProductionMode: false,
-        config: {
-          create: {
-            allowLocalhost: true,
-            emailServiceConfig: {
-              create: {
-                proxiedEmailServiceConfig: {
-                  create: {}
-                }
-              }
-            },
-            createTeamOnSignUp: false,
-            clientTeamCreationEnabled: false,
-            authMethodConfigs: {
-              create: [
-                {
-                  passwordConfig: {
-                    create: {},
-                  }
-                }
-              ],
-            },
-            oauthProviderConfigs: {
-              create: [
-                {
-                  id: 'google',
-                  proxiedOAuthConfig: {
-                    create: {
-                      type: 'GOOGLE'
-                    }
-                  },
-                  projectUserOAuthAccounts: {
-                    create: []
-                  }
-                }
-              ]
-            }
-          }
-        },
-        tenancies: {
-          create: {
-            id: generateUuid(),
-            branchId: 'main',
-            hasNoOrganization: "TRUE",
-            organizationId: null,
-          }
-        }
-      }
     });
 
-    console.log('Created emulator project');
+    if (existingProject) {
+      console.log('Emulator project already exists, skipping creation');
+    } else {
+      await prisma.$transaction(async (tx) => {
+        const emulatorProject = await tx.project.create({
+          data: {
+            id: emulatorProjectId,
+            displayName: 'Local Emulator Project',
+            description: 'Project for local development with emulator',
+            isProductionMode: false,
+            config: {
+              create: {
+                allowLocalhost: true,
+                emailServiceConfig: {
+                  create: {
+                    proxiedEmailServiceConfig: {
+                      create: {}
+                    }
+                  }
+                },
+                createTeamOnSignUp: false,
+                clientTeamCreationEnabled: false,
+                authMethodConfigs: {
+                  create: [
+                    {
+                      passwordConfig: {
+                        create: {},
+                      }
+                    }
+                  ],
+                },
+                oauthProviderConfigs: {
+                  create: ['github', 'google'].map((id) => ({
+                    id,
+                    proxiedOAuthConfig: {
+                      create: {
+                        type: id.toUpperCase() as any,
+                      }
+                    },
+                    projectUserOAuthAccounts: {
+                      create: []
+                    }
+                  })),
+                },
+              },
+            },
+            tenancies: {
+              create: {
+                id: generateUuid(),
+                branchId: 'main',
+                hasNoOrganization: "TRUE",
+                organizationId: null,
+              }
+            }
+          }
+        });
+
+        await tx.projectConfig.update({
+          where: {
+            id: emulatorProject.configId,
+          },
+          data: {
+            authMethodConfigs: {
+              create: [
+                ...['github', 'google'].map((id) => ({
+                  oauthProviderConfig: {
+                    connect: {
+                      projectConfigId_id: {
+                        id,
+                        projectConfigId: (internalProject as any).configId,
+                      }
+                    }
+                  }
+                }))
+              ],
+            },
+          }
+        });
+      });
+
+      console.log('Created emulator project');
+    }
   }
 
   console.log('Seeding complete!');
