@@ -55,6 +55,7 @@ async function main() {
   console.log();
   console.log();
 
+  const startAt = Math.max(0, +(process.argv[2] || "1") - 1);
 
   const projects = await prismaClient.project.findMany({
     select: {
@@ -66,8 +67,11 @@ async function main() {
     },
   });
   console.log(`Found ${projects.length} projects, iterating over them.`);
+  if (startAt !== 0) {
+    console.log(`Starting at project ${startAt}.`);
+  }
 
-  for (let i = 0; i < projects.length; i++) {
+  for (let i = startAt; i < projects.length; i++) {
     const projectId = projects[i].id;
     await recurse(`[project ${i + 1}/${projects.length}] ${projectId} ${projects[i].displayName}`, async (recurse) => {
       const [currentProject, users] = await Promise.all([
