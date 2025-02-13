@@ -13,7 +13,7 @@ COPY apps/mock-oauth-server ./
 RUN pnpm install
 
 # Set environment variables
-ENV PORT=8114
+ENV PORT=32202
 
 # Start the server
 CMD ["pnpm", "start"]

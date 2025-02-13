@@ -1,3 +1,10 @@
+# dashboard: 32101
+# backend: 32102
+# inbucket: 32103
+# svix-server: 32201
+# mock-oauth-server: 32202
+
+
 services:
 
   # ================= Stack Auth Server =================
@@ -31,7 +38,8 @@ services:
       STACK_EMAIL_USERNAME: none
       STACK_EMAIL_PASSWORD: none
       STACK_EMAIL_SENDER: noreply@example.com
-      STACK_OAUTH_MOCK_URL: http://localhost:8114
+      STACK_FORWARD_MOCK_OAUTH_SERVER: true
+      STACK_OAUTH_MOCK_URL: http://localhost:32202
       STACK_GITHUB_CLIENT_ID: MOCK
       STACK_GITHUB_CLIENT_SECRET: MOCK
       STACK_GOOGLE_CLIENT_ID: MOCK
@@ -52,7 +60,7 @@ services:
       context: ../..
       dockerfile: docker/mock-oauth-server/Dockerfile
     ports:
-      - 8114:8114
+      - 32202:32202
 
   # ================= PostgreSQL =================
 

@@ -2,8 +2,10 @@
 
 set -e
 
-# Start socat to forward port 8114
-socat TCP-LISTEN:8114,fork,reuseaddr TCP:host.docker.internal:8114 &
+# Start socat to forward port 32202 for mock-oauth-server if enabled
+if [ "$STACK_FORWARD_MOCK_OAUTH_SERVER" = "true" ]; then
+  socat TCP-LISTEN:32202,fork,reuseaddr TCP:host.docker.internal:32202 &
+fi
 
 export STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY=$(openssl rand -base64 32)
 export STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY=$(openssl rand -base64 32)
