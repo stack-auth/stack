@@ -5,4 +5,11 @@ export default defineWorkspace([
   'apps/*',
   'examples/*',
   'docs',
+  {
+    test: {
+      include: ['**/*.test.ts'],
+      includeSource: ['**/*.{js,ts,jsx,tsx}'],
+      name: 'unit-tests',
+    },
+  },
 ]);
