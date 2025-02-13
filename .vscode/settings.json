@@ -108,9 +108,8 @@
     "(import\\.meta\\.vitest\\?\\.test\\()[\"'`]([^\"'`]*)(.*)": [
       {
         "isWholeLine": true,
-        "opacity": "0.1",
         "before": {
-          "contentText": "test>  $2 {                            ",
+          "contentText": "test>  ",
           "opacity": "0.2",
           "color": "#008080",
           "fontStyle": "italic"
@@ -121,7 +120,7 @@
       {
         "isWholeLine": true,
         "before": {
-          "contentText": "  |    ",
+          "contentText": "  .    ",
           "opacity": "0.2",
           "color": "#008080",
           "fontStyle": "italic"
@@ -132,9 +131,8 @@
       {},
       {
         "isWholeLine": true,
-        "opacity": "0.1",
         "before": {
-          "contentText": "test>  }                            ",
+          "contentText": "  .    ",
           "opacity": "0.2",
           "color": "#008080",
           "fontStyle": "italic"
