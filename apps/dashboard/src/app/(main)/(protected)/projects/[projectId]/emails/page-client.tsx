@@ -32,7 +32,7 @@ export default function PageClient() {
       {getPublicEnvVar('NEXT_PUBLIC_STACK_EMULATOR_ENABLED') === 'true' ? (
         <SettingCard
           title="Mock Emails"
-          description="All the emails that are sent in the emulator will land here"
+          description="View all emails sent through the emulator in this inbox"
         >
           <iframe
             src="http://localhost:32203"
