@@ -35,7 +35,7 @@ export default function PageClient() {
           description="View all emails sent through the emulator in this inbox"
         >
           <iframe
-            src="http://localhost:32203"
+            src="http://localhost:32203/monitor"
             className="w-full h-[600px] border border-gray-200 rounded-md"
             title="Mock Email Inbox"
           />
