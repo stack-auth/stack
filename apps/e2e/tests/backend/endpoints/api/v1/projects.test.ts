@@ -274,7 +274,7 @@ it("is not allowed to have two identical domains", async ({ expect }) => {
   `);
 });
 
-it("should allow insecure HTTP domains", async ({ expect }) => {
+it("should allow insecure HTTP connections if insecureHttp is true", async ({ expect }) => {
   await Auth.Otp.signIn();
   const { adminAccessToken } = await Project.createAndGetAdminToken();
   const { updateProjectResponse: response } = await Project.updateCurrent(adminAccessToken, {
