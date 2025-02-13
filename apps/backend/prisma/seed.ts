@@ -391,7 +391,7 @@ async function seed() {
             projectUserId: newEmulatorUser.projectUserId,
             tenancyId: internalTenancy.id,
             type: 'EMAIL' as const,
-            value: 'local-emulator@email.com',
+            value: 'local-emulator@stack-auth.com',
             isVerified: false,
             isPrimary: 'TRUE',
             usedForAuth: 'TRUE',
@@ -406,7 +406,7 @@ async function seed() {
             authMethodConfigId: passwordConfig.id,
             passwordAuthMethod: {
               create: {
-                passwordHash: await hashPassword('LocalEmulatorPassword123'),
+                passwordHash: await hashPassword('LocalEmulatorPassword'),
                 projectUserId: newEmulatorUser.projectUserId,
               }
             }
