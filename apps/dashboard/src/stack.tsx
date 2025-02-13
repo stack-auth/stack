@@ -1,5 +1,5 @@
 import { StackServerApp } from '@stackframe/stack';
-import { getPublicEnvVar } from './lib/env';
+import { getPublicEnvVar } from "@stackframe/stack-shared/dist/utils/env";
 import './polyfills';
 
 if (getPublicEnvVar("NEXT_PUBLIC_STACK_PROJECT_ID") !== "internal") {

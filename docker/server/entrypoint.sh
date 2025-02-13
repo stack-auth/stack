@@ -2,6 +2,11 @@
 
 set -e
 
+# Start socat to forward port 32202 for mock-oauth-server if enabled
+if [ "$STACK_FORWARD_MOCK_OAUTH_SERVER" = "true" ]; then
+  socat TCP-LISTEN:32202,fork,reuseaddr TCP:host.docker.internal:32202 &
+fi
+
 export STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY=$(openssl rand -base64 32)
 export STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY=$(openssl rand -base64 32)
 export STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY=$(openssl rand -base64 32)
@@ -10,6 +15,17 @@ export NEXT_PUBLIC_STACK_PROJECT_ID=internal
 export NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=${STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY}
 export STACK_SECRET_SERVER_KEY=${STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY}
 export STACK_SUPER_SECRET_ADMIN_KEY=${STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY}
+
+export NEXT_PUBLIC_CLIENT_STACK_DASHBOARD_URL=${NEXT_PUBLIC_STACK_DASHBOARD_URL}
+export NEXT_PUBLIC_SERVER_STACK_DASHBOARD_URL="http://localhost:8101"
+export NEXT_PUBLIC_CLIENT_STACK_API_URL=${NEXT_PUBLIC_STACK_API_URL}
+export NEXT_PUBLIC_SERVER_STACK_API_URL="http://localhost:8102"
+
+export USE_INLINE_ENV_VARS=true
+
+if [ -z "${NEXT_PUBLIC_STACK_SVIX_SERVER_URL}" ]; then
+  export NEXT_PUBLIC_STACK_SVIX_SERVER_URL=${STACK_SVIX_SERVER_URL}
+fi
 
 if [ "$STACK_SKIP_MIGRATIONS" = "true" ]; then
   echo "Skipping migrations."
@@ -27,25 +43,27 @@ else
   cd ../..
 fi
 
-# Replace env var sentinel in dashboard build output
-echo "Replacing env var sentinel in dashboard build output..."
-declare -A replacements=(
-  ["STACK_ENV_VAR_SENTINEL_USE_INLINE_ENV_VARS"]="true"
-  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_PROJECT_ID"]="${NEXT_PUBLIC_STACK_PROJECT_ID}"
-  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_API_URL"]="${NEXT_PUBLIC_STACK_API_URL}"
-  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_DASHBOARD_URL"]="${NEXT_PUBLIC_STACK_DASHBOARD_URL}" 
-  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_POSTHOG_KEY"]="${NEXT_PUBLIC_POSTHOG_KEY}"
-  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_SVIX_SERVER_URL"]="${NEXT_PUBLIC_STACK_SVIX_SERVER_URL}"
-  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_SENTRY_DSN"]="${NEXT_PUBLIC_SENTRY_DSN}"
-  ["STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_VERSION_ALERTER_SEVERE_ONLY"]="${NEXT_PUBLIC_VERSION_ALERTER_SEVERE_ONLY}"
-)
+# Find all sentinel values and replace them with corresponding env vars
+unhandled_sentinels=$(find /app/apps -type f -exec grep -l "STACK_ENV_VAR_SENTINEL" {} + | xargs grep -h "STACK_ENV_VAR_SENTINEL" | grep -o "STACK_ENV_VAR_SENTINEL[^\"']*" | tr -d '\\' | sort -u | grep -v "^STACK_ENV_VAR_SENTINEL$")
 
-for key in "${!replacements[@]}"; do
-  value="${replacements[$key]}"
-  # Escape special characters in both key and value
-  escaped_key=$(printf '%s\n' "$key" | sed 's/[[\.*^$/]/\\&/g')
+for sentinel in $unhandled_sentinels; do
+  # Extract the suffix after STACK_ENV_VAR_SENTINEL_
+  env_var=${sentinel#STACK_ENV_VAR_SENTINEL_}
+  
+  # Get the corresponding environment variable value
+  value="${!env_var}"
+  
+  # Skip if env var is not set
+  if [ -z "$value" ]; then
+    continue
+  fi
+
+  # Escape special characters in both sentinel and value
+  escaped_sentinel=$(printf '%s\n' "$sentinel" | sed 's/[[\.*^$/]/\\&/g')
   escaped_value=$(printf '%s\n' "$value" | sed 's/[[\.*^$/]/\\&/g')
-  find /app/apps -type f -exec sed -i "s/$escaped_key/$escaped_value/g" {} +
+  
+  # Replace the sentinel with the value
+  find /app/apps -type f -exec sed -i "s/$escaped_sentinel/$escaped_value/g" {} +
 done
 
 # Start backend and dashboard in parallel
