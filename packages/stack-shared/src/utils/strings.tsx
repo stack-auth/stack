@@ -70,7 +70,6 @@ export function trimEmptyLinesEnd(s: string): string {
 export function trimLines(s: string): string {
   return trimEmptyLinesEnd(trimEmptyLinesStart(s));
 }
-
 import.meta.vitest?.test("trimLines", ({ expect }) => {
   expect(trimLines("")).toBe("");
   expect(trimLines(" ")).toBe("");
@@ -84,6 +83,7 @@ import.meta.vitest?.test("trimLines", ({ expect }) => {
   expect(trimLines("\t \n\t\tLine1 \n \nLine2\t\t\n\t  ")).toBe("\t\tLine1 \n \nLine2\t\t");
 });
 
+
 /**
  * A template literal tag that returns the same string as the template literal without a tag.
  *
@@ -94,6 +94,22 @@ export function templateIdentity(strings: TemplateStringsArray | readonly string
 
   return strings.reduce((result, str, i) => result + str + (values[i] ?? ''), '');
 }
+import.meta.vitest?.test("templateIdentity", ({ expect }) => {
+  expect(templateIdentity`Hello World`).toBe("Hello World");
+  expect(templateIdentity`${"Hello"}`).toBe("Hello");
+  const greeting = "Hello";
+  const subject = "World";
+  expect(templateIdentity`${greeting}, ${subject}!`).toBe("Hello, World!");
+  expect(templateIdentity`${"A"}${"B"}${"C"}`).toBe("ABC");
+  expect(templateIdentity`Start${""}Middle${""}End`).toBe("StartMiddleEnd");
+  expect(templateIdentity``).toBe("");
+  expect(templateIdentity`Line1
+Line2`).toBe("Line1\nLine2");
+  expect(templateIdentity(["a ", " scientific ", "gun"], "certain", "rail")).toBe("a certain scientific railgun");
+  expect(templateIdentity(["only one part"])).toBe("only one part");
+  expect(() => templateIdentity(["a ", "b", "c"], "only one")).toThrow("Invalid number of values");
+  expect(() => templateIdentity(["a", "b"], "x", "y")).toThrow("Invalid number of values");
+});
 
 
 export function deindent(code: string): string;

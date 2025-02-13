@@ -110,7 +110,6 @@
         "isWholeLine": true,
         "before": {
           "contentText": "test>  ",
-          "opacity": "0.2",
           "color": "#008080",
           "fontStyle": "italic"
         },
@@ -120,20 +119,18 @@
       {
         "isWholeLine": true,
         "before": {
-          "contentText": "  .    ",
-          "opacity": "0.2",
+          "contentText": "       ",
           "color": "#008080",
           "fontStyle": "italic"
         },
       },
     ],
-    "(import\\.meta\\.vitest\\?\\.test\\([\\s\\S]*(\\n\\}?\\);))": [
+    "(import\\.meta\\.vitest\\?\\.test\\([\\s\\S]*?(\\n\\}?\\);))": [
       {},
       {
         "isWholeLine": true,
         "before": {
-          "contentText": "  .    ",
-          "opacity": "0.2",
+          "contentText": "       ",
           "color": "#008080",
           "fontStyle": "italic"
         },
