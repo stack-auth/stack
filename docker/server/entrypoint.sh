@@ -2,6 +2,9 @@
 
 set -e
 
+# Start socat to forward port 8114
+socat TCP-LISTEN:8114,fork,reuseaddr TCP:host.docker.internal:8114 &
+
 export STACK_SEED_INTERNAL_PROJECT_PUBLISHABLE_CLIENT_KEY=$(openssl rand -base64 32)
 export STACK_SEED_INTERNAL_PROJECT_SECRET_SERVER_KEY=$(openssl rand -base64 32)
 export STACK_SEED_INTERNAL_PROJECT_SUPER_SECRET_ADMIN_KEY=$(openssl rand -base64 32)

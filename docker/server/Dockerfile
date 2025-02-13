@@ -64,7 +64,7 @@ WORKDIR /app
 # Install packages needed for deployment
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y openssl && \
+    apt-get install -y openssl socat && \
     rm -rf /var/lib/apt/lists
 
 # Install Prisma CLI globally so we can run migrations on startup
@@ -91,10 +91,6 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV BACKEND_PORT=8102
 ENV DASHBOARD_PORT=8101
-
-# Configure proxy settings for the final image
-ENV http_proxy=http://host.docker.internal:8114
-ENV https_proxy=http://host.docker.internal:8114
 
 USER node
 
