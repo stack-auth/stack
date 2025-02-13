@@ -22,6 +22,7 @@ services:
       NEXT_PUBLIC_STACK_EMULATOR_ENABLED: true
       STACK_EMULATOR_PROJECT_ID: dff88d17-6d39-4b08-b4e2-c87c81f7218a
       NEXT_PUBLIC_STACK_EMULATOR_PROJECT_ID: dff88d17-6d39-4b08-b4e2-c87c81f7218a
+      NEXT_PUBLIC_STACK_SVIX_SERVER_URL: http://localhost:32201
       STACK_SVIX_SERVER_URL: http://svix-server:8071
       STACK_SVIX_API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTUxNDA2MzksImV4cCI6MTk3MDUwMDYzOSwibmJmIjoxNjU1MTQwNjM5LCJpc3MiOiJzdml4LXNlcnZlciIsInN1YiI6Im9yZ18yM3JiOFlkR3FNVDBxSXpwZ0d3ZFhmSGlyTXUifQ.En8w77ZJWbd0qrMlHHupHUB-4cx17RfzFykseg95SUk
       STACK_EMAIL_HOST: inbucket
@@ -30,7 +31,7 @@ services:
       STACK_EMAIL_USERNAME: none
       STACK_EMAIL_PASSWORD: none
       STACK_EMAIL_SENDER: noreply@example.com
-      STACK_OAUTH_MOCK_URL: http://localhost:32104
+      STACK_OAUTH_MOCK_URL: http://localhost:8114
       STACK_GITHUB_CLIENT_ID: MOCK
       STACK_GITHUB_CLIENT_SECRET: MOCK
       STACK_GOOGLE_CLIENT_ID: MOCK
@@ -51,7 +52,7 @@ services:
       context: ../..
       dockerfile: docker/mock-oauth-server/Dockerfile
     ports:
-      - 32104:32104
+      - 8114:8114
 
   # ================= PostgreSQL =================
 
@@ -100,6 +101,8 @@ services:
       SVIX_JWT_SECRET: secret
       SVIX_LOG_LEVEL: trace
       SVIX_QUEUE_TYPE: redis
+    ports:
+      - 32201:8071
     depends_on:
     - svix-redis
     - svix-db

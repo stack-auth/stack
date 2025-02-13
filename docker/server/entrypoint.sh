@@ -16,6 +16,10 @@ export NEXT_PUBLIC_SERVER_STACK_DASHBOARD_URL="http://localhost:8101"
 export NEXT_PUBLIC_CLIENT_STACK_API_URL=${NEXT_PUBLIC_STACK_API_URL}
 export NEXT_PUBLIC_SERVER_STACK_API_URL="http://localhost:8102"
 
+if [ -z "${NEXT_PUBLIC_STACK_SVIX_SERVER_URL}" ]; then
+  export NEXT_PUBLIC_STACK_SVIX_SERVER_URL=${STACK_SVIX_SERVER_URL}
+fi
+
 if [ "$STACK_SKIP_MIGRATIONS" = "true" ]; then
   echo "Skipping migrations."
 else

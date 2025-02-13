@@ -1,5 +1,6 @@
 'use client';
 
+import Loading from "@/app/loading";
 import { useStackApp, useUser } from "@stackframe/stack";
 import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
 import { runAsynchronouslyWithAlert } from "@stackframe/stack-shared/dist/utils/promises";
@@ -22,7 +23,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, [user, app]);
 
   if (getPublicEnvVar("NEXT_PUBLIC_STACK_EMULATOR_ENABLED") === "true" && !user) {
-    return <>You will be redirected in a few seconds.</>;
+    return <Loading />;
   } else {
     return <>{children}</>;
   }
