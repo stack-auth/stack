@@ -45,7 +45,7 @@ export const EMAIL_TEMPLATES_METADATA = {
       ...projectVars,
       { name: 'emailVerificationLink', label: 'Email Verification Link', defined: true, example: '<email verification link>' },
     ],
-  } satisfies EmailTemplateMetadata,
+  },
   'password_reset': {
     label: "Password Reset",
     description: "Will be sent to the user when they request to reset their password (forgot password)",
@@ -56,19 +56,19 @@ export const EMAIL_TEMPLATES_METADATA = {
       ...projectVars,
       { name: 'passwordResetLink', label: 'Reset Password Link', defined: true, example: '<reset password link>' },
     ],
-  } satisfies EmailTemplateMetadata,
+  },
   'magic_link': {
     label: "Magic Link/OTP",
     description: "Will be sent to the user when they try to sign-up with magic link",
     defaultContent: { 1: magicLinkTemplateOld, 2: magicLinkTemplate },
-    defaultSubject: "Sign in to {{ projectDisplayName }}",
+    defaultSubject: "Sign in to {{ projectDisplayName }}: Your code is {{ otp }}",
     variables: [
       ...userVars,
       ...projectVars,
       { name: 'magicLink', label: 'Magic Link', defined: true, example: '<magic link>' },
       { name: 'otp', label: 'OTP', defined: true, example: '3SLSWZ' },
     ],
-  } satisfies EmailTemplateMetadata,
+  },
   'team_invitation': {
     label: "Team Invitation",
     description: "Will be sent to the user when they are invited to a team",
@@ -80,8 +80,8 @@ export const EMAIL_TEMPLATES_METADATA = {
       { name: 'teamDisplayName', label: 'Team Display Name', defined: true, example: 'My Team' },
       { name: 'teamInvitationLink', label: 'Team Invitation Link', defined: true, example: '<team invitation link>' },
     ],
-  } satisfies EmailTemplateMetadata,
-} as const;
+  },
+} as const satisfies Record<string, EmailTemplateMetadata>;
 
 export function validateEmailTemplateContent(content: any): content is TEditorConfiguration {
   try {

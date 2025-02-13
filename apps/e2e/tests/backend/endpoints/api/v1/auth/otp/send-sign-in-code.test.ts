@@ -7,7 +7,7 @@ it("should send a sign-in code per e-mail", async ({ expect }) => {
     [
       MailboxMessage {
         "from": "Stack Dashboard <noreply@example.com>",
-        "subject": "Sign in to Stack Dashboard",
+        "subject": "Sign in to Stack Dashboard: Your code is <stripped code>",
         "to": ["<default-mailbox--<stripped UUID>@stack-generated.example.com>"],
         <some fields may have been hidden>,
       },

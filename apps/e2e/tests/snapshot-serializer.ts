@@ -115,6 +115,14 @@ const snapshotSerializer: SnapshotSerializer = {
           );
           if (newValue !== value) return nicify(newValue, options);
         }
+        // match something like "Your code is 34JXKG" and replace it with "Your code is <stripped code>"
+        if (typeof value === "string") {
+          const newValue = value.replace(
+            /Your code is [0-9A-Z]{6}/gi,
+            "Your code is <stripped code>"
+          );
+          if (newValue !== value) return nicify(newValue, options);
+        }
 
         // Strip URL query params
         const urlRegexHeuristic = /(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/igm;
