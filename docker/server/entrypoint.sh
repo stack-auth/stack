@@ -43,28 +43,38 @@ else
   cd ../..
 fi
 
-# Find all sentinel values and replace them with corresponding env vars
-unhandled_sentinels=$(find /app/apps -type f -exec grep -l "STACK_ENV_VAR_SENTINEL" {} + | xargs grep -h "STACK_ENV_VAR_SENTINEL" | grep -o "STACK_ENV_VAR_SENTINEL[^\"']*" | tr -d '\\' | sort -u | grep -v "^STACK_ENV_VAR_SENTINEL$")
+# Find all files in /app/apps that contain a STACK_ENV_VAR_SENTINEL and extract the unique sentinel strings.
+unhandled_sentinels=$(find /app/apps -type f -exec grep -l "STACK_ENV_VAR_SENTINEL" {} + | \
+  xargs grep -h "STACK_ENV_VAR_SENTINEL" | \
+  grep -o "STACK_ENV_VAR_SENTINEL[A-Z_]*" | \
+  sort -u | grep -v "^STACK_ENV_VAR_SENTINEL$")
+
+# Choose an uncommon delimiter – here, we use the ASCII Unit Separator (0x1F)
+delimiter=$(printf '\037')
 
 for sentinel in $unhandled_sentinels; do
-  # Extract the suffix after STACK_ENV_VAR_SENTINEL_
+  # The sentinel is like "STACK_ENV_VAR_SENTINEL_MY_VAR", so extract the env var name.
   env_var=${sentinel#STACK_ENV_VAR_SENTINEL_}
   
-  # Get the corresponding environment variable value
+  # Get the corresponding environment variable value.
   value="${!env_var}"
   
-  # Skip if env var is not set
+  # If the env var is not set, skip replacement.
   if [ -z "$value" ]; then
     continue
   fi
 
-  # Escape special characters in both sentinel and value
-  escaped_sentinel=$(printf '%s\n' "$sentinel" | sed 's/[[\.*^$/]/\\&/g')
-  escaped_value=$(printf '%s\n' "$value" | sed 's/[[\.*^$/]/\\&/g')
-  
-  # Replace the sentinel with the value
-  find /app/apps -type f -exec sed -i "s/$escaped_sentinel/$escaped_value/g" {} +
+  # Although the sentinel only contains [A-Z_] we still escape it for any regex meta-characters.
+  escaped_sentinel=$(printf '%s\n' "$sentinel" | sed -e 's/\\/\\\\/g' -e 's/[][\/.^$*]/\\&/g')
+
+  # For the replacement value, first escape backslashes, then escape any occurrence of
+  # the chosen delimiter and the '&' (which has special meaning in sed replacements).
+  escaped_value=$(printf '%s\n' "$value" | sed -e 's/\\/\\\\/g' -e "s/[${delimiter}&]/\\\\&/g")
+
+  # Now replace the sentinel with the (properly escaped) value in all files.
+  find /app/apps -type f -exec sed -i "s${delimiter}${escaped_sentinel}${delimiter}${escaped_value}${delimiter}g" {} +
 done
+
 
 # Start backend and dashboard in parallel
 echo "Starting backend on port $BACKEND_PORT..."
