@@ -13,7 +13,10 @@
     "skipLibCheck": true,
     "strict": true,
     "sourceMap": true,
-    "declarationMap": true
+    "declarationMap": true,
+    "types": [
+      "vitest/importMeta"
+    ]
   },
   "include": ["next-env.d.ts", "src/**/*", ".next/types/**/*.ts"],
   "exclude": ["node_modules", "dist"]
