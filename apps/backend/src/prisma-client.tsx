@@ -64,7 +64,10 @@ async function rawQueryArray<Q extends RawQuery<any>[]>(queries: Q): Promise<[] 
     description: `raw SQL quer${queries.length === 1 ? "y" : `ies (${queries.length} total)`}`,
     attributes: {
       "stack.raw-queries.length": queries.length,
-      ...Object.fromEntries(queries.map((q, index) => [`stack.raw-queries.${index}`, q.sql.text])),
+      ...Object.fromEntries(queries.flatMap((q, index) => [
+        [`stack.raw-queries.${index}.text`, q.sql.text],
+        [`stack.raw-queries.${index}.params`, JSON.stringify(q.sql.values)],
+      ])),
     },
   }, async () => {
     if (queries.length === 0) return [] as any;
