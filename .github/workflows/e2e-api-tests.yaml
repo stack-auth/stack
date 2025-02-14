@@ -31,7 +31,7 @@ jobs:
       - name: Start Docker Compose in background
         uses: JarvusInnovations/background-action@v1.0.7
         with:
-          run: docker compose -f dependencies.compose.yaml up -d &
+          run: docker compose -f docker/dependencies/docker.compose.yaml up -d &
           # we don't need to wait on anything, just need to start the daemon
           wait-on: /dev/null
           tail: true
@@ -104,10 +104,10 @@ jobs:
           tail: true
           wait-for: 30s
           log-output-if: true
-      - name: Start oauth-mock-server in background
+      - name: Start mock-oauth-server in background
         uses: JarvusInnovations/background-action@v1.0.7
         with:
-          run: pnpm run start:oauth-mock-server --log-order=stream &
+          run: pnpm run start:mock-oauth-server --log-order=stream &
           wait-on: |
             http://localhost:8102
           tail: true
@@ -131,4 +131,4 @@ jobs:
 
       - name: Print Docker Compose logs
         if: always()
-        run: docker compose -f dependencies.compose.yaml logs
+        run: docker compose -f docker/dependencies/docker.compose.yaml logs

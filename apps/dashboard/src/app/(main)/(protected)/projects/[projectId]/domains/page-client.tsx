@@ -171,13 +171,13 @@ function EditDialog(props: {
             <AccordionContent className="flex flex-col gap-8">
               <div className="flex flex-col gap-4">
                 <SwitchField
-                  label="Insecure HTTP domains"
+                  label="Use HTTP instead of HTTPS"
                   name="insecureHttp"
                   control={form.control}
                 />
                 {form.watch('insecureHttp') && (
                   <Alert variant="destructive">
-                    HTTP domains should only be used for development purposes. For production use, please use HTTPS domains.
+                    HTTP should only be allowed during development use. For production use, please use HTTPS.
                   </Alert>
                 )}
               </div>

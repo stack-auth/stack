@@ -1,5 +1,5 @@
 import { it } from "../../../../helpers";
-import { ApiKey, Auth, Project, Team, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
+import { ApiKey, Auth, Project, Team, Webhook, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
 
 
 it("is not allowed to list all the teams in a project on the client", async ({ expect }) => {
@@ -683,5 +683,180 @@ it("enables create team on sign up", async ({ expect }) => {
       },
       "headers": Headers { <some fields may have been hidden> },
     }
+  `);
+});
+
+it("should trigger team webhook when a team is created", async ({ expect }) => {
+  const { projectId, svixToken, endpointId } = await Webhook.createProjectWithEndpoint();
+
+  const createTeamResponse = await niceBackendFetch("/api/v1/teams", {
+    method: "POST",
+    accessType: "server",
+    body: {
+      display_name: "Test Team"
+    }
+  });
+
+  expect(createTeamResponse.status).toBe(201);
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
+
+  expect(attemptResponse).toMatchInlineSnapshot(`
+    [
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "Test Team",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+            "server_metadata": null,
+          },
+          "type": "team.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+    ]
+  `);
+});
+
+it("should trigger team webhook when a team is updated", async ({ expect }) => {
+  const { projectId, svixToken, endpointId } = await Webhook.createProjectWithEndpoint();
+
+  const createTeamResponse = await niceBackendFetch("/api/v1/teams", {
+    method: "POST",
+    accessType: "server",
+    body: {
+      display_name: "Test Team"
+    }
+  });
+
+  expect(createTeamResponse.status).toBe(201);
+  const teamId = createTeamResponse.body.id;
+
+  const updateTeamResponse = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    method: "PATCH",
+    accessType: "server",
+    body: {
+      display_name: "Updated Team Name"
+    }
+  });
+
+  expect(updateTeamResponse.status).toBe(200);
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
+
+  expect(attemptResponse).toMatchInlineSnapshot(`
+    [
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team.updated",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "Updated Team Name",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+            "server_metadata": null,
+          },
+          "type": "team.updated",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "Test Team",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+            "server_metadata": null,
+          },
+          "type": "team.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+    ]
+  `);
+});
+
+it("should trigger team webhook when a team is deleted", async ({ expect }) => {
+  const { projectId, svixToken, endpointId } = await Webhook.createProjectWithEndpoint();
+
+  const createTeamResponse = await niceBackendFetch("/api/v1/teams", {
+    method: "POST",
+    accessType: "server",
+    body: {
+      display_name: "Test Team"
+    }
+  });
+
+  expect(createTeamResponse.status).toBe(201);
+  const teamId = createTeamResponse.body.id;
+
+  const deleteTeamResponse = await niceBackendFetch(`/api/v1/teams/${teamId}`, {
+    method: "DELETE",
+    accessType: "server"
+  });
+
+  expect(deleteTeamResponse.status).toBe(200);
+
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
+
+  expect(attemptResponse).toMatchInlineSnapshot(`
+    [
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team.deleted",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": { "id": "<stripped UUID>" },
+          "type": "team.deleted",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "Test Team",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+            "server_metadata": null,
+          },
+          "type": "team.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
+      },
+    ]
   `);
 });

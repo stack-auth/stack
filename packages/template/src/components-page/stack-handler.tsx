@@ -35,7 +35,7 @@ type RouteProps = {
   searchParams: Promise<Record<string, string>> | Record<string, string>,
 };
 
-const next15DeprecationWarning = "DEPRECATION WARNING: Next.js 15 disallows spreading the props argument of <StackHandler /> like `{...props}`, so you must now explicitly pass them in the `routeProps` argument: `routeProps={props}`";
+const next15DeprecationWarning = "DEPRECATION WARNING: Next.js 15 disallows spreading the props argument of <StackHandler /> like `{...props}`, so you must now explicitly pass them in the `routeProps` argument: `routeProps={props}`. You can fix this by updating the code in the file `app/handler/[...stack]/route.tsx`.";
 
 export default async function StackHandler<HasTokenStore extends boolean>(props: {
   app: StackServerApp<HasTokenStore>,

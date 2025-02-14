@@ -1,7 +1,7 @@
 import { generateSecureRandomString } from "@stackframe/stack-shared/dist/utils/crypto";
 import { describe } from "vitest";
-import { it } from "../../../../helpers";
-import { Auth, InternalProjectKeys, Project, Team, backendContext, bumpEmailAddress, createMailbox, niceBackendFetch } from "../../../backend-helpers";
+import { STACK_BACKEND_BASE_URL, it } from "../../../../helpers";
+import { Auth, InternalProjectKeys, Project, Team, Webhook, backendContext, bumpEmailAddress, createMailbox, niceBackendFetch } from "../../../backend-helpers";
 
 describe("without project access", () => {
   backendContext.set({
@@ -1958,6 +1958,233 @@ describe("with server access", () => {
         },
         "headers": Headers { <some fields may have been hidden> },
       }
+    `);
+  });
+
+
+  it("should trigger user webhook when a user is created", async ({ expect }) => {
+    const { projectId, svixToken, endpointId } = await Webhook.createProjectWithEndpoint();
+
+    const createUserResponse = await niceBackendFetch(new URL("/api/v1/users", STACK_BACKEND_BASE_URL), {
+      method: "POST",
+      accessType: "server",
+      body: {
+        primary_email: "test@example.com",
+      },
+    });
+
+    expect(createUserResponse.status).toBe(201);
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
+
+    expect(attemptResponse).toMatchInlineSnapshot(`
+      [
+        {
+          "channels": null,
+          "eventId": null,
+          "eventType": "user.created",
+          "id": "<stripped svix message id>",
+          "payload": {
+            "data": {
+              "auth_with_email": false,
+              "client_metadata": null,
+              "client_read_only_metadata": null,
+              "display_name": null,
+              "has_password": false,
+              "id": "<stripped UUID>",
+              "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+              "oauth_providers": [],
+              "otp_auth_enabled": false,
+              "passkey_auth_enabled": false,
+              "primary_email": "test@example.com",
+              "primary_email_auth_enabled": false,
+              "primary_email_verified": false,
+              "profile_image_url": null,
+              "requires_totp_mfa": false,
+              "selected_team": null,
+              "selected_team_id": null,
+              "server_metadata": null,
+              "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+            },
+            "type": "user.created",
+          },
+          "timestamp": <stripped field 'timestamp'>,
+        },
+      ]
+    `);
+  });
+
+  it("should trigger user webhook when a user is updated", async ({ expect }) => {
+    const { projectId, svixToken, endpointId } = await Webhook.createProjectWithEndpoint();
+
+    const createUserResponse = await niceBackendFetch("/api/v1/users", {
+      method: "POST",
+      accessType: "server",
+      body: {
+        primary_email: "test@example.com",
+      },
+    });
+
+    expect(createUserResponse.status).toBe(201);
+    const userId = createUserResponse.body.id;
+
+    const updateUserResponse = await niceBackendFetch(`/api/v1/users/${userId}`, {
+      method: "PATCH",
+      accessType: "server",
+      body: {
+        display_name: "Test User"
+      }
+    });
+
+    expect(updateUserResponse.status).toBe(200);
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
+
+    expect(attemptResponse).toMatchInlineSnapshot(`
+      [
+        {
+          "channels": null,
+          "eventId": null,
+          "eventType": "user.updated",
+          "id": "<stripped svix message id>",
+          "payload": {
+            "data": {
+              "auth_with_email": false,
+              "client_metadata": null,
+              "client_read_only_metadata": null,
+              "display_name": "Test User",
+              "has_password": false,
+              "id": "<stripped UUID>",
+              "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+              "oauth_providers": [],
+              "otp_auth_enabled": false,
+              "passkey_auth_enabled": false,
+              "primary_email": "test@example.com",
+              "primary_email_auth_enabled": false,
+              "primary_email_verified": false,
+              "profile_image_url": null,
+              "requires_totp_mfa": false,
+              "selected_team": null,
+              "selected_team_id": null,
+              "server_metadata": null,
+              "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+            },
+            "type": "user.updated",
+          },
+          "timestamp": <stripped field 'timestamp'>,
+        },
+        {
+          "channels": null,
+          "eventId": null,
+          "eventType": "user.created",
+          "id": "<stripped svix message id>",
+          "payload": {
+            "data": {
+              "auth_with_email": false,
+              "client_metadata": null,
+              "client_read_only_metadata": null,
+              "display_name": null,
+              "has_password": false,
+              "id": "<stripped UUID>",
+              "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+              "oauth_providers": [],
+              "otp_auth_enabled": false,
+              "passkey_auth_enabled": false,
+              "primary_email": "test@example.com",
+              "primary_email_auth_enabled": false,
+              "primary_email_verified": false,
+              "profile_image_url": null,
+              "requires_totp_mfa": false,
+              "selected_team": null,
+              "selected_team_id": null,
+              "server_metadata": null,
+              "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+            },
+            "type": "user.created",
+          },
+          "timestamp": <stripped field 'timestamp'>,
+        },
+      ]
+    `);
+  });
+
+  it("should trigger user webhook when a user is deleted", async ({ expect }) => {
+    const { projectId, svixToken, endpointId } = await Webhook.createProjectWithEndpoint();
+
+    const createUserResponse = await niceBackendFetch(new URL("/api/v1/users", STACK_BACKEND_BASE_URL), {
+      method: "POST",
+      accessType: "server",
+      body: {
+        primary_email: "test@example.com",
+      },
+    });
+
+    expect(createUserResponse.status).toBe(201);
+    const userId = createUserResponse.body.id;
+
+    const deleteUserResponse = await niceBackendFetch(new URL(`/api/v1/users/${userId}`, STACK_BACKEND_BASE_URL), {
+      method: "DELETE",
+      accessType: "server",
+    });
+
+    expect(deleteUserResponse.status).toBe(200);
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
+
+    expect(attemptResponse).toMatchInlineSnapshot(`
+      [
+        {
+          "channels": null,
+          "eventId": null,
+          "eventType": "user.deleted",
+          "id": "<stripped svix message id>",
+          "payload": {
+            "data": {
+              "id": "<stripped UUID>",
+              "teams": [],
+            },
+            "type": "user.deleted",
+          },
+          "timestamp": <stripped field 'timestamp'>,
+        },
+        {
+          "channels": null,
+          "eventId": null,
+          "eventType": "user.created",
+          "id": "<stripped svix message id>",
+          "payload": {
+            "data": {
+              "auth_with_email": false,
+              "client_metadata": null,
+              "client_read_only_metadata": null,
+              "display_name": null,
+              "has_password": false,
+              "id": "<stripped UUID>",
+              "last_active_at_millis": <stripped field 'last_active_at_millis'>,
+              "oauth_providers": [],
+              "otp_auth_enabled": false,
+              "passkey_auth_enabled": false,
+              "primary_email": "test@example.com",
+              "primary_email_auth_enabled": false,
+              "primary_email_verified": false,
+              "profile_image_url": null,
+              "requires_totp_mfa": false,
+              "selected_team": null,
+              "selected_team_id": null,
+              "server_metadata": null,
+              "signed_up_at_millis": <stripped field 'signed_up_at_millis'>,
+            },
+            "type": "user.created",
+          },
+          "timestamp": <stripped field 'timestamp'>,
+        },
+      ]
     `);
   });
 });

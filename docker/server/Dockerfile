@@ -64,7 +64,7 @@ WORKDIR /app
 # Install packages needed for deployment
 RUN apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y openssl && \
+    apt-get install -y openssl socat && \
     rm -rf /var/lib/apt/lists
 
 # Install Prisma CLI globally so we can run migrations on startup
