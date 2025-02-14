@@ -35,7 +35,7 @@ export default function PageClient() {
           description="View all emails sent through the emulator in Inbucket"
         >
           <Button variant='secondary' onClick={() => {
-            window.open('http://localhost:32203/monitor', '_blank');
+            window.open(getPublicEnvVar('NEXT_PUBLIC_STACK_INBUCKET_WEB_URL') + '/monitor', '_blank');
           }}>
             Open Inbox
           </Button>
