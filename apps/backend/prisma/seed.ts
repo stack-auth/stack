@@ -494,7 +494,7 @@ async function seed() {
                     connect: {
                       projectConfigId_id: {
                         id,
-                        projectConfigId: (internalProject as any).configId,
+                        projectConfigId: emulatorProject.configId,
                       }
                     }
                   }

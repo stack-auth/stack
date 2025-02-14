@@ -32,13 +32,13 @@ export default function PageClient() {
       {getPublicEnvVar('NEXT_PUBLIC_STACK_EMULATOR_ENABLED') === 'true' ? (
         <SettingCard
           title="Mock Emails"
-          description="All the emails that are sent in the emulator will land here"
+          description="View all emails sent through the emulator in Inbucket"
         >
-          <iframe
-            src="http://localhost:32203"
-            className="w-full h-[600px] border border-gray-200 rounded-md"
-            title="Mock Email Inbox"
-          />
+          <Button variant='secondary' onClick={() => {
+            window.open(getPublicEnvVar('NEXT_PUBLIC_STACK_INBUCKET_WEB_URL') + '/monitor', '_blank');
+          }}>
+            Open Inbox
+          </Button>
         </SettingCard>
       ) : (
         <SettingCard

@@ -32,6 +32,7 @@ services:
       NEXT_PUBLIC_STACK_SVIX_SERVER_URL: http://localhost:32201
       STACK_SVIX_SERVER_URL: http://svix-server:8071
       STACK_SVIX_API_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NTUxNDA2MzksImV4cCI6MTk3MDUwMDYzOSwibmJmIjoxNjU1MTQwNjM5LCJpc3MiOiJzdml4LXNlcnZlciIsInN1YiI6Im9yZ18yM3JiOFlkR3FNVDBxSXpwZ0d3ZFhmSGlyTXUifQ.En8w77ZJWbd0qrMlHHupHUB-4cx17RfzFykseg95SUk
+      NEXT_PUBLIC_STACK_INBUCKET_WEB_URL: http://localhost:32203
       STACK_EMAIL_HOST: inbucket
       STACK_EMAIL_PORT: 2500
       STACK_EMAIL_SECURE: false
@@ -76,20 +77,10 @@ services:
   # ================= Inbucket =================
   inbucket:
     image: inbucket/inbucket:latest
-    expose:
-      - 9000
+    ports:
+      - 32203:9000
     volumes:
       - inbucket-data:/data
-
-  # inbucket proxy to allow iframe embedding
-  inbucket-proxy:
-    image: nginx:alpine
-    ports:
-      - 32203:80
-    volumes:
-      - ./inbucket-nginx.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - inbucket
 
   # ================= Svix =================
 
