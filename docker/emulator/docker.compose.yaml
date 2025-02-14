@@ -76,20 +76,10 @@ services:
   # ================= Inbucket =================
   inbucket:
     image: inbucket/inbucket:latest
-    expose:
-      - 9000
+    ports:
+      - 32203:9000
     volumes:
       - inbucket-data:/data
-
-  # inbucket proxy to allow iframe embedding
-  inbucket-proxy:
-    image: nginx:alpine
-    ports:
-      - 32203:80
-    volumes:
-      - ./inbucket-nginx.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - inbucket
 
   # ================= Svix =================
 
