@@ -227,6 +227,9 @@ model PermissionEdge {
 
   childPermissionDbId String     @db.Uuid
   childPermission     Permission @relation("ChildPermission", fields: [childPermissionDbId], references: [dbId], onDelete: Cascade)
+
+  @@index([parentPermissionDbId])
+  @@index([childPermissionDbId])
 }
 
 model ProjectUser {
@@ -303,6 +306,7 @@ model ProjectUserOAuthAccount {
   oauthAuthMethod  OAuthAuthMethod?
 
   @@id([tenancyId, oauthProviderConfigId, providerAccountId])
+  @@index([tenancyId, projectUserId])
 }
 
 enum ContactChannelType {
@@ -530,6 +534,7 @@ model AuthMethod {
   authMethodConfig AuthMethodConfig @relation(fields: [projectConfigId, authMethodConfigId], references: [projectConfigId, id], onDelete: Cascade)
 
   @@id([tenancyId, id])
+  @@index([tenancyId, projectUserId])
 }
 
 model OtpAuthMethod {
