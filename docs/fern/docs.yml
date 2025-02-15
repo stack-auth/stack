@@ -102,6 +102,8 @@ navigation:
                 path: ./docs/pages/customization/page-examples/sign-in.mdx
               - page: Sign Up
                 path: ./docs/pages/customization/page-examples/sign-up.mdx
+              - page: Forgot Password
+                path: ./docs/pages/customization/page-examples/forgot-password.mdx
               - page: Password Reset
                 path: ./docs/pages/customization/page-examples/password-reset.mdx
       - section: Others
