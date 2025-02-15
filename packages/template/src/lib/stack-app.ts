@@ -3039,6 +3039,9 @@ type ServerUserCreateOptions = {
   otpAuthEnabled?: boolean,
   displayName?: string,
   primaryEmailVerified?: boolean,
+  clientMetadata?: any,
+  clientReadOnlyMetadata?: any,
+  serverMetadata?: any,
 }
 function serverUserCreateOptionsToCrud(options: ServerUserCreateOptions): UsersCrud["Server"]["Create"] {
   return {
@@ -3048,6 +3051,9 @@ function serverUserCreateOptionsToCrud(options: ServerUserCreateOptions): UsersC
     primary_email_auth_enabled: options.primaryEmailAuthEnabled,
     display_name: options.displayName,
     primary_email_verified: options.primaryEmailVerified,
+    client_metadata: options.clientMetadata,
+    client_read_only_metadata: options.clientReadOnlyMetadata,
+    server_metadata: options.serverMetadata,
   };
 }
 
