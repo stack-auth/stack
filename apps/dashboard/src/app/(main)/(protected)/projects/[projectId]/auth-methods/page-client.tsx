@@ -2,7 +2,8 @@
 
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
-import { ActionDialog, Input, Typography } from "@stackframe/stack-ui";
+import { ActionDialog, Button, Input, Typography } from "@stackframe/stack-ui";
+import { CirclePlus } from "lucide-react";
 import { Fragment, useState } from "react";
 import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
 import { PageLayout } from "../page-layout";
@@ -73,13 +74,58 @@ function ConfirmSignUpDisabledDialog(props: {
   );
 }
 
+function DisabledProvidersDialog({ open, onOpenChange }: { open?: boolean, onOpenChange?: (open: boolean) => void }) {
+  const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProject();
+  const oauthProviders = project.config.oauthProviders;
+  const [providerSearch, setProviderSearch] = useState("");
+  const filteredProviders = allProviders
+    .filter((id) => id.toLowerCase().includes(providerSearch.toLowerCase()))
+    .map((id) => [id, oauthProviders.find((provider) => provider.id === id)] as const)
+    .filter(([, provider]) => {
+      return !provider?.enabled;
+    });
+
+  return <ActionDialog title="Add New Auth Method" open={open} onOpenChange={onOpenChange}>
+    <Input className="mb-4" placeholder="Search for a provider..."
+      value={providerSearch}
+      onChange={(e) => setProviderSearch(e.target.value)}
+    />
+    <div className="flex gap-2 flex-wrap justify-center">
+      {filteredProviders
+        .map(([id, provider]) => {
+          return <ProviderSettingSwitch
+            key={id}
+            id={id}
+            provider={provider}
+            updateProvider={async (provider) => {
+              const alreadyExist = oauthProviders.some((p) => p.id === id);
+              const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
+              if (!alreadyExist) {
+                newOAuthProviders.push(provider);
+              }
+              await project.update({
+                config: { oauthProviders: newOAuthProviders },
+              });
+            }}
+          />;
+        })}
+
+      {
+        filteredProviders.length === 0 && <Typography variant="secondary">No providers found.</Typography>
+      }
+    </div>
+
+  </ActionDialog>;
+}
+
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
   const oauthProviders = project.config.oauthProviders;
   const [confirmSignUpEnabled, setConfirmSignUpEnabled] = useState(false);
   const [confirmSignUpDisabled, setConfirmSignUpDisabled] = useState(false);
-  const [providerSearch, setProviderSearch] = useState("");
+  const [disabledProvidersDialogOpen, setDisabledProvidersDialogOpen] = useState(false);
 
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
@@ -121,12 +167,8 @@ export default function PageClient() {
               });
             }}
           />
-          <Input placeholder="Search for a provider..."
-            value={providerSearch}
-            onChange={(e) => setProviderSearch(e.target.value)}
-          />
           <CardSubtitle className="mt-2">
-            Enabled SSO Providers
+            SSO Providers
           </CardSubtitle>
           <div className="flex gap-2 flex-wrap justify-center">
             {allProviders
@@ -152,34 +194,17 @@ export default function PageClient() {
                 />;
               })}
           </div>
-          <CardSubtitle className="mt-2">
-            Disabled SSO Providers
-          </CardSubtitle>
-          <div className="flex gap-2 flex-wrap justify-center">
-            {allProviders
-              .filter((provider) => provider.toLowerCase().includes(providerSearch.toLowerCase()))
-              .map((id) => {
-                const provider = oauthProviders.find((provider) => provider.id === id);
-                if (provider?.enabled) {
-                  return <Fragment key={id}></Fragment>;
-                }
-                return <ProviderSettingSwitch
-                  key={id}
-                  id={id}
-                  provider={provider}
-                  updateProvider={async (provider) => {
-                    const alreadyExist = oauthProviders.some((p) => p.id === id);
-                    const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
-                    if (!alreadyExist) {
-                      newOAuthProviders.push(provider);
-                    }
-                    await project.update({
-                      config: { oauthProviders: newOAuthProviders },
-                    });
-                  }}
-                />;
-              })}
-          </div>
+          <Button onClick={() => {
+            setDisabledProvidersDialogOpen(true);
+          }}
+          variant="ghost"
+          >
+            <CirclePlus size={16}/>
+            <span className="ml-2">Add more SSO Providers</span>
+          </Button>
+          <DisabledProvidersDialog open={disabledProvidersDialogOpen} onOpenChange={(x) => {
+            setDisabledProvidersDialogOpen(x);
+          }} />
         </SettingCard>
         <SettingCard>
           Test content lol
