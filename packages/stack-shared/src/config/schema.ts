@@ -1,10 +1,10 @@
 import * as yup from "yup";
 import * as schemaFields from "../schema-fields";
-import { yupArray, yupBoolean, yupObject, yupRecord, yupString } from "../schema-fields";
+import { yupArray, yupBoolean, yupObject, yupRecord, yupString, yupUnion } from "../schema-fields";
 
 type EnvMode = 'undefined' | 'optional' | 'defined';
 
-const configRecord = (schema: yup.AnySchema) => yupRecord(schema, (key) => key.match(/^[a-zA-Z0-9_]+$/) !== null);
+const configRecord = (schema: yup.AnySchema) => yupRecord(schema, (key) => key.match(/^[a-zA-Z0-9_$-]+$/) !== null);
 
 const envSchema = <T extends yup.AnySchema>(mode: EnvMode, schema: T): T => {
   switch (mode) {
@@ -24,14 +24,8 @@ export const getConfigSchema = (mode: EnvMode) => yupObject({
   createTeamOnSignUp: yupBoolean().defined(),
   clientTeamCreationEnabled: yupBoolean().defined(),
   clientUserDeletionEnabled: yupBoolean().defined(),
-
   signUpEnabled: yupBoolean().defined(),
-  credentialEnabled: yupBoolean().defined(),
-  magicLinkEnabled: yupBoolean().defined(),
-  passkeyEnabled: yupBoolean().defined(),
-
   legacyGlobalJwtSigning: yupBoolean().defined(),
-
   isProductionMode: envSchema(mode, yupBoolean().defined()),
   allowLocalhost: envSchema(mode, yupBoolean().defined()),
 
@@ -48,8 +42,8 @@ export const getConfigSchema = (mode: EnvMode) => yupObject({
     containedPermissionIds: yupArray(yupString()).defined(),
   })).defined(),
 
-  // keys to the oauth provider configs are the provider ids.
-  oauthProviderConfigs: configRecord(yupObject({
+  // keys to the oauth providers are the provider ids.
+  oauthProviders: configRecord(yupObject({
     id: yupString().defined(),
     type: envSchema(mode, yupString().oneOf(['shared', 'standard']).defined()),
     clientId: envSchema(mode, schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientIdSchema, { type: 'standard', enabled: true })),
@@ -57,6 +51,33 @@ export const getConfigSchema = (mode: EnvMode) => yupObject({
     facebookConfigId: envSchema(mode, schemaFields.oauthFacebookConfigIdSchema.optional()),
     microsoftTenantId: envSchema(mode, schemaFields.oauthMicrosoftTenantIdSchema.optional()),
   })).defined(),
+
+  // keys to the auth methods are the auth method ids.
+  authMethods: configRecord(yupUnion(
+    yupObject({
+      id: yupString().defined(),
+      type: yupString().oneOf(['password']).defined(),
+    }),
+    yupObject({
+      id: yupString().defined(),
+      type: yupString().oneOf(['otp']).defined(),
+    }),
+    yupObject({
+      id: yupString().defined(),
+      type: yupString().oneOf(['passkey']).defined(),
+    }),
+    yupObject({
+      id: yupString().defined(),
+      type: yupString().oneOf(['oauth']).defined(),
+      oauthProviderId: yupString().defined(),
+    }),
+  )).defined(),
+
+  // keys to the domains are the hex encoded domains
+  domains: envSchema(mode, yupRecord(yupObject({
+    domain: schemaFields.urlSchema.defined(),
+    handlerPath: schemaFields.handlerPathSchema.defined(),
+  }), (key) => key.match(/^[a-zA-Z0-9_]+$/) !== null)),
 
   emailConfig: envSchema(mode, yupObject({
     type: schemaFields.emailTypeSchema.defined(),
@@ -79,10 +100,4 @@ export const getConfigSchema = (mode: EnvMode) => yupObject({
       type: 'standard',
     }),
   })),
-
-  // keys to the domains are the hex encoded domains
-  domains: envSchema(mode, yupRecord(yupObject({
-    domain: schemaFields.urlSchema.defined(),
-    handlerPath: schemaFields.handlerPathSchema.defined(),
-  }), (key) => key.match(/^[a-zA-Z0-9_]+$/) !== null)),
 });
