@@ -181,6 +181,9 @@ export function Mapping({
     case "x": {
       return <X iconSize={iconSize} />;
     }
+    default: {
+      return <></>;
+    }
   }
 }
 
