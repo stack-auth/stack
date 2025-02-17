@@ -1,0 +1,71 @@
+---
+slug: others/js-client
+subtitle: Vanilla JavaScript client library
+---
+
+Stack Auth provides a vanilla JavaScript/TypeScript client library that works with any JavaScript framework in both frontend and backend environments.
+
+Key differences between the JavaScript and Next.js client libraries:
+- No built-in UI components or default pages - you'll need to implement your own UI and callback handlers
+- No React hooks functionality (useUser(), useStackApp(), etc.)
+- Full flexibility to use in either frontend or backend environments, or both
+
+## Installation
+
+```bash
+npm install @stackframe/js
+```
+
+## Backend
+
+### Initialization
+
+```typescript
+import { StackServerApp } from "@stackframe/js";
+
+const stackServerApp = new StackServerApp({
+  projectId: "your-project-id-from-dashboard",
+  publishableClientKey: "your-publishable-client-key-from-dashboard",
+  secretServerKey: "your-secret-server-key-from-dashboard",
+  tokenStore: "memory",
+});
+```
+
+### Example usage
+
+```typescript
+const user = await stackServerApp.getUser("user_id");
+
+await user.update({
+  displayName: "New Display Name",
+});
+
+const team = await stackServerApp.createTeam({
+  name: "New Team",
+});
+
+await team.addUser(user.id);
+```
+
+## Frontend
+
+### Initialization
+
+```typescript
+import { StackClientApp } from "@stackframe/js";
+
+const stackClientApp = new StackClientApp({
+  projectId: "your-project-id-from-dashboard",
+  publishableClientKey: "your-publishable-client-key-from-dashboard",
+  tokenStore: "cookie",
+});
+```
+
+### Example usage
+
+```typescript
+
+```
+
+
+
