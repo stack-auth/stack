@@ -26,10 +26,16 @@ const envSchema = <T extends yup.AnySchema>(mode: EnvMode, schema: T): T => {
 export const getConfigSchema = (mode: EnvMode) => yupObject({
   isProductionMode: yupBoolean().defined(),
   allowLocalhost: yupBoolean().defined(),
-  signUpEnabled: yupBoolean().defined(),
+
   createTeamOnSignUp: yupBoolean().defined(),
   clientTeamCreationEnabled: yupBoolean().defined(),
   clientUserDeletionEnabled: yupBoolean().defined(),
+
+  signUpEnabled: yupBoolean().defined(),
+  credentialEnabled: yupBoolean().defined(),
+  magicLinkEnabled: yupBoolean().defined(),
+  passkeyEnabled: yupBoolean().defined(),
+
   legacyGlobalJwtSigning: yupBoolean().defined(),
 
   // keys to the permissions/permission definitions are hex encoded ids.
@@ -76,6 +82,12 @@ export const getConfigSchema = (mode: EnvMode) => yupObject({
       type: 'standard',
     }),
   })),
+
+  // keys to the domains are the hex encoded domains
+  domains: envSchema(mode, yupRecord(yupObject({
+    domain: schemaFields.urlSchema.defined(),
+    handlerPath: schemaFields.handlerPathSchema.defined(),
+  }), (key) => key.match(/^[a-zA-Z0-9_]+$/) !== null)),
 });
 
 export function mergeConfigs(options: {
