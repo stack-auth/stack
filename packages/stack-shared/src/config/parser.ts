@@ -5,19 +5,19 @@ import * as schemaFields from "../schema-fields";
 import { yupArray, yupBoolean, yupNumber, yupObject, yupRecord, yupString, yupTuple } from "../schema-fields";
 import { deepPlainClone } from "../utils/objects";
 
-type EnvMode = 'no-env' | 'optional-env' | 'required-env';
+type EnvMode = 'undefined' | 'optional' | 'defined';
 
 const configRecord = (schema: yup.AnySchema) => yupRecord(schema, (key) => key.match(/^[a-zA-Z0-9_]+$/) !== null);
 
 const envSchema = <T extends yup.AnySchema>(mode: EnvMode, schema: T): T => {
   switch (mode) {
-    case 'no-env': {
+    case 'undefined': {
       return schema;
     }
-    case 'optional-env': {
+    case 'optional': {
       return schema.nullable().optional();
     }
-    case 'required-env': {
+    case 'defined': {
       return schema;
     }
   }
