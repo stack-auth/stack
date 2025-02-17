@@ -67,6 +67,7 @@
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
     "@simplewebauthn/browser": "^11.0.0",
+    "//": "NEXT_LINE_PLATFORM react-like",
     "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "//": "NEXT_LINE_PLATFORM react-like",

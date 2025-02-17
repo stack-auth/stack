@@ -64,7 +64,7 @@ const stackClientApp = new StackClientApp({
 ### Example usage
 
 ```typescript
-await stackClientApp.signInWithCredentials({
+await stackClientApp.signInWithCredential({
   email: "test@example.com",
   password: "password123",
 });
@@ -75,7 +75,7 @@ await user.update({
   displayName: "New Display Name",
 });
 
-await stackClientApp.signOut();
+await user.signOut();
 ```
 
 
