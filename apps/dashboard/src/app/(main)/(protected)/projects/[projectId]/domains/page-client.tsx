@@ -104,21 +104,22 @@ function EditDialog(props: {
     formSchema={domainFormSchema}
     okButton={{ label: props.type === 'create' ? "Create" : "Save" }}
     onSubmit={async (values) => {
+      const newDomains = [
+        ...props.domains,
+        {
+          domain: (values.insecureHttp ? 'http' : 'https') + `://` + values.domain,
+          handlerPath: values.handlerPath,
+        },
+        ...(canAddWww(values.domain) && values.addWww ? [{
+          domain: `${values.insecureHttp ? 'http' : 'https'}://www.` + values.domain,
+          handlerPath: values.handlerPath,
+        }] : []),
+      ];
       try {
         if (props.type === 'create') {
           await props.project.update({
             config: {
-              domains: [
-                ...props.domains,
-                {
-                  domain: (values.insecureHttp ? 'http' : 'https') + `://` + values.domain,
-                  handlerPath: values.handlerPath,
-                },
-                ...(canAddWww(values.domain) && values.addWww ? [{
-                  domain: `${values.insecureHttp ? 'http' : 'https'}://www.` + values.domain,
-                  handlerPath: values.handlerPath,
-                }] : []),
-              ],
+              domains: newDomains,
             },
           });
         } else {
@@ -143,9 +144,8 @@ function EditDialog(props: {
           `Failed to update domains: ${error}`,
           {
             cause: error,
-            type: props.type,
-            domains: props.domains,
-            projectId: props.project.id,
+            props,
+            newDomains,
           },
         );
       }
