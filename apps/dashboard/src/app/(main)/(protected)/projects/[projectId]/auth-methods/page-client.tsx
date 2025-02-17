@@ -1,6 +1,7 @@
 "use client";
 
 import { SettingCard, SettingSwitch } from "@/components/settings";
+import { AuthPage } from "@stackframe/stack";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { ActionDialog, Button, Input, Typography } from "@stackframe/stack-ui";
 import { CirclePlus } from "lucide-react";
@@ -129,13 +130,13 @@ export default function PageClient() {
 
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
-      <div className="grid grid-cols-2 gap-4">
-        <SettingCard>
+      <div className="flex gap-4">
+        <SettingCard className="flex-grow">
           <CardSubtitle>
           Email-based
           </CardSubtitle>
           <SettingSwitch
-            label="Email password authentication"
+            label="Email/password authentication"
             checked={project.config.credentialEnabled}
             onCheckedChange={async (checked) => {
               await project.update({
@@ -206,8 +207,15 @@ export default function PageClient() {
             setDisabledProvidersDialogOpen(x);
           }} />
         </SettingCard>
-        <SettingCard>
-          Test content lol
+        <SettingCard className="hidden lg:flex">
+          <div className="flex flex-col align-middle px-8">
+            <AuthPage
+              type="sign-in"
+              mockProject={{
+                config: project.config,
+              }}
+            />
+          </div>
         </SettingCard>
       </div>
       <SettingCard title="Sign-up">
