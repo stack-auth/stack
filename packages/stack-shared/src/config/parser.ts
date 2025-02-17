@@ -6,36 +6,32 @@ import { deepPlainClone } from "../utils/objects";
 
 const configRecord = (schema: yup.AnySchema) => yupRecord(schema, (key) => key.match(/^[a-zA-Z0-9_]+$/) !== null);
 
-const configSchema = yupObject({
-  a: yupObject({
-    b: yupObject({
-      c: yupString().defined(),
-    }).defined(),
-  }).defined(),
-  d: yupTuple([yupString(), yupString()]).defined(),
-  e: yupBoolean().defined(),
-  f: yupNumber(),
-  g: configRecord(yupString()),
-});
+export function mergeConfigs(options: {
+  configs: any[],
+  configSchema: yup.AnySchema,
+}) {
+  let mergedConfig: {} | yup.InferType<typeof options.configSchema> = {};
 
-export function mergeConfigs(configs: any[]) {
-  let mergedConfig: {} | yup.InferType<typeof configSchema> = {};
-
-  for (const config of configs) {
-    mergedConfig = mergeConfig(mergedConfig, config);
+  for (const config of options.configs) {
+    mergedConfig = mergeConfig({
+      configSchema: options.configSchema,
+      defaultConfig: mergedConfig,
+      overrideConfig: config,
+    });
   }
 
   return mergedConfig;
 }
 
-export function mergeConfig(
+export function mergeConfig(options: {
+  configSchema: yup.AnySchema,
   defaultConfig: any,
-  overrideConfig: any
-): yup.InferType<typeof configSchema> {
-  const newConfig = deepPlainClone(defaultConfig) as any;
+  overrideConfig: any,
+}): yup.InferType<typeof options.configSchema> {
+  const newConfig = deepPlainClone(options.defaultConfig) as any;
 
-  Object.keys(overrideConfig).forEach((key) => {
-    const overrideValue = overrideConfig[key];
+  Object.keys(options.overrideConfig).forEach((key) => {
+    const overrideValue = options.overrideConfig[key];
     const pathParts = key.split('.');
     let target = newConfig;
 
@@ -65,10 +61,21 @@ export function mergeConfig(
     }
   });
 
-  return configSchema.validateSync(newConfig);
+  return options.configSchema.validateSync(newConfig);
 }
 
-// Example usage of mergeConfig
+const exampleConfigSchema = yupObject({
+  a: yupObject({
+    b: yupObject({
+      c: yupString().defined(),
+    }).defined(),
+  }).defined(),
+  d: yupTuple([yupString(), yupString()]).defined(),
+  e: yupBoolean().defined(),
+  f: yupNumber(),
+  g: configRecord(yupString()),
+});
+
 const defaultConfigExample = {
   a: {
     b: {
@@ -89,10 +96,10 @@ const overrideConfigExample = {
   'g.h': "override2"
 };
 
-// This would result in:
-// - signUpEnabled being set to false
-// - teamCreateDefaultSystemPermissions.manage_users being set to true
-// - permissionDefinitions.manage_team being removed
-const mergedConfig = mergeConfig(defaultConfigExample, overrideConfigExample);
+const mergedConfig = mergeConfig({
+  configSchema: exampleConfigSchema,
+  defaultConfig: defaultConfigExample,
+  overrideConfig: overrideConfigExample,
+});
 
 console.log(mergedConfig);
