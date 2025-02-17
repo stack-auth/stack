@@ -27,7 +27,10 @@
         "./src/*"
       ]
     },
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": [
+      "vitest/importMeta"
+    ]
   },
   "include": [
     "next-env.d.ts",
