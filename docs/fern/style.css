@@ -3,7 +3,6 @@
   border-left: 1px solid var(--border);
 }
 
-
 .stack-white-image-showcase {
   display: flex;
   justify-content: center;
@@ -142,6 +141,30 @@ tr.stack-clickable-row-missing {
   display: none;
 }
 
-.stack-white-image-showcase > img {
-  object-fit: contain;
+.stack-50h {
+  height: 50px !important;
+}
+
+.stack-100h {
+  height: 100px !important;
+}
+
+.stack-150h {
+  height: 150px !important;
+}
+
+.stack-200h {
+  height: 200px !important;
+}
+
+.stack-250h {
+  height: 250px !important;
+}
+
+.stack-300h {
+  height: 300px !important;
+}
+
+.stack-350h {
+  height: 350px !important;
 }
