@@ -1,7 +1,7 @@
 "use client";
 
 import { SettingCard, SettingSwitch } from "@/components/settings";
-import { AuthPage } from "@stackframe/stack";
+import { AdminOAuthProviderConfig, AuthPage } from "@stackframe/stack";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { ActionDialog, Button, Input, Typography } from "@stackframe/stack-ui";
 import { CirclePlus } from "lucide-react";
@@ -214,7 +214,9 @@ export default function PageClient() {
               mockProject={{
                 config: {
                   ...project.config,
-                  oauthProviders: enabledProviders.map(([, provider]) => provider).filter((provider) => !!provider),
+                  oauthProviders: enabledProviders
+                    .map(([, provider]) => provider)
+                    .filter((provider): provider is AdminOAuthProviderConfig => !!provider),
                 },
               }}
             />
