@@ -128,6 +128,10 @@ export default function PageClient() {
   const [confirmSignUpDisabled, setConfirmSignUpDisabled] = useState(false);
   const [disabledProvidersDialogOpen, setDisabledProvidersDialogOpen] = useState(false);
 
+  const enabledProviders = allProviders
+    .map((id) => [id, oauthProviders.find((provider) => provider.id === id)] as const)
+    .filter(([, provider]) => provider?.enabled);
+
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
       <div className="flex gap-4">
@@ -172,12 +176,8 @@ export default function PageClient() {
             SSO Providers
           </CardSubtitle>
           <div className="flex gap-2 flex-wrap justify-center">
-            {allProviders
-              .map((id) => {
-                const provider = oauthProviders.find((provider) => provider.id === id);
-                if (!provider?.enabled) {
-                  return <Fragment key={id}></Fragment>;
-                }
+            {enabledProviders
+              .map(([id, provider]) => {
                 return <ProviderSettingSwitch
                   key={id}
                   id={id}
@@ -212,7 +212,10 @@ export default function PageClient() {
             <AuthPage
               type="sign-in"
               mockProject={{
-                config: project.config,
+                config: {
+                  ...project.config,
+                  oauthProviders: enabledProviders.map(([, provider]) => provider).filter((provider) => !!provider),
+                },
               }}
             />
           </div>
