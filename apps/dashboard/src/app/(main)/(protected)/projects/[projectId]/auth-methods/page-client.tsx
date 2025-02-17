@@ -2,7 +2,7 @@
 
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
-import { ActionDialog, Typography } from "@stackframe/stack-ui";
+import { ActionDialog, Input, Typography } from "@stackframe/stack-ui";
 import { useState } from "react";
 import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
 import { PageLayout } from "../page-layout";
@@ -79,68 +79,80 @@ export default function PageClient() {
   const oauthProviders = project.config.oauthProviders;
   const [confirmSignUpEnabled, setConfirmSignUpEnabled] = useState(false);
   const [confirmSignUpDisabled, setConfirmSignUpDisabled] = useState(false);
+  const [providerSearch, setProviderSearch] = useState("");
 
   return (
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
-      <SettingCard>
-        <CardSubtitle>
+      <div className="grid grid-cols-2 gap-4">
+        <SettingCard>
+          <CardSubtitle>
           Email-based
-        </CardSubtitle>
-        <SettingSwitch
-          label="Email password authentication"
-          checked={project.config.credentialEnabled}
-          onCheckedChange={async (checked) => {
-            await project.update({
-              config: {
-                credentialEnabled: checked,
-              },
-            });
-          }}
-        />
-        <SettingSwitch
-          label="Magic link/OTP"
-          checked={project.config.magicLinkEnabled}
-          onCheckedChange={async (checked) => {
-            await project.update({
-              config: {
-                magicLinkEnabled: checked,
-              },
-            });
-          }}
-        />
-        <SettingSwitch
-          label="Passkey"
-          checked={project.config.passkeyEnabled}
-          onCheckedChange={async (checked) => {
-            await project.update({
-              config: {
-                passkeyEnabled: checked,
-              },
-            });
-          }}
-        />
-        <CardSubtitle className="mt-2">
-          SSO (OAuth)
-        </CardSubtitle>
-        {allProviders.map((id) => {
-          const provider = oauthProviders.find((provider) => provider.id === id);
-          return <ProviderSettingSwitch
-            key={id}
-            id={id}
-            provider={provider}
-            updateProvider={async (provider) => {
-              const alreadyExist = oauthProviders.some((p) => p.id === id);
-              const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
-              if (!alreadyExist) {
-                newOAuthProviders.push(provider);
-              }
+          </CardSubtitle>
+          <SettingSwitch
+            label="Email password authentication"
+            checked={project.config.credentialEnabled}
+            onCheckedChange={async (checked) => {
               await project.update({
-                config: { oauthProviders: newOAuthProviders },
+                config: {
+                  credentialEnabled: checked,
+                },
               });
             }}
-          />;
-        })}
-      </SettingCard>
+          />
+          <SettingSwitch
+            label="Magic link/OTP"
+            checked={project.config.magicLinkEnabled}
+            onCheckedChange={async (checked) => {
+              await project.update({
+                config: {
+                  magicLinkEnabled: checked,
+                },
+              });
+            }}
+          />
+          <SettingSwitch
+            label="Passkey"
+            checked={project.config.passkeyEnabled}
+            onCheckedChange={async (checked) => {
+              await project.update({
+                config: {
+                  passkeyEnabled: checked,
+                },
+              });
+            }}
+          />
+          <CardSubtitle className="mt-2">
+          SSO (OAuth)
+          </CardSubtitle>
+          <Input placeholder="Search for a provider..."
+            value={providerSearch}
+            onChange={(e) => setProviderSearch(e.target.value)}
+          />
+          {allProviders
+            .filter((provider) => provider.toLowerCase().includes(providerSearch.toLowerCase()))
+            .map((id) => {
+              const provider = oauthProviders.find((provider: any) => provider.id === id);
+              return <ProviderSettingSwitch
+                key={id}
+                id={id}
+                provider={provider}
+                updateProvider={async (provider) => {
+                  const alreadyExist = oauthProviders.some((p: any) => p.id === id);
+                  const newOAuthProviders = oauthProviders.map((p: any) => p.id === id ? provider : p);
+                  if (!alreadyExist) {
+                newOAuthProviders.push(provider);
+                  }
+                  await project.update({
+                    config: { oauthProviders: newOAuthProviders },
+                  });
+                }}
+              />;
+            })}
+        </SettingCard>
+        <SettingCard>
+          Test content lol
+        </SettingCard>
+      </div>
       <SettingCard title="Sign-up">
         <SettingSwitch
           label="Allow new user sign-ups"
