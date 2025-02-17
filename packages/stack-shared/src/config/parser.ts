@@ -24,9 +24,6 @@ const envSchema = <T extends yup.AnySchema>(mode: EnvMode, schema: T): T => {
 };
 
 export const getConfigSchema = (mode: EnvMode) => yupObject({
-  isProductionMode: yupBoolean().defined(),
-  allowLocalhost: yupBoolean().defined(),
-
   createTeamOnSignUp: yupBoolean().defined(),
   clientTeamCreationEnabled: yupBoolean().defined(),
   clientUserDeletionEnabled: yupBoolean().defined(),
@@ -37,6 +34,9 @@ export const getConfigSchema = (mode: EnvMode) => yupObject({
   passkeyEnabled: yupBoolean().defined(),
 
   legacyGlobalJwtSigning: yupBoolean().defined(),
+
+  isProductionMode: envSchema(mode, yupBoolean().defined()),
+  allowLocalhost: envSchema(mode, yupBoolean().defined()),
 
   // keys to the permissions/permission definitions are hex encoded ids.
   teamCreateDefaultSystemPermissions: configRecord(yupObject({
