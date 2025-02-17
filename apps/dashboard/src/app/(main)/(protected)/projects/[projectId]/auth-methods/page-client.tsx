@@ -11,7 +11,7 @@ import { useState } from "react";
 import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
-import { ProviderSettingSwitch, TurnOffProviderDialog } from "./providers";
+import { ProviderSettingDialog, ProviderSettingSwitch, TurnOffProviderDialog } from "./providers";
 
 function ConfirmSignUpEnabledDialog(props: {
   open?: boolean,
@@ -145,6 +145,8 @@ const columns: ColumnDef<AdminOAuthProviderConfig>[] = [
       const oauthProviders = project.config.oauthProviders;
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const [turnOffProviderDialogOpen, setTurnOffProviderDialogOpen] = useState(false);
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const [providerSettingDialogOpen, setProviderSettingDialogOpen] = useState(false);
 
 
       const updateProvider = async (provider: AdminOAuthProviderConfig & OAuthProviderConfig) => {
@@ -172,6 +174,13 @@ const columns: ColumnDef<AdminOAuthProviderConfig>[] = [
               });
             })}
           />
+          <ProviderSettingDialog
+            id={row.original.id}
+            open={providerSettingDialogOpen}
+            onClose={() => setProviderSettingDialogOpen(false)}
+            updateProvider={updateProvider}
+          />
+
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
               <span className="sr-only">Open menu</span>
@@ -179,7 +188,9 @@ const columns: ColumnDef<AdminOAuthProviderConfig>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem>Configure</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {
+              setProviderSettingDialogOpen(true);
+            }}>Configure</DropdownMenuItem>
             <DropdownMenuItem className="text-red-400" onClick={() => {
               setTurnOffProviderDialogOpen(true);
             }}>Disable Provider</DropdownMenuItem>
