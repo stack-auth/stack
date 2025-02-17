@@ -122,6 +122,64 @@ function DisabledProvidersDialog({ open, onOpenChange }: { open?: boolean, onOpe
   </ActionDialog>;
 }
 
+function OAuthActionCell({ config }: { config: AdminOAuthProviderConfig }) {
+  const stackAdminApp = useAdminApp();
+  const project = stackAdminApp.useProject();
+  const oauthProviders = project.config.oauthProviders;
+  const [turnOffProviderDialogOpen, setTurnOffProviderDialogOpen] = useState(false);
+  const [providerSettingDialogOpen, setProviderSettingDialogOpen] = useState(false);
+
+
+  const updateProvider = async (provider: AdminOAuthProviderConfig & OAuthProviderConfig) => {
+    const alreadyExist = oauthProviders.some((p) => p.id === config.id);
+    const newOAuthProviders = oauthProviders.map((p) => p.id === config.id ? provider : p);
+    if (!alreadyExist) {
+          newOAuthProviders.push(provider);
+    }
+    await project.update({
+      config: { oauthProviders: newOAuthProviders },
+    });
+  };
+
+  return (
+    <DropdownMenu>
+      <TurnOffProviderDialog
+        open={turnOffProviderDialogOpen}
+        onClose={() => setTurnOffProviderDialogOpen(false)}
+        providerId={config.id}
+        onConfirm={() => runAsynchronously(async () => {
+          await updateProvider({
+            ...config,
+            id: config.id,
+            enabled: false
+          });
+        })}
+      />
+      <ProviderSettingDialog
+        id={config.id}
+        open={providerSettingDialogOpen}
+        onClose={() => setProviderSettingDialogOpen(false)}
+        updateProvider={updateProvider}
+      />
+
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="h-8 w-8 p-0">
+          <span className="sr-only">Open menu</span>
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => {
+              setProviderSettingDialogOpen(true);
+        }}>Configure</DropdownMenuItem>
+        <DropdownMenuItem className="text-red-400" onClick={() => {
+              setTurnOffProviderDialogOpen(true);
+        }}>Disable Provider</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 const columns: ColumnDef<AdminOAuthProviderConfig>[] = [
   {
     accessorKey: 'id',
@@ -139,64 +197,7 @@ const columns: ColumnDef<AdminOAuthProviderConfig>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const stackAdminApp = useAdminApp();
-      const project = stackAdminApp.useProject();
-      const oauthProviders = project.config.oauthProviders;
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const [turnOffProviderDialogOpen, setTurnOffProviderDialogOpen] = useState(false);
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const [providerSettingDialogOpen, setProviderSettingDialogOpen] = useState(false);
-
-
-      const updateProvider = async (provider: AdminOAuthProviderConfig & OAuthProviderConfig) => {
-        const alreadyExist = oauthProviders.some((p) => p.id === row.original.id);
-        const newOAuthProviders = oauthProviders.map((p) => p.id === row.original.id ? provider : p);
-        if (!alreadyExist) {
-          newOAuthProviders.push(provider);
-        }
-        await project.update({
-          config: { oauthProviders: newOAuthProviders },
-        });
-      };
-
-      return (
-        <DropdownMenu>
-          <TurnOffProviderDialog
-            open={turnOffProviderDialogOpen}
-            onClose={() => setTurnOffProviderDialogOpen(false)}
-            providerId={row.original.id}
-            onConfirm={() => runAsynchronously(async () => {
-              await updateProvider({
-                ...row.original,
-                id: row.original.id,
-                enabled: false
-              });
-            })}
-          />
-          <ProviderSettingDialog
-            id={row.original.id}
-            open={providerSettingDialogOpen}
-            onClose={() => setProviderSettingDialogOpen(false)}
-            updateProvider={updateProvider}
-          />
-
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => {
-              setProviderSettingDialogOpen(true);
-            }}>Configure</DropdownMenuItem>
-            <DropdownMenuItem className="text-red-400" onClick={() => {
-              setTurnOffProviderDialogOpen(true);
-            }}>Disable Provider</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+      return <OAuthActionCell config={row.original} />;
     },
   },
 ];
