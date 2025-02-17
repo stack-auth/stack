@@ -3,7 +3,7 @@
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { ActionDialog, Input, Typography } from "@stackframe/stack-ui";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
@@ -121,33 +121,65 @@ export default function PageClient() {
               });
             }}
           />
-          <CardSubtitle className="mt-2">
-          SSO (OAuth)
-          </CardSubtitle>
           <Input placeholder="Search for a provider..."
             value={providerSearch}
             onChange={(e) => setProviderSearch(e.target.value)}
           />
-          {allProviders
-            .filter((provider) => provider.toLowerCase().includes(providerSearch.toLowerCase()))
-            .map((id) => {
-              const provider = oauthProviders.find((provider: any) => provider.id === id);
-              return <ProviderSettingSwitch
-                key={id}
-                id={id}
-                provider={provider}
-                updateProvider={async (provider) => {
-                  const alreadyExist = oauthProviders.some((p: any) => p.id === id);
-                  const newOAuthProviders = oauthProviders.map((p: any) => p.id === id ? provider : p);
-                  if (!alreadyExist) {
-                newOAuthProviders.push(provider);
-                  }
-                  await project.update({
-                    config: { oauthProviders: newOAuthProviders },
-                  });
-                }}
-              />;
-            })}
+          <CardSubtitle className="mt-2">
+            Enabled SSO Providers
+          </CardSubtitle>
+          <div className="flex gap-2 flex-wrap justify-center">
+            {allProviders
+              .map((id) => {
+                const provider = oauthProviders.find((provider) => provider.id === id);
+                if (!provider?.enabled) {
+                  return <Fragment key={id}></Fragment>;
+                }
+                return <ProviderSettingSwitch
+                  key={id}
+                  id={id}
+                  provider={provider}
+                  updateProvider={async (provider) => {
+                    const alreadyExist = oauthProviders.some((p) => p.id === id);
+                    const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
+                    if (!alreadyExist) {
+                      newOAuthProviders.push(provider);
+                    }
+                    await project.update({
+                      config: { oauthProviders: newOAuthProviders },
+                    });
+                  }}
+                />;
+              })}
+          </div>
+          <CardSubtitle className="mt-2">
+            Disabled SSO Providers
+          </CardSubtitle>
+          <div className="flex gap-2 flex-wrap justify-center">
+            {allProviders
+              .filter((provider) => provider.toLowerCase().includes(providerSearch.toLowerCase()))
+              .map((id) => {
+                const provider = oauthProviders.find((provider) => provider.id === id);
+                if (provider?.enabled) {
+                  return <Fragment key={id}></Fragment>;
+                }
+                return <ProviderSettingSwitch
+                  key={id}
+                  id={id}
+                  provider={provider}
+                  updateProvider={async (provider) => {
+                    const alreadyExist = oauthProviders.some((p) => p.id === id);
+                    const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
+                    if (!alreadyExist) {
+                      newOAuthProviders.push(provider);
+                    }
+                    await project.update({
+                      config: { oauthProviders: newOAuthProviders },
+                    });
+                  }}
+                />;
+              })}
+          </div>
         </SettingCard>
         <SettingCard>
           Test content lol
