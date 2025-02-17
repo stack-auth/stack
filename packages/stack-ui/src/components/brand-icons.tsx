@@ -183,3 +183,19 @@ export function Mapping({
     }
   }
 }
+
+export function toTitle(id: string) {
+  return {
+    github: "GitHub",
+    google: "Google",
+    facebook: "Facebook",
+    microsoft: "Microsoft",
+    spotify: "Spotify",
+    discord: "Discord",
+    gitlab: "GitLab",
+    apple: "Apple",
+    bitbucket: "Bitbucket",
+    linkedin: "LinkedIn",
+    x: "X",
+  }[id];
+}

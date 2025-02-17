@@ -1,15 +1,17 @@
 "use client";
 
 import { SettingCard, SettingSwitch } from "@/components/settings";
-import { AdminOAuthProviderConfig, AuthPage } from "@stackframe/stack";
+import { AdminOAuthProviderConfig, AuthPage, OAuthProviderConfig } from "@stackframe/stack";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
-import { ActionDialog, Button, Input, Typography } from "@stackframe/stack-ui";
-import { CirclePlus } from "lucide-react";
-import { Fragment, useState } from "react";
+import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
+import { ActionDialog, Badge, BrandIcons, Button, DataTable, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, SimpleTooltip, Typography } from "@stackframe/stack-ui";
+import { ColumnDef } from "@tanstack/react-table";
+import { CirclePlus, MoreHorizontal } from "lucide-react";
+import { useState } from "react";
 import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
 import { PageLayout } from "../page-layout";
 import { useAdminApp } from "../use-admin-app";
-import { ProviderSettingSwitch } from "./providers";
+import { ProviderSettingSwitch, TurnOffProviderDialog } from "./providers";
 
 function ConfirmSignUpEnabledDialog(props: {
   open?: boolean,
@@ -120,6 +122,74 @@ function DisabledProvidersDialog({ open, onOpenChange }: { open?: boolean, onOpe
   </ActionDialog>;
 }
 
+const columns: ColumnDef<AdminOAuthProviderConfig>[] = [
+  {
+    accessorKey: 'id',
+    header: 'Provider',
+    cell: ({ row }) => {
+      return <div className="flex h-8 gap-4 mx-2 items-center">
+        <BrandIcons.Mapping iconSize={24} provider={row.original.id} />
+        <span>{BrandIcons.toTitle(row.original.id)}</span>
+        <SimpleTooltip tooltip={"Shared keys are automatically created by Stack, but show Stack's logo on the OAuth sign-in page.\n\nYou should replace these before you go into production."}>
+          <Badge variant="secondary">Shared keys</Badge>
+        </SimpleTooltip>
+      </div>;
+    },
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const stackAdminApp = useAdminApp();
+      const project = stackAdminApp.useProject();
+      const oauthProviders = project.config.oauthProviders;
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const [turnOffProviderDialogOpen, setTurnOffProviderDialogOpen] = useState(false);
+
+
+      const updateProvider = async (provider: AdminOAuthProviderConfig & OAuthProviderConfig) => {
+        const alreadyExist = oauthProviders.some((p) => p.id === row.original.id);
+        const newOAuthProviders = oauthProviders.map((p) => p.id === row.original.id ? provider : p);
+        if (!alreadyExist) {
+          newOAuthProviders.push(provider);
+        }
+        await project.update({
+          config: { oauthProviders: newOAuthProviders },
+        });
+      };
+
+      return (
+        <DropdownMenu>
+          <TurnOffProviderDialog
+            open={turnOffProviderDialogOpen}
+            onClose={() => setTurnOffProviderDialogOpen(false)}
+            providerId={row.original.id}
+            onConfirm={() => runAsynchronously(async () => {
+              await updateProvider({
+                ...row.original,
+                id: row.original.id,
+                enabled: false
+              });
+            })}
+          />
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem>Configure</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-400" onClick={() => {
+              setTurnOffProviderDialogOpen(true);
+            }}>Disable Provider</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
+];
+
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
@@ -175,26 +245,13 @@ export default function PageClient() {
           <CardSubtitle className="mt-2">
             SSO Providers
           </CardSubtitle>
-          <div className="flex gap-2 flex-wrap justify-center">
-            {enabledProviders
-              .map(([id, provider]) => {
-                return <ProviderSettingSwitch
-                  key={id}
-                  id={id}
-                  provider={provider}
-                  updateProvider={async (provider) => {
-                    const alreadyExist = oauthProviders.some((p) => p.id === id);
-                    const newOAuthProviders = oauthProviders.map((p) => p.id === id ? provider : p);
-                    if (!alreadyExist) {
-                      newOAuthProviders.push(provider);
-                    }
-                    await project.update({
-                      config: { oauthProviders: newOAuthProviders },
-                    });
-                  }}
-                />;
-              })}
-          </div>
+          <DataTable
+            columns={columns}
+            data={enabledProviders.map(([, provider]) => provider)
+              .filter((provider): provider is AdminOAuthProviderConfig => !!provider)}
+            defaultSorting={[{ id: "id", desc: false }]}
+            defaultColumnFilters={[]}
+          />
           <Button onClick={() => {
             setDisabledProvidersDialogOpen(true);
           }}
