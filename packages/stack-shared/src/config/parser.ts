@@ -18,17 +18,17 @@ const configSchema = yupObject({
   g: configRecord(yupString()),
 });
 
-export function renderConfigs(configs: any[]) {
-  let renderedConfig: {} | yup.InferType<typeof configSchema> = {};
+export function mergeConfigs(configs: any[]) {
+  let mergedConfig: {} | yup.InferType<typeof configSchema> = {};
 
   for (const config of configs) {
-    renderedConfig = renderConfig(renderedConfig, config);
+    mergedConfig = mergeConfig(mergedConfig, config);
   }
 
-  return renderedConfig;
+  return mergedConfig;
 }
 
-export function renderConfig(
+export function mergeConfig(
   defaultConfig: any,
   overrideConfig: any
 ): yup.InferType<typeof configSchema> {
@@ -68,7 +68,7 @@ export function renderConfig(
   return configSchema.validateSync(newConfig);
 }
 
-// Example usage of renderConfig
+// Example usage of mergeConfig
 const defaultConfigExample = {
   a: {
     b: {
@@ -93,6 +93,6 @@ const overrideConfigExample = {
 // - signUpEnabled being set to false
 // - teamCreateDefaultSystemPermissions.manage_users being set to true
 // - permissionDefinitions.manage_team being removed
-const mergedConfig = renderConfig(defaultConfigExample, overrideConfigExample);
+const mergedConfig = mergeConfig(defaultConfigExample, overrideConfigExample);
 
 console.log(mergedConfig);
