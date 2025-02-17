@@ -1,94 +1,8 @@
 // Check out https://github.com/stack-auth/info/blob/main/eng-handbook/random-thoughts/config-json-format.md for more information on the config format
 
 import * as yup from "yup";
-import * as schemaFields from "../schema-fields";
-import { yupArray, yupBoolean, yupNumber, yupObject, yupRecord, yupString, yupTuple } from "../schema-fields";
+import { yupNumber, yupObject, yupTuple } from "../schema-fields";
 import { deepPlainClone } from "../utils/objects";
-
-type EnvMode = 'undefined' | 'optional' | 'defined';
-
-const configRecord = (schema: yup.AnySchema) => yupRecord(schema, (key) => key.match(/^[a-zA-Z0-9_]+$/) !== null);
-
-const envSchema = <T extends yup.AnySchema>(mode: EnvMode, schema: T): T => {
-  switch (mode) {
-    case 'undefined': {
-      return schema;
-    }
-    case 'optional': {
-      return schema.nullable().optional();
-    }
-    case 'defined': {
-      return schema;
-    }
-  }
-};
-
-export const getConfigSchema = (mode: EnvMode) => yupObject({
-  createTeamOnSignUp: yupBoolean().defined(),
-  clientTeamCreationEnabled: yupBoolean().defined(),
-  clientUserDeletionEnabled: yupBoolean().defined(),
-
-  signUpEnabled: yupBoolean().defined(),
-  credentialEnabled: yupBoolean().defined(),
-  magicLinkEnabled: yupBoolean().defined(),
-  passkeyEnabled: yupBoolean().defined(),
-
-  legacyGlobalJwtSigning: yupBoolean().defined(),
-
-  isProductionMode: envSchema(mode, yupBoolean().defined()),
-  allowLocalhost: envSchema(mode, yupBoolean().defined()),
-
-  // keys to the permissions/permission definitions are hex encoded ids.
-  teamCreateDefaultSystemPermissions: configRecord(yupObject({
-    id: yupString().defined(),
-  })).defined(),
-  teamMemberDefaultSystemPermissions: configRecord(yupObject({
-    id: yupString().defined(),
-  })).defined(),
-  permissionDefinitions: configRecord(yupObject({
-    id: yupString().defined(),
-    description: yupString().defined(),
-    containedPermissionIds: yupArray(yupString()).defined(),
-  })).defined(),
-
-  // keys to the oauth provider configs are the provider ids.
-  oauthProviderConfigs: configRecord(yupObject({
-    id: yupString().defined(),
-    type: envSchema(mode, yupString().oneOf(['shared', 'standard']).defined()),
-    clientId: envSchema(mode, schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientIdSchema, { type: 'standard', enabled: true })),
-    clientSecret: envSchema(mode, schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.oauthClientSecretSchema, { type: 'standard', enabled: true })),
-    facebookConfigId: envSchema(mode, schemaFields.oauthFacebookConfigIdSchema.optional()),
-    microsoftTenantId: envSchema(mode, schemaFields.oauthMicrosoftTenantIdSchema.optional()),
-  })).defined(),
-
-  emailConfig: envSchema(mode, yupObject({
-    type: schemaFields.emailTypeSchema.defined(),
-    host: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.emailHostSchema, {
-      type: 'standard',
-    }),
-    port: schemaFields.yupDefinedWhen(schemaFields.emailPortSchema, {
-      type: 'standard',
-    }),
-    username: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.emailUsernameSchema, {
-      type: 'standard',
-    }),
-    password: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.emailPasswordSchema, {
-      type: 'standard',
-    }),
-    sender_name: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.emailSenderNameSchema, {
-      type: 'standard',
-    }),
-    sender_email: schemaFields.yupDefinedAndNonEmptyWhen(schemaFields.emailSenderEmailSchema, {
-      type: 'standard',
-    }),
-  })),
-
-  // keys to the domains are the hex encoded domains
-  domains: envSchema(mode, yupRecord(yupObject({
-    domain: schemaFields.urlSchema.defined(),
-    handlerPath: schemaFields.handlerPathSchema.defined(),
-  }), (key) => key.match(/^[a-zA-Z0-9_]+$/) !== null)),
-});
 
 export function mergeConfigs(options: {
   configs: any[],
@@ -148,42 +62,102 @@ export function mergeConfig(options: {
   return options.configSchema.validateSync(newConfig);
 }
 
-const exampleConfigSchema = yupObject({
-  a: yupObject({
-    b: yupObject({
-      c: yupString().defined(),
-    }).defined(),
-  }).defined(),
-  d: yupTuple([yupString(), yupString()]).defined(),
-  e: yupBoolean().defined(),
-  f: yupNumber(),
-  g: configRecord(yupString()),
+import.meta.vitest?.test("add keys", ({ expect }) => {
+  const config = {};
+
+  const newConfig = mergeConfig({
+    configSchema: yupObject({
+      b: yupNumber().optional(),
+    }),
+    defaultConfig: config,
+    overrideConfig: { b: 456 },
+  });
+
+  expect(newConfig).toEqual({ b: 456 });
 });
 
-const defaultConfigExample = {
-  a: {
-    b: {
-      c: "default"
-    }
-  },
-  d: ["default1", "default2"],
-  e: true,
-  f: 123,
-  g: {},
-};
+import.meta.vitest?.test("replace keys", ({ expect }) => {
+  const config = {
+    a: 123,
+  };
 
-const overrideConfigExample = {
-  f: null,
-  'a.b.c': "override",
-  'd.1': "override1",
-  'e': false,
-  'g.h': "override2"
-};
+  const newConfig = mergeConfig({
+    configSchema: yupObject({
+      a: yupNumber().optional(),
+    }),
+    defaultConfig: config,
+    overrideConfig: { a: 456 },
+  });
 
-const mergedConfig = mergeConfig({
-  configSchema: exampleConfigSchema,
-  defaultConfig: defaultConfigExample,
-  overrideConfig: overrideConfigExample,
+  expect(newConfig).toEqual({ a: 456 });
 });
 
-console.log(mergedConfig);
+import.meta.vitest?.test("remove keys", ({ expect }) => {
+  const config = {
+    a: 123,
+  };
+
+  const newConfig = mergeConfig({
+    configSchema: yupObject({
+      a: yupNumber().optional(),
+    }),
+    defaultConfig: config,
+    overrideConfig: { a: null },
+  });
+
+  expect(newConfig).toEqual({});
+});
+
+import.meta.vitest?.test("add nested keys", ({ expect }) => {
+  const config = {
+    a: {},
+  };
+
+  const newConfig = mergeConfig({
+    configSchema: yupObject({
+      a: yupObject({
+        b: yupNumber().optional(),
+      }),
+    }),
+    defaultConfig: config,
+    overrideConfig: { "a.b": 456 },
+  });
+
+  expect(newConfig).toEqual({ a: { b: 456 } });
+});
+
+import.meta.vitest?.test("replace nested keys", ({ expect }) => {
+  const config = {
+    a: {
+      b: 123,
+    },
+  };
+
+  const newConfig = mergeConfig({
+    configSchema: yupObject({
+      a: yupObject({
+        b: yupNumber().defined(),
+      }),
+    }),
+    defaultConfig: config,
+    overrideConfig: { "a.b": 456 },
+  });
+
+  expect(newConfig).toEqual({ a: { b: 456 } });
+});
+
+import.meta.vitest?.test("replace nested tuple", ({ expect }) => {
+  const config = {
+    a: [123],
+  };
+
+  const newConfig = mergeConfig({
+    configSchema: yupObject({
+      a: yupTuple([yupNumber()]).defined(),
+    }),
+    defaultConfig: config,
+    overrideConfig: { 'a.0': 456 },
+  });
+
+  expect(newConfig).toEqual({ a: [456] });
+});
