@@ -2,12 +2,12 @@
 import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingIconButton, SettingSwitch } from "@/components/settings";
-import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
 import { AdminProject } from "@stackframe/stack";
 import { yupBoolean, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
+import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
 import { sharedProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { ActionDialog, Badge, InlineCode, Label, SimpleTooltip, Typography } from "@stackframe/stack-ui";
+import { ActionDialog, Badge, BrandIcons, InlineCode, Label, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import { useState } from "react";
 import * as yup from "yup";
 
@@ -205,6 +205,7 @@ export function ProviderSettingSwitch(props: Props) {
       <SettingSwitch
         label={
           <div className="flex items-center gap-2">
+            <BrandIcons.Mapping iconSize={20} provider={props.id} />
             {toTitle(props.id)}
             {isShared && enabled &&
               <SimpleTooltip tooltip={"Shared keys are automatically created by Stack, but show Stack's logo on the OAuth sign-in page.\n\nYou should replace these before you go into production."}>

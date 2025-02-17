@@ -140,8 +140,7 @@ export function X({ iconSize } : { iconSize: number} ) {
   );
 }
 
-// eslint-disable-next-line no-restricted-syntax
-function Mapping({
+export function Mapping({
   provider,
   iconSize,
 }: {
