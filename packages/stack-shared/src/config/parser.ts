@@ -15,6 +15,7 @@ const configSchema = yupObject({
   d: yupTuple([yupString(), yupString()]).defined(),
   e: yupBoolean().defined(),
   f: yupNumber(),
+  g: configRecord(yupString()),
 });
 
 export function renderConfigs(configs: any[]) {
@@ -76,14 +77,16 @@ const defaultConfigExample = {
   },
   d: ["default1", "default2"],
   e: true,
-  f: 123
+  f: 123,
+  g: {},
 };
 
 const overrideConfigExample = {
   f: null,
   'a.b.c': "override",
   'd.1': "override1",
-  'e': false
+  'e': false,
+  'g.h': "override2"
 };
 
 // This would result in:
