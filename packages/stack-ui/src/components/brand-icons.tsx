@@ -204,8 +204,12 @@ export function toTitle(id: string) {
 }
 
 export const BRAND_COLORS: Record<string, string> = {
+  github: '#24292e',
+  google: '#ffffff',
   facebook: '#0866FF',
+  microsoft: '#2F2F2F',
   spotify: '#1DD65F',
   discord: '#5661F5',
   linkedin: '#0A66C2',
+  x: '#000000',
 };
