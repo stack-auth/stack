@@ -202,3 +202,10 @@ export function toTitle(id: string) {
     x: "X",
   }[id];
 }
+
+export const BRAND_COLORS: Record<string, string> = {
+  facebook: '#0866FF',
+  spotify: '#1DD65F',
+  discord: '#5661F5',
+  linkedin: '#0A66C2',
+};

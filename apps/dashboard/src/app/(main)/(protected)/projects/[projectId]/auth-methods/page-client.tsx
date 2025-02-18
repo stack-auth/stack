@@ -4,8 +4,7 @@ import { SettingCard, SettingSwitch } from "@/components/settings";
 import { AdminOAuthProviderConfig, AuthPage, OAuthProviderConfig } from "@stackframe/stack";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { ActionDialog, Badge, BrandIcons, Button, DataTable, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, SimpleTooltip, Typography } from "@stackframe/stack-ui";
-import { ColumnDef } from "@tanstack/react-table";
+import { ActionDialog, Badge, BrandIcons, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import { AsteriskSquare, CirclePlus, Key, Link2, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
@@ -180,28 +179,6 @@ function OAuthActionCell({ config }: { config: AdminOAuthProviderConfig }) {
   );
 }
 
-const columns: ColumnDef<AdminOAuthProviderConfig>[] = [
-  {
-    accessorKey: 'id',
-    header: 'Provider',
-    cell: ({ row }) => {
-      return <div className="flex h-8 gap-4 mx-2 items-center">
-        <BrandIcons.Mapping iconSize={24} provider={row.original.id} />
-        <span>{BrandIcons.toTitle(row.original.id)}</span>
-        <SimpleTooltip tooltip={"Shared keys are automatically created by Stack, but show Stack's logo on the OAuth sign-in page.\n\nYou should replace these before you go into production."}>
-          <Badge variant="secondary">Shared keys</Badge>
-        </SimpleTooltip>
-      </div>;
-    },
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      return <OAuthActionCell config={row.original} />;
-    },
-  },
-];
-
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
@@ -269,14 +246,29 @@ export default function PageClient() {
           <CardSubtitle className="mt-2">
             SSO Providers
           </CardSubtitle>
-          <DataTable
-            columns={columns}
-            data={enabledProviders.map(([, provider]) => provider)
-              .filter((provider): provider is AdminOAuthProviderConfig => !!provider)}
-            defaultSorting={[{ id: "id", desc: false }]}
-            defaultColumnFilters={[]}
-            showDefaultToolbar={false}
-          />
+          {
+            enabledProviders.map(([, provider]) => provider)
+              .filter((provider): provider is AdminOAuthProviderConfig => !!provider).map(provider => {
+                return <div key={provider.id} className="flex h-10 mx-2 items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-md border border-gray-800"
+                      style={{
+                        backgroundColor: BrandIcons.BRAND_COLORS[provider.id] ?? undefined,
+                      }}
+                    >
+                      <BrandIcons.Mapping iconSize={24} provider={provider.id} />
+                    </div>
+                    <span className="text-sm font-semibold">{BrandIcons.toTitle(provider.id)}</span>
+                    <SimpleTooltip tooltip={"Shared keys are automatically created by Stack, but show Stack's logo on the OAuth sign-in page.\n\nYou should replace these before you go into production."}>
+                      <Badge variant="secondary">Shared keys</Badge>
+                    </SimpleTooltip>
+                  </div>
+
+                  <OAuthActionCell config={provider} />
+                </div>;
+              })
+
+          }
           <Button onClick={() => {
             setDisabledProvidersDialogOpen(true);
           }}
