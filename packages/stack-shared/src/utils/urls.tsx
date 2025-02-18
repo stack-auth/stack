@@ -13,6 +13,12 @@ export function isValidUrl(url: string) {
   return !!createUrlIfValid(url);
 }
 
+export function isValidHostname(hostname: string) {
+  const url = createUrlIfValid(`https://${hostname}`);
+  if (!url) return false;
+  return url.hostname === hostname;
+}
+
 export function isLocalhost(urlOrString: string | URL) {
   const url = createUrlIfValid(urlOrString);
   if (!url) return false;

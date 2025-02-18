@@ -66,7 +66,7 @@ it("should not allow signing up with an e-mail that already exists", async ({ ex
   });
   expect(res2).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 400,
+      "status": 409,
       "body": {
         "code": "USER_EMAIL_ALREADY_EXISTS",
         "error": "User email already exists.",
