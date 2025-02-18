@@ -4,7 +4,7 @@ import { SettingCard, SettingSwitch } from "@/components/settings";
 import { AdminOAuthProviderConfig, AuthPage, OAuthProviderConfig } from "@stackframe/stack";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { ActionDialog, Badge, BrandIcons, Button, DataTable, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, SimpleTooltip, Typography } from "@stackframe/stack-ui";
+import { ActionDialog, Badge, BrandIcons, Button, DataTable, DataTableManualPagination, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import { ColumnDef } from "@tanstack/react-table";
 import { CirclePlus, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
@@ -263,6 +263,7 @@ export default function PageClient() {
               .filter((provider): provider is AdminOAuthProviderConfig => !!provider)}
             defaultSorting={[{ id: "id", desc: false }]}
             defaultColumnFilters={[]}
+            showDefaultToolbar={false}
           />
           <Button onClick={() => {
             setDisabledProvidersDialogOpen(true);
