@@ -5,7 +5,6 @@ import type { AdminProject } from "@stackframe/stack";
 import { yupBoolean, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
 import { sharedProviders } from "@stackframe/stack-shared/dist/utils/oauth";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
 import { ActionDialog, Badge, BrandIcons, InlineCode, Label, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import clsx from "clsx";
 import { useState } from "react";
@@ -226,7 +225,9 @@ export function ProviderSettingSwitch(props: Props) {
         open={TurnOffProviderDialogOpen}
         onClose={() => setTurnOffProviderDialogOpen(false)}
         providerId={props.id}
-        onConfirm={() => runAsynchronously(updateProvider(false))}
+        onConfirm={async () => {
+          await updateProvider(false);
+        }}
       />
 
       <ProviderSettingDialog {...props} open={ProviderSettingDialogOpen} onClose={() => setProviderSettingDialogOpen(false)} />
