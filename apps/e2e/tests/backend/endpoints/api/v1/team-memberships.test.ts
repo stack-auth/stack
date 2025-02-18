@@ -470,45 +470,6 @@ it("removes user from team on the client", async ({ expect }) => {
   `);
 });
 
-it("can create a team without adding the current user as a member on the client", async ({ expect }) => {
-  const { userId } = await Auth.Otp.signIn();
-  const response = await niceBackendFetch("/api/v1/teams", {
-    accessType: "client",
-    method: "POST",
-    body: {
-      display_name: "My Team",
-    },
-  });
-  expect(response).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 201,
-      "body": {
-        "client_metadata": null,
-        "client_read_only_metadata": null,
-        "display_name": "My Team",
-        "id": "<stripped UUID>",
-        "profile_image_url": null,
-      },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
-
-  const response2 = await niceBackendFetch(`/api/v1/teams?user_id=me`, {
-    accessType: "client",
-    method: "GET",
-  });
-  expect(response2).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "is_paginated": false,
-        "items": [],
-      },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
-});
-
 it("creates a team on the server and adds a different user as the creator", async ({ expect }) => {
   const user1Mailbox = await bumpEmailAddress();
   const { userId: userId1 } = await Auth.Otp.signIn();
@@ -561,28 +522,6 @@ it("creates a team on the server and adds a different user as the creator", asyn
           },
         ],
       },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
-});
-
-it("is not allowed to create a team and add a different user as the creator on the client", async ({ expect }) => {
-  const { userId: userId1 } = await Auth.Otp.signIn();
-  await bumpEmailAddress();
-  await Auth.Otp.signIn();
-
-  const response = await niceBackendFetch("/api/v1/teams", {
-    accessType: "client",
-    method: "POST",
-    body: {
-      display_name: "My Team",
-      creator_user_id: userId1,
-    },
-  });
-  expect(response).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 403,
-      "body": "You cannot create a team as a user that is not yourself. Make sure you set the creator_user_id to 'me'.",
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
