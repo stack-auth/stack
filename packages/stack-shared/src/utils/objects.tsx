@@ -108,7 +108,7 @@ export function set<T extends object, K extends keyof T>(obj: T, key: K, value: 
 
 export function get<T extends object, K extends keyof T>(obj: T, key: K): T[K] {
   const descriptor = Object.getOwnPropertyDescriptor(obj, key);
-  if (!descriptor) throw new Error();
+  if (!descriptor) throw new StackAssertionError(`get: key ${String(key)} does not exist`, { obj, key });
   return descriptor.value;
 }
 
