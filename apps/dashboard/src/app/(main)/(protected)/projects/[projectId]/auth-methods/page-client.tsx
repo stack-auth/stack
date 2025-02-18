@@ -179,6 +179,8 @@ function OAuthActionCell({ config }: { config: AdminOAuthProviderConfig }) {
   );
 }
 
+const SHARED_TOOLTIP = "Shared keys are automatically created by Stack, but show Stack's logo on the OAuth sign-in page.\n\nYou should replace these before you go into production.";
+
 export default function PageClient() {
   const stackAdminApp = useAdminApp();
   const project = stackAdminApp.useProject();
@@ -259,9 +261,9 @@ export default function PageClient() {
                       <BrandIcons.Mapping iconSize={24} provider={provider.id} />
                     </div>
                     <span className="text-sm font-semibold">{BrandIcons.toTitle(provider.id)}</span>
-                    <SimpleTooltip tooltip={"Shared keys are automatically created by Stack, but show Stack's logo on the OAuth sign-in page.\n\nYou should replace these before you go into production."}>
+                    {provider.type === 'shared' && <SimpleTooltip tooltip={SHARED_TOOLTIP}>
                       <Badge variant="secondary">Shared keys</Badge>
-                    </SimpleTooltip>
+                    </SimpleTooltip>}
                   </div>
 
                   <OAuthActionCell config={provider} />
