@@ -69,40 +69,32 @@ export function getNodeEnvironment() {
 // ===================== Hack to use dynamic env vars in docker build =====================
 
 const _inlineEnvVars = {
-  NEXT_PUBLIC_STACK_API_URL: {
-    'default': process.env.NEXT_PUBLIC_STACK_API_URL,
-    'client': process.env.NEXT_PUBLIC_CLIENT_STACK_API_URL,
-    'server': process.env.NEXT_PUBLIC_SERVER_STACK_API_URL,
-  },
-  NEXT_PUBLIC_STACK_DASHBOARD_URL: {
-    'default': process.env.NEXT_PUBLIC_STACK_DASHBOARD_URL,
-    'client': process.env.NEXT_PUBLIC_CLIENT_STACK_DASHBOARD_URL,
-    'server': process.env.NEXT_PUBLIC_SERVER_STACK_DASHBOARD_URL,
-  },
-  NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
-  NEXT_PUBLIC_STACK_SVIX_SERVER_URL: process.env.NEXT_PUBLIC_STACK_SVIX_SERVER_URL,
-  NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  NEXT_PUBLIC_VERSION_ALERTER_SEVERE_ONLY: process.env.NEXT_PUBLIC_VERSION_ALERTER_SEVERE_ONLY,
-  NEXT_PUBLIC_STACK_EMULATOR_ENABLED: process.env.NEXT_PUBLIC_STACK_EMULATOR_ENABLED,
-  NEXT_PUBLIC_STACK_EMULATOR_PROJECT_ID: process.env.NEXT_PUBLIC_STACK_EMULATOR_PROJECT_ID,
-  NEXT_PUBLIC_STACK_PROJECT_ID: process.env.NEXT_PUBLIC_STACK_PROJECT_ID,
-  NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY,
-  NEXT_PUBLIC_STACK_URL: process.env.NEXT_PUBLIC_STACK_URL,
-  NEXT_PUBLIC_STACK_INBUCKET_WEB_URL: process.env.NEXT_PUBLIC_STACK_INBUCKET_WEB_URL,
+  NEXT_PUBLIC_STACK_API_URL: (process as any)?.env?.NEXT_PUBLIC_STACK_API_URL,
+  NEXT_PUBLIC_BROWSER_STACK_API_URL: (process as any)?.env?.NEXT_PUBLIC_BROWSER_STACK_API_URL,
+  NEXT_PUBLIC_SERVER_STACK_API_URL: (process as any)?.env?.NEXT_PUBLIC_SERVER_STACK_API_URL,
+  NEXT_PUBLIC_STACK_DASHBOARD_URL: (process as any)?.env?.NEXT_PUBLIC_STACK_DASHBOARD_URL,
+  NEXT_PUBLIC_BROWSER_STACK_DASHBOARD_URL: (process as any)?.env?.NEXT_PUBLIC_BROWSER_STACK_DASHBOARD_URL,
+  NEXT_PUBLIC_SERVER_STACK_DASHBOARD_URL: (process as any)?.env?.NEXT_PUBLIC_SERVER_STACK_DASHBOARD_URL,
+  NEXT_PUBLIC_POSTHOG_KEY: (process as any)?.env?.NEXT_PUBLIC_POSTHOG_KEY,
+  NEXT_PUBLIC_STACK_SVIX_SERVER_URL: (process as any)?.env?.NEXT_PUBLIC_STACK_SVIX_SERVER_URL,
+  NEXT_PUBLIC_SENTRY_DSN: (process as any)?.env?.NEXT_PUBLIC_SENTRY_DSN,
+  NEXT_PUBLIC_VERSION_ALERTER_SEVERE_ONLY: (process as any)?.env?.NEXT_PUBLIC_VERSION_ALERTER_SEVERE_ONLY,
+  NEXT_PUBLIC_STACK_EMULATOR_ENABLED: (process as any)?.env?.NEXT_PUBLIC_STACK_EMULATOR_ENABLED,
+  NEXT_PUBLIC_STACK_EMULATOR_PROJECT_ID: (process as any)?.env?.NEXT_PUBLIC_STACK_EMULATOR_PROJECT_ID,
+  NEXT_PUBLIC_STACK_PROJECT_ID: (process as any)?.env?.NEXT_PUBLIC_STACK_PROJECT_ID,
+  NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: (process as any)?.env?.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY,
+  NEXT_PUBLIC_STACK_URL: (process as any)?.env?.NEXT_PUBLIC_STACK_URL,
+  NEXT_PUBLIC_STACK_INBUCKET_WEB_URL: (process as any)?.env?.NEXT_PUBLIC_STACK_INBUCKET_WEB_URL,
 } as const;
 
 // This will be replaced with the actual env vars after a docker build
 const _postBuildEnvVars = {
-  NEXT_PUBLIC_STACK_API_URL: {
-    'default': 'STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_API_URL',
-    'client': 'STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_CLIENT_STACK_API_URL',
-    'server': 'STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_SERVER_STACK_API_URL',
-  },
-  NEXT_PUBLIC_STACK_DASHBOARD_URL: {
-    'default': 'STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_DASHBOARD_URL',
-    'client': 'STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_CLIENT_STACK_DASHBOARD_URL',
-    'server': 'STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_SERVER_STACK_DASHBOARD_URL',
-  },
+  NEXT_PUBLIC_STACK_API_URL: "STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_API_URL",
+  NEXT_PUBLIC_BROWSER_STACK_API_URL: "STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_BROWSER_STACK_API_URL",
+  NEXT_PUBLIC_SERVER_STACK_API_URL: "STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_SERVER_STACK_API_URL",
+  NEXT_PUBLIC_STACK_DASHBOARD_URL: "STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_DASHBOARD_URL",
+  NEXT_PUBLIC_BROWSER_STACK_DASHBOARD_URL: "STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_BROWSER_STACK_DASHBOARD_URL",
+  NEXT_PUBLIC_SERVER_STACK_DASHBOARD_URL: "STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_SERVER_STACK_DASHBOARD_URL",
   NEXT_PUBLIC_STACK_PROJECT_ID: "STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_PROJECT_ID",
   NEXT_PUBLIC_POSTHOG_KEY: "STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_POSTHOG_KEY",
   NEXT_PUBLIC_STACK_SVIX_SERVER_URL: "STACK_ENV_VAR_SENTINEL_NEXT_PUBLIC_STACK_SVIX_SERVER_URL",
@@ -124,32 +116,10 @@ export function getPublicEnvVar(name: keyof typeof _inlineEnvVars) {
 
   const value = _usePostBuildEnvVars.slice(0) === 'true' ? _postBuildEnvVars[name] : _inlineEnvVars[name];
 
-  // Helper function to check if a value is a sentinel
-  const isSentinel = (str?: string) => {
-    return _usePostBuildEnvVars.slice(0) === 'true' && str && str.startsWith('STACK_ENV_VAR_SENTINEL');
-  };
-
-  // If it's a dictionary with client/server values
-  if (typeof value === 'object') {
-    const preferredValue = isBrowserLike() ? value.client : value.server;
-
-    // Check for sentinel values
-    if (isSentinel(preferredValue)) {
-      return isSentinel(value.default) ? undefined : value.default;
-    }
-    if (isSentinel(value.default)) {
-      return undefined;
-    }
-
-    return preferredValue || value.default;
-  } else if (typeof value === 'string') {
-    if (isSentinel(value)) {
-      return undefined;
-    }
-    return value;
-  } else {
+  if (_usePostBuildEnvVars.slice(0) === 'true' && value && value.startsWith('STACK_ENV_VAR_SENTINEL')) {
     return undefined;
   }
+  return value;
 }
 
 // ======================================================================
