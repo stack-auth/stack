@@ -1,3 +1,4 @@
+import { wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { it } from "../../../../helpers";
 import { ApiKey, Auth, Project, Team, Webhook, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
 
@@ -797,24 +798,32 @@ it("should trigger team webhook when a team is created", async ({ expect }) => {
     }
   `);
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await wait(1000);
 
   const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
 
   expect(attemptResponse).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 201,
-      "body": {
-        "client_metadata": null,
-        "client_read_only_metadata": null,
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "display_name": "Test Team",
-        "id": "<stripped UUID>",
-        "profile_image_url": null,
-        "server_metadata": null,
+    [
+      {
+        "channels": null,
+        "eventId": null,
+        "eventType": "team.created",
+        "id": "<stripped svix message id>",
+        "payload": {
+          "data": {
+            "client_metadata": null,
+            "client_read_only_metadata": null,
+            "created_at_millis": <stripped field 'created_at_millis'>,
+            "display_name": "Test Team",
+            "id": "<stripped UUID>",
+            "profile_image_url": null,
+            "server_metadata": null,
+          },
+          "type": "team.created",
+        },
+        "timestamp": <stripped field 'timestamp'>,
       },
-      "headers": Headers { <some fields may have been hidden> },
-    }
+    ]
   `);
 });
 
@@ -842,7 +851,7 @@ it("should trigger team webhook when a team is updated", async ({ expect }) => {
 
   expect(updateTeamResponse.status).toBe(200);
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await wait(1000);
 
   const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
 
@@ -911,7 +920,7 @@ it("should trigger team webhook when a team is deleted", async ({ expect }) => {
 
   expect(deleteTeamResponse.status).toBe(200);
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await wait(1000);
 
   const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
 
