@@ -1,3 +1,4 @@
+import { wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { it } from "../../../../helpers";
 import { ApiKey, Auth, Project, Team, Webhook, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
 
@@ -123,9 +124,24 @@ it("does not allow creating teams on the client without a creator", async ({ exp
   });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 403,
-      "body": "You cannot create a team as a user that is not yourself. Make sure you set the creator_user_id to 'me'.",
-      "headers": Headers { <some fields may have been hidden> },
+      "status": 400,
+      "body": {
+        "code": "SCHEMA_ERROR",
+        "details": {
+          "message": deindent\`
+            Request validation failed on POST /api/v1/teams:
+              - body.creator_user_id must be defined
+          \`,
+        },
+        "error": deindent\`
+          Request validation failed on POST /api/v1/teams:
+            - body.creator_user_id must be defined
+        \`,
+      },
+      "headers": Headers {
+        "x-stack-known-error": "SCHEMA_ERROR",
+        <some fields may have been hidden>,
+      },
     }
   `);
 });
@@ -766,10 +782,23 @@ it("should trigger team webhook when a team is created", async ({ expect }) => {
       display_name: "Test Team"
     }
   });
+  expect(createTeamResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 201,
+      "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": "Test Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+        "server_metadata": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
 
-  expect(createTeamResponse.status).toBe(201);
-
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await wait(1000);
 
   const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
 
@@ -822,7 +851,7 @@ it("should trigger team webhook when a team is updated", async ({ expect }) => {
 
   expect(updateTeamResponse.status).toBe(200);
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await wait(1000);
 
   const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
 
@@ -891,7 +920,7 @@ it("should trigger team webhook when a team is deleted", async ({ expect }) => {
 
   expect(deleteTeamResponse.status).toBe(200);
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await wait(1000);
 
   const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
 
