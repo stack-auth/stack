@@ -137,8 +137,8 @@ async function checkAuthData(
     tenancyId: string,
     oldPrimaryEmail?: string | null,
     primaryEmail?: string | null,
-    primaryEmailVerified?: boolean,
-    primaryEmailAuthEnabled?: boolean,
+    primaryEmailVerified: boolean,
+    primaryEmailAuthEnabled: boolean,
   }
 ) {
   if (!data.primaryEmail && data.primaryEmailAuthEnabled) {
@@ -541,8 +541,8 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       await checkAuthData(tx, {
         tenancyId: auth.tenancy.id,
         primaryEmail: data.primary_email,
-        primaryEmailVerified: data.primary_email_verified,
-        primaryEmailAuthEnabled: data.primary_email_auth_enabled,
+        primaryEmailVerified: !!data.primary_email_verified,
+        primaryEmailAuthEnabled: !!data.primary_email_auth_enabled,
       });
 
       const newUser = await tx.projectUser.create({
@@ -792,12 +792,14 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
       const passwordAuth = oldUser.authMethods.find((m) => m.passwordAuthMethod)?.passwordAuthMethod;
       const passkeyAuth = oldUser.authMethods.find((m) => m.passkeyAuthMethod)?.passkeyAuthMethod;
 
+      const primaryEmailAuthEnabled = data.primary_email_auth_enabled || !!primaryEmailContactChannel?.usedForAuth;
+      const primaryEmailVerified = data.primary_email_verified || !!primaryEmailContactChannel?.isVerified;
       await checkAuthData(tx, {
         tenancyId: auth.tenancy.id,
         oldPrimaryEmail: primaryEmailContactChannel?.value,
         primaryEmail: data.primary_email || primaryEmailContactChannel?.value,
-        primaryEmailVerified: data.primary_email_verified || primaryEmailContactChannel?.isVerified,
-        primaryEmailAuthEnabled: data.primary_email_auth_enabled || !!primaryEmailContactChannel?.usedForAuth,
+        primaryEmailVerified,
+        primaryEmailAuthEnabled,
       });
 
       // if there is a new primary email
@@ -834,10 +836,11 @@ export const usersCrudHandlers = createLazyProxy(() => createCrudHandlers(usersC
               value: data.primary_email,
               isVerified: false,
               isPrimary: "TRUE",
+              usedForAuth: primaryEmailAuthEnabled ? BooleanTrue.TRUE : null,
             },
             update: {
               value: data.primary_email,
-              usedForAuth: data.primary_email_auth_enabled === undefined ? undefined : (data.primary_email_auth_enabled ? BooleanTrue.TRUE : null),
+              usedForAuth: primaryEmailAuthEnabled ? BooleanTrue.TRUE : null,
             }
           });
         }
