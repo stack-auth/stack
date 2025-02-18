@@ -25,7 +25,7 @@ it("should not be able to sign in again after signing in with OTP and disabling 
   });
   expect(response2).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 400,
+      "status": 409,
       "body": {
         "code": "USER_EMAIL_ALREADY_EXISTS",
         "error": "User email already exists.",
@@ -51,7 +51,7 @@ it("should not be able to sign in with OTP anymore after signing in with passwor
   });
   expect(response2).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 400,
+      "status": 409,
       "body": {
         "code": "USER_EMAIL_ALREADY_EXISTS",
         "error": "User email already exists.",

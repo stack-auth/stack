@@ -318,7 +318,7 @@ it("does not allow adding a user to a team if the user is already a member of th
   });
   expect(response1).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 400,
+      "status": 409,
       "body": {
         "code": "TEAM_MEMBERSHIP_ALREADY_EXISTS",
         "error": "Team membership already exists.",
