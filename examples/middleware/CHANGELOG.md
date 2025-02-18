@@ -1,5 +1,11 @@
 # @stackframe/example-middleware-demo
 
+## 2.7.15
+
+### Patch Changes
+
+- @stackframe/stack@2.7.15
+
 ## 2.7.14
 
 ### Patch Changes

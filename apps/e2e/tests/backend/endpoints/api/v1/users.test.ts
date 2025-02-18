@@ -1314,7 +1314,7 @@ describe("with server access", () => {
     });
     expect(response2).toMatchInlineSnapshot(`
       NiceResponse {
-        "status": 400,
+        "status": 409,
         "body": {
           "code": "USER_EMAIL_ALREADY_EXISTS",
           "error": "User email already exists.",
@@ -1849,7 +1849,7 @@ describe("with server access", () => {
     `);
   });
 
-  it("should not be able to update primary email to an email already in use for auth", async ({ expect }) => {
+  it("should not be able to update primary email to an email already in use for auth by someone else", async ({ expect }) => {
     await Auth.Otp.signIn();
     const primaryEmail = backendContext.value.mailbox.emailAddress;
     await Auth.signOut();
@@ -1864,7 +1864,7 @@ describe("with server access", () => {
     });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
-        "status": 400,
+        "status": 409,
         "body": {
           "code": "USER_EMAIL_ALREADY_EXISTS",
           "error": "User email already exists.",
@@ -1923,7 +1923,7 @@ describe("with server access", () => {
     });
     expect(response).toMatchInlineSnapshot(`
       NiceResponse {
-        "status": 400,
+        "status": 409,
         "body": {
           "code": "USER_EMAIL_ALREADY_EXISTS",
           "error": "User email already exists.",

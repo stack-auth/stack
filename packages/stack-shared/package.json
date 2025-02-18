@@ -1,12 +1,13 @@
 {
   "name": "@stackframe/stack-shared",
-  "version": "2.7.14",
+  "version": "2.7.15",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "type": "module",
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rimraf dist && rimraf node_modules",
     "dev": "tsc -w --preserveWatchOutput --declarationMap",
     "lint": "eslint --ext .tsx,.ts ."

@@ -6,12 +6,15 @@
     "declaration": true,
     "target": "ES2021",
     "lib": ["DOM", "DOM.Iterable", "ES2021", "ES2022.Error"],
-    "module": "ES2015",
+    "module": "ES2020",
     "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "noErrorTruncation": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": [
+      "vitest/importMeta"
+    ]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

@@ -11,7 +11,10 @@
     "esModuleInterop": true,
     "noErrorTruncation": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "types": [
+      "vitest/importMeta"
+    ]
   },
   "include": ["src/**/*", "next-env.d.ts"],
   "exclude": ["node_modules", "dist"]

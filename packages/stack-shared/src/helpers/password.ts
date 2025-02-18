@@ -1,7 +1,7 @@
 import { KnownErrors } from "..";
 
 const minLength = 8;
-const maxLength = 256;
+const maxLength = 70;
 
 export function getPasswordError(password: string): KnownErrors["PasswordRequirementsNotMet"] | undefined {
   if (password.length < minLength) {
