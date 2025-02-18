@@ -2974,6 +2974,8 @@ type ServerBaseUser = {
   setServerMetadata(metadata: any): Promise<void>,
   setClientReadOnlyMetadata(metadata: any): Promise<void>,
 
+  createTeam(data: Omit<ServerTeamCreateOptions, "creatorUserId">): Promise<ServerTeam>,
+
   // NEXT_LINE_PLATFORM react-like
   useContactChannels(): ServerContactChannel[],
   listContactChannels(): Promise<ServerContactChannel[]>,
@@ -3387,10 +3389,14 @@ export type ServerListUsersOptions = {
 };
 
 export type ServerTeamCreateOptions = TeamCreateOptions & {
-  creatorUserId: string,
+  creatorUserId?: string,
 };
 function serverTeamCreateOptionsToCrud(options: ServerTeamCreateOptions): TeamsCrud["Server"]["Create"] {
-  return teamCreateOptionsToCrud(options, options.creatorUserId);
+  return {
+    display_name: options.displayName,
+    profile_image_url: options.profileImageUrl,
+    creator_user_id: options.creatorUserId,
+  };
 }
 
 export type ServerTeamUpdateOptions = TeamUpdateOptions & {
