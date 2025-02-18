@@ -10,7 +10,7 @@ export function createUrlIfValid(...args: ConstructorParameters<typeof URL>) {
 }
 
 export function isValidUrl(url: string) {
-  return !!createUrlIfValid(url);
+  return createUrlIfValid(url) !== null;
 }
 
 export function isValidHostname(hostname: string) {
