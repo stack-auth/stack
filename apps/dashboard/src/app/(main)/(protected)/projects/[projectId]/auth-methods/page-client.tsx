@@ -4,9 +4,9 @@ import { SettingCard, SettingSwitch } from "@/components/settings";
 import { AdminOAuthProviderConfig, AuthPage, OAuthProviderConfig } from "@stackframe/stack";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { ActionDialog, Badge, BrandIcons, Button, DataTable, DataTableManualPagination, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, SimpleTooltip, Typography } from "@stackframe/stack-ui";
+import { ActionDialog, Badge, BrandIcons, Button, DataTable, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import { ColumnDef } from "@tanstack/react-table";
-import { CirclePlus, MoreHorizontal } from "lucide-react";
+import { AsteriskSquare, CirclePlus, Key, Link2, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
 import { PageLayout } from "../page-layout";
@@ -218,11 +218,13 @@ export default function PageClient() {
     <PageLayout title="Auth Methods" description="Configure how users can sign in to your app">
       <div className="flex gap-4">
         <SettingCard className="flex-grow">
-          <CardSubtitle>
-          Email-based
-          </CardSubtitle>
           <SettingSwitch
-            label="Email/password authentication"
+            label={
+              <div className="flex items-center gap-2">
+                <AsteriskSquare size={20} />
+                <span>Email/password authentication</span>
+              </div>
+            }
             checked={project.config.credentialEnabled}
             onCheckedChange={async (checked) => {
               await project.update({
@@ -233,7 +235,12 @@ export default function PageClient() {
             }}
           />
           <SettingSwitch
-            label="Magic link/OTP"
+            label={
+              <div className="flex items-center gap-2">
+                <Link2 size={20} />
+                <span>Magic link (Email OTP)</span>
+              </div>
+            }
             checked={project.config.magicLinkEnabled}
             onCheckedChange={async (checked) => {
               await project.update({
@@ -244,7 +251,12 @@ export default function PageClient() {
             }}
           />
           <SettingSwitch
-            label="Passkey"
+            label={
+              <div className="flex items-center gap-2">
+                <Key size={20} />
+                <span>Passkey</span>
+              </div>
+            }
             checked={project.config.passkeyEnabled}
             onCheckedChange={async (checked) => {
               await project.update({
