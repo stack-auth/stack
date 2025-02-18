@@ -582,7 +582,7 @@ it("is not allowed to create a team and add a different user as the creator on t
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
       "status": 403,
-      "body": "You cannot add a user to the team as the creator that is not yourself on the client.",
+      "body": "You cannot create a team as a user that is not yourself. Make sure you set the creator_user_id to 'me'.",
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
