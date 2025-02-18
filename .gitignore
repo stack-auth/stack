@@ -130,5 +130,3 @@ packages/stack/*
 !packages/react/package.json
 !packages/next/package.json
 !packages/stack/package.json
-
-.env
