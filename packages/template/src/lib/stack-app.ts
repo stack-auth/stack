@@ -1036,10 +1036,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       },
       // END_PLATFORM react-like
       async createTeam(data: TeamCreateOptions) {
-        const crud = await app._interface.createClientTeam({
-          ...teamCreateOptionsToCrud(data),
-          creator_user_id: 'me',
-        }, session);
+        const crud = await app._interface.createClientTeam(teamCreateOptionsToCrud(data, 'me'), session);
         await app._currentUserTeamsCache.refresh([session]);
         return app._clientTeamFromCrud(crud, session);
       },
@@ -1996,11 +1993,11 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
         return useMemo(() => teams.map((t) => app._serverTeamFromCrud(t)), [teams]);
       },
       // END_PLATFORM react-like
-      createTeam: async (data: ServerTeamCreateOptions) => {
-        const team =  await app._interface.createServerTeam({
-          ...serverTeamCreateOptionsToCrud(data),
-          creator_user_id: crud.id,
-        });
+      createTeam: async (data: Omit<ServerTeamCreateOptions, "creatorUserId">) => {
+        const team = await app._interface.createServerTeam(serverTeamCreateOptionsToCrud({
+          creatorUserId: crud.id,
+          ...data,
+        }));
         await app._serverTeamsCache.refresh([undefined]);
         return app._serverTeamFromCrud(team);
       },
@@ -3352,10 +3349,11 @@ export type TeamCreateOptions = {
   displayName: string,
   profileImageUrl?: string,
 }
-function teamCreateOptionsToCrud(options: TeamCreateOptions): TeamsCrud["Client"]["Create"] {
+function teamCreateOptionsToCrud(options: TeamCreateOptions, creatorUserId: string): TeamsCrud["Client"]["Create"] {
   return {
     display_name: options.displayName,
     profile_image_url: options.profileImageUrl,
+    creator_user_id: creatorUserId,
   };
 }
 
@@ -3388,9 +3386,11 @@ export type ServerListUsersOptions = {
   query?: string,
 };
 
-export type ServerTeamCreateOptions = TeamCreateOptions;
+export type ServerTeamCreateOptions = TeamCreateOptions & {
+  creatorUserId: string,
+};
 function serverTeamCreateOptionsToCrud(options: ServerTeamCreateOptions): TeamsCrud["Server"]["Create"] {
-  return teamCreateOptionsToCrud(options);
+  return teamCreateOptionsToCrud(options, options.creatorUserId);
 }
 
 export type ServerTeamUpdateOptions = TeamUpdateOptions & {
