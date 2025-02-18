@@ -160,7 +160,7 @@ export function ProviderSettingDialog(props: Props & { open: boolean, onClose: (
 export function TurnOffProviderDialog(props: {
   open: boolean,
   onClose: () => void,
-  onConfirm: () => void,
+  onConfirm: () => Promise<void>,
   providerId: string,
 }) {
   return (
@@ -172,7 +172,7 @@ export function TurnOffProviderDialog(props: {
       okButton={{
         label: `Disable ${toTitle(props.providerId)}`,
         onClick: async () => {
-          props.onConfirm();
+          await props.onConfirm();
         },
       }}
       cancelButton

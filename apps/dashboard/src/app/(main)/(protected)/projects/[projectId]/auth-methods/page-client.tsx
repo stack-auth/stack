@@ -3,8 +3,7 @@
 import { SettingCard, SettingSwitch } from "@/components/settings";
 import { AdminOAuthProviderConfig, AuthPage, OAuthProviderConfig } from "@stackframe/stack";
 import { allProviders } from "@stackframe/stack-shared/dist/utils/oauth";
-import { runAsynchronously } from "@stackframe/stack-shared/dist/utils/promises";
-import { ActionDialog, Badge, BrandIcons, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, SimpleTooltip, Typography } from "@stackframe/stack-ui";
+import { ActionDialog, Badge, BrandIcons, BrowserFrame, Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Input, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import { AsteriskSquare, CirclePlus, Key, Link2, MoreHorizontal } from "lucide-react";
 import { useState } from "react";
 import { CardSubtitle } from "../../../../../../../../../packages/stack-ui/dist/components/ui/card";
@@ -88,8 +87,15 @@ function DisabledProvidersDialog({ open, onOpenChange }: { open?: boolean, onOpe
       return !provider?.enabled;
     });
 
-  return <ActionDialog title="Add New Auth Method" open={open} onOpenChange={onOpenChange}>
-    <Input className="mb-4" placeholder="Search for a provider..."
+  return <ActionDialog
+    title="Add New Auth Method"
+    open={open}
+    onOpenChange={onOpenChange}
+    cancelButton
+  >
+    <Input
+      className="mb-4"
+      placeholder="Search for a provider..."
       value={providerSearch}
       onChange={(e) => setProviderSearch(e.target.value)}
     />
@@ -113,9 +119,7 @@ function DisabledProvidersDialog({ open, onOpenChange }: { open?: boolean, onOpe
           />;
         })}
 
-      {
-        filteredProviders.length === 0 && <Typography variant="secondary">No providers found.</Typography>
-      }
+      { filteredProviders.length === 0 && <Typography variant="secondary">No providers found.</Typography> }
     </div>
 
   </ActionDialog>;
@@ -133,7 +137,7 @@ function OAuthActionCell({ config }: { config: AdminOAuthProviderConfig }) {
     const alreadyExist = oauthProviders.some((p) => p.id === config.id);
     const newOAuthProviders = oauthProviders.map((p) => p.id === config.id ? provider : p);
     if (!alreadyExist) {
-          newOAuthProviders.push(provider);
+      newOAuthProviders.push(provider);
     }
     await project.update({
       config: { oauthProviders: newOAuthProviders },
@@ -146,13 +150,13 @@ function OAuthActionCell({ config }: { config: AdminOAuthProviderConfig }) {
         open={turnOffProviderDialogOpen}
         onClose={() => setTurnOffProviderDialogOpen(false)}
         providerId={config.id}
-        onConfirm={() => runAsynchronously(async () => {
+        onConfirm={async () => {
           await updateProvider({
             ...config,
             id: config.id,
             enabled: false
           });
-        })}
+        }}
       />
       <ProviderSettingDialog
         id={config.id}
@@ -168,12 +172,15 @@ function OAuthActionCell({ config }: { config: AdminOAuthProviderConfig }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => {
-              setProviderSettingDialogOpen(true);
-        }}>Configure</DropdownMenuItem>
-        <DropdownMenuItem className="text-red-400" onClick={() => {
-              setTurnOffProviderDialogOpen(true);
-        }}>Disable Provider</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => { setProviderSettingDialogOpen(true); }}>
+          Configure
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="text-red-400"
+          onClick={() => { setTurnOffProviderDialogOpen(true); }}
+        >
+          Disable Provider
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -200,7 +207,7 @@ export default function PageClient() {
           <SettingSwitch
             label={
               <div className="flex items-center gap-2">
-                <AsteriskSquare size={20} />
+                <AsteriskSquare size={20} aria-hidden="true" />
                 <span>Email/password authentication</span>
               </div>
             }
@@ -248,54 +255,67 @@ export default function PageClient() {
           <CardSubtitle className="mt-2">
             SSO Providers
           </CardSubtitle>
-          {
-            enabledProviders.map(([, provider]) => provider)
-              .filter((provider): provider is AdminOAuthProviderConfig => !!provider).map(provider => {
-                return <div key={provider.id} className="flex h-10 mx-2 items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center w-12 h-12 rounded-md border border-gray-800"
-                      style={{
-                        backgroundColor: BrandIcons.BRAND_COLORS[provider.id] ?? undefined,
-                      }}
-                    >
-                      <BrandIcons.Mapping iconSize={24} provider={provider.id} />
-                    </div>
-                    <span className="text-sm font-semibold">{BrandIcons.toTitle(provider.id)}</span>
-                    {provider.type === 'shared' && <SimpleTooltip tooltip={SHARED_TOOLTIP}>
-                      <Badge variant="secondary">Shared keys</Badge>
-                    </SimpleTooltip>}
+
+          { enabledProviders.map(([, provider]) => provider)
+            .filter((provider): provider is AdminOAuthProviderConfig => !!provider).map(provider => {
+              return <div key={provider.id} className="flex h-10 items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="flex items-center justify-center w-12 h-12 rounded-md border border-gray-800"
+                    style={{ backgroundColor: BrandIcons.BRAND_COLORS[provider.id] ?? undefined }}
+                  >
+                    <BrandIcons.Mapping iconSize={24} provider={provider.id} />
                   </div>
+                  <span className="text-sm font-semibold">{BrandIcons.toTitle(provider.id)}</span>
+                  {provider.type === 'shared' && <SimpleTooltip tooltip={SHARED_TOOLTIP}>
+                    <Badge variant="secondary">Shared keys</Badge>
+                  </SimpleTooltip>}
+                </div>
 
-                  <OAuthActionCell config={provider} />
-                </div>;
-              })
+                <OAuthActionCell config={provider} />
+              </div>;
+            }) }
 
-          }
-          <Button onClick={() => {
-            setDisabledProvidersDialogOpen(true);
-          }}
-          variant="ghost"
+          <Button
+            className="mt-4"
+            onClick={() => {
+              setDisabledProvidersDialogOpen(true);
+            }}
+            variant="secondary"
           >
             <CirclePlus size={16}/>
-            <span className="ml-2">Add more SSO Providers</span>
+            <span className="ml-2">Add SSO providers</span>
           </Button>
-          <DisabledProvidersDialog open={disabledProvidersDialogOpen} onOpenChange={(x) => {
-            setDisabledProvidersDialogOpen(x);
-          }} />
+          <DisabledProvidersDialog
+            open={disabledProvidersDialogOpen}
+            onOpenChange={(x) => {
+              setDisabledProvidersDialogOpen(x);
+            }}
+          />
         </SettingCard>
         <SettingCard className="hidden lg:flex">
-          <div className="flex flex-col align-middle px-8">
-            <AuthPage
-              type="sign-in"
-              mockProject={{
-                config: {
-                  ...project.config,
-                  oauthProviders: enabledProviders
-                    .map(([, provider]) => provider)
-                    .filter((provider): provider is AdminOAuthProviderConfig => !!provider),
-                },
-              }}
-            />
+          <div className="self-stretch py-4 px-4 min-w-[400px] items-center">
+            <div className="w-full">
+              <BrowserFrame url="your-website.com/signin">
+                <div className="flex flex-col items-center justify-center min-h-[400px]">
+                  <div className='w-full sm:max-w-xs m-auto scale-90 pointer-events-none' inert=''>
+                    {/* a transparent cover that prevents the card from being clicked, even when pointer-events is overridden */}
+                    <div className="absolute inset-0 bg-transparent z-10"></div>
+                    <AuthPage
+                      type="sign-in"
+                      mockProject={{
+                        config: {
+                          ...project.config,
+                          oauthProviders: enabledProviders
+                            .map(([, provider]) => provider)
+                            .filter((provider): provider is AdminOAuthProviderConfig => !!provider),
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              </BrowserFrame>
+            </div>
           </div>
         </SettingCard>
       </div>
