@@ -1,5 +1,6 @@
 import { StackServerApp } from '@stackframe/stack';
 import { getPublicEnvVar } from "@stackframe/stack-shared/dist/utils/env";
+import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import './polyfills';
 
 if (getPublicEnvVar("NEXT_PUBLIC_STACK_PROJECT_ID") !== "internal") {
@@ -8,10 +9,10 @@ if (getPublicEnvVar("NEXT_PUBLIC_STACK_PROJECT_ID") !== "internal") {
 
 export const stackServerApp = new StackServerApp<"nextjs-cookie", true, 'internal'>({
   baseUrl: {
-    browser: getPublicEnvVar("NEXT_PUBLIC_BROWSER_STACK_API_URL"),
-    server: getPublicEnvVar("NEXT_PUBLIC_SERVER_STACK_API_URL"),
+    browser: getPublicEnvVar("NEXT_PUBLIC_BROWSER_STACK_API_URL") ?? throwErr("NEXT_PUBLIC_BROWSER_STACK_API_URL is not set"),
+    server: getPublicEnvVar("NEXT_PUBLIC_SERVER_STACK_API_URL") ?? throwErr("NEXT_PUBLIC_SERVER_STACK_API_URL is not set"),
   },
-  projectId: getPublicEnvVar("NEXT_PUBLIC_STACK_PROJECT_ID"),
+  projectId: "internal",
   publishableClientKey: getPublicEnvVar("NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY"),
   tokenStore: "nextjs-cookie",
   urls: {
