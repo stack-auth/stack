@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "dotenv -e .env.development -- tsx index.ts",
-    "dev": "vite"
+    "start": "dotenv -e .env.development -- tsx node.ts",
+    "dev": "vite --port 8119"
   },
   "keywords": [],
   "author": "",

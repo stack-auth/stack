@@ -43,6 +43,11 @@ import * as sc from "@stackframe/stack-sc";
 isReactServer = sc.isReactServer;
 // END_PLATFORM
 
+// This is a hack to use the env vars in vite/browser environments
+if (typeof process === "undefined") {
+  (globalThis as any).process = { env: {} };
+}
+
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
 
@@ -120,19 +125,19 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
 }
 
 function getDefaultProjectId() {
-  return (process as any)?.env?.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
+  return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
 }
 
 function getDefaultPublishableClientKey() {
-  return (process as any)?.env?.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
+  return process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
 }
 
 function getDefaultSecretServerKey() {
-  return (process as any)?.env?.STACK_SECRET_SERVER_KEY || throwErr(new Error("No secret server key provided. Please copy your key from the Stack dashboard and put your it in the STACK_SECRET_SERVER_KEY environment variable."));
+  return process.env.STACK_SECRET_SERVER_KEY || throwErr(new Error("No secret server key provided. Please copy your key from the Stack dashboard and put your it in the STACK_SECRET_SERVER_KEY environment variable."));
 }
 
 function getDefaultSuperSecretAdminKey() {
-  return (process as any)?.env?.STACK_SUPER_SECRET_ADMIN_KEY || throwErr(new Error("No super secret admin key provided. Please copy your key from the Stack dashboard and put it in the STACK_SUPER_SECRET_ADMIN_KEY environment variable."));
+  return process.env.STACK_SUPER_SECRET_ADMIN_KEY || throwErr(new Error("No super secret admin key provided. Please copy your key from the Stack dashboard and put it in the STACK_SUPER_SECRET_ADMIN_KEY environment variable."));
 }
 
 /**
@@ -167,11 +172,11 @@ function getDefaultBaseUrl(userSpecifiedBaseUrl: string | { browser: string, ser
     }
   } else {
     if (isBrowserLike()) {
-      url = (process as any)?.env?.NEXT_PUBLIC_BROWSER_STACK_API_URL;
+      url = process.env.NEXT_PUBLIC_BROWSER_STACK_API_URL;
     } else {
-      url = (process as any)?.env?.NEXT_PUBLIC_SERVER_STACK_API_URL;
+      url = process.env.NEXT_PUBLIC_SERVER_STACK_API_URL;
     }
-    url = url || (process as any)?.env?.NEXT_PUBLIC_STACK_API_URL || (process as any)?.env?.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
+    url = url || process.env.NEXT_PUBLIC_STACK_API_URL || process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
   }
 
   return url.endsWith('/') ? url.slice(0, -1) : url;
@@ -511,7 +516,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
     if (!_options.noAutomaticPrefetch) {
       numberOfAppsCreated++;
       if (numberOfAppsCreated > 10) {
-        ((process as any)?.env?.NODE_ENV === "development" ? console.log : console.warn)(`You have created more than 10 Stack apps with automatic pre-fetch enabled (${numberOfAppsCreated}). This is usually a sign of a memory leak, but can sometimes be caused by hot reload of your tech stack. If you are getting this error and it is not caused by hot reload, make sure to minimize the number of Stack apps per page (usually, one per project). (If it is caused by hot reload and does not occur in production, you can safely ignore it.)`);
+        (process.env.NODE_ENV === "development" ? console.log : console.warn)(`You have created more than 10 Stack apps with automatic pre-fetch enabled (${numberOfAppsCreated}). This is usually a sign of a memory leak, but can sometimes be caused by hot reload of your tech stack. If you are getting this error and it is not caused by hot reload, make sure to minimize the number of Stack apps per page (usually, one per project). (If it is caused by hot reload and does not occur in production, you can safely ignore it.)`);
       }
     }
   }
