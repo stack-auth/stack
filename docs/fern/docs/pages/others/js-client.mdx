@@ -1,0 +1,227 @@
+---
+slug: others/js-client
+subtitle: Vanilla JavaScript client library
+---
+
+Stack Auth provides a vanilla JavaScript/TypeScript client library that works with any JavaScript framework in both frontend and backend environments.
+
+Key differences between the JavaScript and Next.js client libraries:
+- No built-in UI components or default pages - you'll need to implement your own UI and callback handlers
+- No React hooks functionality (useUser(), useStackApp(), etc.)
+
+## Installation
+
+```bash
+npm install @stackframe/js
+```
+
+## Backend
+
+### Initialization
+
+```typescript
+import { StackServerApp } from "@stackframe/js";
+
+const stackServerApp = new StackServerApp({
+  projectId: "your-project-id-from-dashboard",
+  publishableClientKey: "your-publishable-client-key-from-dashboard",
+  secretServerKey: "your-secret-server-key-from-dashboard",
+  tokenStore: "memory",
+});
+```
+
+### Example usage
+
+```typescript
+const user = await stackServerApp.getUser("user_id");
+
+await user.update({
+  displayName: "New Display Name",
+});
+
+const team = await stackServerApp.createTeam({
+  name: "New Team",
+});
+
+await team.addUser(user.id);
+```
+
+## Frontend
+
+### Initialization
+
+```typescript
+import { StackClientApp } from "@stackframe/js";
+
+const stackClientApp = new StackClientApp({
+  projectId: "your-project-id-from-dashboard",
+  publishableClientKey: "your-publishable-client-key-from-dashboard",
+  tokenStore: "cookie",
+});
+```
+
+### Example usage
+
+```typescript
+await stackClientApp.signInWithCredential({
+  email: "test@example.com",
+  password: "password123",
+});
+
+const user = await stackClientApp.getUser();
+
+await user.update({
+  displayName: "New Display Name",
+});
+
+await user.signOut();
+```
+
+## HTML Example
+
+Here is how to use Stack Auth with Vite, other frameworks work with the same principle. Below shows a simple sign in/sign up example. The full example is available [here](https://github.com/stack-auth/stack/tree/main/examples/js-example).
+
+```html title="index.html"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stack Auth JS Example</title>
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Stack Auth JS Example</h1>
+  
+  <div id="loginForm">
+    <h2>Sign In</h2>
+    <input type="email" id="emailInput" placeholder="Email" />
+    <input type="password" id="passwordInput" placeholder="Password" />
+    <button id="signIn">Sign In</button>
+    <div>
+      <a href="#" id="showSignUp">Create account</a>
+    </div>
+  </div>
+
+  <div id="signUpForm" class="hidden">
+    <h2>Sign Up</h2>
+    <input type="email" id="signUpEmail" placeholder="Email" />
+    <input type="password" id="signUpPassword" placeholder="Password" />
+    <button id="signUp">Sign Up</button>
+    <div>
+      <a href="#" id="showSignIn">Back to sign in</a>
+    </div>
+  </div>
+
+  <div id="userInfo" class="hidden">
+    <h2>User Information</h2>
+    <p>Email: <span id="userEmail"></span></p>
+    <button id="signOut">Sign Out</button>
+  </div>
+
+  <script type="module" src="/browser.ts"></script>
+</body>
+</html>
+```
+
+```typescript title="browser.ts"
+import { StackClientApp } from "@stackframe/js";
+
+const stackClientApp = new StackClientApp({
+  baseUrl: import.meta.env.VITE_STACK_API_URL,
+  projectId: import.meta.env.VITE_STACK_PROJECT_ID,
+  publishableClientKey: import.meta.env.VITE_STACK_PUBLISHABLE_CLIENT_KEY,
+  tokenStore: "cookie",
+});
+
+const updateUIState = (user: any | null) => {
+  const loginForm = document.getElementById("loginForm");
+  const signUpForm = document.getElementById("signUpForm");
+  const userInfo = document.getElementById("userInfo");
+  const userEmailSpan = document.getElementById("userEmail");
+
+  if (user) {
+    loginForm?.classList.add("hidden");
+    signUpForm?.classList.add("hidden");
+    userInfo?.classList.remove("hidden");
+    if (userEmailSpan) userEmailSpan.textContent = user.primaryEmail || "";
+  } else {
+    loginForm?.classList.remove("hidden");
+    signUpForm?.classList.add("hidden");
+    userInfo?.classList.add("hidden");
+  }
+};
+
+stackClientApp.getUser().then(updateUIState);
+
+document.getElementById("showSignUp")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  document.getElementById("loginForm")?.classList.add("hidden");
+  document.getElementById("signUpForm")?.classList.remove("hidden");
+});
+
+document.getElementById("showSignIn")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  document.getElementById("loginForm")?.classList.remove("hidden");
+  document.getElementById("signUpForm")?.classList.add("hidden");
+});
+
+document.getElementById("signIn")?.addEventListener("click", async () => {
+  const emailInput = document.getElementById("emailInput") as HTMLInputElement;
+  const passwordInput = document.getElementById("passwordInput") as HTMLInputElement;
+
+  const result = await stackClientApp.signInWithCredential({
+    email: emailInput.value,
+    password: passwordInput.value,
+  });
+
+  const user = await stackClientApp.getUser();
+  updateUIState(user);
+  passwordInput.value = "";
+
+  if (result.status === "error") {
+    alert("Sign in failed. Please check your email and password and try again.");
+  }
+});
+
+document.getElementById("signUp")?.addEventListener("click", async () => {
+  const emailInput = document.getElementById("signUpEmail") as HTMLInputElement;
+  const passwordInput = document.getElementById("signUpPassword") as HTMLInputElement;
+
+  const result = await stackClientApp.signUpWithCredential({
+    email: emailInput.value,
+    password: passwordInput.value,
+  });
+
+  if (result.status === "error") {
+    alert("Sign up failed. Please try again.");
+    return;
+  }
+
+  const signInResult = await stackClientApp.signInWithCredential({
+    email: emailInput.value,
+    password: passwordInput.value,
+  });
+
+  const user = await stackClientApp.getUser();
+  updateUIState(user);
+  passwordInput.value = "";
+
+  if (signInResult.status === "error") {
+    alert("Account created but sign in failed. Please sign in manually.");
+  }
+});
+
+document.getElementById("signOut")?.addEventListener("click", async () => {
+  const user = await stackClientApp.getUser();
+  if (user) {
+    await user.signOut();
+    updateUIState(null);
+  }
+});
+
+```
