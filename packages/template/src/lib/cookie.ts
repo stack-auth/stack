@@ -1,3 +1,4 @@
+// NEXT_LINE_PLATFORM react-like
 import { cookies as rscCookies, headers as rscHeaders } from '@stackframe/stack-sc/force-react-server';
 import { isBrowserLike } from '@stackframe/stack-shared/dist/utils/env';
 import { StackAssertionError } from '@stackframe/stack-shared/dist/utils/errors';
@@ -39,10 +40,14 @@ export async function createCookieHelper(): Promise<CookieHelper> {
   if (isBrowserLike()) {
     return createBrowserCookieHelper();
   } else {
+    // IF_PLATFORM react-like
     return createNextCookieHelper(
       await rscCookies(),
       await rscHeaders(),
     );
+    // ELSE_PLATFORM
+    return await createEmptyCookieHelper();
+    // END_PLATFORM
   }
 }
 
@@ -67,6 +72,7 @@ function handleCookieError(e: unknown, options: DeleteCookieOptions | SetCookieO
   }
 }
 
+// IF_PLATFORM react-like
 function createNextCookieHelper(
   rscCookiesAwaited: Awaited<ReturnType<typeof rscCookies>>,
   rscHeadersAwaited: Awaited<ReturnType<typeof rscHeaders>>,
@@ -136,6 +142,7 @@ function createNextCookieHelper(
   };
   return cookieHelper;
 }
+// END_PLATFORM
 
 export function getCookieClient(name: string): string | null {
   ensureClient();

@@ -1,9 +1,9 @@
 "use client";
 import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
-import type { AdminProject } from "@stackframe/stack";
+import { getPublicEnvVar } from '@/lib/env';
+import { AdminProject } from "@stackframe/stack";
 import { yupBoolean, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
-import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
 import { sharedProviders } from "@stackframe/stack-shared/dist/utils/oauth";
 import { ActionDialog, Badge, BrandIcons, InlineCode, Label, SimpleTooltip, Typography } from "@stackframe/stack-ui";
 import clsx from "clsx";

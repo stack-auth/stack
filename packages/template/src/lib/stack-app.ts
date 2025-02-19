@@ -1,5 +1,4 @@
 import { WebAuthnError, startAuthentication, startRegistration } from "@simplewebauthn/browser";
-import { isReactServer } from "@stackframe/stack-sc";
 import { KnownErrors, StackAdminInterface, StackClientInterface, StackServerInterface } from "@stackframe/stack-shared";
 import { ProductionModeError, getProductionModeErrors } from "@stackframe/stack-shared/dist/helpers/production-mode";
 import { ApiKeyCreateCrudRequest, ApiKeyCreateCrudResponse } from "@stackframe/stack-shared/dist/interface/adminInterface";
@@ -17,7 +16,7 @@ import { InternalSession } from "@stackframe/stack-shared/dist/sessions";
 import { encodeBase64 } from "@stackframe/stack-shared/dist/utils/bytes";
 import { AsyncCache } from "@stackframe/stack-shared/dist/utils/caches";
 import { scrambleDuringCompileTime } from "@stackframe/stack-shared/dist/utils/compile-time";
-import { getPublicEnvVar, isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
+import { isBrowserLike } from "@stackframe/stack-shared/dist/utils/env";
 import { StackAssertionError, concatStacktraces, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { ReadonlyJson } from "@stackframe/stack-shared/dist/utils/json";
 import { DependenciesMap } from "@stackframe/stack-shared/dist/utils/maps";
@@ -37,10 +36,21 @@ import React, { useCallback, useMemo } from "react";
 import { constructRedirectUrl } from "../utils/url";
 import { addNewOAuthProviderOrScope, callOAuthCallback, signInWithOAuth } from "./auth";
 import { CookieHelper, createBrowserCookieHelper, createCookieHelper, createEmptyCookieHelper, deleteCookieClient, getCookieClient, setOrDeleteCookie, setOrDeleteCookieClient } from "./cookie";
+
+let isReactServer = false;
+// IF_PLATFORM react-like
+import * as sc from "@stackframe/stack-sc";
+isReactServer = sc.isReactServer;
+// END_PLATFORM
+
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
 
 const clientVersion = process.env.STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION ?? throwErr("Missing STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION. This should be a compile-time variable set by Stack's build system.");
+
+// hack to make sure process is defined in non-node environments
+// NEXT_LINE_PLATFORM js
+process = (globalThis as any).process ?? { env: {} };
 
 type RequestLike = {
   headers: {
@@ -114,11 +124,11 @@ function getUrls(partial: Partial<HandlerUrls>): HandlerUrls {
 }
 
 function getDefaultProjectId() {
-  return getPublicEnvVar("NEXT_PUBLIC_STACK_PROJECT_ID") || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
+  return process.env.NEXT_PUBLIC_STACK_PROJECT_ID || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a project ID. Please create a project on the Stack dashboard at https://app.stack-auth.com and put it in the NEXT_PUBLIC_STACK_PROJECT_ID environment variable."));
 }
 
 function getDefaultPublishableClientKey() {
-  return getPublicEnvVar("NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY") || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
+  return process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY || throwErr(new Error("Welcome to Stack Auth! It seems that you haven't provided a publishable client key. Please create an API key for your project on the Stack dashboard at https://app.stack-auth.com and copy your publishable client key into the NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY environment variable."));
 }
 
 function getDefaultSecretServerKey() {
@@ -129,13 +139,50 @@ function getDefaultSuperSecretAdminKey() {
   return process.env.STACK_SUPER_SECRET_ADMIN_KEY || throwErr(new Error("No super secret admin key provided. Please copy your key from the Stack dashboard and put it in the STACK_SUPER_SECRET_ADMIN_KEY environment variable."));
 }
 
-function getDefaultBaseUrl() {
-  const url = getPublicEnvVar("NEXT_PUBLIC_STACK_API_URL") || getPublicEnvVar("NEXT_PUBLIC_STACK_URL") || defaultBaseUrl;
+/**
+ * Returns the base URL for the Stack API.
+ *
+ * The URL can be specified in several ways, in order of precedence:
+ * 1. Directly through userSpecifiedBaseUrl parameter as string or browser/server object
+ * 2. Through environment variables:
+ *    - Browser: NEXT_PUBLIC_BROWSER_STACK_API_URL
+ *    - Server: NEXT_PUBLIC_SERVER_STACK_API_URL
+ *    - Fallback: NEXT_PUBLIC_STACK_API_URL or NEXT_PUBLIC_STACK_URL
+ * 3. Default base URL if none of the above are specified
+ *
+ * The function also ensures the URL doesn't end with a trailing slash
+ * by removing it if present.
+ *
+ * @param userSpecifiedBaseUrl - Optional URL override as string or {browser, server} object
+ * @returns The configured base URL without trailing slash
+
+ */
+function getBaseUrl(userSpecifiedBaseUrl: string | { browser: string, server: string } | undefined) {
+  let url;
+  if (userSpecifiedBaseUrl) {
+    if (typeof userSpecifiedBaseUrl === "string") {
+      url = userSpecifiedBaseUrl;
+    } else {
+      if (isBrowserLike()) {
+        url = userSpecifiedBaseUrl.browser;
+      } else {
+        url = userSpecifiedBaseUrl.server;
+      }
+    }
+  } else {
+    if (isBrowserLike()) {
+      url = process.env.NEXT_PUBLIC_BROWSER_STACK_API_URL;
+    } else {
+      url = process.env.NEXT_PUBLIC_SERVER_STACK_API_URL;
+    }
+    url = url || process.env.NEXT_PUBLIC_STACK_API_URL || process.env.NEXT_PUBLIC_STACK_URL || defaultBaseUrl;
+  }
+
   return url.endsWith('/') ? url.slice(0, -1) : url;
 }
 
 export type StackClientAppConstructorOptions<HasTokenStore extends boolean, ProjectId extends string> = {
-  baseUrl?: string,
+  baseUrl?: string | { browser: string, server: string },
   projectId?: ProjectId,
   publishableClientKey?: string,
   urls?: Partial<HandlerUrls>,
@@ -446,7 +493,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._interface = _options.interface;
     } else {
       this._interface = new StackClientInterface({
-        getBaseUrl: () => _options.baseUrl ?? getDefaultBaseUrl(),
+        getBaseUrl: () => getBaseUrl(_options.baseUrl),
         projectId: _options.projectId ?? getDefaultProjectId(),
         clientVersion,
         publishableClientKey: _options.publishableClientKey ?? getDefaultPublishableClientKey(),
@@ -1888,12 +1935,15 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       oauthScopesOnSignIn: options.oauthScopesOnSignIn,
     } : {
       interface: new StackServerInterface({
-        getBaseUrl: () => options.baseUrl ?? getDefaultBaseUrl(),
+        getBaseUrl: () => getBaseUrl(options.baseUrl),
         projectId: options.projectId ?? getDefaultProjectId(),
         clientVersion,
         publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
         secretServerKey: options.secretServerKey ?? getDefaultSecretServerKey(),
       }),
+      baseUrl: options.baseUrl,
+      projectId: options.projectId,
+      publishableClientKey: options.publishableClientKey,
       tokenStore: options.tokenStore,
       urls: options.urls ?? {},
       oauthScopesOnSignIn: options.oauthScopesOnSignIn ?? {},
@@ -2377,7 +2427,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
       interface: new StackAdminInterface({
-        getBaseUrl: () => options.baseUrl ?? getDefaultBaseUrl(),
+        getBaseUrl: () => getBaseUrl(options.baseUrl),
         projectId: options.projectId ?? getDefaultProjectId(),
         clientVersion,
         ..."projectOwnerSession" in options ? {
@@ -2388,6 +2438,8 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
           superSecretAdminKey: options.superSecretAdminKey ?? getDefaultSuperSecretAdminKey(),
         },
       }),
+      baseUrl: options.baseUrl,
+      projectId: options.projectId,
       tokenStore: options.tokenStore,
       urls: options.urls,
       oauthScopesOnSignIn: options.oauthScopesOnSignIn,

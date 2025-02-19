@@ -110,6 +110,9 @@ navigation:
           - page: Self-Hosting
             icon: fa-regular fa-house-laptop
             path: ./docs/pages/others/self-host.mdx
+          - page: Vanilla JavaScript Client
+            icon: fa-brands fa-js
+            path: ./docs/pages/others/js-client.mdx
   - tab: components
     layout: 
       - page: All Components

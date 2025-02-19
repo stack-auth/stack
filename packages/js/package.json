@@ -33,7 +33,6 @@
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
     "@simplewebauthn/browser": "^11.0.0",
-    "@stackframe/stack-sc": "workspace:*",
     "@stackframe/stack-shared": "workspace:*",
     "color": "^4.2.3",
     "cookie": "^0.6.0",
