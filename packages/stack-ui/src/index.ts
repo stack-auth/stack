@@ -1,5 +1,6 @@
 
 export * from "./components/action-dialog";
+export * as BrandIcons from "./components/brand-icons";
 export * from "./components/browser-frame";
 export * from "./components/copy-button";
 export * from "./components/copy-field";

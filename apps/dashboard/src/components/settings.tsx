@@ -14,9 +14,10 @@ export function SettingCard(props: {
   actions?: React.ReactNode,
   children?: React.ReactNode,
   accordion?: string,
+  className?: string,
 }) {
   return (
-    <Card>
+    <Card className={props.className}>
       {(props.title || props.description) && (
         <CardHeader>
           {props.title && <CardTitle>{props.title}</CardTitle>}
