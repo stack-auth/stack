@@ -1,4 +1,4 @@
-import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+import { StackAssertionError, throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 
 export function Google({ iconSize } : { iconSize: number} ) {
   return (
@@ -184,7 +184,7 @@ export function Mapping({
       return <X iconSize={iconSize} />;
     }
     default: {
-      return <></>;
+      throw new StackAssertionError(`Icon not found for provider: ${provider}`);;
     }
   }
 }
