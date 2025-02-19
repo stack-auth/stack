@@ -1,3 +1,5 @@
+import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
+
 export function Google({ iconSize } : { iconSize: number} ) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" width={iconSize} height={iconSize} viewBox="0 0 24 24">
