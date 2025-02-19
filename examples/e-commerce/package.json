@@ -20,8 +20,8 @@
     "@types/node": "^20",
     "@types/react": "link:@types/react@18.3.12",
     "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.5",
+    "eslint": "^9",
+    "eslint-config-next": "15.1.7",
     "rimraf": "^5.0.5",
     "typescript": "^5"
   }
