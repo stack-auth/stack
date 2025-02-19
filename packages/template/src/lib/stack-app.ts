@@ -157,7 +157,7 @@ function getDefaultSuperSecretAdminKey() {
  * @returns The configured base URL without trailing slash
 
  */
-function getDefaultBaseUrl(userSpecifiedBaseUrl: string | { browser: string, server: string } | undefined) {
+function getBaseUrl(userSpecifiedBaseUrl: string | { browser: string, server: string } | undefined) {
   let url;
   if (userSpecifiedBaseUrl) {
     if (typeof userSpecifiedBaseUrl === "string") {
@@ -493,7 +493,7 @@ class _StackClientAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       this._interface = _options.interface;
     } else {
       this._interface = new StackClientInterface({
-        getBaseUrl: () => getDefaultBaseUrl(_options.baseUrl),
+        getBaseUrl: () => getBaseUrl(_options.baseUrl),
         projectId: _options.projectId ?? getDefaultProjectId(),
         clientVersion,
         publishableClientKey: _options.publishableClientKey ?? getDefaultPublishableClientKey(),
@@ -1935,7 +1935,7 @@ class _StackServerAppImpl<HasTokenStore extends boolean, ProjectId extends strin
       oauthScopesOnSignIn: options.oauthScopesOnSignIn,
     } : {
       interface: new StackServerInterface({
-        getBaseUrl: () => getDefaultBaseUrl(options.baseUrl),
+        getBaseUrl: () => getBaseUrl(options.baseUrl),
         projectId: options.projectId ?? getDefaultProjectId(),
         clientVersion,
         publishableClientKey: options.publishableClientKey ?? getDefaultPublishableClientKey(),
@@ -2427,7 +2427,7 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
   constructor(options: StackAdminAppConstructorOptions<HasTokenStore, ProjectId>) {
     super({
       interface: new StackAdminInterface({
-        getBaseUrl: () => getDefaultBaseUrl(options.baseUrl),
+        getBaseUrl: () => getBaseUrl(options.baseUrl),
         projectId: options.projectId ?? getDefaultProjectId(),
         clientVersion,
         ..."projectOwnerSession" in options ? {
