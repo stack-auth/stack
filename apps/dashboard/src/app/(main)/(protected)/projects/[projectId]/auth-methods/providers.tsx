@@ -2,7 +2,7 @@
 import { FormDialog } from "@/components/form-dialog";
 import { InputField, SwitchField } from "@/components/form-fields";
 import { SettingIconButton, SettingSwitch } from "@/components/settings";
-import { getPublicEnvVar } from '@stackframe/stack-shared/dist/utils/env';
+import { getPublicEnvVar } from '@/lib/env';
 import { AdminProject } from "@stackframe/stack";
 import { yupBoolean, yupObject, yupString } from "@stackframe/stack-shared/dist/schema-fields";
 import { sharedProviders } from "@stackframe/stack-shared/dist/utils/oauth";

@@ -1,5 +1,5 @@
 import { StackServerApp } from '@stackframe/stack';
-import { getPublicEnvVar } from "@stackframe/stack-shared/dist/utils/env";
+import { getPublicEnvVar } from "@/lib/env";
 import { throwErr } from '@stackframe/stack-shared/dist/utils/errors';
 import './polyfills';
 

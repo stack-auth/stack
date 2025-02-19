@@ -43,15 +43,14 @@ import * as sc from "@stackframe/stack-sc";
 isReactServer = sc.isReactServer;
 // END_PLATFORM
 
-// This is a hack to use the env vars in vite/browser environments
-if (typeof process === "undefined") {
-  (globalThis as any).process = { env: {} };
-}
-
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
 
 const clientVersion = process.env.STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION ?? throwErr("Missing STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION. This should be a compile-time variable set by Stack's build system.");
+
+// hack to make sure process is defined in non-node environments
+// NEXT_LINE_PLATFORM js
+process = (globalThis as any).process ?? { env: {} };
 
 type RequestLike = {
   headers: {
