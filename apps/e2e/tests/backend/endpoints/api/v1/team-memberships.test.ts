@@ -307,6 +307,54 @@ it("lets users be on multiple teams", async ({ expect }) => {
   `);
 });
 
+it("does not allow adding a user to a team if the user is already a member of the team", async ({ expect }) => {
+  const { userId: userId1 } = await Auth.Otp.signIn();
+  const { teamId } = await Team.createAndAddCurrent();
+
+  const response1 = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/${userId1}`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 409,
+      "body": {
+        "code": "TEAM_MEMBERSHIP_ALREADY_EXISTS",
+        "error": "Team membership already exists.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "TEAM_MEMBERSHIP_ALREADY_EXISTS",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("does not allow adding a user that doesn't exist to a team", async ({ expect }) => {
+  const { teamId } = await Team.create();
+
+  const response1 = await niceBackendFetch(`/api/v1/team-memberships/${teamId}/12345678-1234-4234-9234-123456789012`, {
+    accessType: "server",
+    method: "POST",
+    body: {},
+  });
+  expect(response1).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 404,
+      "body": {
+        "code": "USER_NOT_FOUND",
+        "error": "User not found.",
+      },
+      "headers": Headers {
+        "x-stack-known-error": "USER_NOT_FOUND",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+
 it("should give team creator default permissions", async ({ expect }) => {
   backendContext.set({ projectKeys: InternalProjectKeys });
   const { adminAccessToken } = await Project.createAndGetAdminToken({ config: { magic_link_enabled: true } });
@@ -422,45 +470,6 @@ it("removes user from team on the client", async ({ expect }) => {
   `);
 });
 
-it("can create a team without adding the current user as a member on the client", async ({ expect }) => {
-  const { userId } = await Auth.Otp.signIn();
-  const response = await niceBackendFetch("/api/v1/teams", {
-    accessType: "client",
-    method: "POST",
-    body: {
-      display_name: "My Team",
-    },
-  });
-  expect(response).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 201,
-      "body": {
-        "client_metadata": null,
-        "client_read_only_metadata": null,
-        "display_name": "My Team",
-        "id": "<stripped UUID>",
-        "profile_image_url": null,
-      },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
-
-  const response2 = await niceBackendFetch(`/api/v1/teams?user_id=me`, {
-    accessType: "client",
-    method: "GET",
-  });
-  expect(response2).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 200,
-      "body": {
-        "is_paginated": false,
-        "items": [],
-      },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
-});
-
 it("creates a team on the server and adds a different user as the creator", async ({ expect }) => {
   const user1Mailbox = await bumpEmailAddress();
   const { userId: userId1 } = await Auth.Otp.signIn();
@@ -513,28 +522,6 @@ it("creates a team on the server and adds a different user as the creator", asyn
           },
         ],
       },
-      "headers": Headers { <some fields may have been hidden> },
-    }
-  `);
-});
-
-it("is not allowed to create a team and add a different user as the creator on the client", async ({ expect }) => {
-  const { userId: userId1 } = await Auth.Otp.signIn();
-  await bumpEmailAddress();
-  await Auth.Otp.signIn();
-
-  const response = await niceBackendFetch("/api/v1/teams", {
-    accessType: "client",
-    method: "POST",
-    body: {
-      display_name: "My Team",
-      creator_user_id: userId1,
-    },
-  });
-  expect(response).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 403,
-      "body": "You cannot add a user to the team as the creator that is not yourself on the client.",
       "headers": Headers { <some fields may have been hidden> },
     }
   `);

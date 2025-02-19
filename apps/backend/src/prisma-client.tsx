@@ -25,17 +25,27 @@ export async function retryTransaction<T>(fn: (...args: Parameters<Parameters<ty
   return await traceSpan('Prisma transaction', async () => {
     const res = await Result.retry(async (attempt) => {
       return await traceSpan(`transaction attempt #${attempt}`, async () => {
-        return await prismaClient.$transaction(async (...args) => {
-          try {
-            return Result.ok(await fn(...args));
-          } catch (e) {
-            if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof Prisma.PrismaClientUnknownRequestError) {
-              // retry
-              return Result.error(e);
+        try {
+          return await prismaClient.$transaction(async (...args) => {
+            try {
+              return Result.ok(await fn(...args));
+            } catch (e) {
+              if (e instanceof Prisma.PrismaClientKnownRequestError || e instanceof Prisma.PrismaClientUnknownRequestError) {
+                // retry
+                return Result.error(e);
+              }
+              throw e;
             }
-            throw e;
+          });
+        } catch (e) {
+          // we don't want to retry as aggressively here, because the error may have been thrown after the transaction was already committed
+          // so, we select the specific errors that we know are safe to retry
+          if (e instanceof Prisma.PrismaClientKnownRequestError && e.message.includes("Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction")) {
+            // transaction timeout, retry
+            return Result.error(e);
           }
-        });
+          throw e;
+        }
       });
     }, isDev ? 1 : 3);
 

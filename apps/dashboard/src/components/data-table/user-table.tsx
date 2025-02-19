@@ -173,7 +173,7 @@ export const getCommonUserColumns = <T extends ExtendedServerUser>() => [
   },
 ] satisfies ColumnDef<T>[];
 
-const columns: ColumnDef<ExtendedServerUser>[] =  [
+const columns: ColumnDef<ExtendedServerUser>[] = [
   ...getCommonUserColumns<ExtendedServerUser>(),
   {
     accessorKey: "authTypes",

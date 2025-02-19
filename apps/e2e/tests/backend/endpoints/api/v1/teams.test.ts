@@ -1,3 +1,4 @@
+import { wait } from "@stackframe/stack-shared/dist/utils/promises";
 import { it } from "../../../../helpers";
 import { ApiKey, Auth, Project, Team, Webhook, bumpEmailAddress, niceBackendFetch } from "../../../backend-helpers";
 
@@ -83,19 +84,84 @@ it("lists all the teams the current user has on the server", async ({ expect }) 
 
 it("creates a team on the client", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { createTeamResponse: response } = await Team.createAndAddCurrent();
+  await Team.createAndAddCurrent();
+});
+
+it("does not allow creating a team when not signed in", async ({ expect }) => {
+  const { userId } = await Auth.Otp.signIn();
+  await Auth.signOut();
+  const response = await niceBackendFetch("/api/v1/teams", {
+    accessType: "client",
+    method: "POST",
+    body: {
+      display_name: "New Team",
+      creator_user_id: userId,
+    },
+  });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 201,
+      "status": 401,
       "body": {
-        "client_metadata": null,
-        "client_read_only_metadata": null,
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "display_name": "New Team",
-        "id": "<stripped UUID>",
-        "profile_image_url": null,
-        "server_metadata": null,
+        "code": "USER_AUTHENTICATION_REQUIRED",
+        "error": "User authentication required for this endpoint.",
       },
+      "headers": Headers {
+        "x-stack-known-error": "USER_AUTHENTICATION_REQUIRED",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("does not allow creating teams on the client without a creator", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const response = await niceBackendFetch("/api/v1/teams", {
+    accessType: "client",
+    method: "POST",
+    body: {
+      display_name: "New Team",
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 400,
+      "body": {
+        "code": "SCHEMA_ERROR",
+        "details": {
+          "message": deindent\`
+            Request validation failed on POST /api/v1/teams:
+              - body.creator_user_id must be defined
+          \`,
+        },
+        "error": deindent\`
+          Request validation failed on POST /api/v1/teams:
+            - body.creator_user_id must be defined
+        \`,
+      },
+      "headers": Headers {
+        "x-stack-known-error": "SCHEMA_ERROR",
+        <some fields may have been hidden>,
+      },
+    }
+  `);
+});
+
+it("does not allow creating teams on the client for a different creator", async ({ expect }) => {
+  const { userId: userId1 } = await Auth.Otp.signIn();
+  await bumpEmailAddress();
+  await Auth.Otp.signIn();
+  const response = await niceBackendFetch("/api/v1/teams", {
+    accessType: "client",
+    method: "POST",
+    body: {
+      display_name: "New Team",
+      creator_user_id: userId1,
+    },
+  });
+  expect(response).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 403,
+      "body": "You cannot create a team as a user that is not yourself. Make sure you set the creator_user_id to 'me'.",
       "headers": Headers { <some fields may have been hidden> },
     }
   `);
@@ -103,20 +169,40 @@ it("creates a team on the client", async ({ expect }) => {
 
 it("creates a team on the server", async ({ expect }) => {
   await Auth.Otp.signIn();
-  const { createTeamResponse: response } = await Team.createAndAddCurrent({ accessType: "server" });
+  await Team.createAndAddCurrent({ accessType: "server" });
+});
+
+it("creates a team on the server without a creator", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  await Team.create({ accessType: "server" });
+});
+
+it("creates a team with a specific creator user id", async ({ expect }) => {
+  const { userId } = await Auth.Otp.signIn();
+  await Team.create({ accessType: "server", creatorUserId: userId });
+});
+
+it("does not create a team when the creator user id does not exist", async ({ expect }) => {
+  await Auth.Otp.signIn();
+  const response = await niceBackendFetch("/api/v1/teams", {
+    accessType: "server",
+    method: "POST",
+    body: {
+      display_name: "New Team",
+      creator_user_id: "12345678-1234-4234-9234-123456789012",
+    },
+  });
   expect(response).toMatchInlineSnapshot(`
     NiceResponse {
-      "status": 201,
+      "status": 404,
       "body": {
-        "client_metadata": null,
-        "client_read_only_metadata": null,
-        "created_at_millis": <stripped field 'created_at_millis'>,
-        "display_name": "New Team",
-        "id": "<stripped UUID>",
-        "profile_image_url": null,
-        "server_metadata": null,
+        "code": "USER_NOT_FOUND",
+        "error": "User not found.",
       },
-      "headers": Headers { <some fields may have been hidden> },
+      "headers": Headers {
+        "x-stack-known-error": "USER_NOT_FOUND",
+        <some fields may have been hidden>,
+      },
     }
   `);
 });
@@ -696,10 +782,23 @@ it("should trigger team webhook when a team is created", async ({ expect }) => {
       display_name: "Test Team"
     }
   });
+  expect(createTeamResponse).toMatchInlineSnapshot(`
+    NiceResponse {
+      "status": 201,
+      "body": {
+        "client_metadata": null,
+        "client_read_only_metadata": null,
+        "created_at_millis": <stripped field 'created_at_millis'>,
+        "display_name": "Test Team",
+        "id": "<stripped UUID>",
+        "profile_image_url": null,
+        "server_metadata": null,
+      },
+      "headers": Headers { <some fields may have been hidden> },
+    }
+  `);
 
-  expect(createTeamResponse.status).toBe(201);
-
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await wait(1000);
 
   const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
 
@@ -752,7 +851,7 @@ it("should trigger team webhook when a team is updated", async ({ expect }) => {
 
   expect(updateTeamResponse.status).toBe(200);
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await wait(1000);
 
   const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
 
@@ -821,7 +920,7 @@ it("should trigger team webhook when a team is deleted", async ({ expect }) => {
 
   expect(deleteTeamResponse.status).toBe(200);
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await wait(1000);
 
   const attemptResponse = await Webhook.listWebhookAttempts(projectId, endpointId, svixToken);
 

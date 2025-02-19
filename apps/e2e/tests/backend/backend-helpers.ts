@@ -965,14 +965,14 @@ export namespace Project {
 }
 
 export namespace Team {
-  export async function create(options: { accessType?: "client" | "server", addCurrentUser?: boolean } = {}, body?: any) {
+  export async function create(options: { accessType?: "client" | "server", addCurrentUser?: boolean, creatorUserId?: string } = {}, body?: any) {
     const displayName = body?.display_name || 'New Team';
     const response = await niceBackendFetch("/api/v1/teams", {
       accessType: options.accessType ?? "server",
       method: "POST",
       body: {
         display_name: displayName,
-        creator_user_id: options.addCurrentUser ? 'me' : undefined,
+        creator_user_id: options.creatorUserId ?? (options.addCurrentUser ? 'me' : undefined),
         ...body,
       },
     });

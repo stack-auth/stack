@@ -1,4 +1,4 @@
-import { ensureTeamExists, ensureTeamMembershipExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
+import { ensureTeamExists, ensureTeamMembershipExists, ensureUserExists, ensureUserTeamPermissionExists } from "@/lib/request-checks";
 import { sendTeamCreatedWebhook, sendTeamDeletedWebhook, sendTeamUpdatedWebhook } from "@/lib/webhooks";
 import { prismaClient, retryTransaction } from "@/prisma-client";
 import { createCrudHandlers } from "@/route-handlers/crud-handler";
@@ -28,7 +28,7 @@ export function teamPrismaToCrud(prisma: Prisma.TeamGetPayload<{}>) {
 export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsCrud, {
   querySchema: yupObject({
     user_id: userIdOrMeSchema.optional().meta({ openapiField: { onlyShowInOperations: ['List'], description: 'Filter for the teams that the user is a member of. Can be either `me` or an ID. Must be `me` in the client API', exampleValue: 'me' } }),
-    /* deprecated, use creator_user_id in the body instead */
+    /** @deprecated use creator_user_id in the body instead */
     add_current_user: yupString().oneOf(["true", "false"]).optional().meta({ openapiField: { onlyShowInOperations: ['Create'], hidden: true } }),
   }),
   paramsSchema: yupObject({
@@ -49,6 +49,10 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
 
     if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
       throw new StatusError(400, "Invalid profile image URL");
+    }
+
+    if (auth.type === 'client' && (!data.creator_user_id || data.creator_user_id !== auth.user?.id)) {
+      throw new StatusError(StatusError.Forbidden, "You cannot create a team as a user that is not yourself. Make sure you set the creator_user_id to 'me'.");
     }
 
     const db = await retryTransaction(async (tx) => {
@@ -82,6 +86,7 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
       }
 
       if (addUserId) {
+        await ensureUserExists(tx, { tenancyId: auth.tenancy.id, userId: addUserId });
         await addUserToTeam(tx, {
           tenancy: auth.tenancy,
           teamId: db.teamId,

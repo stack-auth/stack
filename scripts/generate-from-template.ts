@@ -124,7 +124,7 @@ function copyFromSrcToDest(
         newContent = JSON.stringify(orderedJson, null, 2);
       }
 
-      fs.writeFileSync(destPath, newContent);
+      writeFileSyncIfChanged(destPath, newContent);
     }
   }
 }
@@ -437,6 +437,16 @@ function processMacros(content: string, envs: string[]): string {
 
   return result.join('\n');
 }
+ 
+function writeFileSyncIfChanged(path: string, content: string): void {
+  if (fs.existsSync(path)) {
+    const existingContent = fs.readFileSync(path, "utf-8");
+    if (existingContent === content) {
+      return;
+    }
+  }
+  fs.writeFileSync(path, content);
+}
 
 
 
@@ -448,7 +458,7 @@ const packageJsonWithComment = {
   "//": COMMENT_LINE,
   ...packageJson
 };
-fs.writeFileSync(path.join(srcDir, 'package.json'), JSON.stringify(packageJsonWithComment, null, 2));
+writeFileSyncIfChanged(path.join(srcDir, 'package.json'), JSON.stringify(packageJsonWithComment, null, 2));
 
 
 generateFromTemplate({

@@ -1,5 +1,7 @@
 # @stackframe/dev-launchpad
 
+## 2.7.16
+
 ## 2.7.15
 
 ## 2.7.14
