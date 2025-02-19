@@ -1,3 +1,5 @@
+// This file needs to run without any dependencies.
+
 import fs from "fs";
 import path from "path";
 
@@ -447,8 +449,6 @@ function writeFileSyncIfChanged(path: string, content: string): void {
   }
   fs.writeFileSync(path, content);
 }
-
-
 
 // Copy package-template.json to package.json and apply macros
 const packageTemplateContent = fs.readFileSync(path.join(srcDir, 'package-template.json'), 'utf-8');
