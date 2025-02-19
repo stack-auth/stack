@@ -200,7 +200,7 @@ export function toTitle(id: string) {
     bitbucket: "Bitbucket",
     linkedin: "LinkedIn",
     x: "X",
-  }[id];
+  }[id] || throwErr(`Unknown provider: ${id}`);
 }
 
 export const BRAND_COLORS: Record<string, string> = {
