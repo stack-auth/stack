@@ -347,7 +347,7 @@ export default function PageClient() {
           }}
         />
         <Typography variant="secondary" type="footnote">
-          An delete button will also be added to the account settings page.
+          A delete button will also be added to the account settings page.
         </Typography>
       </SettingCard>
 
