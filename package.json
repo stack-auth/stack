@@ -76,7 +76,10 @@
     "overrides": {
       "@types/react": "^18.2.0",
       "@types/react-dom": "^18.2.0"
-    }
+    },
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "engines": {
     "npm": ">=10.0.0",
