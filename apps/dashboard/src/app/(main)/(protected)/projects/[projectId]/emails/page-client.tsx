@@ -67,13 +67,13 @@ export default function PageClient() {
       )}
 
       <SettingCard title="Email Templates" description="Customize the emails sent">
-        <Alert variant="default">
+        {emailConfig?.type === 'shared' && <Alert variant="default">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Warning</AlertTitle>
-          {emailConfig?.type === 'shared' && <AlertDescription>
+          <AlertDescription>
             You are using a shared email server. If you want to customize the email templates, you need to configure a custom SMTP server.
-          </AlertDescription>}
-        </Alert>
+          </AlertDescription>
+        </Alert>}
         {emailTemplates.map((template) => (
           <Card key={template.type} className="p-4 flex justify-between flex-col sm:flex-row gap-4">
             <div className="flex flex-col gap-2">
