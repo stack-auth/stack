@@ -12,7 +12,8 @@ import { EmailTemplateType } from "@stackframe/stack-shared/dist/interface/crud/
 import { strictEmailSchema } from "@stackframe/stack-shared/dist/schema-fields";
 import { throwErr } from "@stackframe/stack-shared/dist/utils/errors";
 import { deepPlainEquals } from "@stackframe/stack-shared/dist/utils/objects";
-import { ActionCell, ActionDialog, Alert, Button, Card, SimpleTooltip, Typography, useToast } from "@stackframe/stack-ui";
+import { ActionCell, ActionDialog, Alert, AlertDescription, AlertTitle, Button, Card, SimpleTooltip, Typography, useToast } from "@stackframe/stack-ui";
+import { AlertCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { PageLayout } from "../page-layout";
@@ -66,6 +67,13 @@ export default function PageClient() {
       )}
 
       <SettingCard title="Email Templates" description="Customize the emails sent">
+        {emailConfig?.type === 'shared' && <Alert variant="default">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Warning</AlertTitle>
+          <AlertDescription>
+            You are using a shared email server. If you want to customize the email templates, you need to configure a custom SMTP server.
+          </AlertDescription>
+        </Alert>}
         {emailTemplates.map((template) => (
           <Card key={template.type} className="p-4 flex justify-between flex-col sm:flex-row gap-4">
             <div className="flex flex-col gap-2">
