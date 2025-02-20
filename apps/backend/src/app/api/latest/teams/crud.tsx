@@ -35,24 +35,30 @@ export const teamsCrudHandlers = createLazyProxy(() => createCrudHandlers(teamsC
     team_id: yupString().uuid().defined(),
   }),
   onCreate: async ({ query, auth, data }) => {
+    let creatorUserId = data.creator_user_id;
+
     if (data.creator_user_id && query.add_current_user) {
       throw new StatusError(StatusError.BadRequest, "Cannot use both creator_user_id and add_current_user. add_current_user is deprecated, please only use creator_user_id in the body.");
     }
 
-    if (auth.type === 'client' && !auth.user) {
-      throw new KnownErrors.UserAuthenticationRequired;
-    }
+    if (auth.type === 'client') {
+      if (!auth.user) {
+        throw new KnownErrors.UserAuthenticationRequired;
+      }
 
-    if (auth.type === 'client' && !auth.tenancy.config.client_team_creation_enabled) {
-      throw new StatusError(StatusError.Forbidden, 'Client team creation is disabled for this project');
-    }
+      if (!auth.tenancy.config.client_team_creation_enabled) {
+        throw new StatusError(StatusError.Forbidden, 'Client team creation is disabled for this project');
+      }
 
-    if (auth.type === 'client' && data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
-      throw new StatusError(400, "Invalid profile image URL");
-    }
+      if (data.profile_image_url && !validateBase64Image(data.profile_image_url)) {
+        throw new StatusError(400, "Invalid profile image URL");
+      }
 
-    if (auth.type === 'client' && (!data.creator_user_id || data.creator_user_id !== auth.user?.id)) {
-      throw new StatusError(StatusError.Forbidden, "You cannot create a team as a user that is not yourself. Make sure you set the creator_user_id to 'me'.");
+      if (!data.creator_user_id) {
+        creatorUserId = auth.user.id;
+      } else if (data.creator_user_id !== auth.user.id) {
+        throw new StatusError(StatusError.Forbidden, "You cannot create a team as a user that is not yourself. Make sure you set the creator_user_id to 'me'.");
+      }
     }
 
     const db = await retryTransaction(async (tx) => {
