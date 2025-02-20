@@ -92,14 +92,14 @@ Check out the [documentation](https://docs.stack-auth.com/getting-started/setup)
 Have your own? Happy to feature it if you create a PR or message us on [Discord](https://discord.stack-auth.com).
 
 ### Templates
-- [Stack Template by Stack Team](https://github.com/stack-auth/stack-template)
+- [Stack Template by Stack Team](https://github.com/stack-auth/stack-auth-template)
 - [Next SaaSkit by wolfgunblood](https://github.com/wolfgunblood/nextjs-saaskit)
 - [SaaS Boilerplate by Robin Faraj](https://github.com/robinfaraj/saas-boilerplate)
 
 ### Examples
 - [Stack Example by career-tokens](https://github.com/career-tokens/StackYCAuth)
-- [Stack Demo by the Stack team](https://github.com/stack-auth/stack/tree/dev/examples/demo)
-- [Stack E-Commerce Example by the Stack team](https://github.com/stack-auth/stack/tree/dev/examples/e-commerce)
+- [Stack Demo by the Stack team](https://github.com/stack-auth/stack-auth/tree/dev/examples/demo)
+- [Stack E-Commerce Example by the Stack team](https://github.com/stack-auth/stack-auth/tree/dev/examples/e-commerce)
 
 ## 🏗 Development & Contribution
 
@@ -206,6 +206,6 @@ Thanks to [CodeViz](https://www.codeviz.ai) for generating the diagram!
 
 ## ❤ Contributors
 
-<a href="https://github.com/stack-auth/stack/graphs/contributors">
+<a href="https://github.com/stack-auth/stack-auth/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=stack-auth/stack&columns=9" width="100%" />
 </a>

@@ -274,7 +274,7 @@ navbar-links:
     url: https://discord.stack-auth.com
   - type: secondary
     text: GitHub
-    url: https://github.com/stack-auth/stack
+    url: https://github.com/stack-auth/stack-auth
   - type: primary
     text: Dashboard
     url: https://app.stack-auth.com
