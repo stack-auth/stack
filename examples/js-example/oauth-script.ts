@@ -1,25 +1,4 @@
-import { StackClientApp } from "@stackframe/js";
-
-// Add type declaration for Vite's import.meta.env
-declare global {
-  interface ImportMeta {
-    env: {
-      VITE_STACK_API_URL: string;
-      VITE_STACK_PROJECT_ID: string;
-      VITE_STACK_PUBLISHABLE_CLIENT_KEY: string;
-    };
-  }
-}
-
-const stackClientApp = new StackClientApp({
-  baseUrl: import.meta.env.VITE_STACK_API_URL,
-  projectId: import.meta.env.VITE_STACK_PROJECT_ID,
-  publishableClientKey: import.meta.env.VITE_STACK_PUBLISHABLE_CLIENT_KEY,
-  tokenStore: "cookie",
-  urls: {
-    oauthCallback: window.location.origin + "/oauth",
-  },
-});
+import { stackClientApp } from "./stack";
 
 // Check if user is already signed in
 stackClientApp.getUser().then((user) => {
@@ -58,11 +37,3 @@ window.addEventListener("load", async () => {
     alert("Authentication failed. Please try again.");
   }
 });
-
-// Handle Sign Out
-document.getElementById("signOut")?.addEventListener("click", async () => {
-  const user = await stackClientApp.getUser();
-  if (user) {
-    await user.signOut();
-  }
-}); 

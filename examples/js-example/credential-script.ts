@@ -1,22 +1,4 @@
-// Add at the top of the file, before the StackClientApp import
-declare global {
-  interface ImportMeta {
-    env: {
-      VITE_STACK_API_URL: string;
-      VITE_STACK_PROJECT_ID: string;
-      VITE_STACK_PUBLISHABLE_CLIENT_KEY: string;
-    };
-  }
-}
-
-import { StackClientApp } from "@stackframe/js";
-
-const stackClientApp = new StackClientApp({
-  baseUrl: import.meta.env.VITE_STACK_API_URL,
-  projectId: import.meta.env.VITE_STACK_PROJECT_ID,
-  publishableClientKey: import.meta.env.VITE_STACK_PUBLISHABLE_CLIENT_KEY,
-  tokenStore: "cookie",
-});
+import { stackClientApp } from "./stack";
 
 // Check if user is already signed in
 stackClientApp.getUser().then((user) => {
@@ -76,12 +58,5 @@ document.getElementById("signUp")?.addEventListener("click", async () => {
     alert("Account created but sign in failed. Please sign in manually.");
   } else {
     window.location.href = "/";
-  }
-});
-
-document.getElementById("signOut")?.addEventListener("click", async () => {
-  const user = await stackClientApp.getUser();
-  if (user) {
-    await user.signOut();
   }
 });

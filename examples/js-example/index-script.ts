@@ -1,21 +1,4 @@
-import { StackClientApp } from "@stackframe/js";
-
-declare global {
-  interface ImportMeta {
-    env: {
-      VITE_STACK_API_URL: string;
-      VITE_STACK_PROJECT_ID: string;
-      VITE_STACK_PUBLISHABLE_CLIENT_KEY: string;
-    };
-  }
-}
-
-const stackClientApp = new StackClientApp({
-  baseUrl: import.meta.env.VITE_STACK_API_URL,
-  projectId: import.meta.env.VITE_STACK_PROJECT_ID,
-  publishableClientKey: import.meta.env.VITE_STACK_PUBLISHABLE_CLIENT_KEY,
-  tokenStore: "cookie",
-});
+import { stackClientApp } from "./stack";
 
 const updateUIState = (user: any | null) => {
   const authOptions = document.getElementById("authOptions");
