@@ -6,12 +6,12 @@ const updateUIState = (user: any | null) => {
   const userEmailSpan = document.getElementById("userEmail");
 
   if (user) {
-    authOptions?.classList.add("hidden");
-    userInfo?.classList.remove("hidden");
+    if (authOptions) authOptions.style.display = "none";
+    if (userInfo) userInfo.style.display = "block";
     if (userEmailSpan) userEmailSpan.textContent = user.primaryEmail || "";
   } else {
-    authOptions?.classList.remove("hidden");
-    userInfo?.classList.add("hidden");
+    if (authOptions) authOptions.style.display = "block";
+    if (userInfo) userInfo.style.display = "none";
   }
 };
 

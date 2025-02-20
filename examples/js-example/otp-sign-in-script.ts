@@ -26,8 +26,10 @@ document.getElementById("sendCode")?.addEventListener("click", async () => {
       localStorage.setItem('magicLinkNonce', result.data.nonce);
     }
 
-    document.getElementById("emailStep")?.classList.add("hidden");
-    document.getElementById("codeStep")?.classList.remove("hidden");
+    const emailStep = document.getElementById("emailStep");
+    const codeStep = document.getElementById("codeStep");
+    if (emailStep) emailStep.style.display = "none";
+    if (codeStep) codeStep.style.display = "block";
   } catch (error) {
     console.error("Failed to send code:", error);
     alert("Failed to send code. Please try again.");
