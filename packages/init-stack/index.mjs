@@ -63,13 +63,6 @@ const packagesToInstall = [];
 const writeFileHandlers = [];
 
 async function main() {
-  const projectPath = await getProjectPath();
-
-
-  // Wait just briefly so we can use `Steps` in here (it's defined only after the call to `main()`)
-  await new Promise((resolve) => resolve());
-
-
   // Welcome message
   console.log();
   console.log(`
@@ -89,7 +82,13 @@ async function main() {
   console.log();
 
 
+  // Wait just briefly so we can use `Steps` in here (it's defined only after the call to `main()`)
+  await new Promise((resolve) => resolve());
+
+
+  // Prepare some stuff
   await clearStdin();
+  const projectPath = await getProjectPath();
 
 
   // Steps
