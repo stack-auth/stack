@@ -47,7 +47,7 @@ isReactServer = sc.isReactServer;
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
 
 const clientVersion = "STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION_SENTINEL";
-if (clientVersion.startsWith("STACK_COMPILE_TIME") {
+if (clientVersion.startsWith("STACK_COMPILE_TIME")) {
   throw new StackAssertionError("Client version was not replaced. Something went wrong during build!");
 }
 
