@@ -30,7 +30,7 @@ export const teamsCrudServerUpdateSchema = teamsCrudClientUpdateSchema.concat(yu
 // Create
 export const teamsCrudClientCreateSchema = teamsCrudClientUpdateSchema.concat(yupObject({
   display_name: fieldSchema.teamDisplayNameSchema.defined(),
-  creator_user_id: fieldSchema.teamCreatorUserIdSchema.defined(),
+  creator_user_id: fieldSchema.teamCreatorUserIdSchema.optional(),
 }).defined());
 export const teamsCrudServerCreateSchema = teamsCrudServerUpdateSchema.concat(yupObject({
   display_name: fieldSchema.teamDisplayNameSchema.defined(),
