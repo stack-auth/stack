@@ -67,7 +67,7 @@ export default function PageClient() {
       )}
 
       <SettingCard title="Email Templates" description="Customize the emails sent">
-        <Alert variant="default">
+        {emailConfig?.type === 'shared' && <Alert variant="default">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Warning</AlertTitle>
           {emailConfig?.type === 'shared' && <AlertDescription>
