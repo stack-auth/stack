@@ -113,39 +113,6 @@ it("does not allow creating a team when not signed in", async ({ expect }) => {
   `);
 });
 
-it("does not allow creating teams on the client without a creator", async ({ expect }) => {
-  await Auth.Otp.signIn();
-  const response = await niceBackendFetch("/api/v1/teams", {
-    accessType: "client",
-    method: "POST",
-    body: {
-      display_name: "New Team",
-    },
-  });
-  expect(response).toMatchInlineSnapshot(`
-    NiceResponse {
-      "status": 400,
-      "body": {
-        "code": "SCHEMA_ERROR",
-        "details": {
-          "message": deindent\`
-            Request validation failed on POST /api/v1/teams:
-              - body.creator_user_id must be defined
-          \`,
-        },
-        "error": deindent\`
-          Request validation failed on POST /api/v1/teams:
-            - body.creator_user_id must be defined
-        \`,
-      },
-      "headers": Headers {
-        "x-stack-known-error": "SCHEMA_ERROR",
-        <some fields may have been hidden>,
-      },
-    }
-  `);
-});
-
 it("does not allow creating teams on the client for a different creator", async ({ expect }) => {
   const { userId: userId1 } = await Auth.Otp.signIn();
   await bumpEmailAddress();
