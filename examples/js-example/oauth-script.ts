@@ -29,8 +29,6 @@ window.addEventListener("load", async () => {
       if (user) {
         window.location.href = "/";
       }
-      // Clean up URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
     }
   } catch (error) {
     console.error("Failed to handle OAuth redirect:", error);
