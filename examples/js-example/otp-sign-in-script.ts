@@ -54,3 +54,22 @@ document.getElementById("verifyCode")?.addEventListener("click", async () => {
     alert("Failed to verify code. Please try again.");
   }
 });
+
+// Handle magic link code from URL
+const urlParams = new URLSearchParams(window.location.search);
+const code = urlParams.get('code');
+if (code) {
+  (async () => {
+    try {
+      const result = await stackClientApp.signInWithMagicLink(code);
+      if (result.status === "error") {
+        alert("This magic link is invalid or has expired. Please request a new one.");
+      } else {
+        window.location.href = "/";
+      }
+    } catch (error) {
+      console.error("Failed to verify magic link:", error);
+      alert("This magic link is invalid or has expired. Please request a new one.");
+    }
+  })();
+}
