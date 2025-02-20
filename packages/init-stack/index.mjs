@@ -274,7 +274,7 @@ const Steps = {
 
   async getNextProjectInfo({ packageJson }) {
     const maybe = await Steps.maybeGetNextProjectInfo({ packageJson });
-    if ("error" in maybe) throw UserError(maybe.error);
+    if ("error" in maybe) throw new UserError(maybe.error);
     return maybe;
   },
 
