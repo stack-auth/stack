@@ -1,3 +1,14 @@
+// Add at the top of the file, before the StackClientApp import
+declare global {
+  interface ImportMeta {
+    env: {
+      VITE_STACK_API_URL: string;
+      VITE_STACK_PROJECT_ID: string;
+      VITE_STACK_PUBLISHABLE_CLIENT_KEY: string;
+    };
+  }
+}
+
 import { StackClientApp } from "@stackframe/js";
 
 const stackClientApp = new StackClientApp({
