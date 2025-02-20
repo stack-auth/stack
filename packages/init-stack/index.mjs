@@ -32,6 +32,10 @@ let savedProjectPath = process.argv[2] || undefined;
 
 const isDryRun = process.argv.includes("--dry-run");
 const isNeon = process.argv.includes("--neon");
+const typeFromArgs = ["js", "next"].find(s => process.argv.includes(`--${s}`));
+const packageManagerFromArgs = ["npm", "yarn", "pnpm", "bun"].find(s => process.argv.includes(`--${s}`));
+const isClient = process.argv.includes("--client");
+const isServer = process.argv.includes("--server");
 
 const ansis = {
   red: "\x1b[31m",
@@ -55,7 +59,11 @@ const filesCreated = [];
 const filesModified = [];
 const commandsExecuted = [];
 
+const packagesToInstall = [];
+const writeFileHandlers = [];
+
 async function main() {
+  // Welcome message
   console.log();
   console.log(`
        ██████
@@ -73,182 +81,66 @@ async function main() {
   `);
   console.log();
 
-  let projectPath = await getProjectPath();
-  if (!fs.existsSync(projectPath)) {
-    throw new UserError(`The project path ${projectPath} does not exist`);
-  }
 
-  const packageJsonPath = path.join(projectPath, "package.json");
-  if (!fs.existsSync(packageJsonPath)) {
-    throw new UserError(
-      `The package.json file does not exist in the project path ${projectPath}. You must initialize a new project first before installing Stack.`
-    );
-  }
-  const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-  const nextVersionInPackageJson = packageJson?.dependencies?.["next"] ?? packageJson?.devDependencies?.["next"];
-  if (!nextVersionInPackageJson) {
-    throw new UserError(
-      `The project at ${projectPath} does not appear to be a Next.js project, or does not have 'next' installed as a dependency. Only Next.js projects are currently supported.`
-    );
-  }
-  if (
-    !nextVersionInPackageJson.includes("14") &&
-    !nextVersionInPackageJson.includes("15") &&
-    nextVersionInPackageJson !== "latest"
-  ) {
-    throw new UserError(
-      `The project at ${projectPath} is using an unsupported version of Next.js (found ${nextVersionInPackageJson}).\n\nOnly Next.js 14 & 15 projects are currently supported. See Next's upgrade guide: https://nextjs.org/docs/app/building-your-application/upgrading/version-14`
-    );
-  }
-
-  const nextConfigPathWithoutExtension = path.join(projectPath, "next.config");
-  const nextConfigFileExtension = await findJsExtension(
-    nextConfigPathWithoutExtension
-  );
-  const nextConfigPath =
-    nextConfigPathWithoutExtension + "." + (nextConfigFileExtension ?? "js");
-  if (!fs.existsSync(nextConfigPath)) {
-    throw new UserError(
-      `Expected file at ${nextConfigPath}. Only Next.js projects are currently supported.`
-    );
-  }
+  // Wait just briefly so we can use `Steps` in here (it's defined only after the call to `main()`)
+  await new Promise((resolve) => resolve());
 
 
-  const envLocalPath = path.join(projectPath, ".env.local");
+  // Prepare some stuff
+  await clearStdin();
+  const projectPath = await getProjectPath();
 
-  const potentialEnvLocations = [
-    path.join(projectPath, ".env"),
-    path.join(projectPath, ".env.development"),
-    path.join(projectPath, ".env.default"),
-    path.join(projectPath, ".env.defaults"),
-    path.join(projectPath, ".env.example"),
-    envLocalPath,
-  ];
 
-  const hasSrcAppFolder = fs.existsSync(path.join(projectPath, "src/app"));
-  const srcPath = path.join(projectPath, hasSrcAppFolder ? "src" : "");
-  const appPath = path.join(srcPath, "app");
-  if (!fs.existsSync(appPath)) {
-    throw new UserError(
-      `The app path ${appPath} does not exist. Only the Next.js app router is supported.`
-    );
-  }
+  // Steps
+  const { packageJson } = await Steps.getProject();
+  const type = await Steps.getProjectType({ packageJson });
 
-  const layoutPathWithoutExtension = path.join(appPath, "layout");
-  const layoutFileExtension =
-    (await findJsExtension(layoutPathWithoutExtension)) ?? "jsx";
-  const layoutPath = layoutPathWithoutExtension + "." + layoutFileExtension;
-  const layoutContent =
-    (await readFile(layoutPath)) ??
-    throwErr(
-      `The layout file at ${layoutPath} does not exist. Stack requires a layout file to be present in the /app folder.`
-    );
-  const updatedLayoutResult =
-    (await getUpdatedLayout(layoutContent)) ??
-    throwErr(
-      "Unable to parse root layout file. Make sure it contains a <body> tag. If it still doesn't work, you may need to manually install Stack. See: https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts#root-layout-required"
-    );
-  const updatedLayoutContent = updatedLayoutResult.content;
+  await Steps.addStackPackage(type);
+  if (isNeon) packagesToInstall.push('@neondatabase/serverless');
 
-  const defaultExtension = layoutFileExtension;
-  const ind = updatedLayoutResult.indentation;
+  await Steps.writeEnvVars(type);
 
-  const stackAppPathWithoutExtension = path.join(srcPath, "stack");
-  const stackAppFileExtension =
-    (await findJsExtension(stackAppPathWithoutExtension)) ?? defaultExtension;
-  const stackAppPath =
-    stackAppPathWithoutExtension + "." + stackAppFileExtension;
-  const stackAppContent = await readFile(stackAppPath);
-  if (stackAppContent) {
-    if (!stackAppContent.includes("@stackframe/stack")) {
-      throw new UserError(
-        `A file at the path ${stackAppPath} already exists. Stack uses the /src/stack.ts file to initialize the Stack SDK. Please remove the existing file and try again.`
-      );
+  if (type === "next") {
+    const projectInfo = await Steps.getNextProjectInfo({ packageJson });
+    await Steps.updateNextLayoutFile(projectInfo);
+    await Steps.writeStackAppFile(projectInfo, "server");
+    await Steps.writeNextHandlerFile(projectInfo);
+    await Steps.writeNextLoadingFile(projectInfo);
+  } else if (type === "js") {
+    const where = await Steps.getServerOrClientOrBoth();
+    for (const w of where) {
+      await Steps.writeStackAppFile({
+        type,
+        defaultExtension: "js",
+        indentation: "  ",
+        srcPath: projectPath,
+      }, w);
     }
-    throw new UserError(
-      `It seems that you already installed Stack in this project.`
-    );
+  } else {
+    throw new Error("Unknown type: " + type);
   }
 
-  const handlerPathWithoutExtension = path.join(
-    appPath,
-    "handler/[...stack]/page"
-  );
-  const handlerFileExtension =
-    (await findJsExtension(handlerPathWithoutExtension)) ?? defaultExtension;
-  const handlerPath = handlerPathWithoutExtension + "." + handlerFileExtension;
-  const handlerContent = await readFile(handlerPath);
-  if (handlerContent && !handlerContent.includes("@stackframe/stack")) {
-    throw new UserError(
-      `A file at the path ${handlerPath} already exists. Stack uses the /handler path to handle incoming requests. Please remove the existing file and try again.`
-    );
-  }
+  const { packageManager } = await Steps.getPackageManager();
+  await Steps.ensureReady(type);
 
-  let loadingPathWithoutExtension = path.join(appPath, "loading");
-  const loadingFileExtension =
-    (await findJsExtension(loadingPathWithoutExtension)) ?? defaultExtension;
-  const loadingPath = loadingPathWithoutExtension + "." + loadingFileExtension;
 
-  const packageManager = await getPackageManager();
-  const versionCommand = `${packageManager} --version`;
-
-  try {
-    await shellNicelyFormatted(versionCommand, { shell: true, quiet: true });
-  } catch (err) {
-    throw new UserError(
-      `Could not run the package manager command '${versionCommand}'. Please make sure ${packageManager} is installed on your system.`
-    );
-  }
-
-  const isReady = await inquirer.prompt([
-    {
-      type: "confirm",
-      name: "ready",
-      message: `Found a Next.js project at ${projectPath} — ready to install Stack?`,
-      default: true,
-    },
-  ]);
-  if (!isReady.ready) {
-    throw new UserError("Installation aborted.");
-  }
-
+  // Install dependencies
   console.log();
   console.log(colorize.bold`Installing dependencies...`);
-  const packagesToInstall = [process.env.STACK_PACKAGE_NAME_OVERRIDE || "@stackframe/stack"];
-  if (isNeon) {
-    packagesToInstall.push('@neondatabase/serverless');
-  }
-
   const installCommand = packageManager === "yarn" ? "yarn add" : `${packageManager} install`;
   await shellNicelyFormatted(`${installCommand} ${packagesToInstall.join(' ')}`, {
     shell: true,
     cwd: projectPath,
   });
 
+
+  // Write files
   console.log();
   console.log(colorize.bold`Writing files...`);
   console.log();
-  if (potentialEnvLocations.every((p) => !fs.existsSync(p))) {
-    await writeFile(
-      envLocalPath,
-      "# Stack Auth keys\n# Get these variables by creating a project on https://app.stack-auth.com.\nNEXT_PUBLIC_STACK_PROJECT_ID=\nNEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=\nSTACK_SECRET_SERVER_KEY=\n"
-    );
+  for (const writeFileHandler of writeFileHandlers) {
+    await writeFileHandler();
   }
-  await writeFileIfNotExists(
-    loadingPath,
-    `export default function Loading() {\n${ind}// Stack uses React Suspense, which will render this page while user data is being fetched.\n${ind}// See: https://nextjs.org/docs/app/api-reference/file-conventions/loading\n${ind}return <></>;\n}\n`
-  );
-  await writeFileIfNotExists(
-    handlerPath,
-    `import { StackHandler } from "@stackframe/stack";\nimport { stackServerApp } from "../../../stack";\n\nexport default function Handler(props${
-      handlerFileExtension.includes("ts") ? ": unknown" : ""
-    }) {\n${ind}return <StackHandler fullPage app={stackServerApp} routeProps={props} />;\n}\n`
-  );
-  await writeFileIfNotExists(
-    stackAppPath,
-    `import "server-only";\n\nimport { StackServerApp } from "@stackframe/stack";\n\nexport const stackServerApp = new StackServerApp({\n${ind}tokenStore: "nextjs-cookie",\n});\n`
-  );
-  await writeFile(layoutPath, updatedLayoutContent);
   console.log(`${colorize.green`√`} Done writing files`);
 
   console.log('\n\n\n');
@@ -266,10 +158,11 @@ async function main() {
   for (const file of filesCreated) {
     console.log(`  ${colorize.green`${file}`}`);
   }
-}
-main()
-  .then(async () => {
-    console.log(`
+  console.log();
+
+
+  // Success!
+  console.log(`
 ${colorize.green`===============================================`}
 
 ${colorize.green`Successfully installed Stack! 🚀🚀🚀`}
@@ -277,18 +170,23 @@ ${colorize.green`Successfully installed Stack! 🚀🚀🚀`}
 Next steps:
 
 1. Create an account and project on https://app.stack-auth.com
-2. Copy the environment variables from the new API key into your .env.local file
+2. ${type === "next" ? `Copy the environment variables from the new API key into your .env.local file`
+   : type === "js" ? `Follow the instructions on how to use Stack Auth on our documentation`
+   : throwErr("Unknown type")}
 
-Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!
+${type === "next" ? `Then, you will be able to access your sign-in page on http://your-website.example.com/handler/sign-in. That's it!`
+  : "That's it!"}
 
 ${colorize.green`===============================================`}
 
 For more information, please visit https://docs.stack-auth.com/getting-started/setup
-    `.trim());
-    if (!process.env.STACK_DISABLE_INTERACTIVE) {
-      await open("https://app.stack-auth.com/wizard-congrats");
-    }
-  })
+  `.trim());
+  if (!process.env.STACK_DISABLE_INTERACTIVE) {
+    await open("https://app.stack-auth.com/wizard-congrats");
+  }
+}
+
+main()
   .catch((err) => {
     if (!(err instanceof UserError)) {
       console.error(err);
@@ -314,6 +212,301 @@ For more information, please visit https://docs.stack-auth.com/getting-started/s
     console.error();
     process.exit(1);
   });
+
+
+const Steps = {
+  async getProject() {
+    let projectPath = await getProjectPath();
+    if (!fs.existsSync(projectPath)) {
+      throw new UserError(`The project path ${projectPath} does not exist`);
+    }
+  
+    const packageJsonPath = path.join(projectPath, "package.json");
+    if (!fs.existsSync(packageJsonPath)) {
+      throw new UserError(
+        `The package.json file does not exist in the project path ${projectPath}. You must initialize a new project first before installing Stack.`
+      );
+    }
+
+    const packageJsonText = fs.readFileSync(packageJsonPath, "utf-8");
+    let packageJson;
+    try {
+      packageJson = JSON.parse(packageJsonText);
+    } catch (e) {
+      throw new UserError(`package.json file is not valid JSON: ${e}`);
+    }
+
+    return { packageJson };
+  },
+
+  async getProjectType({ packageJson }) {
+    if (typeFromArgs) return typeFromArgs;
+
+    const maybeNextProject = await Steps.maybeGetNextProjectInfo({ packageJson });
+    if (!("error" in maybeNextProject)) return "next";
+
+    const { type } = assertInteractive() && await inquirer.prompt([
+      {
+        type: "list",
+        name: "type",
+        message: "Which integration would you like to install?",
+        choices: [
+          { name: "None (vanilla JS, Node.js, etc)", value: "js" },
+          { name: "Next.js", value: "next" },
+        ]
+      }
+    ]);
+
+    return type;
+  },
+
+  async getStackPackageName(type, install = false) {
+    return {
+      "js": (install && process.env.STACK_JS_INSTALL_PACKAGE_NAME_OVERRIDE) || "@stackframe/js",
+      "next": (install && process.env.STACK_NEXT_INSTALL_PACKAGE_NAME_OVERRIDE) || "@stackframe/stack",
+    }[type] ?? throwErr("Unknown type in addStackPackage: " + type);
+  },
+
+  async addStackPackage(type) {
+    packagesToInstall.push(await Steps.getStackPackageName(type, true));  
+  },
+
+  async getNextProjectInfo({ packageJson }) {
+    const maybe = await Steps.maybeGetNextProjectInfo({ packageJson });
+    if ("error" in maybe) throw new UserError(maybe.error);
+    return maybe;
+  },
+
+  async maybeGetNextProjectInfo({ packageJson }) {
+    const projectPath = await getProjectPath();
+  
+    const nextVersionInPackageJson = packageJson?.dependencies?.["next"] ?? packageJson?.devDependencies?.["next"];
+    if (!nextVersionInPackageJson) {
+      return { error: `The project at ${projectPath} does not appear to be a Next.js project, or does not have 'next' installed as a dependency.` };
+    }
+    if (
+      !nextVersionInPackageJson.includes("14") &&
+      !nextVersionInPackageJson.includes("15") &&
+      nextVersionInPackageJson !== "latest"
+    ) {
+      return { error: `The project at ${projectPath} is using an unsupported version of Next.js (found ${nextVersionInPackageJson}).\n\nOnly Next.js 14 & 15 projects are currently supported. See Next's upgrade guide: https://nextjs.org/docs/app/building-your-application/upgrading/version-14` };
+    }
+  
+    const nextConfigPathWithoutExtension = path.join(projectPath, "next.config");
+    const nextConfigFileExtension = await findJsExtension(
+      nextConfigPathWithoutExtension
+    );
+    const nextConfigPath =
+      nextConfigPathWithoutExtension + "." + (nextConfigFileExtension ?? "js");
+    if (!fs.existsSync(nextConfigPath)) {
+      return { error: `Expected file at ${nextConfigPath}. Only Next.js projects are currently supported.` };
+    }
+
+    const hasSrcAppFolder = fs.existsSync(path.join(projectPath, "src/app"));
+    const srcPath = path.join(projectPath, hasSrcAppFolder ? "src" : "");
+    const appPath = path.join(srcPath, "app");
+    if (!fs.existsSync(appPath)) {
+      return { error: `The app path ${appPath} does not exist. Only the Next.js app router is supported.` };
+    }
+
+    const dryUpdateNextLayoutFileResult = await Steps.dryUpdateNextLayoutFile({ appPath, defaultExtension: "jsx" });
+
+    return {
+      type: "next",
+      srcPath,
+      appPath,
+      defaultExtension: dryUpdateNextLayoutFileResult.fileExtension,
+      indentation: dryUpdateNextLayoutFileResult.indentation,
+    };
+  },
+
+  async writeEnvVars(type) {
+    const projectPath = await getProjectPath();
+
+    // TODO: in non-Next environments, ask the user what method they prefer for envvars
+    if (type !== "next") return false;
+
+    const envLocalPath = path.join(projectPath, ".env.local");
+
+    const potentialEnvLocations = [
+      path.join(projectPath, ".env"),
+      path.join(projectPath, ".env.development"),
+      path.join(projectPath, ".env.default"),
+      path.join(projectPath, ".env.defaults"),
+      path.join(projectPath, ".env.example"),
+      envLocalPath,
+    ];
+    if (potentialEnvLocations.every((p) => !fs.existsSync(p))) {
+      laterWriteFile(
+        envLocalPath,
+        "# Stack Auth keys\n# Get these variables by creating a project on https://app.stack-auth.com.\nNEXT_PUBLIC_STACK_PROJECT_ID=\nNEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY=\nSTACK_SECRET_SERVER_KEY=\n"
+      );
+      return true;
+    }
+
+    return false;
+  },
+
+  async dryUpdateNextLayoutFile({ appPath, defaultExtension }) {
+    const layoutPathWithoutExtension = path.join(appPath, "layout");
+    const layoutFileExtension =
+      (await findJsExtension(layoutPathWithoutExtension)) ?? defaultExtension;
+    const layoutPath = layoutPathWithoutExtension + "." + layoutFileExtension;
+    const layoutContent =
+      (await readFile(layoutPath)) ??
+      throwErr(
+        `The layout file at ${layoutPath} does not exist. Stack requires a layout file to be present in the /app folder.`
+      );
+    const updatedLayoutResult =
+      (await getUpdatedLayout(layoutContent)) ??
+      throwErr(
+        "Unable to parse root layout file. Make sure it contains a <body> tag. If it still doesn't work, you may need to manually install Stack. See: https://nextjs.org/docs/app/building-your-application/routing/pages-and-layouts#root-layout-required"
+      );
+    const updatedLayoutContent = updatedLayoutResult.content;
+    return {
+      path: layoutPath,
+      updatedContent: updatedLayoutContent,
+      fileExtension: layoutFileExtension,
+      indentation: updatedLayoutResult.indentation
+    };
+  },
+
+  async updateNextLayoutFile(projectInfo) {
+    const res = await Steps.dryUpdateNextLayoutFile(projectInfo);
+    laterWriteFile(res.path, res.updatedContent);
+    return res;
+  },
+
+  async writeStackAppFile({ type, srcPath, defaultExtension, indentation }, clientOrServer) {
+    const packageName = await Steps.getStackPackageName(type);
+
+    const clientOrServerCap = {
+      client: "Client",
+      server: "Server",
+    }[clientOrServer] ?? throwErr("unknown clientOrServer " + clientOrServer);
+
+    const relativeStackAppPath = {
+      js: `stack/${clientOrServer}`,
+      next: "stack",
+    }[type] ?? throwErr("unknown type");
+
+    const stackAppPathWithoutExtension = path.join(srcPath, relativeStackAppPath);
+    const stackAppFileExtension =
+      (await findJsExtension(stackAppPathWithoutExtension)) ?? defaultExtension;
+    const stackAppPath =
+      stackAppPathWithoutExtension + "." + stackAppFileExtension;
+    const stackAppContent = await readFile(stackAppPath);
+    if (stackAppContent) {
+      if (!stackAppContent.includes("@stackframe/")) {
+        throw new UserError(
+          `A file at the path ${stackAppPath} already exists. Stack uses the stack.ts file to initialize the Stack SDK. Please remove the existing file and try again.`
+        );
+      }
+      throw new UserError(
+        `It seems that you already installed Stack in this project.`
+      );
+    }
+    laterWriteFileIfNotExists(
+      stackAppPath,
+      `
+${type === "next" ? `import "server-only";` : ""}
+
+import { Stack${clientOrServerCap}App } from ${JSON.stringify(packageName)};
+
+export const stack${clientOrServerCap}App = new Stack${clientOrServerCap}App({
+${indentation}tokenStore: ${type === "next" ? '"nextjs-cookie"' : (clientOrServer === "client" ? '"cookie"' : '"memory"')},
+});
+      `.trim() + "\n");
+  },
+
+  async writeNextHandlerFile(projectInfo) {
+    const handlerPathWithoutExtension = path.join(
+      projectInfo.appPath,
+      "handler/[...stack]/page"
+    );
+    const handlerFileExtension =
+      (await findJsExtension(handlerPathWithoutExtension)) ?? projectInfo.defaultExtension;
+    const handlerPath = handlerPathWithoutExtension + "." + handlerFileExtension;
+    const handlerContent = await readFile(handlerPath);
+    if (handlerContent && !handlerContent.includes("@stackframe/")) {
+      throw new UserError(
+        `A file at the path ${handlerPath} already exists. Stack uses the /handler path to handle incoming requests. Please remove the existing file and try again.`
+      );
+    }
+    laterWriteFileIfNotExists(
+      handlerPath,
+      `\nimport { stackServerApp } from "../../../stack";\n\nexport default function Handler(props${
+        handlerFileExtension.includes("ts") ? ": unknown" : ""
+      }) {\n${projectInfo.indentation}return <StackHandler fullPage app={stackServerApp} routeProps={props} />;\n}\n`
+    );
+  },
+
+  async writeNextLoadingFile(projectInfo) {
+    let loadingPathWithoutExtension = path.join(projectInfo.appPath, "loading");
+    const loadingFileExtension =
+      (await findJsExtension(loadingPathWithoutExtension)) ?? projectInfo.defaultExtension;
+    const loadingPath = loadingPathWithoutExtension + "." + loadingFileExtension;
+    laterWriteFileIfNotExists(
+      loadingPath,
+      `export default function Loading() {\n${projectInfo.indentation}// Stack uses React Suspense, which will render this page while user data is being fetched.\n${projectInfo.indentation}// See: https://nextjs.org/docs/app/api-reference/file-conventions/loading\n${projectInfo.indentation}return <></>;\n}\n`
+    );
+  },
+
+  async getPackageManager() {
+    if (packageManagerFromArgs) return { packageManager: packageManagerFromArgs };
+    const packageManager = await promptPackageManager();
+    const versionCommand = `${packageManager} --version`;
+  
+    try {
+      await shellNicelyFormatted(versionCommand, { shell: true, quiet: true });
+    } catch (err) {
+      console.error(err);
+      throw new UserError(
+        `Could not run the package manager command '${versionCommand}'. Please make sure ${packageManager} is installed on your system.`
+      );
+    }
+
+    return { packageManager };
+  },
+
+  async ensureReady(type) {
+    const projectPath = await getProjectPath();
+
+    const typeString = {
+      js: "JavaScript",
+      next: "Next.js"
+    }[type] ?? throwErr("unknown type");
+    const isReady = !!process.env.STACK_DISABLE_INTERACTIVE || (await inquirer.prompt([
+      {
+        type: "confirm",
+        name: "ready",
+        message: `Found a ${typeString} project at ${projectPath} — ready to install Stack Auth?`,
+        default: true,
+      },
+    ])).ready;
+    if (!isReady) {
+      throw new UserError("Installation aborted.");
+    }
+  },
+
+  async getServerOrClientOrBoth() {
+    if (isClient && isServer) return ["server", "client"];
+    if (isServer) return ["server"];
+    if (isClient) return ["client"];
+
+    return (await inquirer.prompt([{
+      type: "list", 
+      name: "type",
+      message: "Do you want to use Stack Auth on the server, or on the client?",
+      choices: [
+        { name: "Client (eg. Vite, HTML)", value: ["client"] },
+        { name: "Server (eg. Node.js)", value: ["server"] },
+        { name: "Both", value: ["server", "client"] }
+      ]
+    }])).type;
+  }
+};
+
 
 async function getUpdatedLayout(originalLayout) {
   let layout = originalLayout;
@@ -408,7 +601,7 @@ async function getProjectPath() {
     );
     if (askForPathModification) {
       savedProjectPath = (
-        await inquirer.prompt([
+        assertInteractive() && await inquirer.prompt([
           {
             type: "input",
             name: "newPath",
@@ -432,7 +625,7 @@ async function findJsExtension(fullPathWithoutExtension) {
   return null;
 }
 
-async function getPackageManager() {
+async function promptPackageManager() {
   const projectPath = await getProjectPath();
   const yarnLock = fs.existsSync(path.join(projectPath, "yarn.lock"));
   const pnpmLock = fs.existsSync(path.join(projectPath, "pnpm-lock.yaml"));
@@ -449,7 +642,7 @@ async function getPackageManager() {
     return "bun";
   }
 
-  const answers = await inquirer.prompt([
+  const answers = assertInteractive() && await inquirer.prompt([
     {
       type: "list",
       name: "packageManager",
@@ -461,19 +654,23 @@ async function getPackageManager() {
 }
 
 async function shellNicelyFormatted(command, { quiet, ...options }) {
-  console.log();
-  const ui = new inquirer.ui.BottomBar();
-  let dots = 4;
-  ui.updateBottomBar(
-    colorize.blue`Running command: ${command}...`
-  );
-  const interval = setInterval(() => {
-    if (!isDryRun) {
-      ui.updateBottomBar(
-        colorize.blue`Running command: ${command}${".".repeat(dots++ % 5)}`
-      );
-    }
-  }, 700);
+  let ui, interval;
+  if (!quiet) { 
+    console.log();
+    ui = new inquirer.ui.BottomBar();
+    let dots = 4;
+    ui.updateBottomBar(
+      colorize.blue`Running command: ${command}...`
+    );
+    interval = setInterval(() => {
+      if (!isDryRun) {
+        ui.updateBottomBar(
+          colorize.blue`Running command: ${command}${".".repeat(dots++ % 5)}`
+        );
+      }
+    }, 700);
+  }
+
   try {
     if (!isDryRun) {
       const child = child_process.spawn(command, options);
@@ -497,15 +694,22 @@ async function shellNicelyFormatted(command, { quiet, ...options }) {
 
     if (!quiet) {
       commandsExecuted.push(command);
+      ui.updateBottomBar(
+        `${colorize.green`√`} Command ${command} succeeded\n`
+      );
     }
+  } catch (e) {
+    if (!quiet) {
+      ui.updateBottomBar(
+        `${colorize.red`X`} Command ${command} failed\n`
+      );
+    }
+    throw e;
   } finally {
     clearTimeout(interval);
-    ui.updateBottomBar(
-      quiet
-        ? ""
-        : `${colorize.green`√`} Command ${command} succeeded\n`
-    );
-    ui.close();
+    if (!quiet) {
+      ui.close();
+    }
   }
 }
 
@@ -538,10 +742,29 @@ async function writeFile(fullPath, content) {
   }
 }
 
+function laterWriteFile(...args) {
+  writeFileHandlers.push(async () => {
+    await writeFile(...args);
+  })
+}
+
 async function writeFileIfNotExists(fullPath, content) {
   if (!fs.existsSync(fullPath)) {
     await writeFile(fullPath, content);
   }
+}
+
+function laterWriteFileIfNotExists(...args) {
+  writeFileHandlers.push(async () => {
+    await writeFileIfNotExists(...args);
+  })
+}
+
+function assertInteractive() {
+  if (process.env.STACK_DISABLE_INTERACTIVE) {
+    throw new UserError("STACK_DISABLE_INTERACTIVE is set, but wizard requires interactivity to complete. Make sure you supplied all required command line arguments!");
+  }
+  return true;
 }
 
 function throwErr(message) {
@@ -554,4 +777,21 @@ export function templateIdentity(strings, ...values) {
   if (values.length !== strings.length - 1) throw new Error("Invalid number of values; must be one less than strings");
 
   return strings.slice(1).reduce((result, string, i) => `${result}${values[i] ?? "n/a"}${string}`, strings[0]);
+}
+
+async function clearStdin() {
+  await new Promise((resolve) => {
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+      process.stdin.removeAllListeners('data');
+
+      const flush = () => {
+          while (process.stdin.read() !== null) {}
+          process.stdin.setRawMode(false);
+          resolve();
+      };
+
+      // Add a small delay to allow any buffered input to clear
+      setTimeout(flush, 10);
+  });
 }
