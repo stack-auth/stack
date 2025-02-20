@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "dotenv -e .env.development -e .env.local -- tsx node.ts",
     "dev": "dotenv -e .env.development -e .env.local -- vite --port 8119"
   },
   "keywords": [],

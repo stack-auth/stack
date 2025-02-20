@@ -46,11 +46,14 @@ isReactServer = sc.isReactServer;
 // NextNavigation.useRouter does not exist in react-server environments and some bundlers try to be helpful and throw a warning. Ignore the warning.
 const NextNavigation = scrambleDuringCompileTime(NextNavigationUnscrambled);
 
-const clientVersion = process.env.STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION ?? throwErr("Missing STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION. This should be a compile-time variable set by Stack's build system.");
+const clientVersion = "STACK_COMPILE_TIME_CLIENT_PACKAGE_VERSION_SENTINEL";
+if (clientVersion.startsWith("STACK_COMPILE_TIME")) {
+  throw new StackAssertionError("Client version was not replaced. Something went wrong during build!");
+}
 
 // hack to make sure process is defined in non-node environments
 // NEXT_LINE_PLATFORM js
-process = (globalThis as any).process ?? { env: {} };
+const process = (globalThis as any).process ?? { env: {} };
 
 type RequestLike = {
   headers: {
