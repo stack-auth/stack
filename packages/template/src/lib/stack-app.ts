@@ -2475,7 +2475,6 @@ class _StackAdminAppImpl<HasTokenStore extends boolean, ProjectId extends string
         credentialEnabled: data.config.credential_enabled,
         magicLinkEnabled: data.config.magic_link_enabled,
         passkeyEnabled: data.config.passkey_enabled,
-        legacyGlobalJwtSigning: data.config.legacy_global_jwt_signing,
         clientTeamCreationEnabled: data.config.client_team_creation_enabled,
         clientUserDeletionEnabled: data.config.client_user_deletion_enabled,
         allowLocalhost: data.config.allow_localhost,
@@ -3187,7 +3186,6 @@ function adminProjectUpdateOptionsToCrud(options: AdminProjectUpdateOptions): Pr
       client_user_deletion_enabled: options.config?.clientUserDeletionEnabled,
       team_creator_default_permissions: options.config?.teamCreatorDefaultPermissions,
       team_member_default_permissions: options.config?.teamMemberDefaultPermissions,
-      legacy_global_jwt_signing: options.config?.legacyGlobalJwtSigning,
     },
   };
 }
@@ -3226,7 +3224,6 @@ export type AdminProjectConfig = {
   readonly passkeyEnabled: boolean,
   readonly clientTeamCreationEnabled: boolean,
   readonly clientUserDeletionEnabled: boolean,
-  readonly legacyGlobalJwtSigning: boolean,
   readonly allowLocalhost: boolean,
   readonly oauthProviders: AdminOAuthProviderConfig[],
   readonly emailConfig?: AdminEmailConfig,
@@ -3285,7 +3282,6 @@ export type AdminProjectConfigUpdateOptions = {
   allowLocalhost?: boolean,
   createTeamOnSignUp?: boolean,
   emailConfig?: AdminEmailConfig,
-  legacyGlobalJwtSigning?: false,
   teamCreatorDefaultPermissions?: { id: string }[],
   teamMemberDefaultPermissions?: { id: string }[],
 };
