@@ -1,31 +1,11 @@
-import { StackClientApp } from "@stackframe/js";
+import { stackClientApp } from "./stack";
 
-const stackClientApp = new StackClientApp({
-  baseUrl: import.meta.env.VITE_STACK_API_URL,
-  projectId: import.meta.env.VITE_STACK_PROJECT_ID,
-  publishableClientKey: import.meta.env.VITE_STACK_PUBLISHABLE_CLIENT_KEY,
-  tokenStore: "cookie",
-});
-
-const updateUIState = (user: any | null) => {
-  const loginForm = document.getElementById("loginForm");
-  const signUpForm = document.getElementById("signUpForm");
-  const userInfo = document.getElementById("userInfo");
-  const userEmailSpan = document.getElementById("userEmail");
-
+// Check if user is already signed in
+stackClientApp.getUser().then((user) => {
   if (user) {
-    loginForm?.classList.add("hidden");
-    signUpForm?.classList.add("hidden");
-    userInfo?.classList.remove("hidden");
-    if (userEmailSpan) userEmailSpan.textContent = user.primaryEmail || "";
-  } else {
-    loginForm?.classList.remove("hidden");
-    signUpForm?.classList.add("hidden");
-    userInfo?.classList.add("hidden");
+    window.location.href = "/";
   }
-};
-
-stackClientApp.getUser().then(updateUIState);
+});
 
 document.getElementById("showSignUp")?.addEventListener("click", (e) => {
   e.preventDefault();
@@ -48,12 +28,10 @@ document.getElementById("signIn")?.addEventListener("click", async () => {
     password: passwordInput.value,
   });
 
-  const user = await stackClientApp.getUser();
-  updateUIState(user);
-  passwordInput.value = "";
-
   if (result.status === "error") {
     alert("Sign in failed. Please check your email and password and try again.");
+  } else {
+    window.location.href = "/";
   }
 });
 
@@ -76,19 +54,9 @@ document.getElementById("signUp")?.addEventListener("click", async () => {
     password: passwordInput.value,
   });
 
-  const user = await stackClientApp.getUser();
-  updateUIState(user);
-  passwordInput.value = "";
-
   if (signInResult.status === "error") {
     alert("Account created but sign in failed. Please sign in manually.");
-  }
-});
-
-document.getElementById("signOut")?.addEventListener("click", async () => {
-  const user = await stackClientApp.getUser();
-  if (user) {
-    await user.signOut();
-    updateUIState(null);
+  } else {
+    window.location.href = "/";
   }
 });
