@@ -21,23 +21,12 @@ const stackClientApp = new StackClientApp({
   },
 });
 
-const updateUIState = (user: any | null) => {
-  const loginButtons = document.getElementById("loginButtons");
-  const userInfo = document.getElementById("userInfo");
-  const userEmailSpan = document.getElementById("userEmail");
-
-  if (user) {
-    loginButtons?.classList.add("hidden");
-    userInfo?.classList.remove("hidden");
-    if (userEmailSpan) userEmailSpan.textContent = user.primaryEmail || "";
-  } else {
-    loginButtons?.classList.remove("hidden");
-    userInfo?.classList.add("hidden");
-  }
-};
-
 // Check if user is already signed in
-stackClientApp.getUser().then(updateUIState);
+stackClientApp.getUser().then((user) => {
+  if (user) {
+    window.location.href = "/";
+  }
+});
 
 // Handle Google Sign In
 document.getElementById("googleSignIn")?.addEventListener("click", async () => {
@@ -58,12 +47,22 @@ window.addEventListener("load", async () => {
     
     if (code && state) {
       const user = await stackClientApp.callOAuthCallback();
-      updateUIState(user);
+      if (user) {
+        window.location.href = "/";
+      }
       // Clean up URL parameters
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   } catch (error) {
     console.error("Failed to handle OAuth redirect:", error);
     alert("Authentication failed. Please try again.");
+  }
+});
+
+// Handle Sign Out
+document.getElementById("signOut")?.addEventListener("click", async () => {
+  const user = await stackClientApp.getUser();
+  if (user) {
+    await user.signOut();
   }
 }); 

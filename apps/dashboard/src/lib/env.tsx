@@ -2,7 +2,7 @@
 
 // hack to make sure process is defined in non-node environments
 // NEXT_LINE_PLATFORM js
-process = (globalThis as any).process ?? { env: {} };
+const process = (globalThis as any).process ?? { env: {} };
 
 const _inlineEnvVars = {
   NEXT_PUBLIC_STACK_API_URL: process.env.NEXT_PUBLIC_STACK_API_URL,

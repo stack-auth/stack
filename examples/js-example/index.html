@@ -4,15 +4,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stack Auth Examples</title>
+  <style>
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
   <h1>Stack Auth Examples</h1>
-  <p>Choose an authentication example:</p>
+  
+  <div id="authOptions">
+    <p>Choose an authentication example:</p>
+    <ul>
+      <li><a href="/credential.html">Email/Password Authentication</a></li>
+      <li><a href="/oauth.html">OAuth Authentication</a></li>
+    </ul>
+  </div>
 
-  <ul>
-    <li><a href="/credential.html">Email/Password Authentication</a></li>
-    <li><a href="/oauth.html">OAuth Authentication</a></li>
-  </ul>
+  <div id="userInfo" class="hidden">
+    <h2>User Information</h2>
+    <p>Email: <span id="userEmail"></span></p>
+    <button id="signOut">Sign Out</button>
+  </div>
+
+  <script type="module" src="/index-script.ts"></script>
 </body>
 </html>
 

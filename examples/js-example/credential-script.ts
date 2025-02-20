@@ -18,25 +18,12 @@ const stackClientApp = new StackClientApp({
   tokenStore: "cookie",
 });
 
-const updateUIState = (user: any | null) => {
-  const loginForm = document.getElementById("loginForm");
-  const signUpForm = document.getElementById("signUpForm");
-  const userInfo = document.getElementById("userInfo");
-  const userEmailSpan = document.getElementById("userEmail");
-
+// Check if user is already signed in
+stackClientApp.getUser().then((user) => {
   if (user) {
-    loginForm?.classList.add("hidden");
-    signUpForm?.classList.add("hidden");
-    userInfo?.classList.remove("hidden");
-    if (userEmailSpan) userEmailSpan.textContent = user.primaryEmail || "";
-  } else {
-    loginForm?.classList.remove("hidden");
-    signUpForm?.classList.add("hidden");
-    userInfo?.classList.add("hidden");
+    window.location.href = "/";
   }
-};
-
-stackClientApp.getUser().then(updateUIState);
+});
 
 document.getElementById("showSignUp")?.addEventListener("click", (e) => {
   e.preventDefault();
@@ -59,12 +46,10 @@ document.getElementById("signIn")?.addEventListener("click", async () => {
     password: passwordInput.value,
   });
 
-  const user = await stackClientApp.getUser();
-  updateUIState(user);
-  passwordInput.value = "";
-
   if (result.status === "error") {
     alert("Sign in failed. Please check your email and password and try again.");
+  } else {
+    window.location.href = "/";
   }
 });
 
@@ -87,12 +72,10 @@ document.getElementById("signUp")?.addEventListener("click", async () => {
     password: passwordInput.value,
   });
 
-  const user = await stackClientApp.getUser();
-  updateUIState(user);
-  passwordInput.value = "";
-
   if (signInResult.status === "error") {
     alert("Account created but sign in failed. Please sign in manually.");
+  } else {
+    window.location.href = "/";
   }
 });
 
@@ -100,6 +83,5 @@ document.getElementById("signOut")?.addEventListener("click", async () => {
   const user = await stackClientApp.getUser();
   if (user) {
     await user.signOut();
-    updateUIState(null);
   }
 });
