@@ -1,9 +1,9 @@
 'use client';
 
 import { runAsynchronously } from '@stackframe/stack-shared/dist/utils/promises';
-import { Skeleton, StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography, cn } from '@stackframe/stack-ui';
-import { Suspense, useEffect } from 'react';
-import { useStackApp, useUser } from '..';
+import { Button, Skeleton, StyledLink, Tabs, TabsContent, TabsList, TabsTrigger, Typography, cn } from '@stackframe/stack-ui';
+import { Suspense, useEffect, useState } from 'react';
+import { OAuthButton, useStackApp, useUser } from '..';
 import { CredentialSignIn } from '../components/credential-sign-in';
 import { CredentialSignUp } from '../components/credential-sign-up';
 import { MaybeFullPage } from '../components/elements/maybe-full-page';
@@ -69,6 +69,8 @@ function Inner (props: Props) {
   const project = props.mockProject || projectFromHook;
   const { t } = useTranslation();
 
+  const [lastUsedMethod, setLastUsedMethod] = useState<string | null>(localStorage.getItem('_STACK_AUTH.lastUsed'));
+
   useEffect(() => {
     if (props.automaticRedirect) {
       if (user && !props.mockProject) {
@@ -116,42 +118,61 @@ function Inner (props: Props) {
             </Typography>
           )}
         </div>
-        {(hasOAuthProviders || hasPasskey) && (
+        {
+          lastUsedMethod !== null &&
           <div className='gap-4 flex flex-col items-stretch stack-scope'>
-            {hasOAuthProviders && <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />}
-            {hasPasskey && <PasskeyButton type={props.type} />}
+            <OAuthButton type={props.type} provider={lastUsedMethod} />
+            <Button
+              onClick={async () => {
+                localStorage.removeItem('_STACK_AUTH.lastUsed');
+                setLastUsedMethod(null);
+              }}
+              variant="secondary"
+            >
+              Try another login method?
+            </Button>
           </div>
-        )}
+        }
+        {lastUsedMethod === null &&
+          <>
+            {(hasOAuthProviders || hasPasskey) && (
+              <div className='gap-4 flex flex-col items-stretch stack-scope'>
+                {hasOAuthProviders && <OAuthButtonGroup type={props.type} mockProject={props.mockProject} />}
+                {hasPasskey && <PasskeyButton type={props.type} />}
+              </div>
+            )}
 
-        {enableSeparator && <SeparatorWithText text={t('Or continue with')} />}
-        {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
-          <Tabs defaultValue={props.firstTab || 'magic-link'}>
-            <TabsList className={cn('w-full mb-2', {
-              'flex-row-reverse': props.firstTab === 'password'
-            })}>
-              <TabsTrigger value='magic-link' className='flex-1'>{t("Email")}</TabsTrigger>
-              <TabsTrigger value='password' className='flex-1'>{t("Email & Password")}</TabsTrigger>
-            </TabsList>
-            <TabsContent value='magic-link'>
+            {enableSeparator && <SeparatorWithText text={t('Or continue with')} />}
+            {project.config.credentialEnabled && project.config.magicLinkEnabled ? (
+              <Tabs defaultValue={props.firstTab || 'magic-link'}>
+                <TabsList className={cn('w-full mb-2', {
+                  'flex-row-reverse': props.firstTab === 'password'
+                })}>
+                  <TabsTrigger value='magic-link' className='flex-1'>{t("Email")}</TabsTrigger>
+                  <TabsTrigger value='password' className='flex-1'>{t("Email & Password")}</TabsTrigger>
+                </TabsList>
+                <TabsContent value='magic-link'>
+                  <MagicLinkSignIn/>
+                </TabsContent>
+                <TabsContent value='password'>
+                  {props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>}
+                </TabsContent>
+              </Tabs>
+            ) : project.config.credentialEnabled ? (
+              props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>
+            ) : project.config.magicLinkEnabled ? (
               <MagicLinkSignIn/>
-            </TabsContent>
-            <TabsContent value='password'>
-              {props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>}
-            </TabsContent>
-          </Tabs>
-        ) : project.config.credentialEnabled ? (
-          props.type === 'sign-up' ? <CredentialSignUp noPasswordRepeat={props.noPasswordRepeat} /> : <CredentialSignIn/>
-        ) : project.config.magicLinkEnabled ? (
-          <MagicLinkSignIn/>
-        ) : !(hasOAuthProviders || hasPasskey) ? <Typography variant={"destructive"} className="text-center">{t("No authentication method enabled.")}</Typography> : null}
-        {props.extraInfo && (
-          <div className={cn('flex flex-col items-center text-center text-sm text-gray-500', {
-            'mt-2': project.config.credentialEnabled || project.config.magicLinkEnabled,
-            'mt-6': !(project.config.credentialEnabled || project.config.magicLinkEnabled),
-          })}>
-            <div>{props.extraInfo}</div>
-          </div>
-        )}
+            ) : !(hasOAuthProviders || hasPasskey) ? <Typography variant={"destructive"} className="text-center">{t("No authentication method enabled.")}</Typography> : null}
+            {props.extraInfo && (
+              <div className={cn('flex flex-col items-center text-center text-sm text-gray-500', {
+                'mt-2': project.config.credentialEnabled || project.config.magicLinkEnabled,
+                'mt-6': !(project.config.credentialEnabled || project.config.magicLinkEnabled),
+              })}>
+                <div>{props.extraInfo}</div>
+              </div>
+            )}
+          </>
+        }
       </div>
     </MaybeFullPage>
   );

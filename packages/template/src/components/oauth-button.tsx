@@ -161,7 +161,10 @@ export function OAuthButton({
     <>
       <style>{styleSheet}</style>
       <Button
-        onClick={() => stackApp.signInWithOAuth(provider)}
+        onClick={async () => {
+          localStorage.setItem('_STACK_AUTH.lastUsed', provider);
+          await stackApp.signInWithOAuth(provider);
+        }}
         className={`stack-oauth-button-${styleId} stack-scope`}
       >
         <div className='flex items-center w-full gap-4'>
