@@ -76,7 +76,6 @@ export async function decodeAccessToken(accessToken: string) {
 export async function generateAccessToken(options: {
   tenancy: Tenancy,
   userId: string,
-  useLegacyGlobalJWT: boolean,
 }) {
   await logEvent(
     [SystemEventTypes.UserActivity],
@@ -87,26 +86,17 @@ export async function generateAccessToken(options: {
     }
   );
 
-  if (options.useLegacyGlobalJWT) {
-    return await legacySignGlobalJWT(
-      jwtIssuer,
-      { projectId: options.tenancy.project.id, sub: options.userId, branchId: options.tenancy.branchId },
-      getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "10min")
-    );
-  } else {
-    return await signJWT({
-      issuer: jwtIssuer,
-      audience: options.tenancy.project.id,
-      payload: { sub: options.userId, branchId: options.tenancy.branchId },
-      expirationTime: getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "10min"),
-    });
-  }
+  return await signJWT({
+    issuer: jwtIssuer,
+    audience: options.tenancy.project.id,
+    payload: { sub: options.userId, branchId: options.tenancy.branchId },
+    expirationTime: getEnvVariable("STACK_ACCESS_TOKEN_EXPIRATION_TIME", "10min"),
+  });
 }
 
 export async function createAuthTokens(options: {
   tenancy: Tenancy,
   projectUserId: string,
-  useLegacyGlobalJWT: boolean,
   expiresAt?: Date,
 }) {
   options.expiresAt ??= new Date(Date.now() + 1000 * 60 * 60 * 24 * 365);
@@ -115,7 +105,6 @@ export async function createAuthTokens(options: {
   const accessToken = await generateAccessToken({
     tenancy: options.tenancy,
     userId: options.projectUserId,
-    useLegacyGlobalJWT: options.useLegacyGlobalJWT,
   });
 
   await prismaClient.projectUserRefreshToken.create({

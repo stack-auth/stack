@@ -106,7 +106,6 @@ it("lists oauth providers", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [{ "id": "google" }],
           "id": "<stripped UUID>",
-          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [
             {

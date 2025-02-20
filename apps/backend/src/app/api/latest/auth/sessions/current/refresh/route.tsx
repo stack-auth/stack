@@ -45,7 +45,6 @@ export const POST = createSmartRouteHandler({
     const accessToken = await generateAccessToken({
       tenancy,
       userId: sessionObj.projectUserId,
-      useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
     });
 
     return {

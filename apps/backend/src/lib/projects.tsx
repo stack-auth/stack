@@ -130,7 +130,6 @@ export function projectPrismaToCrud(
       create_team_on_sign_up: prisma.config.createTeamOnSignUp,
       client_team_creation_enabled: prisma.config.clientTeamCreationEnabled,
       client_user_deletion_enabled: prisma.config.clientUserDeletionEnabled,
-      legacy_global_jwt_signing: prisma.config.legacyGlobalJwtSigning,
       domains: prisma.config.domains
         .sort((a: any, b: any) => a.createdAt.getTime() - b.createdAt.getTime())
         .map((domain) => ({
@@ -425,7 +424,6 @@ export function getProjectQuery(projectId: string): RawQuery<ProjectsCrud["Admin
           create_team_on_sign_up: row.ProjectConfig.createTeamOnSignUp,
           client_team_creation_enabled: row.ProjectConfig.clientTeamCreationEnabled,
           client_user_deletion_enabled: row.ProjectConfig.clientUserDeletionEnabled,
-          legacy_global_jwt_signing: row.ProjectConfig.legacyGlobalJwtSigning,
           domains: row.ProjectConfig.Domains
             .sort((a: any, b: any) => new Date(a.createdAt + "Z").getTime() - new Date(b.createdAt + "Z").getTime())
             .map((domain: any) => ({

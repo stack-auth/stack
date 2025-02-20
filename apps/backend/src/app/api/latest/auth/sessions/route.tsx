@@ -46,7 +46,6 @@ export const POST = createSmartRouteHandler({
     const { refreshToken, accessToken } = await createAuthTokens({
       tenancy,
       projectUserId: user.id,
-      useLegacyGlobalJWT: tenancy.config.legacy_global_jwt_signing,
       expiresAt: new Date(Date.now() + expiresInMillis),
     });
 

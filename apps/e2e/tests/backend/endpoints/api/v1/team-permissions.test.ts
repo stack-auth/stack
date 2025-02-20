@@ -194,7 +194,6 @@ it("can customize default team permissions", async ({ expect }) => {
           "email_config": { "type": "shared" },
           "enabled_oauth_providers": [],
           "id": "<stripped UUID>",
-          "legacy_global_jwt_signing": false,
           "magic_link_enabled": false,
           "oauth_providers": [],
           "passkey_enabled": false,
